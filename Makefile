@@ -4,7 +4,7 @@ BPDOC=doc
 .PHONY: doc clean
 
 doc:
-	(cd $(BPDOC); make html)
+	(cd $(BPDOC); make html linkcheck)
 
 dist:	clean doc 
 	python setup.py sdist --formats=gztar,zip
