@@ -1,6 +1,23 @@
 BuildingsPy Changelog
 ---------------------
 
+Version 1.2.0, xxxx, 2013 -- Release 1.2
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- Changed buildingspy.development.unittest so that 
+  the string 'svn-id' is no longer search in, 
+  or written to, the reference result files.
+- Improved error reporting of the package that runs
+  the unit tests.
+- Updated buildingspy.development.unittest to allow testing
+  of other libraries than the Buildings library.
+
+
+Version 1.1.2, January 8, 2013 -- Release 1.1
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- Fixed bug in Simulator.py to allow setting Modelica parameters
+  that are of type string.
+
+
 Version 1.1.1, October 9, 2012 -- Release 1.1
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 - Improved error reporting in unittest.py
