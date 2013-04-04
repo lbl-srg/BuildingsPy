@@ -879,12 +879,12 @@ class Tester:
 
         fil = open(errorFile, "r")
         iFal=0    # Number of false return values
-        nNumDer=0 # Number of numerical derivatives
+        iNumDer=0 # Number of numerical derivatives
         for lin in fil.readlines():
                 if (lin.count("false") > 0):
                         iFal=iFal+1
                 if __haveNumericalDerivatives(lin):
-                    nNumDer = nNumDer + 1
+                    iNumDer = iNumDer + 1
 
         fil.close() #Closes the file (read session)
         if (iFal>0):
