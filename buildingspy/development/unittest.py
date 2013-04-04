@@ -864,15 +864,35 @@ class Tester:
     def __checkSimulationError(self, errorFile):
         import sys
 
+        def __haveNumericalDerivatives(lin):
+            ''' Return `True` if the argument contains
+            `  Number of numerical Jacobians: ` followed by                non-zero number
+            
+            :param: lin A line from the dymola command line output
+            '''
+            s=lin.strip().split("Number of numerical Jacobians:")
+            if len(s) > 1:
+                nNumDer=s[-1].strip()
+                if nNumDer != '0':
+                    return True
+            return False
+
         fil = open(errorFile, "r")
-        i=0
+        iFal=0    # Number of false return values
+        nNumDer=0 # Number of numerical derivatives
         for lin in fil.readlines():
                 if (lin.count("false") > 0):
-                        i=i+1
+                        iFal=iFal+1
+                if __haveNumericalDerivatives(lin):
+                    nNumDer = nNumDer + 1
+
         fil.close() #Closes the file (read session)
-        if (i>0):
-                self.__reporter.writeError("Unit tests had " + str(i) + " error(s).\n" + \
+        if (iFal>0):
+                self.__reporter.writeError("Unit tests had " + str(iFal) + " error(s).\n" + \
                                                "Search 'dymola.log' for 'false' to see details.\n")
+        if (iNumDer>0):
+                self.__reporter.writeError("Unit tests had " + str(iNumDer) + " numerical Jacobians.\n" + \
+                                               "Search 'dymola.log' for 'Number of numerical Jacobians:' to see details.\n")
 
         self.__reporter.writeOutput("Script that runs unit tests had " + \
                                         str(self.__reporter.getNumberOfWarnings()) + \
@@ -959,6 +979,9 @@ class Tester:
                          + str(iPro+1) + " of " + str(self.__nPro) + "\n")
             runFil.write("// Do not edit.\n")
             runFil.write("openModel(\"package.mo\");\n")
+            # Add a flag so that translation info appears in console output.
+            # This allows checking for numerical derivatives.
+            runFil.write("Advanced.TranslationInCommandLog := true;\n")
             runFil.write("Modelica.Utilities.Files.remove(\"dymola.log\");\n")
             # Write unit tests for this process
             for i in range(iPro, nTes, self.__nPro):
