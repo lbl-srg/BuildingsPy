@@ -272,7 +272,7 @@ class Tester:
         self.__excludeMos. During this check, all backward slashes will
         be replaced by a forward slash.
     '''
-        pos=fileName.find('.mos')
+        pos=fileName.endswith('.mos')
         if pos > -1: # This is an mos file
             # Check whether the file is in the exclude list
             fileName = fileName.replace('\\', '/')
@@ -866,7 +866,7 @@ class Tester:
 
         def __haveNumericalDerivatives(lin):
             ''' Return `True` if the argument contains
-            `  Number of numerical Jacobians: ` followed by                non-zero number
+            `  Number of numerical Jacobians: ` followed by a non-zero number
             
             :param: lin A line from the dymola command line output
             '''
@@ -877,14 +877,25 @@ class Tester:
                     return True
             return False
 
+        def __haveUnusedConnectors(lin):
+            ''' Return `True` if the argument contains
+            `Warning: The following connector variables are not used in the model`
+            
+            :param: lin A line from the dymola command line output
+            '''
+            return "Warning: The following connector variables are not used in the model" in lin
+
         fil = open(errorFile, "r")
         iFal=0    # Number of false return values
+        iUnuCon=0 # Number of unused connector variables
         iNumDer=0 # Number of numerical derivatives
         for lin in fil.readlines():
                 if (lin.count("false") > 0):
                         iFal=iFal+1
                 if __haveNumericalDerivatives(lin):
                     iNumDer = iNumDer + 1
+                if __haveUnusedConnectors(lin):
+                    iUnuCon = iUnuCon + 1
 
         fil.close() #Closes the file (read session)
         if (iFal>0):
@@ -893,6 +904,9 @@ class Tester:
         if (iNumDer>0):
                 self.__reporter.writeError("Unit tests had " + str(iNumDer) + " numerical Jacobians.\n" + \
                                                "Search 'dymola.log' for 'Number of numerical Jacobians:' to see details.\n")
+        if (iUnuCon>0):
+                self.__reporter.writeWarning("Unit tests had " + str(iUnuCon) + " unused connector variables.\n" + \
+                                               "Search 'dymola.log' for 'Warning: The following connector variables are not used in the model' to see details.\n")
 
         self.__reporter.writeOutput("Script that runs unit tests had " + \
                                         str(self.__reporter.getNumberOfWarnings()) + \
