@@ -272,7 +272,7 @@ class Tester:
         self.__excludeMos. During this check, all backward slashes will
         be replaced by a forward slash.
     '''
-        pos=fileName.find('.mos')
+        pos=fileName.endswith('.mos')
         if pos > -1: # This is an mos file
             # Check whether the file is in the exclude list
             fileName = fileName.replace('\\', '/')
@@ -866,7 +866,7 @@ class Tester:
 
         def __haveNumericalDerivatives(lin):
             ''' Return `True` if the argument contains
-            `  Number of numerical Jacobians: ` followed by                non-zero number
+            `  Number of numerical Jacobians: ` followed by a non-zero number
             
             :param: lin A line from the dymola command line output
             '''
@@ -877,14 +877,25 @@ class Tester:
                     return True
             return False
 
+        def __haveUnusedConnectors(lin):
+            ''' Return `True` if the argument contains
+            `Warning: The following connector variables are not used in the model`
+            
+            :param: lin A line from the dymola command line output
+            '''
+            return "Warning: The following connector variables are not used in the model" in lin
+
         fil = open(errorFile, "r")
         iFal=0    # Number of false return values
+        iUnuCon=0 # Number of unused connector variables
         iNumDer=0 # Number of numerical derivatives
         for lin in fil.readlines():
                 if (lin.count("false") > 0):
                         iFal=iFal+1
                 if __haveNumericalDerivatives(lin):
                     iNumDer = iNumDer + 1
+                if __haveUnusedConnectors(lin):
+                    iUnuCon = iUnuCon + 1
 
         fil.close() #Closes the file (read session)
         if (iFal>0):
@@ -893,6 +904,9 @@ class Tester:
         if (iNumDer>0):
                 self.__reporter.writeError("Unit tests had " + str(iNumDer) + " numerical Jacobians.\n" + \
                                                "Search 'dymola.log' for 'Number of numerical Jacobians:' to see details.\n")
+        if (iUnuCon>0):
+                self.__reporter.writeWarning("Unit tests had " + str(iUnuCon) + " unused connector variables.\n" + \
+                                               "Search 'dymola.log' for 'Warning: The following connector variables are not used in the model' to see details.\n")
 
         self.__reporter.writeOutput("Script that runs unit tests had " + \
                                         str(self.__reporter.getNumberOfWarnings()) + \
@@ -934,6 +948,35 @@ class Tester:
         print "          blocks   : ", str(iBlo)
         print "          functions: ", str(iFun)
 
+    def __getModelCheckCommand(self, mosFilNam):
+        ''' Return lines that conduct a model check in pedantic mode.
+        
+        :param mosFilNam: The name of the ``*.mos`` file
+
+        This function return a command of the form 
+        ``checkModel("Buildings.Controls.Continuous.Examples.LimPID")``
+        '''
+
+        def getModelName(mosFil, line):
+            try:
+                iSta = line.index('\"') + 1
+                iEnd = line.index('\"', iSta)
+                return line[iSta:iEnd]
+            except ValueError as e:
+                em = str(e) + "\n"
+                em += "Did not find model name in '%s'\n" % mosFil
+                self.__reporter.writeError(em)
+                raise ValueError(em)
+
+        fil = open(mosFilNam, "r+")
+        retVal = None
+        for lin in fil.readlines():
+            if "simulateModel" in lin:
+                retVal = "checkModel(\"%s\")" % getModelName(mosFilNam, lin)
+                break;
+        fil.close()
+        return retVal
+
     def __removePlotCommands(self, mosFilNam):
         ''' Remove all plot commands from the mos file.
         
@@ -941,7 +984,7 @@ class Tester:
 
         This function removes all plot commands from the file ``mosFilNam``.
         This allows to work around a bug in Dymola 2012 which can cause an exception
-        from the Windows operating system, or which can cause Dymola to hang on Linux
+        from the Windows operating system, or which can cause Dymola to hang on Linux.
         '''
         fil = open(mosFilNam, "r+")
         lines = fil.readlines()
@@ -983,19 +1026,25 @@ class Tester:
             # This allows checking for numerical derivatives.
             runFil.write("Advanced.TranslationInCommandLog := true;\n")
             runFil.write("Modelica.Utilities.Files.remove(\"dymola.log\");\n")
+            # Store the variable for pedantic mode
+            runFil.write("OriginalAdvancedPedanticModelica = Advanced.PedanticModelica;\n")
             # Write unit tests for this process
             for i in range(iPro, nTes, self.__nPro):
                 # Check if this mos file should be simulated
                 if self.__data[i].simulateFile():
-                    # Write line for run script
-                    runFil.write("RunScript(\"Resources/Scripts/Dymola/" 
-                                 + self.__data[i].getScriptDirectory() + "/" 
-                                 + self.__data[i].getScriptFile() + "\");\n")
                     self.__data[i].setResultDirectory(self.__temDir[iPro])
                     mosFilNam = os.path.join(self.__temDir[iPro], self.__libraryName, 
                                              "Resources", "Scripts", "Dymola",
                                              self.__data[i].getScriptDirectory(),
                                              self.__data[i].getScriptFile())
+                    # Add checkModel(...) in pedantic mode
+                    runFil.write("Advanced.PedanticModelica = true;\n")
+                    runFil.write("%s;\n" % self.__getModelCheckCommand(mosFilNam))
+                    runFil.write("Advanced.PedanticModelica = OriginalAdvancedPedanticModelica;\n")
+                    # Write line for run script
+                    runFil.write("RunScript(\"Resources/Scripts/Dymola/" 
+                                 + self.__data[i].getScriptDirectory() + "/" 
+                                 + self.__data[i].getScriptFile() + "\");\n")
                     self.__removePlotCommands(mosFilNam)
                     nUniTes = nUniTes + 1
             runFil.write("// Save log file\n")
