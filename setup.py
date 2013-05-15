@@ -12,7 +12,7 @@ setup(
     author = "Michael Wetter",
     author_email = "mwetter@lbl.gov",
     description = ("Package for running and post-processing models from the Modelica Buildings library"),
-    long_description = read('README'),
+    long_description = read('README.rst'),
     license = "3-clause BSD",
     keywords = "modelica dymola openmodelica mat",
     url = "http://simulationresearch.lbl.gov/modelica/",
