@@ -1,8 +1,8 @@
 BuildingsPy Changelog
 ---------------------
 
-Version 1.2.0, xxxx, 2013 -- Release 1.2
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Version 1.2.0, May 15, 2013 -- Release 1.2
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 - Changed buildingspy.development.unittest so that 
   the string 'svn-id' is no longer searched in, 
   or written to, the reference result files.
