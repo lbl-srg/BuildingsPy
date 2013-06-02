@@ -53,8 +53,7 @@ class Validator:
         for root, dirs, files in os.walk(scrPat):
             for moFil in files:
                 # find the .mo file
-                pos=moFil.endswith('.mo')
-                if pos > -1:
+                if moFil.endswith('.mo'):
                     moFulNam = os.path.join(root, moFil)
                     doc, err = self.validateHTML(moFulNam)
                     if len(err) > 0:
