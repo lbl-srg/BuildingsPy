@@ -222,7 +222,7 @@ class Tester:
 
             If some modules are missing, then an `ImportError` is raised.
         '''
-        requiredModules = ['buildingspy', 'matplotlib.pyplot', 'numpy', 'scipy.io']
+        requiredModules = ['buildingspy', 'matplotlib.pyplot', 'numpy', 'scipy.io', 'tidylib']
         missingModules = []
         for module in requiredModules:
             try:
@@ -1122,6 +1122,8 @@ class Tester:
         - returns 0 if no errors occurred, or non-zero otherwise.
 
         '''
+        import buildingspy.development.validator as v
+
         import multiprocessing
         import sys
         import os
@@ -1153,6 +1155,15 @@ class Tester:
         print "Using ", self.__nPro, " of ", multiprocessing.cpu_count(), " processors to run unit tests."
         # Count number of classes
         self.printNumberOfClasses(".")    
+
+        # Validate html
+        val = v.Validator()
+        errMsg = val.validateHTMLInPackage(".")
+        for i in range(len(errMsg)):
+            if i == 0:
+                self.__reporter.writeError("The following malformed html syntax has been found:\n%s" % errMsg[i])
+            else:
+                self.__reporter.writeError(errMsg[i])
 
         # Run simulations
         if not self.__useExistingResults:

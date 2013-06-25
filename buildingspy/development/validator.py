@@ -45,9 +45,11 @@ class Validator:
             the ``.mo`` file.
             
             :param rootDir: The root directory of the package.
+            :return: str[] Warning/error messages from tidylib.
             
             '''
         import os
+        errMsg = list()
         scrPat = self.__libHome
 
         for root, dirs, files in os.walk(scrPat):
@@ -55,15 +57,15 @@ class Validator:
                 # find the .mo file
                 if moFil.endswith('.mo'):
                     moFulNam = os.path.join(root, moFil)
-                    doc, err = self.validateHTML(moFulNam)
+                    doc, err = self._validateHTML(moFulNam)
                     if len(err) > 0:
                         # We found an error. Report it to the console.
                         # This may later be changed to use an error handler.
-                        print "[-- %s ]" % moFulNam
-                        print err
+                        errMsg.append("[-- %s ]\n%s" % (moFulNam, err))
+        return errMsg
 
 
-    def validateHTML(self, moFile):
+    def _validateHTML(self, moFile):
         ''' This function validates the file ``moFile`` for correct html
             syntax
         
