@@ -18,15 +18,18 @@ def runSimulation(worDir):
     import sys
     import subprocess
     import buildingspy.development.unittest as u
+    t = u.Tester()
+    modCom = t.getModelicaCommand();
+    libNam = t.getLibraryName()
     try:
         logFilNam=os.path.join(worDir, 'stdout.log')
         logFil = open(logFilNam, 'w')
         t = u.Tester()
-        retcode = subprocess.Popen(args=[t.getModelicaCommand(), "runAll.mos", "/nowindow"], 
+        retcode = subprocess.Popen(args=[modCom, "runAll.mos", "/nowindow"], 
                                    stdout=logFil,
                                    stderr=logFil,
                                    shell=False, 
-                                   cwd=os.path.join(worDir, t.getLibraryName()) ).wait()
+                                   cwd=os.path.join(worDir, libNam)).wait()
 
         logFil.close()
         if retcode != 0:
@@ -35,7 +38,7 @@ def runSimulation(worDir):
         else:
             return 0
     except OSError as e:
-        sys.stderr.write("Execution of " + [t.getModelicaCommand(), "runAll.mos", "/nowindow"] + " failed.")
+        sys.stderr.write("Execution of " + [modCom, "runAll.mos", "/nowindow"] + " failed.")
         raise(e)
 
 
@@ -110,7 +113,7 @@ class Tester:
         '''
         self.__data = []
         self.__libraryName = os.getcwd().split(os.path.sep)[-1]
-        self.__reporter = rep.Reporter("unitTests.log")
+        self.__reporter = rep.Reporter(os.path.join(os.getcwd(), "unitTests.log"))
 
     def useExistingResults(self, dirs):
         ''' This function allows to use existing results, as opposed to running a simulation.
@@ -222,7 +225,7 @@ class Tester:
 
             If some modules are missing, then an `ImportError` is raised.
         '''
-        requiredModules = ['buildingspy', 'matplotlib.pyplot', 'numpy', 'scipy.io']
+        requiredModules = ['buildingspy', 'matplotlib.pyplot', 'numpy', 'scipy.io', 'tidylib']
         missingModules = []
         for module in requiredModules:
             try:
@@ -1122,6 +1125,8 @@ class Tester:
         - returns 0 if no errors occurred, or non-zero otherwise.
 
         '''
+        import buildingspy.development.validator as v
+
         import multiprocessing
         import sys
         import os
@@ -1129,6 +1134,8 @@ class Tester:
         import time
 
         self.checkPythonModuleAvailability()
+        # Delete log file
+        self.__reporter.deleteLogFile()
 
         self.setDataDictionary()
 
@@ -1153,6 +1160,15 @@ class Tester:
         print "Using ", self.__nPro, " of ", multiprocessing.cpu_count(), " processors to run unit tests."
         # Count number of classes
         self.printNumberOfClasses(".")    
+
+        # Validate html
+        val = v.Validator()
+        errMsg = val.validateHTMLInPackage(".")
+        for i in range(len(errMsg)):
+            if i == 0:
+                self.__reporter.writeError("The following malformed html syntax has been found:\n%s" % errMsg[i])
+            else:
+                self.__reporter.writeError(errMsg[i])
 
         # Run simulations
         if not self.__useExistingResults:
