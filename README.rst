@@ -7,3 +7,5 @@ BuildingsPy is a Python package that can be used to
 The package provides functions to extract data series from 
 the output file for further use in the python packages 
 matplotlib for plotting and SciPy for scientific computing.
+
+Documentation is available at http://simulationresearch.lbl.gov/modelica/buildingspy/

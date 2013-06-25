@@ -19,11 +19,15 @@ class Reporter:
         self.__iWar = 0
         self.__iErr = 0
         self.logToFile()
-        # Delete existing files
         self.__logFil = os.path.join(fileName)
+
+    def deleteLogFile(self):
+        ''' Deletes the log file if it exists.
+        '''
+        import os
         if os.path.isfile(self.__logFil):
             os.remove(self.__logFil)
-            
+
 
     def logToFile(self, log=True):
         ''' Function to log the standard output and standard error stream to a file.
