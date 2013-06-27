@@ -36,12 +36,13 @@ class Validator:
         ''' This function recursively validates all ``.mo`` files
             in a package.
             
-            If there is malformed html code in the ``info`` section,
+            If there is malformed html code in the ``info`` or the 
+            ``revision`` section,
             then this function write the error message of tidy to the
             standard output.
 
             Note that the line number correspond to an intermediate format
-            (e.g., the output format of tidy) which may be different from
+            (e.g., the output format of tidy), which may be different from
             the ``.mo`` file.
             
             :param rootDir: The root directory of the package.
