@@ -275,6 +275,11 @@ class Simulator:
           5. Translates and simulates the model.
           6. Closes the Modelica simulation environment.
           7. Copies output files and deletes the temporary directory.
+
+        This method requires that the directory that contains the executable *dymola*
+        is on the system PATH variable. If it is not found, the function returns with
+        an error message.
+
         '''
         import sys
         import os
