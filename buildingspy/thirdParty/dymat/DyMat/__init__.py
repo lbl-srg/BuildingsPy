@@ -72,7 +72,7 @@ class DyMatFile:
     def sharedData(self, varName):
         """Return variables which share data with this variable, possibly with
         a different sign."""
-        d, c, s = (self._vars[varName])[1:3]
+        _, d, c, s = self._vars[varName]
         return [(n,v[3]*s) for (n,v) in self._vars.items() if n!=varName and v[1]==d and v[2]==c]
 
     def nameTree(self):
@@ -123,7 +123,7 @@ class DyMatFile:
 
     def data(self, varName):
         """Return the values of a variable"""
-        d, c, s = (self._vars[varName])[1:3]
+        _, d, c, s = self._vars[varName]
         di = 'data_%d' % (d)
         dd = self.mat[di][c]
         if s < 0:
@@ -143,7 +143,7 @@ class DyMatFile:
     def writeVar(self, varName):
         """Write the values of a variable and its abscissa to stdout"""
         d = self.data(varName)
-        a, aname = (self.abscissa(varName))[0:1]
+        a, aname, _ = self.abscissa(varName)
         print('# %s | %s' % (aname, varName))
         for i in range(d.shape[0]):
             print('%f %g' % (a[i], d[i]))
