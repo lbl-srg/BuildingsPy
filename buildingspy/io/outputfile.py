@@ -92,7 +92,7 @@ class Reader:
         '''
         (t, v)=self.values(varName)
         val=0.0;
-        for i, value in enumerate(t[0:len(t)-1]):
+        for i in range(len(t)-1):
             val = val + (t[i+1]-t[i]) * (v[i+1]+v[i])/2.0
         return val
 
@@ -118,7 +118,7 @@ class Reader:
            >>> r=Reader("PlotDemo.mat", "dymola")
            >>> fanEnergy = r.mean('fan.PEle')
         '''
-        (t, v)=self.values(varName)
+        t=self.values(varName)[0]
         r = self.integral(varName)/(max(t)-min(t))
         return r
 
@@ -136,7 +136,7 @@ class Reader:
            >>> r=Reader("PlotDemo.mat", "dymola")
            >>> fanEnergy = r.min('fan.PEle')
         '''
-        (t, v)=self.values(varName)
+        v=self.values(varName)[1]
         return min(v)
 
     def max(self, varName):
@@ -153,5 +153,5 @@ class Reader:
            >>> r=Reader("PlotDemo.mat", "dymola")
            >>> fanEnergy = r.max('fan.PEle')
         '''
-        (t, v)=self.values(varName)
+        v=self.values(varName)[1]
         return max(v)
