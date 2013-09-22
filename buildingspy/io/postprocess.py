@@ -28,7 +28,6 @@ class Plotter:
 
         '''
         import numpy as np
-        import copy
 
         if ( (np.isnan(tSup)).any() ):
             raise ValueError('NaN in input argument tSup.')
@@ -195,9 +194,9 @@ class Plotter:
         yGrid=Plotter.interpolate(tGrid, t, y)
 
         # Convert to periodic data
-        (tPer, yPer) = Plotter.convertToPeriodic(tPeriod=tPeriod, 
+        yPer = Plotter.convertToPeriodic(tPeriod=tPeriod, 
                                                  t=tGrid, 
-                                                 y=yGrid)
+                                                 y=yGrid)[1]
 
         tMaxPlot = nIncrement
         yStacked=np.reshape(yPer, (-1, tMaxPlot))
