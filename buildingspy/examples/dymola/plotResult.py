@@ -1,6 +1,5 @@
 from buildingspy.io.outputfile import Reader
 import matplotlib.pyplot as plt
-from pylab import figure
 import os
 
 # Change fonts to use LaTeX fonts
