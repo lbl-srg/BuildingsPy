@@ -17,14 +17,14 @@ def runSimulation(worDir):
     import os
     import sys
     import subprocess
-    import buildingspy.development.unittest as u
-    t = u.Tester()
+
+    t = Tester()
     modCom = t.getModelicaCommand();
     libNam = t.getLibraryName()
     try:
         logFilNam=os.path.join(worDir, 'stdout.log')
         logFil = open(logFilNam, 'w')
-        t = u.Tester()
+        t = Tester()
         retcode = subprocess.Popen(args=[modCom, "runAll.mos", "/nowindow"], 
                                    stdout=logFil,
                                    stderr=logFil,
