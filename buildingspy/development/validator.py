@@ -13,7 +13,6 @@ class Validator:
     def __init__(self):
         import os
         import multiprocessing
-        import buildingspy.io.reporter as rep
 
         # --------------------------
         # Class variables
@@ -53,12 +52,12 @@ class Validator:
         errMsg = list()
         scrPat = self.__libHome
 
-        for root, dirs, files in os.walk(scrPat):
+        for root, _, files in os.walk(scrPat):
             for moFil in files:
                 # find the .mo file
                 if moFil.endswith('.mo'):
                     moFulNam = os.path.join(root, moFil)
-                    doc, err = self._validateHTML(moFulNam)
+                    err = self._validateHTML(moFulNam)[1]
                     if len(err) > 0:
                         # We found an error. Report it to the console.
                         # This may later be changed to use an error handler.
@@ -118,7 +117,7 @@ class Validator:
         # Replace \" with "
         body = body.replace('\\"', '"')
 
-       # Document footer
+        # Document footer
         footer = "<!-- +++++++++++++++++++++++++++++++++++++ -->\n \
 </body>\n \
 </html>"
