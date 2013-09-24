@@ -21,17 +21,50 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import scipy.io.netcdf
+try:
+    import scipy.io.netcdf as nc
+except:
+    import pupynere as nc
 
-def export(dm, varList=None, fileName=None, formatOptions=None):
+import string
+
+
+class NameConverter:
+    allow0 = string.ascii_letters + string.digits + '_'
+    allow  = allow0 + '@+-.'
+    repl   = '_'
+    
+    def __init__(self):
+        self.used_names = []
+        
+    def __call__(self, name):
+        n = list(name)
+        if not n[0] in self.allow0:
+            n.insert(self.repl, 0)
+        for i in range(1, len(n)):
+            if not n[i] in self.allow:
+                n[i] = self.repl
+        s = ''.join(n)
+        while s in self.used_names:
+            s += '_'
+        self.used_names.append(s)
+        return s
+
+    
+def export(dm, varList, fileName=None, formatOptions={}):
     """Export DyMat data to a netCDF file"""
 
     if not fileName:
         fileName = dm.fileName+'.nc'
 
-    ncFile = scipy.io.netcdf.netcdf_file(fileName, 'w')
+    ncFile = nc.netcdf_file(fileName, 'w')
     ncFile.comment = 'file generated with DyMat from %s' % dm.fileName
 
+    convertNames = formatOptions.get('convertNames', False)
+
+    if convertNames:
+        nameConv = NameConverter()
+    
     vList = dm.sortByBlocks(varList)
     for block in vList:
         a, aname, adesc = dm.abscissa(block)
@@ -42,7 +75,18 @@ def export(dm, varList=None, fileName=None, formatOptions=None):
         av.block = block
         av[:] = a
         for vn in vList[block]:
-            v = ncFile.createVariable(vn, 'd', (dim,))
-            v.description = dm.description(vn)
+            if convertNames:
+                name = nameConv(vn)
+            else:
+                name = vn
+            v = ncFile.createVariable(name, 'd', (dim,))
+            d = dm.description(vn)
+            if d:
+                v.description = d
+            if convertNames:
+                v.original_name = vn
             v.block = block
             v[:] = dm.data(vn)
+
+    ncFile.sync()
+    ncFile.close()

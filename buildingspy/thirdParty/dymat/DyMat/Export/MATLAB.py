@@ -23,7 +23,7 @@
 
 import scipy.io
 
-def export(dm, varList=None, fileName=None, formatOptions=None):
+def export(dm, varList, fileName=None, formatOptions={}):
     """Export DyMat data to a simple MATLAB file"""
 
     if not fileName:

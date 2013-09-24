@@ -6,15 +6,15 @@ def read(fname):
 
 setup(
     name = "DyMat",
-    version = "0.3",
+    version = "0.5",
     author = "Joerg Raedler",
     author_email = "joerg@j-raedler.de",
     description = ("a package for reading and processing the result files of Dymola and OpenModelica"),
     license = "BSD",
     keywords = "modelica dymola openmodelica mat",
     url = "http://www.j-raedler.de/projects/DyMat/",
-    packages = ['DyMat', 'DyMat.Export', 'DyMat.Plot'],
-    scripts = ['scripts/DyMatExport'],
+    packages = ['DyMat', 'DyMat.Export'],
+    scripts = ['scripts/DyMatExport.py'],
     long_description = read('README.txt'),
     classifiers = [
         "Development Status :: 4 - Beta",

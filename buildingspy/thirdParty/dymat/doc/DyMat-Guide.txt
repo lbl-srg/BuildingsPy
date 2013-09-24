@@ -2,7 +2,7 @@
  DyMat - User Manual
 =====================
 -------------
-version 0.3
+version 0.4
 -------------
 
 .. Note: this text is written using the "reStructuredText" format. You
@@ -25,8 +25,8 @@ want to use it.
 If you want to use this package in your own python scripts you should read the
 section `Python API`_.
 
-The documentation on the provided script DyMatExport is in the section
-DyMatExport_.
+The documentation on the provided script DyMatExport.py is in the section
+DyMatExport.py_.
 
 Author, Homepage and License
 ============================
@@ -72,7 +72,7 @@ not straightforward (that's the reason fro writing this package!).
 If you export all variables the amount of data may explode because the same 
 values are written a lot of times. It's possible that a mat-file of 1 MB results
 in a new file of several hundred MB. That's why there is no simple export-all 
-option in DyMatExport.
+option in DyMatExport.py.
 
     **You have been warned: only export the variables you really need!**
 
@@ -100,6 +100,12 @@ CSV
 This is a well-known exchange format for tabular data. Variables are saved in 
 columns with a header. Multi-block data will simply be appended.
 
+CSVlocale
+---------
+CSV with a number format respecting the default language setting. This may be 
+used to export data to EXCEL, OpenOffice or LibreOffice with different number 
+formats.
+
 Gnuplot
 -------
 Is a special form of CSV with fields sparated by whitespace. A header is 
@@ -119,8 +125,14 @@ data. You may use this option to prepare files for the ncDataReader2_. This way
 you can use the results of simulations as (interpolated) input data for other 
 simulations.
 
-DyMatExport
-===========
+HDF5
+----
+HDF5 is a very efficient binary format for structured multi-dimensional
+data. You need the package h5py to use this export format.
+
+
+DyMatExport.py
+==============
 This script is mainly a command-line interface for the python functions in this 
 package. Every option has a long (`--help`) and a short (`-h`) form. Use this 
 option to get help on the other options.
@@ -129,55 +141,55 @@ Exploring a file
 ----------------
 General info on blocks and variables::
 
-    $ DyMatExport -i myfile.mat
+    $ DyMatExport.py -i myfile.mat
     
 List all variables in short form::
 
-    $ DyMatExport -l myfile.mat
+    $ DyMatExport.py -l myfile.mat
 
 List all variables including block number and description::
 
-    $ DyMatExport -d myfile.mat
+    $ DyMatExport.py -d myfile.mat
     
 Show a simple tree view of the variables::
 
-    $ DyMatExport -t myfile.mat
+    $ DyMatExport.py -t myfile.mat
     
 Show other variables which share data with the variable `foo.bar`::
 
-    $ DyMatExport -s foo.bar myfile.mat
+    $ DyMatExport.py -s foo.bar myfile.mat
 
 Exporting variables
 -------------------
 You need to specify a list of variables, either on the command line or read 
 from a file. Variable names on the command line are comma-separated like this::
     
-    $ DyMatExport -e "foo.bar,baz,a.b.c" myfile.mat
+    $ DyMatExport.py -e "foo.bar,baz,a.b.c" myfile.mat
 
 This will export the variables `foo.bar`, `baz` and `a.b.c`. For more than just 
 a couple of names you should consider using a file with names instead::
 
-    $ DyMatExport -x vars.txt myfile.mat
+    $ DyMatExport.py -x vars.txt myfile.mat
 
 You may use the output from -l or -d to produce such files and just delete lines 
 you don't want::
     
-    $ DyMatExport -d myfile.mat > vars.txt
+    $ DyMatExport.py -d myfile.mat > vars.txt
     $ $EDITOR vars.txt   # delete unwanted variables
-    $ DyMatExport -x vars.txt myfile.mat
+    $ DyMatExport.py -x vars.txt myfile.mat
 
 The output format defaults to `CSV`, you may specify other formats like this::
 
-    $ DyMatExport -f netCDF -x vars.txt myfile.mat
+    $ DyMatExport.py -f netCDF -x vars.txt myfile.mat
 
 Get a list of supported formats::
     
-    $ DyMatExport -m myfile.mat
+    $ DyMatExport.py -m myfile.mat
     
 The output file name defaults to the name of the mat-file with a format-specific 
 suffix. You may specify an alternative name::
 
-    $ DyMatExport -o mynewfile.nc -f netCDF -x vars.txt myfile.mat
+    $ DyMatExport.py -o mynewfile.nc -f netCDF -x vars.txt myfile.mat
 
 This will write all variables named in the file `vars.txt` to a file 
 `mynewfile.nc` in the netCDF format.
@@ -185,8 +197,167 @@ This will write all variables named in the file `vars.txt` to a file
 Python API
 ==========
 
-[... documentation will follow soon, read the source ...]
+DyMatFile
+---------
+This class is the main part of the package, it reads a mat-file and provides 
+access to its data. The class can be imported directly from DyMat. The 
+constructor needs a filename as argument::
 
+    >>> import DyMat
+    >>> d = DyMat.DyMatFile('myfile.mat')
+
+DyMatFile.blocks()
+~~~~~~~~~~~~~~~~~~
+Returns the numbers of all data blocks.
+
+:Arguments:
+    - None
+:Returns:
+    - sequence of integers
+
+DyMatFile.names(\|block=None)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Returns the names of all variables. If block is given, only variables of this 
+block are listed.
+
+:Arguments:
+    - optional block: integer
+:Returns:
+    - sequence of strings
+
+DyMatFile.data(varName)
+~~~~~~~~~~~~~~~~~~~~~~~
+Return the values of the variable.
+
+:Arguments:
+    - varName: string
+:Returns:
+    - numpy.ndarray with the values
+
+DyMatFile[varName]
+~~~~~~~~~~~~~~~~~~
+The same as `DyMatFile.data(varName)`.
+
+DyMatFile.block(varName)
+~~~~~~~~~~~~~~~~~~~~~~~~
+Returns the block number of the variable.
+
+:Arguments:
+    - varName: string
+:Returns:
+    - integer
+
+DyMatFile.description(varName)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Returns the description string of the variable.
+
+:Arguments:
+    - varName: string
+:Returns:
+    - string
+
+DyMatFile.sharedData(varName)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Return variables which share data with this variable, possibly with a different 
+sign.
+
+:Arguments:
+    - varName: string
+:Returns:
+    - sequence of tuples, each containing a string (name) and a number (sign)
+
+DyMatFile.size(blockOrName)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Return the number of rows (time steps) of a variable or a block.
+
+:Arguments:
+    - integer (block) or string (variable name): blockOrName
+:Returns:
+    - integer
+
+DyMatFile.abscissa(blockOrName \|, valuesOnly=False)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Return the values, name and description of the abscissa that belongs to a 
+variable or block. If valuesOnly is true, only the values are returned.
+
+:Arguments:
+    - integer (block) or string (variable name): blockOrName
+    - optional bool: valuesOnly
+:Returns:
+    - numpy.ndarray: values or
+    - tuple of numpy.ndarray (values), string (name), string (description)
+
+DyMatFile.sortByBlocks(varList)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Sort a list of variables by the block number, return a dictionary whose keys 
+are the block numbers and the values are lists of names. All variables in one 
+list will have the same number of values.
+
+:Arguments:
+    - sequence of strings: varList
+:Returns:
+    - dictionary with integer keys and string lists as values 
+
+DyMatFile.nameTree()
+~~~~~~~~~~~~~~~~~~~~
+Return a tree of all variable names with respect to the path names. Path 
+elements are separated by dots. The tree will represent the structure of the 
+Modelica models. The tree is returned as a dictionary of dictionaries. The keys 
+are the path elements, values are sub-dictionaries or variable names.
+
+:Arguments:
+    - None
+:Returns:
+    - dictionary
+
+DyMatFile.getVarArray(varNames \|, withAbscissa=True)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Return the values of all variables in varNames combined as a 2d-array. If 
+withAbscissa is True, include abscissa's values first. 
+**All variables must share the same block!**
+
+:Arguments:
+    - sequence of strings: varNames
+    - optional bool: withAbscissa
+:Returns:
+    - numpy.ndarray
+
+DyMatFile.writeVar(varName)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Write the values of the abscissa and the variabale to stdout. The text format 
+is compatible with gnuplot. For more options use DyMat.Export instead.
+
+:Arguments:
+    - string: varName
+:Returns:
+    - None
+
+DyMat.Export
+------------
+This module contains a generic export function and a dictionary of available 
+export formats (`formats`).
+
+Export.export(fmt, dm, varList \|, fileName=None, formatOptions=None)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Export the data of the DyMatFile object `dm` to a data file. `fmt` is the 
+format string, `varList` the list of variables to export. If no `fileName` is 
+given, it will be derived from the mat file name. `formatOptions` will be used 
+in later versions.
+
+:Arguments:
+    - string: fmt
+    - DyMolaMat object: dm
+    - sequence of strings: varList
+    - optional string: fileName
+    - optional dictionary: formatOptions
+    
+:Returns:
+    - None
+
+There are sub-modules for every format. Each module contains a function called 
+`export` which has the same interface as the above function but without the 
+first argument. You may import one of these modules or use the generic function 
+above.
 
 
 .. Hyperlinks
