@@ -131,7 +131,7 @@ class DyMatFile:
             - varName: string
         :Returns:
             - numpy.ndarray with the values"""
-        tmp, d, c, s = self._vars[varName]
+        _, d, c, s = self._vars[varName]
         di = 'data_%d' % (d)
         dd = self.mat[di][c]
         if s < 0:
@@ -170,7 +170,7 @@ class DyMatFile:
         :Returns:
             - sequence of tuples, each containing a string (name) and a number (sign)
         ."""
-        tmp, d, c, s = self._vars[varName]
+        _, d, c, s = self._vars[varName]
         return [(n,v[3]*s) for (n,v) in self._vars.items() if n!=varName and v[1]==d and v[2]==c]
 
     def size(self, blockOrName):
