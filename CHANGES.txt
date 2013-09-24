@@ -17,6 +17,8 @@ Version 1.3.0, xxxx, 2013 -- Release 1.3
   - removed non-needed import statement,
   - removed argument dir from method printNumberOfClasses(self)
     as this argument is not used.
+- Updated to latest version of DyMat as on https://bitbucket.org/jraedler/dymat/,
+  commit c6c8f8aba656
 
 
 Version 1.2.0, May 15, 2013 -- Release 1.2
