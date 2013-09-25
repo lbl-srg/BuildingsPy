@@ -13,7 +13,6 @@ class Validator:
     def __init__(self):
         import os
         import multiprocessing
-        import buildingspy.io.reporter as rep
 
         # --------------------------
         # Class variables
@@ -36,12 +35,13 @@ class Validator:
         ''' This function recursively validates all ``.mo`` files
             in a package.
             
-            If there is malformed html code in the ``info`` section,
+            If there is malformed html code in the ``info`` or the 
+            ``revision`` section,
             then this function write the error message of tidy to the
             standard output.
 
             Note that the line number correspond to an intermediate format
-            (e.g., the output format of tidy) which may be different from
+            (e.g., the output format of tidy), which may be different from
             the ``.mo`` file.
             
             :param rootDir: The root directory of the package.
@@ -52,12 +52,12 @@ class Validator:
         errMsg = list()
         scrPat = self.__libHome
 
-        for root, dirs, files in os.walk(scrPat):
+        for root, _, files in os.walk(scrPat):
             for moFil in files:
                 # find the .mo file
                 if moFil.endswith('.mo'):
                     moFulNam = os.path.join(root, moFil)
-                    doc, err = self._validateHTML(moFulNam)
+                    err = self._validateHTML(moFulNam)[1]
                     if len(err) > 0:
                         # We found an error. Report it to the console.
                         # This may later be changed to use an error handler.
@@ -117,7 +117,7 @@ class Validator:
         # Replace \" with "
         body = body.replace('\\"', '"')
 
-       # Document footer
+        # Document footer
         footer = "<!-- +++++++++++++++++++++++++++++++++++++ -->\n \
 </body>\n \
 </html>"

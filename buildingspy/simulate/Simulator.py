@@ -63,7 +63,7 @@ class Simulator:
                 os.makedirs(directoryName)
             # Check write permission
             if not os.access(directoryName, os.W_OK):
-                raise ValueError("Write permission to '" + directory + "' denied.")
+                raise ValueError("Write permission to '" + directoryName + "' denied.")
 
 
 
@@ -83,7 +83,7 @@ class Simulator:
         This will execute the two statements after the ``openModel`` and
         before the ``simulateModel`` statement.
         '''
-        d = self.__preProcessing__.append(command)
+        self.__preProcessing__.append(command)
         return
 
     def addPostProcessingStatement(self, command):
@@ -94,7 +94,7 @@ class Simulator:
         This will execute ``command`` after the simulation, and before
         the log file is written.
         '''
-        d = self.__postProcessing__.append(command)
+        self.__postProcessing__.append(command)
         return
 
 
@@ -113,7 +113,7 @@ class Simulator:
         This will add the three parameters ``PID.k``, ``valve.m_flow_nominal``
         and ``PID.t`` to the list of model parameters.
         '''
-        d = self.__parameters__.update(dictionary)
+        self.__parameters__.update(dictionary)
         return
 
     def getParameters(self):
@@ -156,7 +156,7 @@ class Simulator:
         ``simulateModel(myPackage.myModel(redeclare package MediumA = Buildings.Media.IdealGases.SimpleAir), startTime=...``
 
         '''
-        d = self.__modelModifiers__.append(modelModifier)
+        self.__modelModifiers__.append(modelModifier)
         return
 
 
@@ -250,7 +250,7 @@ class Simulator:
         self.__simulator__.update(resultFile=rs[len(rs)-1])
         return
 
-    def exitSimulator(self, exit=True):
+    def exitSimulator(self, exitAfterSimulation=True):
         ''' This function allows avoiding that the simulator terminates.
 
         :param exit: Set to ``False`` to avoid the simulator from terminating
@@ -261,7 +261,7 @@ class Simulator:
         inspect results or log messages.
 
         '''
-        self.__exitSimulator = exit
+        self.__exitSimulator = exitAfterSimulation
         return
 
     def simulate(self):
@@ -275,6 +275,11 @@ class Simulator:
           5. Translates and simulates the model.
           6. Closes the Modelica simulation environment.
           7. Copies output files and deletes the temporary directory.
+
+        This method requires that the directory that contains the executable *dymola*
+        is on the system PATH variable. If it is not found, the function returns with
+        an error message.
+
         '''
         import sys
         import os
@@ -346,7 +351,7 @@ class Simulator:
             self.__copyResultFiles(worDir)
             self.__deleteTemporaryDirectory(worDir)
         except: # Catch all possible exceptions
-            e = sys.exc_info()[1]
+            sys.exc_info()[1]
             self.__reporter.writeError("Simulation failed in '" + worDir + "'\n" 
                                        + "   You need to delete the directory manually.")
             raise 
@@ -469,8 +474,7 @@ class Simulator:
         import subprocess
         import time
         import datetime
-        import signal
-        import os
+
 
         # List of command and arguments
         if self.__showGUI:
@@ -497,7 +501,6 @@ class Simulator:
                                    shell=False, 
                                    cwd=directory)
             killedProcess=False
-            countOld = -1
             if timeout > 0:
                 while pro.poll() is None:
                     time.sleep(0.01)
@@ -537,7 +540,7 @@ class Simulator:
                              str(timeout) + " seconds.")
 
         except OSError as e:
-            print "Execution of ", command, " failed:", e
+            print "Execution of ", cmd, " failed:", e
 
 
     def showProgressBar(self, show=True):

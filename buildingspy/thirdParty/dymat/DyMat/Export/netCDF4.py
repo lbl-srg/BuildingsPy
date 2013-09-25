@@ -1,4 +1,4 @@
-# Copyright (c) 2011, Joerg Raedler (Berlin, Germany)
+# Copyright (c) 2013, Joerg Raedler (Berlin, Germany)
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification,
@@ -22,9 +22,9 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 try:
-    import scipy.io.netcdf as nc
+    import netCDF4 as nc
 except:
-    import pupynere as nc
+    nc = None
 
 import string
 
@@ -52,12 +52,15 @@ class NameConverter:
 
     
 def export(dm, varList, fileName=None, formatOptions={}):
-    """Export DyMat data to a netCDF file"""
+    """Export DyMat data to a netCDF file using netCDF4"""
+
+    if nc is None:
+      raise Exception("netCDF4 support not found - please install python-netCDF4!")
 
     if not fileName:
         fileName = dm.fileName+'.nc'
 
-    ncFile = nc.netcdf_file(fileName, 'w')
+    ncFile = nc.Dataset(fileName, 'w')
     ncFile.comment = 'file generated with DyMat from %s' % dm.fileName
 
     convertNames = formatOptions.get('convertNames', False)
@@ -87,6 +90,5 @@ def export(dm, varList, fileName=None, formatOptions={}):
                 v.original_name = vn
             v.block = block
             v[:] = dm.data(vn)
-
     ncFile.sync()
     ncFile.close()

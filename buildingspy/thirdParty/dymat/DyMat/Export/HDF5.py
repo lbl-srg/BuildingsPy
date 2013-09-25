@@ -1,4 +1,4 @@
-# Copyright (c) 2011, Joerg Raedler (Berlin, Germany)
+# Copyright (c) 2012, Joerg Raedler (Berlin, Germany)
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without modification,
@@ -22,9 +22,9 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 try:
-    import scipy.io.netcdf as nc
+    import h5py
 except:
-    import pupynere as nc
+    h5py = None
 
 import string
 
@@ -52,13 +52,16 @@ class NameConverter:
 
     
 def export(dm, varList, fileName=None, formatOptions={}):
-    """Export DyMat data to a netCDF file"""
+    """Export DyMat data to a HDF5 file"""
+
+    if h5py is None:
+      raise Exception("HDF5 support not found - please install h5py!")
 
     if not fileName:
-        fileName = dm.fileName+'.nc'
+        fileName = dm.fileName+'.hdf5'
 
-    ncFile = nc.netcdf_file(fileName, 'w')
-    ncFile.comment = 'file generated with DyMat from %s' % dm.fileName
+    h5File = h5py.File(fileName, 'w')
+    h5File.attrs['comment'] = 'file generated with DyMat from %s' % dm.fileName
 
     convertNames = formatOptions.get('convertNames', False)
 
@@ -69,24 +72,19 @@ def export(dm, varList, fileName=None, formatOptions={}):
     for block in vList:
         a, aname, adesc = dm.abscissa(block)
         dim = '%s_%02i' % (aname, block)
-        ncFile.createDimension(dim, a.shape[0])
-        av = ncFile.createVariable(dim, 'd', (dim,))
-        av.description = adesc
-        av.block = block
-        av[:] = a
+        av = h5File.create_dataset(dim, data=a)
+        av.attrs['description'] = str(adesc)
+        av.attrs['block'] = block
         for vn in vList[block]:
             if convertNames:
                 name = nameConv(vn)
             else:
                 name = vn
-            v = ncFile.createVariable(name, 'd', (dim,))
+            v = h5File.create_dataset(name, data=dm.data(vn))
             d = dm.description(vn)
             if d:
-                v.description = d
+                v.attrs['description'] = str(d)
             if convertNames:
-                v.original_name = vn
-            v.block = block
-            v[:] = dm.data(vn)
-
-    ncFile.sync()
-    ncFile.close()
+                v.attrs['original_name'] = str(vn)
+            v.attrs['block'] = block
+    h5File.close()

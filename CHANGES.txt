@@ -7,6 +7,19 @@ Version 1.3.0, xxxx, 2013 -- Release 1.3
   that can be used to validate the html syntax
   of the info section of .mo files.
 - Added validation of html syntax to unit test script.
+- In io.outputfile, changed name of argument of _init__
+  from format to simulator as format is a reserved keyword
+  in Python.
+- In simulate.Simulator, corrected use of variable that was not defined. 
+  Avoided use of variable name exit which is a reserved keyword. 
+  Avoided the use of temporary variables that are not needed.
+- In development.unittest, 
+  - removed non-needed import statement,
+  - removed argument dir from method printNumberOfClasses(self)
+    as this argument is not used.
+- Updated to latest version of DyMat as on https://bitbucket.org/jraedler/dymat/,
+  commit c6c8f8aba656
+
 
 Version 1.2.0, May 15, 2013 -- Release 1.2
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

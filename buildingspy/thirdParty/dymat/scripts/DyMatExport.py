@@ -89,7 +89,7 @@ elif pargs.shared_data:
     if sd:
         print(v)
         for n, s in sd:
-            print('    = % 2d * %s%s' % (s, n))
+            print('    = % 2d * %s' % (s, n))
 
 # FIXME: this should work without providing a filename
 elif pargs.list_formats:
@@ -108,7 +108,7 @@ else: # pargs.export or pargs.export_file
         outFileName = None
     options = {}
     if pargs.options:
-        tmp = [v.strip().split('=') for v in pargs.export[0].split(',')]
+        tmp = [v.strip().split('=') for v in pargs.options[0].split(',')]
         for x in tmp:
             options[x[0]] = x[1]
     import DyMat.Export

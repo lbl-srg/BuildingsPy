@@ -23,12 +23,12 @@
 
 import csv, numpy
 
-def export(dm, varList=None, fileName=None, formatOptions=None):
+def export(dm, varList, fileName=None, formatOptions={}):
     """Export DyMat data to a CSV file"""
 
     if not fileName:
         fileName = dm.fileName+'.csv'
-    oFile = open(fileName, 'wb')
+    oFile = open(fileName, 'w')
     csvWriter = csv.writer(oFile)
     
     vDict = dm.sortByBlocks(varList)

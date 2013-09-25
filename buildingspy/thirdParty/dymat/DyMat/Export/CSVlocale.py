@@ -21,21 +21,25 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import scipy.io
+import locale, os
 
 def export(dm, varList, fileName=None, formatOptions={}):
-    """Export DyMat data to a simple MATLAB file"""
+    """Export DyMat data to a CSV file using locale number formatting"""
 
     if not fileName:
-        fileName = dm.fileName+'.mat'
-
-    vList = dm.sortByBlocks(varList)
+        fileName = dm.fileName+'.l.csv'
+    oFile = open(fileName, 'w')
     
-    md = {}
-    for block in vList:
-        for n in vList[block]:
-            md[n] = dm.data(n)
-        absc = '%s_%02i' % (dm._absc[0], block)
-        md[str(absc)] = dm.abscissa(block, True)
-
-    scipy.io.savemat(fileName, md, oned_as='row')
+    locale.setlocale(locale.LC_NUMERIC, locale.getdefaultlocale())
+    delimiter = formatOptions.get('delimiter', ';')
+    newline   = formatOptions.get('newline', os.linesep)
+    
+    vDict = dm.sortByBlocks(varList)
+    for vList in vDict.values():
+        vData = dm.getVarArray(vList)
+        vList.insert(0, dm._absc[0])
+        oFile.write(delimiter.join(['"%s"'%n for n in vList])+newline)
+        for i in range(vData.shape[1]):
+            oFile.write(delimiter.join([locale.format('%g', n) for n in vData[:,i]])+newline)
+    
+    oFile.close()
