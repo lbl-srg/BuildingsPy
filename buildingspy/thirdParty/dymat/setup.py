@@ -6,7 +6,7 @@ def read(fname):
 
 setup(
     name = "DyMat",
-    version = "0.5",
+    version = "0.6",
     author = "Joerg Raedler",
     author_email = "joerg@j-raedler.de",
     description = ("a package for reading and processing the result files of Dymola and OpenModelica"),
@@ -20,7 +20,7 @@ setup(
         "Development Status :: 4 - Beta",
         "Environment :: Console",
         "License :: OSI Approved :: BSD License",
-        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3",
         "Intended Audience :: Science/Research",
         "Topic :: Scientific/Engineering",
         "Topic :: Utilities"

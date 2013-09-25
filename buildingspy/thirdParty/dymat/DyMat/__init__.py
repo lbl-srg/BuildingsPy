@@ -25,14 +25,14 @@ __version__='0.6'
 __author__='Joerg Raedler (joerg@j-raedler.de)'
 __license__='BSD License (http://www.opensource.org/licenses/bsd-license.php)'
 
-import sys, numpy, scipy.io
+import sys, math, numpy, scipy.io
 
 # extract strings from the matrix
 strMatNormal = lambda a: [''.join(s).rstrip() for s in a]
 strMatTrans  = lambda a: [''.join(s).rstrip() for s in zip(*a)]
     
-# cmp function - gone in Python 3
-sgn = lambda a,b: (a > b) - (a < b)
+# sign = lambda x: cmp(x, 0)
+sign = lambda x: math.copysign(1.0, x)
 
 
 class DyMatFile:
@@ -59,7 +59,7 @@ class DyMatFile:
                     d = self.mat['dataInfo'][0][i] # data block
                     x = self.mat['dataInfo'][1][i]
                     c = abs(x)-1  # column
-                    s = sgn(x, 0) # sign
+                    s = sign(x)   # sign
                     if c:
                         self._vars[names[i]] = (descr[i], d, c, s)
                         if not d in self._blocks:
@@ -75,7 +75,7 @@ class DyMatFile:
                     d = self.mat['dataInfo'][i][0] # data block
                     x = self.mat['dataInfo'][i][1]
                     c = abs(x)-1  # column
-                    s = sgn(x, 0) # sign
+                    s = sign(x)   # sign
                     if c:
                         self._vars[names[i]] = (descr[i], d, c, s)
                         if not d in self._blocks:
@@ -131,7 +131,7 @@ class DyMatFile:
             - varName: string
         :Returns:
             - numpy.ndarray with the values"""
-        _, d, c, s = self._vars[varName]
+        tmp, d, c, s = self._vars[varName]
         di = 'data_%d' % (d)
         dd = self.mat[di][c]
         if s < 0:
@@ -170,7 +170,7 @@ class DyMatFile:
         :Returns:
             - sequence of tuples, each containing a string (name) and a number (sign)
         ."""
-        _, d, c, s = self._vars[varName]
+        tmp, d, c, s = self._vars[varName]
         return [(n,v[3]*s) for (n,v) in self._vars.items() if n!=varName and v[1]==d and v[2]==c]
 
     def size(self, blockOrName):
