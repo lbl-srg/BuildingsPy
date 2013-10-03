@@ -680,7 +680,7 @@ class Tester:
             sys.stdout.write("             for %s\n" % refFilNam)
             sys.stdout.write("             Accept new results?\n")
             while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
-                ans = raw_input("   Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
+                ans = raw_input("    Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
             if ans == "y" or ans == "Y":
                 # update the flag 
                 updateReferenceData = True
@@ -730,9 +730,9 @@ class Tester:
                 # Check if the first and last time stamp are equal
                 tolTim = 1E-3 # Tolerance for time
                 if (abs(tR[0] - tS[0]) > tolTim) or abs(tR[-1] - tS[-1]) > tolTim: 
-                    print "***Warning: Different simulation time interval in ", refFilNam, " and ", matFilNam
-                    print "   Old reference points are for " , tR[0], ' <= t <= ', tR[len(tR)-1]
-                    print "   New reference points are for " , tS[0], ' <= t <= ', tS[len(tS)-1]
+                    print "*** Warning: Different simulation time interval in ", refFilNam, " and ", matFilNam
+                    print "    Old reference points are for " , tR[0], ' <= t <= ', tR[len(tR)-1]
+                    print "    New reference points are for " , tS[0], ' <= t <= ', tS[len(tS)-1]
                     foundError = True
                     while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
                         print "    Accept new results and update reference file in library?"
