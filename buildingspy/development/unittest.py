@@ -680,7 +680,7 @@ class Tester:
             sys.stdout.write("             for %s\n" % refFilNam)
             sys.stdout.write("             Accept new results?\n")
             while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
-                ans = raw_input("    Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
+                ans = raw_input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
             if ans == "y" or ans == "Y":
                 # update the flag 
                 updateReferenceData = True
@@ -731,12 +731,12 @@ class Tester:
                 tolTim = 1E-3 # Tolerance for time
                 if (abs(tR[0] - tS[0]) > tolTim) or abs(tR[-1] - tS[-1]) > tolTim: 
                     print "*** Warning: Different simulation time interval in ", refFilNam, " and ", matFilNam
-                    print "    Old reference points are for " , tR[0], ' <= t <= ', tR[len(tR)-1]
-                    print "    New reference points are for " , tS[0], ' <= t <= ', tS[len(tS)-1]
+                    print "             Old reference points are for " , tR[0], ' <= t <= ', tR[len(tR)-1]
+                    print "             New reference points are for " , tS[0], ' <= t <= ', tS[len(tS)-1]
                     foundError = True
                     while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
-                        print "    Accept new results and update reference file in library?"
-                        ans = raw_input("    Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
+                        print "             Accept new results and update reference file in library?"
+                        ans = raw_input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
                     if ans == "y" or ans == "Y":
                         # Write results to reference file
                         updateReferenceData = True
@@ -769,7 +769,7 @@ class Tester:
         # or if the script is run in batch mode, then don't plot the results.
         # If we found an error, plot the results, and ask the user to accept or reject the new values.
         if foundError and (not self.__batch) and (not ans == "N"):
-            print "   Acccept new file and update reference files? (Close plot window to continue.)"
+            print "             Acccept new file and update reference files? (Close plot window to continue.)"
             nPlo = len(yS)
             iPlo = 0
             plt.clf()
