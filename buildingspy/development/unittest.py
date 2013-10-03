@@ -390,11 +390,11 @@ class Tester:
         ''' Check if the data used to run the unit tests do not have duplicate ``*.mat`` files.
 
             Since Dymola writes all ``*.mat`` files to the current working directory,
-            dublicate ``*.mat`` file names would cause a simulation to overwrite the results
+            duplicate ``*.mat`` file names would cause a simulation to overwrite the results
             of a previous simulation. This would make it impossible to compare the results
             to previously obtained results.
             
-            If there are dublicate ``*.mat`` file names used, then this method throws
+            If there are duplicate ``*.mat`` file names used, then this method throws
             a ``ValueError`` exception.
 
         '''
