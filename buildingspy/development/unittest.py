@@ -815,7 +815,7 @@ class Tester:
                     plt.title(matFilNam)
             plt.show()
             while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
-                ans = raw_input("   Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
+                ans = raw_input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
             if ans == "y" or ans == "Y":
                 # update the flag 
                 updateReferenceData = True
@@ -878,8 +878,8 @@ class Tester:
                         # Reference file does not exist
                         print "*** Warning: Reference file ", refFilNam, " does not yet exist."
                         while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
-                            print "    Create new file?"
-                            ans = raw_input("    Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
+                            print "             Create new file?"
+                            ans = raw_input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
                         if ans == "y" or ans == "Y":
                             updateReferenceData = True
                     if updateReferenceData:    # If the reference data of any variable was updated
