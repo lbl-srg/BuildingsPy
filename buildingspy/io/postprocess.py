@@ -73,7 +73,7 @@ class Plotter:
                 raise ValueError('Time tSup is not strictly increasing.')
         yI=np.interp(tSup, tNew, yNew)
         if ( (np.isnan(yI)).any() ):
-            raise ValueError('NaN in iterpolation.')
+            raise ValueError('NaN in interpolation.')
 
         return yI
     interpolate = staticmethod(interpolate)
