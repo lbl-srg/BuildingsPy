@@ -446,7 +446,6 @@ class Tester:
             return ret
 
         for pai in data.getResultVariables(): # pairs of variables that are plotted together
-            foundData = False # This ensures that time is in all data series
             dat=dict()
             for var in pai:
                 time = []
@@ -475,16 +474,18 @@ class Tester:
                     warnings.append("%s uses %s which does not exist in %s.\n" %
                                      (data.getScriptFile(), var, data.getResultFile()))
                 else:
-                    if (not foundData) and len(time) > 2:
+                    # Store time grid. If there are only 2 support points, store it,
+                    # but allow to overwrite it if in another loop, we get more support
+                    # points because a variable is processed
+                    if ('time' not in dat) or len(dat['time']) < len(ti):
                         dat['time']=ti
-                        foundData = True
 
                     if self.__isParameter(val):
                         dat[var] = val
                     else:
                         dat[var]=Plotter.interpolate(ti, time, val)
 
-            if foundData:
+            if len(dat) > 0:
                 ret.append(dat)
         return ret
 
