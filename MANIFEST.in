@@ -1,4 +1,6 @@
-include *.txt
+recursive-include buildingspy/thirdParty *
+recursive-include buildingspy *.txt
 recursive-include doc *
-recursive-include buildingspy/examples *.mo *.mat *.png *.pdf
+recursive-include buildingspy/examples *.mo *.mat *.png *.pdf *.py
+
 
