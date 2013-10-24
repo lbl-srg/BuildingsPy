@@ -1,8 +1,8 @@
 BuildingsPy Changelog
 ---------------------
 
-Version 1.3.0, xxxx, 2013 -- Release 1.3
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Version 1.3.0, October 24, 2013 -- Release 1.3
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 - Added class buildingspy.development.validator
   that can be used to validate the html syntax
   of the info section of .mo files.
