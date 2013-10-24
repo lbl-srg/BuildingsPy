@@ -24,7 +24,6 @@ setup(
                 'buildingspy/thirdParty',
                 'buildingspy/thirdParty.dymat',
                 'buildingspy/thirdParty.dymat.DyMat',
-                'buildingspy/thirdParty.dymat.DyMat.Plot',
                 'buildingspy/thirdParty.dymat.DyMat.Export'],
     classifiers = [
         "Development Status :: 5 - Production/Stable",
