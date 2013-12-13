@@ -554,7 +554,7 @@ class Tester:
   Variable    : %s
   len(yOld)=%d
   len(yInt)=%d
-  Stop processing.""" % (varNam, filNam, len(yOld), len(yInt)))
+  Stop processing.""" % (filNam, varNam, len(yOld), len(yInt)))
 
         errAbs=np.zeros(len(yInt))
         errRel=np.zeros(len(yInt))
