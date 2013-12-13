@@ -538,13 +538,27 @@ class Tester:
         else:
             yInt = [yNew[0], yNew[0]]
 
+        # Compute error for the variable with name varNam
+        if len(yOld) != len(yInt):
+            # If the variable is heatPort.T or heatPort.Q_flow, with lenght=2, then
+            # it has been evaluated as a parameter in the Buildings library. In the Annex60
+            # library, this may be a variable as the Buildings library uses a more efficient
+            # implementation of the heatPort. Hence, we test for this special case, and 
+            # store the parameter as if it were a variable so that the reference result are not
+            # going to be changed.
+            if (varNam.endswith("heatPort.T") or varNam.endswith("heatPort.Q_flow")) and (len(yInt) == 2):
+                yInt = np.ones(len(yOld)) * yInt[0]
+            else:
+                raise ValueError("""Program error, yOld and yInt have different length.
+  Result file : %s 
+  Variable    : %s
+  len(yOld)=%d
+  len(yInt)=%d
+  Stop processing.""" % (filNam, varNam, len(yOld), len(yInt)))
+
         errAbs=np.zeros(len(yInt))
         errRel=np.zeros(len(yInt))
         errFun=np.zeros(len(yInt))
-
-        # Compute error for the variable with name varNam
-        if len(yOld) != len(yInt):
-                raise ValueError("Program error, yOld and yInt have different length. Stop processing %s." % filNam)
 
         for i in range(len(yInt)):
             errAbs[i] = abs( yOld[i] - yInt[i] )
