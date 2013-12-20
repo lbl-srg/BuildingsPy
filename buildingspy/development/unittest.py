@@ -1123,7 +1123,7 @@ class Tester:
         self._deleteTemporaryDirectories = delete
 
     # Create the list of temporary directories that will be used to run the unit tests
-    def _setTemporaryDirectories(self, nPro):
+    def _setTemporaryDirectories(self):
         import tempfile
         import shutil
         import os
