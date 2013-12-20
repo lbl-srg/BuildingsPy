@@ -83,26 +83,26 @@ class Tester:
 
         # --------------------------
         # Class variables
-        self.__libHome=os.path.abspath(".")
-        self.__modelicaCmd='dymola'
-        self.__nPro = multiprocessing.cpu_count()
-        self.__batch = False
+        self._libHome=os.path.abspath(".")
+        self._modelicaCmd='dymola'
+        self._nPro = multiprocessing.cpu_count()
+        self._batch = False
 
         # List of scripts that should be excluded from the unit tests
-        #self.__excludeMos=['Resources/Scripts/Dymola/Airflow/Multizone/Examples/OneOpenDoor.mos']
-        self.__excludeMos=[]
+        #self._excludeMos=['Resources/Scripts/Dymola/Airflow/Multizone/Examples/OneOpenDoor.mos']
+        self._excludeMos=[]
 
         # Number of data points that are used
-        self.__nPoi = 101
+        self._nPoi = 101
 
         # List of temporary directories that are used to run the simulations.
-        self.__temDir = []
+        self._temDir = []
 
         # Flag to delete temporary directories.
-        self.__deleteTemporaryDirectories = True
+        self._deleteTemporaryDirectories = True
 
         # Flag to use existing results instead of running a simulation
-        self.__useExistingResults = False
+        self._useExistingResults = False
 
         ''' Dictionary with keys equal to the ``*.mos`` file name, and values
                  containing a dictionary with keys ``matFil`` and ``y``.
@@ -111,9 +111,9 @@ class Tester:
                  form `[[a.x, a.y], [b.x, b.y1, b.y2]]` if the
                  mos file plots `a.x` versus `a.y` and `b.x` versus `(b.y1, b.y2)`.
         '''
-        self.__data = []
-        self.__libraryName = os.getcwd().split(os.path.sep)[-1]
-        self.__reporter = rep.Reporter(os.path.join(os.getcwd(), "unitTests.log"))
+        self._data = []
+        self._libraryName = os.getcwd().split(os.path.sep)[-1]
+        self._reporter = rep.Reporter(os.path.join(os.getcwd(), "unitTests.log"))
 
     def useExistingResults(self, dirs):
         ''' This function allows to use existing results, as opposed to running a simulation.
@@ -137,9 +137,9 @@ class Tester:
             raise ValueError("Argument 'dirs' of function 'useExistingResults(dirs)' must have at least one element.")
             
         self.setNumberOfThreads(len(dirs))
-        self.__temDir = dirs
+        self._temDir = dirs
         self.deleteTemporaryDirectories(False)
-        self.__useExistingResults = True
+        self._useExistingResults = True
 
     def setNumberOfThreads(self, number):
         ''' Set the number of parallel threads that are used to run the unit tests.
@@ -149,7 +149,7 @@ class Tester:
         By default, the number of parallel threads are set to be equal to the number of
         processors of the computer.
         '''
-        self.__nPro = number
+        self._nPro = number
 
 
     def batchMode(self, batchMode):
@@ -169,7 +169,7 @@ class Tester:
         >>> ut.run()
 
         '''
-        self.__batch = batchMode
+        self._batch = batchMode
 
     def getModelicaCommand(self):
         ''' Return the name of the modelica executable.
@@ -177,7 +177,7 @@ class Tester:
         :return: The name of the modelica executable.
 
         '''
-        return self.__modelicaCmd
+        return self._modelicaCmd
     
     # --------------------------
     # Check if argument is an executable
@@ -217,7 +217,7 @@ class Tester:
         
         "return: The name of the library that will be run by this unit test.
         '''
-        return self.__libraryName
+        return self._libraryName
         
         
     def checkPythonModuleAvailability(self):
@@ -244,7 +244,7 @@ class Tester:
     # Check wether the file 'fileName' contains the string 'key'
     # as the first string on the first or second line
     # If 'key' is found, increase the counter
-    def __checkKey(self, key, fileName, counter):
+    def _checkKey(self, key, fileName, counter):
         filObj=open(fileName, 'r')
         filTex=filObj.readline()
         # Strip white spaces so we can test strpos for zero.
@@ -263,7 +263,7 @@ class Tester:
         return counter
 
     # --------------------------
-    def __includeFile(self, fileName):
+    def _includeFile(self, fileName):
         ''' Returns true if the file need to be included in the list of scripts to run
 
         :param: fileName The name of the ``*.mos`` file.
@@ -272,7 +272,7 @@ class Tester:
         *Resources/Scripts/Dymola/Fluid/Actuators/Examples/Damper.mos*
         or *Resources/Scripts/someOtherFile.ext*.
         This function checks if *fileName* exists in the global list
-        self.__excludeMos. During this check, all backward slashes will
+        self._excludeMos. During this check, all backward slashes will
         be replaced by a forward slash.
     '''
         pos=fileName.endswith('.mos')
@@ -285,7 +285,7 @@ class Tester:
     ##        if fileName.find(test) != 0:
     ##            return False
 
-            if (self.__excludeMos.count(fileName) == 0):
+            if (self._excludeMos.count(fileName) == 0):
                 return True
             else:
                 print "*** Warning: Excluded file ", fileName, " from the unit tests."
@@ -301,7 +301,7 @@ class Tester:
         import re
         import buildingspy.development.data as data
 
-        scrPat = os.path.join(self.__libHome, 'Resources', 'Scripts', 'Dymola')
+        scrPat = os.path.join(self._libHome, 'Resources', 'Scripts', 'Dymola')
         for root, _, files in os.walk(scrPat):
             pos=root.find('.svn')
             # skip .svn folders
@@ -309,7 +309,7 @@ class Tester:
                 for mosFil in files:
                     # find the desired mos file
                     pos=mosFil.endswith('.mos')
-                    if pos > -1 and (not mosFil.startswith("Convert" + self.__libraryName)):
+                    if pos > -1 and (not mosFil.startswith("Convert" + self._libraryName)):
                         matFil = ""
                         dat = data.Data()
                         dat.setScriptDirectory(root[len(scrPat)+1:])
@@ -327,7 +327,7 @@ class Tester:
                             Lines[i] = Lines[i].replace(' ', '')
 
                         # Check if the file contains the simulate command
-                        if self.__includeFile(os.path.join(root, mosFil)):
+                        if self._includeFile(os.path.join(root, mosFil)):
                             for lin in Lines:
                                 if (lin.find("simulate")) > -1:
                                     dat.mustSimulate(True)
@@ -346,7 +346,7 @@ class Tester:
                                     s +=  "%s\n" % lin
                                     s += "Make sure that each assignment of the plot command is on one line.\n"
                                     s += "Unit tests failed with error.\n"
-                                    self.__reporter.writeError(s)
+                                    self._reporter.writeError(s)
                                     raise
                                 var=var.strip('{}"')
                                 y = var.split('","')
@@ -359,7 +359,7 @@ class Tester:
                             s =  "%s does not contain any plot command.\n" % mosFil
                             s += "You need to add a plot command to include its\n"
                             s += "results in the unit tests.\n"
-                            self.__reporter.writeError(s)
+                            self._reporter.writeError(s)
                             
                         dat.setResultVariables(plotVars)
 
@@ -381,12 +381,12 @@ class Tester:
                         if len(matFil) == 0:
                             raise  ValueError('Did not find *.mat file in ' + mosFil)
                         dat.setResultFile(matFil)
-                        self.__data.append(dat)
-        self.__checkDataDictionary()
+                        self._data.append(dat)
+        self._checkDataDictionary()
         return
 
 
-    def __checkDataDictionary(self):
+    def _checkDataDictionary(self):
         ''' Check if the data used to run the unit tests do not have duplicate ``*.mat`` files.
 
             Since Dymola writes all ``*.mat`` files to the current working directory,
@@ -400,7 +400,7 @@ class Tester:
         '''
         s = set()
         errMes = ""
-        for data in self.__data:
+        for data in self._data:
             resFil = data.getResultFile()
             if data.simulateFile():
                 if resFil in s:
@@ -411,7 +411,7 @@ class Tester:
         if len(errMes) > 0:
             raise ValueError(errMes)
 
-    def __getTimeGrid(self, tMin, tMax, nPoi):
+    def _getTimeGrid(self, tMin, tMax, nPoi):
         '''
         Return the time grid for the output result interpolation
         
@@ -421,7 +421,7 @@ class Tester:
         '''
         return [ tMin+float(i)/(nPoi-1)*(tMax-tMin) for i in range(nPoi) ]
     
-    def __getSimulationResults(self, data, warnings, errors):
+    def _getSimulationResults(self, data, warnings, errors):
         '''
         Get the simulation results.
 
@@ -446,7 +446,7 @@ class Tester:
             return r
             
         # Get the working directory that contains the ".mat" file
-        fulFilNam=os.path.join(data.getResultDirectory(), self.__libraryName, data.getResultFile())
+        fulFilNam=os.path.join(data.getResultDirectory(), self._libraryName, data.getResultFile())
         ret=[]
         try:
             r=Reader(fulFilNam, "dymola") 
@@ -469,8 +469,8 @@ class Tester:
                     # state events triggered a different output interval grid.
                     tMin=float(min(time))
                     tMax=float(max(time))
-                    nPoi = min(self.__nPoi, len(val))
-                    ti = self.__getTimeGrid(tMin, tMax, nPoi)
+                    nPoi = min(self._nPoi, len(val))
+                    ti = self._getTimeGrid(tMin, tMax, nPoi)
                 except ZeroDivisionError as e:
                     s = "When processing " + fulFilNam + " generated by " + data.getScriptFile() + ", caught division by zero.\n"
                     s += "   len(val)  = " + str(len(val)) + "\n"
@@ -486,7 +486,7 @@ class Tester:
                     if ('time' not in dat):
                         dat['time']=[tMin, tMax]
 
-                    if self.__isParameter(val):
+                    if self._isParameter(val):
                         dat[var] = val
                     else:
                         dat[var]=Plotter.interpolate(ti, time, val)
@@ -495,7 +495,7 @@ class Tester:
                 ret.append(dat)
         return ret
 
-    def __areResultsEqual(self, tOld, yOld, tNew, yNew, varNam, filNam):
+    def _areResultsEqual(self, tOld, yOld, tNew, yNew, varNam, filNam):
         ''' Return `True` if the data series are equal within a tolerance.
 
         :param tOld: List of old time values.
@@ -512,12 +512,12 @@ class Tester:
 
         def getTimeGrid(t):
             if len(t) == 2:
-                return self.__getTimeGrid(t[0], t[-1], self.__nPoi)
-            elif len(t) == self.__nPoi:
+                return self._getTimeGrid(t[0], t[-1], self._nPoi)
+            elif len(t) == self._nPoi:
                 return t
             else:
                 s = "The new time grid has %d points, but it must have 2 or %d points.\n\
-            Stop processing %s\n" % (len(tNew), self.__nPoi, filNam)
+            Stop processing %s\n" % (len(tNew), self._nPoi, filNam)
                 raise ValueError(s)
 
             
@@ -578,11 +578,11 @@ class Tester:
                 if errFun[i] > eMax:
                     eMax = errFun[i]
                     iMax = i
-            tGri = self.__getTimeGrid(tOld[0], tOld[-1], self.__nPoi)
+            tGri = self._getTimeGrid(tOld[0], tOld[-1], self._nPoi)
             timMaxErr = tGri[iMax]
             warning = filNam + ": " + varNam + " has absolute and relative error = " + \
                 ("%0.3e" % max(errAbs)) + ", " + ("%0.3e" % max(errRel)) + ".\n"
-            if self.__isParameter(yInt):
+            if self._isParameter(yInt):
                 warning += "             %s is a parameter.\n" % varNam
             else:
                 warning += "             Maximum error is at t = %s\n" % str(timMaxErr)
@@ -592,7 +592,7 @@ class Tester:
             return (True, timMaxErr, None)
 
 
-    def __isParameter(self, dataSeries):
+    def _isParameter(self, dataSeries):
         ''' Return `True` if `dataSeries` is from a parameter.
         '''
         import numpy as np
@@ -601,7 +601,7 @@ class Tester:
                                 + str(type(dataSeries)) + ".\n")
         return (len(dataSeries) == 2)
 
-    def __writeReferenceResults(self, refFilNam, yS):
+    def _writeReferenceResults(self, refFilNam, yS):
         ''' Write the reference results.
 
         :param refFilNam: The name of the reference file.
@@ -631,7 +631,7 @@ class Tester:
                     f.write('\n')
         f.close()
 
-    def __readReferenceResults(self, refFilNam):
+    def _readReferenceResults(self, refFilNam):
         ''' Read the reference results.
 
         :param refFilNam: The name of the reference file.
@@ -663,7 +663,7 @@ class Tester:
                 numAsStr=s.split(',')
             except ValueError as detail:
                 s =  "%s could not be parsed.\n" % refFilNam
-                self.__reporter.writeError(s)
+                self._reporter.writeError(s)
                 raise TypeError(detail)
 
             val = []
@@ -675,7 +675,7 @@ class Tester:
         return d
 
 
-    def __askNoReferenceResultsFound(self, yS, refFilNam, ans):
+    def _askNoReferenceResultsFound(self, yS, refFilNam, ans):
         ''' Ask user what to do if no reference data were found
            :param yS: A list where each element is a dictionary of variable names and simulation
                       results that are to be plotted together.
@@ -701,7 +701,7 @@ class Tester:
         return (updateReferenceData, foundError, ans)
 
 
-    def __compareResults(self, matFilNam, oldRefFulFilNam, yS, refFilNam, ans):
+    def _compareResults(self, matFilNam, oldRefFulFilNam, yS, refFilNam, ans):
         ''' Compares the new and the old results.
         
             :param matFilNam: Matlab file name.
@@ -724,11 +724,11 @@ class Tester:
         verifiedTime = False
 
         #Load the old data (in dictionary format)
-        d = self.__readReferenceResults(oldRefFulFilNam)
+        d = self._readReferenceResults(oldRefFulFilNam)
         yR=d['results']
 
         if len(yR) == 0:
-            return self.__askNoReferenceResultsFound(yS, refFilNam, ans)
+            return self._askNoReferenceResultsFound(yS, refFilNam, ans)
 
         # The old data contains results
         tR=yR.get('time')
@@ -762,27 +762,27 @@ class Tester:
                 if varNam != 'time':
                     if yR.has_key(varNam):
                         # Check results
-                        if self.__isParameter(pai[varNam]):
+                        if self._isParameter(pai[varNam]):
                             t=[min(tS), max(tS)]
                         else:
                             t=tS
 
-                        (res, timMaxErr, warning) = self.__areResultsEqual(tR, yR[varNam], t, pai[varNam], varNam, matFilNam)
+                        (res, timMaxErr, warning) = self._areResultsEqual(tR, yR[varNam], t, pai[varNam], varNam, matFilNam)
                         if warning:
-                            self.__reporter.writeWarning(warning)
+                            self._reporter.writeWarning(warning)
                         if not res:
                             foundError = True
                             timOfMaxErr[varNam] = timMaxErr
                     else:
                         # There is no old data series for this variable name
-                        self.__reporter.writeWarning("Did not find variable " + varNam + " in old results.")
+                        self._reporter.writeWarning("Did not find variable " + varNam + " in old results.")
                         foundError = True
                         noOldResults.append(varNam)
 
         # If the users selected "N" (to not accept any new results) in previous tests,
         # or if the script is run in batch mode, then don't plot the results.
         # If we found an error, plot the results, and ask the user to accept or reject the new values.
-        if foundError and (not self.__batch) and (not ans == "N"):
+        if foundError and (not self._batch) and (not ans == "N"):
             print "             Acccept new file and update reference files? (Close plot window to continue.)"
             nPlo = len(yS)
             iPlo = 0
@@ -799,22 +799,22 @@ class Tester:
                     if iPai > len(color)-1:
                         iPai = 0
                     if varNam != 'time':
-                        if self.__isParameter(pai[varNam]):
+                        if self._isParameter(pai[varNam]):
                             plt.plot([min(tS), max(tS)], pai[varNam], 
                                      color[iPai] + '-', label='New ' + varNam)
                         else:
-                            plt.plot(self.__getTimeGrid(tS[0], tS[-1], len(pai[varNam])), 
+                            plt.plot(self._getTimeGrid(tS[0], tS[-1], len(pai[varNam])), 
                                      pai[varNam], 
                                      color[iPai] + '-', label='New ' + varNam)
                         
 
                         # Test to make sure that this variable has been found in the old results
                         if noOldResults.count(varNam) == 0:
-                            if self.__isParameter(yR[varNam]):
+                            if self._isParameter(yR[varNam]):
                                 plt.plot([min(tR), max(tR)], yR[varNam], 
                                          color[iPai] + '.', label='Old ' + varNam)
                             else:
-                                plt.plot(self.__getTimeGrid(tR[0], tR[-1], len(yR[varNam])),
+                                plt.plot(self._getTimeGrid(tR[0], tR[-1], len(yR[varNam])),
                                          yR[varNam],
                                          color[iPai] + '.', label='Old ' + varNam)
                         # Plot the location of the maximum error
@@ -842,19 +842,19 @@ class Tester:
     # show a warning message containing the "file name" and "path".
     # If there is no .mat file of the reference points in the library home folder,
     # ask the user whether it should be generated.
-    def __checkReferencePoints(self, ans):
+    def _checkReferencePoints(self, ans):
         import os
 
-        #Check if the directory "self.__libHome\\Resources\\ReferenceResults\\Dymola" exists, if not create it.
-        refDir=os.path.join(self.__libHome, 'Resources', 'ReferenceResults', 'Dymola')   
+        #Check if the directory "self._libHome\\Resources\\ReferenceResults\\Dymola" exists, if not create it.
+        refDir=os.path.join(self._libHome, 'Resources', 'ReferenceResults', 'Dymola')   
         if not os.path.exists(refDir):
             os.makedirs(refDir)               
 
-        for data in self.__data:
+        for data in self._data:
             # Name of the reference file, which is the same as that matlab file name but with another extension
-            if self.__includeFile(data.getScriptFile()):
+            if self._includeFile(data.getScriptFile()):
                 # Convert 'aa/bb.mos' to 'aa_bb.txt'
-                mosFulFilNam = os.path.join(self.__libraryName, 
+                mosFulFilNam = os.path.join(self._libraryName, 
                                             data.getScriptDirectory(), data.getScriptFile())
                 mosFulFilNam = mosFulFilNam.replace(os.sep, '_')
                 refFilNam=os.path.splitext( mosFulFilNam )[0] + ".txt" 
@@ -863,18 +863,18 @@ class Tester:
                     # extract reference points from the ".mat" file corresponding to "filNam"
                     warnings = []
                     errors = []
-                    yS=self.__getSimulationResults(data, warnings, errors)
+                    yS=self._getSimulationResults(data, warnings, errors)
                     for entry in warnings:
-                        self.__reporter.writeWarning(entry)
+                        self._reporter.writeWarning(entry)
                     for entry in errors:
-                        self.__reporter.writeError(entry)
+                        self._reporter.writeError(entry)
                 except UnicodeDecodeError as e:
                     em = "UnicodeDecodeError({0}): {1}".format(e.errno, e.strerror)
                     em += "Output file of " + data.getScriptFile() + " is excluded from unit tests.\n"
                     em += "The model appears to contain a non-asci character\n"
                     em += "in the comment of a variable, parameter or constant.\n"
                     em += "Check " + data.getScriptFile() + " and the classes it instanciates.\n"
-                    self.__reporter.writeError(em)
+                    self._reporter.writeError(em)
                 else:
                     # Reset answer, unless it is set to Y or N
                     if not (ans == "Y" or ans == "N"):
@@ -886,7 +886,7 @@ class Tester:
                     # If the reference file exists, and if the reference file contains results, compare the results.
                     if os.path.exists(oldRefFulFilNam):
                         # compare the new reference data with the old one
-                        [updateReferenceData, _, ans]=self.__compareResults(
+                        [updateReferenceData, _, ans]=self._compareResults(
                             data.getResultFile(), oldRefFulFilNam, yS, refFilNam, ans)
                     else:
                         # Reference file does not exist
@@ -898,17 +898,17 @@ class Tester:
                             updateReferenceData = True
                     if updateReferenceData:    # If the reference data of any variable was updated
                         # Make dictionary to save the results and the svn information
-                        self.__writeReferenceResults(oldRefFulFilNam, yS)
+                        self._writeReferenceResults(oldRefFulFilNam, yS)
             else:
-                self.__reporter.writeWarning("Output file of " + data.getScriptFile() + " is excluded from result test.")
+                self._reporter.writeWarning("Output file of " + data.getScriptFile() + " is excluded from result test.")
 
         return ans
 
     # --------------------------
-    def __checkSimulationError(self, errorFile):
+    def _checkSimulationError(self, errorFile):
         import sys
 
-        def __haveNumericalDerivatives(lin):
+        def _haveNumericalDerivatives(lin):
             ''' Return `True` if the argument contains
             `  Number of numerical Jacobians: ` followed by a non-zero number
             
@@ -921,7 +921,7 @@ class Tester:
                     return True
             return False
 
-        def __haveUnusedConnectors(lin):
+        def _haveUnusedConnectors(lin):
             ''' Return `True` if the argument contains
             `Warning: The following connector variables are not used in the model`
             
@@ -936,34 +936,34 @@ class Tester:
         for lin in fil.readlines():
                 if (lin.count("false") > 0):
                         iFal=iFal+1
-                if __haveNumericalDerivatives(lin):
+                if _haveNumericalDerivatives(lin):
                     iNumDer = iNumDer + 1
-                if __haveUnusedConnectors(lin):
+                if _haveUnusedConnectors(lin):
                     iUnuCon = iUnuCon + 1
 
         fil.close() #Closes the file (read session)
         if (iFal>0):
-                self.__reporter.writeError("Unit tests had " + str(iFal) + " error(s).\n" + \
+                self._reporter.writeError("Unit tests had " + str(iFal) + " error(s).\n" + \
                                                "Search 'dymola.log' for 'false' to see details.\n")
         if (iNumDer>0):
-                self.__reporter.writeError("Unit tests had " + str(iNumDer) + " numerical Jacobians.\n" + \
+                self._reporter.writeError("Unit tests had " + str(iNumDer) + " numerical Jacobians.\n" + \
                                                "Search 'dymola.log' for 'Number of numerical Jacobians:' to see details.\n")
         if (iUnuCon>0):
-                self.__reporter.writeWarning("Unit tests had " + str(iUnuCon) + " unused connector variables.\n" + \
+                self._reporter.writeWarning("Unit tests had " + str(iUnuCon) + " unused connector variables.\n" + \
                                                "Search 'dymola.log' for 'Warning: The following connector variables are not used in the model' to see details.\n")
 
-        self.__reporter.writeOutput("Script that runs unit tests had " + \
-                                        str(self.__reporter.getNumberOfWarnings()) + \
+        self._reporter.writeOutput("Script that runs unit tests had " + \
+                                        str(self._reporter.getNumberOfWarnings()) + \
                                         " warnings and " + \
-                                        str(self.__reporter.getNumberOfErrors()) + \
+                                        str(self._reporter.getNumberOfErrors()) + \
                                         " errors.\n")
         sys.stdout.write("See 'unitTests.log' for details.\n")
-        if self.__reporter.getNumberOfErrors() > 0:
+        if self._reporter.getNumberOfErrors() > 0:
             return 1
-        if self.__reporter.getNumberOfWarnings() > 0:
+        if self._reporter.getNumberOfWarnings() > 0:
             return 2
         else:
-            self.__reporter.writeOutput("Unit tests completed successfully.\n")
+            self._reporter.writeOutput("Unit tests completed successfully.\n")
             return 0
 
 
@@ -976,7 +976,7 @@ class Tester:
         iMod=0
         iBlo=0
         iFun=0
-        for root, _, files in os.walk(self.__libHome):
+        for root, _, files in os.walk(self._libHome):
             pos=root.find('.svn')
             # skip .svn folders
             if pos == -1:
@@ -987,14 +987,14 @@ class Tester:
                     if pos > -1 and posExa == -1:
                         # find classes that are not partial
                         filFulNam=os.path.join(root, filNam)
-                        iMod = self.__checkKey("model", filFulNam, iMod)
-                        iBlo = self.__checkKey("block", filFulNam, iBlo)
-                        iFun = self.__checkKey("function", filFulNam, iFun)
+                        iMod = self._checkKey("model", filFulNam, iMod)
+                        iBlo = self._checkKey("block", filFulNam, iBlo)
+                        iFun = self._checkKey("function", filFulNam, iFun)
         print "Number of models   : ", str(iMod)
         print "          blocks   : ", str(iBlo)
         print "          functions: ", str(iFun)
 
-    def __getModelCheckCommand(self, mosFilNam):
+    def _getModelCheckCommand(self, mosFilNam):
         ''' Return lines that conduct a model check in pedantic mode.
         
         :param mosFilNam: The name of the ``*.mos`` file
@@ -1011,7 +1011,7 @@ class Tester:
             except ValueError as e:
                 em = str(e) + "\n"
                 em += "Did not find model name in '%s'\n" % mosFil
-                self.__reporter.writeError(em)
+                self._reporter.writeError(em)
                 raise ValueError(em)
 
         fil = open(mosFilNam, "r+")
@@ -1023,7 +1023,7 @@ class Tester:
         fil.close()
         return retVal
 
-    def __removePlotCommands(self, mosFilNam):
+    def _removePlotCommands(self, mosFilNam):
         ''' Remove all plot commands from the mos file.
         
         :param mosFilNam: The name of the ``*.mos`` file
@@ -1055,17 +1055,17 @@ class Tester:
     # --------------------------
     # Write the script that runs all example problems, and
     # that searches for errors
-    def __writeRunscripts(self):
+    def _writeRunscripts(self):
         import os
 
         nUniTes = 0
 
-        nTes = len(self.__data)
-        for iPro in range(min(self.__nPro, nTes)):
+        nTes = len(self._data)
+        for iPro in range(min(self._nPro, nTes)):
 
-            runFil=open(os.path.join(self.__temDir[iPro], self.__libraryName, "runAll.mos"), 'w')
+            runFil=open(os.path.join(self._temDir[iPro], self._libraryName, "runAll.mos"), 'w')
             runFil.write("// File autogenerated for process " 
-                         + str(iPro+1) + " of " + str(self.__nPro) + "\n")
+                         + str(iPro+1) + " of " + str(self._nPro) + "\n")
             runFil.write("// Do not edit.\n")
             runFil.write("openModel(\"package.mo\");\n")
             # Add a flag so that translation info appears in console output.
@@ -1075,23 +1075,23 @@ class Tester:
             # Store the variable for pedantic mode
             runFil.write("OriginalAdvancedPedanticModelica = Advanced.PedanticModelica;\n")
             # Write unit tests for this process
-            for i in range(iPro, nTes, self.__nPro):
+            for i in range(iPro, nTes, self._nPro):
                 # Check if this mos file should be simulated
-                if self.__data[i].simulateFile():
-                    self.__data[i].setResultDirectory(self.__temDir[iPro])
-                    mosFilNam = os.path.join(self.__temDir[iPro], self.__libraryName, 
+                if self._data[i].simulateFile():
+                    self._data[i].setResultDirectory(self._temDir[iPro])
+                    mosFilNam = os.path.join(self._temDir[iPro], self._libraryName, 
                                              "Resources", "Scripts", "Dymola",
-                                             self.__data[i].getScriptDirectory(),
-                                             self.__data[i].getScriptFile())
+                                             self._data[i].getScriptDirectory(),
+                                             self._data[i].getScriptFile())
                     # Add checkModel(...) in pedantic mode
                     runFil.write("Advanced.PedanticModelica = true;\n")
-                    runFil.write("%s;\n" % self.__getModelCheckCommand(mosFilNam))
+                    runFil.write("%s;\n" % self._getModelCheckCommand(mosFilNam))
                     runFil.write("Advanced.PedanticModelica = OriginalAdvancedPedanticModelica;\n")
                     # Write line for run script
                     runFil.write("RunScript(\"Resources/Scripts/Dymola/" 
-                                 + self.__data[i].getScriptDirectory() + "/" 
-                                 + self.__data[i].getScriptFile() + "\");\n")
-                    self.__removePlotCommands(mosFilNam)
+                                 + self._data[i].getScriptDirectory() + "/" 
+                                 + self._data[i].getScriptFile() + "\");\n")
+                    self._removePlotCommands(mosFilNam)
                     nUniTes = nUniTes + 1
             runFil.write("// Save log file\n")
             runFil.write("savelog(\"dymola.log\");\n")
@@ -1099,10 +1099,10 @@ class Tester:
             runFil.close()
         
         # For files that do not require a simulation, we need to set the path of the result files.
-        for dat in self.__data:
+        for dat in self._data:
             if not dat.simulateFile():
                 matFil = dat.getResultFile()
-                for allDat in self.__data:
+                for allDat in self._data:
                     if allDat.simulateFile():
                         resFil = allDat.getResultFile()
                         if resFil == matFil:
@@ -1120,24 +1120,24 @@ class Tester:
         Unless this method is called prior to running the unit tests with ``delete=False``,
         all temporary directories will be deleted after the unit tests.
         '''
-        self.__deleteTemporaryDirectories = delete
+        self._deleteTemporaryDirectories = delete
 
     # Create the list of temporary directories that will be used to run the unit tests
-    def __setTemporaryDirectories(self, nPro):
+    def _setTemporaryDirectories(self, nPro):
         import tempfile
         import shutil
         import os
 
-        self.__temDir = []
+        self._temDir = []
 
         # Make temporary directory, copy library into the directory and 
         # write run scripts to directory
-        for iPro in range(self.__nPro):
-            #print "Calling parallel loop for iPro=", iPro, " self.__nPro=", self.__nPro
-            dirNam = tempfile.mkdtemp(prefix='tmp-' + self.__libraryName + '-'+ str(iPro) +  "-")
-            self.__temDir.append( dirNam )
-            shutil.copytree(".." + os.sep + self.__libraryName, 
-                            os.path.join(dirNam, self.__libraryName), 
+        for iPro in range(self._nPro):
+            #print "Calling parallel loop for iPro=", iPro, " self._nPro=", self._nPro
+            dirNam = tempfile.mkdtemp(prefix='tmp-' + self._libraryName + '-'+ str(iPro) +  "-")
+            self._temDir.append( dirNam )
+            shutil.copytree(".." + os.sep + self._libraryName, 
+                            os.path.join(dirNam, self._libraryName), 
                             symlinks=False, 
                             ignore=shutil.ignore_patterns('.svn', '.mat'))
         return
@@ -1177,7 +1177,7 @@ class Tester:
 
         self.checkPythonModuleAvailability()
         # Delete log file
-        self.__reporter.deleteLogFile()
+        self._reporter.deleteLogFile()
 
         self.setDataDictionary()
 
@@ -1187,9 +1187,9 @@ class Tester:
         # Process command line arguments
 
         # Check if executable is on the path
-        if not self.__useExistingResults:
-            if not self.isExecutable(self.__modelicaCmd):
-                print "Error: Did not find executable '", self.__modelicaCmd, "'."
+        if not self._useExistingResults:
+            if not self.isExecutable(self._modelicaCmd):
+                print "Error: Did not find executable '", self._modelicaCmd, "'."
                 return 3
 
         # Check current working directory
@@ -1199,7 +1199,7 @@ class Tester:
             print "*** Exit with error. Did not do anything."
             return 2
 
-        print "Using ", self.__nPro, " of ", multiprocessing.cpu_count(), " processors to run unit tests."
+        print "Using ", self._nPro, " of ", multiprocessing.cpu_count(), " processors to run unit tests."
         # Count number of classes
         self.printNumberOfClasses()    
 
@@ -1208,60 +1208,60 @@ class Tester:
         errMsg = val.validateHTMLInPackage(".")
         for i in range(len(errMsg)):
             if i == 0:
-                self.__reporter.writeError("The following malformed html syntax has been found:\n%s" % errMsg[i])
+                self._reporter.writeError("The following malformed html syntax has been found:\n%s" % errMsg[i])
             else:
-                self.__reporter.writeError(errMsg[i])
+                self._reporter.writeError(errMsg[i])
 
         # Run simulations
-        if not self.__useExistingResults:
-            self.__setTemporaryDirectories(self.__nPro)
-        self.__writeRunscripts()
-        if not self.__useExistingResults:
-            if self.__nPro > 1:
-                po = multiprocessing.Pool(self.__nPro)
-                po.map(runSimulation, self.__temDir)
+        if not self._useExistingResults:
+            self._setTemporaryDirectories(self._nPro)
+        self._writeRunscripts()
+        if not self._useExistingResults:
+            if self._nPro > 1:
+                po = multiprocessing.Pool(self._nPro)
+                po.map(runSimulation, self._temDir)
             else:
-                runSimulation(self.__temDir[0])
+                runSimulation(self._temDir[0])
 
 
         # Concatenate output files into one file
         logFil = open('dymola.log', 'w')
-        for d in self.__temDir:
-            temLogFilNam = os.path.join(d, self.__libraryName, 'dymola.log')
+        for d in self._temDir:
+            temLogFilNam = os.path.join(d, self._libraryName, 'dymola.log')
             if os.path.exists(temLogFilNam):
                 fil=open(temLogFilNam,'r')
                 data=fil.read()
                 fil.close()
                 logFil.write(data)
             else:
-                self.__reporter.writeError("Log file '" + temLogFilNam + "' does not exist.\n")
+                self._reporter.writeError("Log file '" + temLogFilNam + "' does not exist.\n")
                 retVal = 1
         logFil.close()
 
         # Check reference results
-        if self.__batch:
+        if self._batch:
             ans = "N"
         else:
             ans = "-"
 
-        ans = self.__checkReferencePoints(ans)
+        ans = self._checkReferencePoints(ans)
 
 
         # Delete temporary directories
-        if self.__deleteTemporaryDirectories:
-            for d in self.__temDir:
+        if self._deleteTemporaryDirectories:
+            for d in self._temDir:
                 shutil.rmtree(d)
 
         # Check for errors
         if retVal == 0:
-            retVal = self.__checkSimulationError("dymola.log")
+            retVal = self._checkSimulationError("dymola.log")
         else:
-            self.__checkSimulationError("dymola.log")
+            self._checkSimulationError("dymola.log")
 
         # Print list of files that may be excluded from unit tests
-        if len(self.__excludeMos) > 0:
+        if len(self._excludeMos) > 0:
             print "*** Warning: The following files may be excluded from the unit tests:\n"
-            for fil in self.__excludeMos:
+            for fil in self._excludeMos:
                 print "            ", fil
 
         # Print time
