@@ -6,6 +6,32 @@
 # MWetter@lbl.gov                            2011-02-23
 #######################################################
 
+import pdb
+import os
+
+def compileJModelica(d):
+    """
+    Compile the model specified in the Data object d with JModelica
+    Save the fmu in the current workdir
+    
+    Return the path to the fmu.
+    """
+    
+    from pymodelica import compile_fmu
+
+    t = Tester()
+    libNam = t.getLibraryName()
+
+    basepath = os.path.join(d.getResultDirectory(), libNam)
+    
+    pdb.set_trace()    
+    model = d.getScriptDirectory().replace('/','.') + '.' + d.getScriptFile()[:-4]
+    file_name = os.path.join(basepath, model.replace('.', '/') + '.mo')
+    compile_to = os.path.join(basepath, d.getScriptDirectory())
+    
+    fmu = compile_fmu(class_name=model, file_name = file_name, compile_to=compile_to)    
+    
+
 def runSimulation(worDir):
     ''' Run the simulation.
 
@@ -326,12 +352,26 @@ class Tester:
                         for i in range(len(Lines)):
                             Lines[i] = Lines[i].replace(' ', '')
 
-                        # Check if the file contains the simulate command
+                        # Set some attributes in the Data object
                         if self._includeFile(os.path.join(root, mosFil)):
                             for lin in Lines:
+                                # do we have to simulate?                                
                                 if (lin.find("simulate")) > -1:
                                     dat.mustSimulate(True)
-                                    break
+                                # parse startTime and stopTime, if any
+                                for attr in ["startTime", "stopTime"]:
+                                    pos = lin.find(attr)
+                                    if pos > -1:
+                                        # attribute found.  Get the value.
+                                        posEq = lin.find('=', pos)
+                                        posComma = lin.find(',', pos)
+                                        posBracket = lin.find(')', pos)
+                                        posEnd = min(posComma,posBracket)
+                                        if posEnd < 0:
+                                            posEnd = max(posComma,posBracket)
+                                        valueString = lin[posEq+1:posEnd]
+                                        setattr(dat, attr, float(valueString))
+                                    
 
                         plotVars = []
                         iLin=0
@@ -1057,6 +1097,7 @@ class Tester:
     # that searches for errors
     def _writeRunscripts(self):
         import os
+        pdb.set_trace()
 
         nUniTes = 0
 
