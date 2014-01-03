@@ -17,7 +17,7 @@ doctest:
 	buildingspy/examples/dymola/*.py \
 	buildingspy/simulate/*.py \
         buildingspy/development/*.py
-	rm plot.pdf plot.png
+	rm plot.pdf plot.png roomTemperatures.png
 
 dist:	clean doc 
 	python setup.py sdist --formats=gztar,zip
