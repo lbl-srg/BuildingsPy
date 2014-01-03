@@ -348,8 +348,7 @@ class Tester:
                                         if posEnd < 0:
                                             posEnd = max(posComma,posBracket)
                                         valueString = lin[posEq+1:posEnd]
-                                        dat[attr] = float(valueString)
-                                    
+                                        dat[attr] = valueString
 
                         plotVars = []
                         iLin=0
