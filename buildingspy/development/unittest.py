@@ -7,30 +7,8 @@
 #######################################################
 
 import pdb
-import os
+import os, sys
 
-def compileJModelica(d):
-    """
-    Compile the model specified in the dictionary d with JModelica
-    Save the fmu in the current workdir
-    
-    Return the path to the fmu.
-    """
-    
-    from pymodelica import compile_fmu
-
-    t = Tester()
-    libNam = t.getLibraryName()
-
-    basepath = os.path.join(d['ResultDirectory'], libNam)
-    
-    pdb.set_trace()    
-    model = d['ScriptDirectory'].replace('/','.') + '.' + d['ScriptFile'][:-4]
-    file_name = os.path.join(basepath, model.replace('.', '/') + '.mo')
-    compile_to = os.path.join(basepath, d['ScriptDirectory'])
-    
-    fmu = compile_fmu(class_name=model, file_name = file_name, compile_to=compile_to)    
-    
 
 def runSimulation(worDir):
     ''' Run the simulation.
@@ -1311,3 +1289,201 @@ class Tester:
         print "Execution time = %.3f s" % elapsedTime
 
         return retVal
+
+
+    def _get_test_models(self, folder=None, packages=None):
+        """
+        Search folder and subfolders for testmodels.  All models within 
+        packages are returned.
+        
+        Parameters
+        ----------
+        
+        folder: the path to the library to be searched
+        packages: the names of packages containing test models (Examples, Tests, ...)
+        
+        Returns
+        -------
+        
+        A list with the full paths to the .mo files of the found models
+        """
+    
+        if folder is None:
+            folder = self._temDir[0]
+        
+        res = []
+        for root, dirs, paths in os.walk(folder):
+            # check if this root has to be analysed            
+            if packages is None:
+                checkroot = True
+            elif os.path.split(root)[-1] in packages:
+                checkroot = True
+            else:
+                checkroot = False
+            if checkroot:
+                # take the path if it's a model
+                for path in paths:
+                    if path.endswith('.mo') and not path.endswith('package.mo'):
+                        res.append(os.path.join(root, path))  
+        
+        return res
+    
+    
+    def _model_from_mo(self, mo_file):
+        """Return the model name from a .mo file"""
+        
+        # split the path of the mo_file
+        splt = mo_file.split(os.sep)
+        # find the root of the library name
+        root = splt.index(self.getLibraryName())
+        # recompose but with '.' instead of path separators
+        model = '.'.join(splt[root:])
+        # remove the '.mo' at the end
+        return model[:-3]
+        
+        
+    def test_JModelica(self, cmpl=True, load=False, simulate=False, 
+                      packages=['Examples'], number=-1):
+                          
+        """
+        Test the library compliance with JModelica.org.
+        
+        This is the high-level method to test a complete library, even if there
+        are no specific .mos files in the library for unittesting. 
+        
+        Works only for a single core, so self._nPro is set to 1, and 
+        self.setTemporaryDirectories() is executed. 
+        
+        Parameters
+        ----------
+        
+        * cpml (True): if the model has to be compiled or not
+        * load (False): if the model has to be loaded from the fmu or not
+        * simulate (False): if the model has to be simulated or not
+        * packages ['Examples']: the packages containing the test models in the
+          library
+        * number (-1): number of test models to treat.  -1 means unlimited.
+                
+        
+        Use
+        ---
+        
+        * Open a JModelica environment 
+          (ipython or pylab with JModelica environment variables set).
+  
+        * cd to the root folder of the library
+        * type tye following commands:
+            
+            t = Tester()
+            t.test_JModelica(...)
+
+        """
+        
+        from pymodelica import compile_fmu
+        from pyfmi import load_fmu
+        import shutil
+        from cStringIO import StringIO
+
+        if number < 0:
+            number = 1e15
+        old_stdout = sys.stdout
+        
+        self.setNumberOfThreads(1)
+        self._setTemporaryDirectories()
+
+        tempdir = self._temDir[0]
+        
+        # return a list with pathnames of the .mo files to be tested        
+        tests = self._get_test_models(packages=['Examples'])
+        compiler_options = {'extra_lib_dirs':[tempdir]}
+        
+                
+        # statistics
+        stats = {}        
+        for mo_file in tests:
+            if len(stats) >= number:
+                break
+            # we keep all results for this model in a dictionary
+            stats[mo_file] = {}            
+            model = self._model_from_mo(mo_file)
+            if cmpl:
+                sys.stdout = mystdout = StringIO()
+                try:
+                    fmu = compile_fmu(model, 
+                                      mo_file, 
+                                      compiler_options = compiler_options,
+                                      compile_to = tempdir)
+                except Exception as e:
+                    stats[mo_file]['compilation_ok'] = False
+                    stats[mo_file]['compilation_log'] = mystdout.getvalue()
+                    stats[mo_file]['compilation_err'] = str(e)
+                else:
+                    stats[mo_file]['compilation_ok'] = True
+                    stats[mo_file]['compilation_log'] = mystdout.getvalue()
+                    
+                sys.stdout = old_stdout
+                mystdout.close()    
+            else:
+                # cmpl = False
+                stats[mo_file]['compilation_ok'] = False
+                stats[mo_file]['compilation_log'] = 'Not attempted'
+            
+            #pdb.set_trace()            
+            if load and stats[mo_file]['compilation_ok']:
+                sys.stdout = mystdout = StringIO()
+                try:
+                    mymodel = load_fmu(fmu)
+                except Exception as e:
+                    stats[mo_file]['load_ok'] = False
+                    stats[mo_file]['load_log'] = mystdout.getvalue()
+                    stats[mo_file]['load_err'] = str(e)
+                else:
+                    stats[mo_file]['load_ok'] = True
+                    stats[mo_file]['load_log'] = mystdout.getvalue()
+                    
+                sys.stdout = old_stdout
+                mystdout.close()    
+            else:
+                # no loading attempted
+                stats[mo_file]['load_ok'] = False
+                stats[mo_file]['load_log'] = 'Not attempted'
+                
+                
+        # Delete temporary directories
+        if self._deleteTemporaryDirectories:
+            for d in self._temDir:
+                shutil.rmtree(d)
+                
+        self._jmstats = stats
+        self._analyse_jmstats()
+        
+        
+    def _analyse_jmstats(self):
+        """
+        Analyse the statistics dictionary resulting from a _test_Jmodelica() call
+        """
+        
+        count_cmpl = lambda x: [True for k,v in x.items() if v['compilation_ok']]
+        list_failed_cmpl = lambda x: [k for k,v in x.items() if not v['compilation_ok']]  
+        count_load = lambda x: [True for k,v in x.items() if v['load_ok']]
+        list_failed_load = lambda x: [k for k,v in x.items() if not v['load_ok']]
+        
+        nbr_tot = len(self._jmstats)
+        nbr_cmpl = len(count_cmpl(self._jmstats))
+        nbr_load = len(count_load(self._jmstats))
+        
+        print "###################################################"
+        print "Tested {} models:\n\t* {} compiled successfully (={:.1%})\n\t* {} loaded successfully (={:.1%})"\
+              .format(nbr_tot, 
+                      nbr_cmpl, float(nbr_cmpl)/float(nbr_tot),
+                      nbr_load, float(nbr_load)/float(nbr_tot))
+        
+        print "\nFailed compilation for the following models:"
+        for p in list_failed_cmpl(self._jmstats):
+            print p
+        
+        print "\nFailed loading for the following models:"
+        for p in list_failed_load(self._jmstats):
+            print p
+        
+        print "###################################################"
