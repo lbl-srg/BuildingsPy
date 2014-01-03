@@ -25,17 +25,11 @@ def runSimulation(worDir):
     t = Tester()
     modCom = t.getModelicaCommand()
     libNam = t.getLibraryName()
-    if "BuildingsPy" in worDir:
-        raise ValueError("BuildingsPy is in worDir. fixme1.")
-    test = worDir
-#    worDir = os.path.join(worDir, libNam)
-    if "BuildingsPy" in worDir:
-        raise ValueError("BuildingsPy is in worDir. fixme2 %s." % test)
 
     try:
         logFilNam=os.path.join(worDir, 'stdout.log')
         logFil = open(logFilNam, 'w')
-        retcode = subprocess.Popen(args=[modCom, "runAll.mos"],#fixme, "/nowindow"], 
+        retcode = subprocess.Popen(args=[modCom, "runAll.mos", "/nowindow"], 
                                    stdout=logFil,
                                    stderr=logFil,
                                    shell=False, 
@@ -1241,6 +1235,11 @@ class Tester:
         self._reporter.deleteLogFile()
 
         self.setDataDictionary()
+
+
+        # Reset the number of processors to use no more processors than there are
+        # examples to be run
+        self.setNumberOfThreads(len(self._data))
 
         retVal = 0
         # Start timer
