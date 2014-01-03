@@ -76,7 +76,7 @@ class Tester:
     To run the regression tests, type
 
        >>> import os
-       >>> import buildingspy.development.unittest as r
+       >>> import buildingspy.development.regressiontest as r
        >>> rt = r.Tester()
        >>> myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
        >>> rt.setLibraryRoot(myMoLib)
@@ -134,7 +134,7 @@ class Tester:
 
         Usage: Type
            >>> import os
-           >>> import buildingspy.development.unittest as r
+           >>> import buildingspy.development.regressiontest as r
            >>> rt = r.Tester()
            >>> myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
            >>> rt.setLibraryRoot(myMoLib)
@@ -161,7 +161,7 @@ class Tester:
         ``['/tmp/tmp-Buildings-0-zABC44', '/tmp/tmp-Buildings-0-zQNS41']``
         contain previous results, then this method can be used as
 
-        >>> import buildingspy.development.unittest as r
+        >>> import buildingspy.development.regressiontest as r
         >>> l=['/tmp/tmp-Buildings-0-zABC44', '/tmp/tmp-Buildings-0-zQNS41']
         >>> rt = r.Tester()
         >>> rt.useExistingResults(l)
@@ -199,7 +199,7 @@ class Tester:
         To run the regression tests in batch mode, enter
         
         >>> import os
-        >>> import buildingspy.development.unittest as r
+        >>> import buildingspy.development.regressiontest as r
         >>> r = r.Tester()
         >>> r.batchMode(True)
         >>> r.run() # doctest: +SKIP
@@ -992,7 +992,6 @@ class Tester:
 
         fil.close() #Closes the file (read session)
         if (iFal>0):
-<<<<<<< HEAD
                 self._reporter.writeError("Unit tests had " + str(iFal) + " error(s).\n" + \
                                                "Search 'dymola.log' for 'false' to see details.\n")
         if (iNumDer>0):
@@ -1007,16 +1006,8 @@ class Tester:
                                         " warnings and " + \
                                         str(self._reporter.getNumberOfErrors()) + \
                                         " errors.\n")
-                self._reporter.writeError("Regression tests had " + str(iFal) + " error(s).\n" + \
-                                               "Search 'dymola.log' for 'false' to see details.\n")
-        if (iNumDer>0):
-                self._reporter.writeError("Regression tests had " + str(iNumDer) + " numerical Jacobians.\n" + \
-                                               "Search 'dymola.log' for 'Number of numerical Jacobians:' to see details.\n")
-        if (iUnuCon>0):
-                self._reporter.writeWarning("Regression tests had " + str(iUnuCon) + " unused connector variables.\n" + \
-                                               "Search 'dymola.log' for 'Warning: The following connector variables are not used in the model' to see details.\n")
-
         sys.stdout.write("See 'unitTests.log' for details.\n")
+
         if self._reporter.getNumberOfErrors() > 0:
             return 1
         if self._reporter.getNumberOfWarnings() > 0:
@@ -1390,7 +1381,7 @@ class Tester:
         Test the library compliance with JModelica.org.
         
         This is the high-level method to test a complete library, even if there
-        are no specific .mos files in the library for unittesting. 
+        are no specific .mos files in the library for regression testing. 
         
         Works only for a single core, so self._nPro is set to 1, and 
         self.setTemporaryDirectories() is executed. 
