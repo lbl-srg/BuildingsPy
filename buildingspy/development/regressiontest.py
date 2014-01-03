@@ -87,7 +87,7 @@ class Tester:
        >>> rt = r.Tester()
        >>> myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
        >>> rt.setLibraryRoot(myMoLib)
-       >>> rt.run()  # doctest: +SKIP
+       >>> rt.run()
 
     '''
     def __init__(self):
@@ -1279,12 +1279,12 @@ class Tester:
             self._setTemporaryDirectories()
         self._writeRunscripts()
         if not self._useExistingResults:
+            libNam = self.getLibraryName()
             if self._nPro > 1:
-                libNam = self.getLibraryName()
                 po = multiprocessing.Pool(self._nPro)
-                po.map(runSimulation, map(lambda x: os.path.join(x, libNam), self.__temDir))
+                po.map(runSimulation, map(lambda x: os.path.join(x, libNam), self._temDir))
             else:
-                runSimulation(os.path.join(self._temDir[0], self.__temDir))
+                runSimulation(os.path.join(self._temDir[0], libNam))
 
 
         # Concatenate output files into one file
