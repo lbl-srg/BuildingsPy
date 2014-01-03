@@ -16,15 +16,21 @@ class Plotter:
         :return: Interpolated values of ``varName`` at ``tSup``
 
         Usage: Type
+
+           >>> import os
            >>> from buildingspy.io.outputfile import Reader
+           >>> from buildingspy.io.postprocess import Plotter
            >>> import numpy as np
            >>> import matplotlib.pyplot as plt
-           >>> r=Reader("PlotDemo.mat", "dymola")
+           >>>
+           >>> resultFile = os.path.join("buildingspy", "examples", "dymola", "PlotDemo.mat")
+           >>> r=Reader(resultFile, "dymola")
            >>> (t, y) = r.values('temSen.T')
            >>> tSup=np.linspace(0, 1.0, num=50)
-           >>> TInt=Reader.interpolate(tSup, t, y)
-           >>> plt.plot(tSup, TInt)
-           >>> plt.show()
+           >>> TInt=Plotter.interpolate(tSup, t, y)
+           >>> plt.plot(tSup, TInt) #doctest: +ELLIPSIS
+           [<matplotlib.lines.Line2D object at ...>]
+           >>> plt.show() # doctest: +SKIP
 
         '''
         import numpy as np
@@ -101,6 +107,9 @@ class Plotter:
         # Check input
         if t[0] != 0:
             raise ValueError('t[0] must be zero. Received t[0] = ' + str(t[0]))
+        if t[-1] < tPeriod:
+            raise ValueError('t[-1] = %s, but tPeriod = %s. The array t must contain at least two periods.' 
+                                % (t[-1], tPeriod))
         # n is the index of the last element before the vector is looped
         n=-1
         for ele in t:
@@ -129,11 +138,11 @@ class Plotter:
         :param increment: The time increment that is used in the plot
         :param nIncrement: The number of increments before the data are wrapped.
         :return: This method returns a 
-                 `matplotlib.pyplot <http://matplotlib.sourceforge.net/api/pyplot_api.html>`_ object that can be further
+                 `matplotlib.pyplot <http://matplotlib.org/api/pyplot_api.html>`_ object that can be further
                  processed, such as to label its axis.
 
         All other arguments are as explained at `matplotlib's boxplot documentation 
-        <http://matplotlib.sourceforge.net/api/pyplot_api.html#matplotlib.pyplot.boxplot>`_.
+        <http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.boxplot>`_.
         
         The parameter ``increment`` is used to set the support points in time
         at which the statistics is made. 
@@ -145,25 +154,27 @@ class Plotter:
 
         Usage: Type
 
+           >>> import os
            >>> from buildingspy.io.outputfile import Reader
            >>> from buildingspy.io.postprocess import Plotter
+           >>> import matplotlib.pyplot as plt
            >>> 
            >>> # Read data
-           >>> r=Reader("TwoRoomsWithStorage.mat", "dymola")
+           >>> resultFile = os.path.join("buildingspy", "examples", "dymola", "TwoRoomsWithStorage.mat")
+           >>> r=Reader(resultFile, "dymola")
            >>> (t, y) = r.values('roo1.air.vol.T')
            >>> 
            >>> # Create basic plot
-           >>> plt=Plotter.boxplot(t=t, 
-           >>>                     y=y-273.15, 
-           >>>                     increment=3600, 
-           >>>                     nIncrement=24)
+           >>> plt=Plotter.boxplot(t=t, y=y-273.15, increment=3600, nIncrement=24)
            >>> 
            >>> # Decorate, save and show the plot
-           >>> plt.xlabel('Time [h]')
-           >>> plt.ylabel(u'Room temperature [$^\circ$C]')
+           >>> plt.xlabel('Time [h]') #doctest: +ELLIPSIS
+           <matplotlib.text.Text object at ...>
+           >>> plt.ylabel(u'Room temperature [$^\circ$C]') #doctest: +ELLIPSIS
+           <matplotlib.text.Text object at ...>
            >>> plt.grid()
            >>> plt.savefig("roomTemperatures.png")
-           >>> plt.show()
+           >>> plt.show() # doctest: +SKIP
 
            to create a plot as the one shown below.
 
@@ -175,13 +186,13 @@ class Plotter:
         import numpy as np
         import matplotlib.pyplot as plt
 
-        # Make sure that input is period
+        # Make sure that input is periodic
         tPeriod=increment*nIncrement
         rem=(t[-1]-t[0]) % tPeriod
         if abs(rem) > 1E-20:
             raise ValueError('Length of time series must be a multiple of increment*nIncrement.\n'
-                             + '  Received increment  = ' + str(tPeriod) + '\n'
-                             + '           nIncrement = ' + str(t[0]) + '\n'
+                             + '  Received increment  = ' + str(increment) + '\n'
+                             + '           nIncrement = ' + str(nIncrement) + '\n'
                              + '           t[-1]-t[0] = ' + str(t[-1]-t[0]) + '.')
 
 

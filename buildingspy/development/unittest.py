@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #######################################################
-# Script that runs all unit tests.
+# Script that runs all regression tests.
 #
 #
 # MWetter@lbl.gov                            2011-02-23
@@ -16,6 +16,7 @@ def runSimulation(worDir):
 
     .. note:: This method is outside the class definition to
               allow parallel computing.
+
     '''
     import os
     import sys
@@ -46,14 +47,14 @@ def runSimulation(worDir):
 
 
 class Tester:
-    ''' Class that runs all unit tests using Dymola.
+    ''' Class that runs all regression tests using Dymola.
     
-    This class can be used to run all unit tests.
+    This class can be used to run all regression tests.
     It searches the directory ``CURRENT_DIRECTORY\Resources\Scripts\Dymola`` for 
     all ``*.mos`` files that contain the string ``simulate``,
     where ``CURRENT_DIRECTORY`` is the name of the directory in which the Python
     script is started, as returned by the function :func:`getLibraryName`.
-    All these files will be executed as part of the unit tests.
+    All these files will be executed as part of the regression tests.
     Any variables or parameters that are plotted by these ``*.mos`` files
     will be compared to previous results that are stored in 
     ``CURRENT_DIRECTORY\Resources\ReferenceResults\Dymola``.
@@ -65,18 +66,21 @@ class Tester:
     .. figure:: img/unitTestPlot.png
        :scale: 75%
 
-       Plot that compares the new results (solid line) of the unit test with the old results (dotted line).
+       Plot that compares the new results (solid line) of the regression test with the old results (dotted line).
        The blue line indicates the time where the largest error occurs.
 
     In this plot, the vertical line indicates the time where the biggest error 
     occurs.
     The user is then asked to accept or reject the new results.
 
-    To run the unit tests, type
+    To run the regression tests, type
 
-    >>> import buildingspy.development.unittest as u
-    >>> ut = u.Tester()
-    >>> ut.run()
+       >>> import os
+       >>> import buildingspy.development.unittest as r
+       >>> rt = r.Tester()
+       >>> myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
+       >>> rt.setLibraryRoot(myMoLib)
+       >>> rt.run()
 
     '''
     def __init__(self):
@@ -91,9 +95,9 @@ class Tester:
         self._nPro = multiprocessing.cpu_count()
         self._batch = False
 
-        # List of scripts that should be excluded from the unit tests
-        #self._excludeMos=['Resources/Scripts/Dymola/Airflow/Multizone/Examples/OneOpenDoor.mos']
-        self._excludeMos=[]
+        # List of scripts that should be excluded from the regression tests
+        #self.__excludeMos=['Resources/Scripts/Dymola/Airflow/Multizone/Examples/OneOpenDoor.mos']
+        self.__excludeMos=[]
 
         # Number of data points that are used
         self._nPoi = 101
@@ -116,9 +120,35 @@ class Tester:
                  form `[[a.x, a.y], [b.x, b.y1, b.y2]]` if the
                  mos file plots `a.x` versus `a.y` and `b.x` versus `(b.y1, b.y2)`.
         '''
-        self._data = []
-        self._libraryName = os.getcwd().split(os.path.sep)[-1]
-        self._reporter = rep.Reporter(os.path.join(os.getcwd(), "unitTests.log"))
+        self.__data = []
+        self.__libraryName = self.__libHome.split(os.path.sep)[-1]
+        self.__reporter = rep.Reporter(os.path.join(os.getcwd(), "unitTests.log"))
+
+    def setLibraryRoot(self, rootDir):
+        ''' Set the root directory of the library.
+
+        :param rootDir: The top-most directory of the library.
+
+        The root directory is the directory that contains the ``Resources`` folder
+        and the top-level ``package.mo`` file.
+
+        Usage: Type
+           >>> import os
+           >>> import buildingspy.development.unittest as r
+           >>> rt = r.Tester()
+           >>> myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
+           >>> rt.setLibraryRoot(myMoLib)
+        '''
+        import os
+        topPackage = os.path.abspath(os.path.join(rootDir, "package.mo"))
+        if not os.path.isfile(topPackage):
+            raise ValueError("Argument rootDir=%s is not a Modelica library. Expected file '%s'."
+                             % (rootDir, topPackage))
+        if not os.path.exists(os.path.join(rootDir, "Resources", "Scripts")):
+            raise ValueError("Argument rootDir=%s is not a Modelica library. Expected directories '%s'."
+                             % (rootDir, os.path.join(rootDir, "Resources", "Scripts")))
+        self.__libHome = os.path.abspath(rootDir)
+        self.__libraryName = self.__libHome.split(os.path.sep)[-1]
 
     def useExistingResults(self, dirs):
         ''' This function allows to use existing results, as opposed to running a simulation.
@@ -131,11 +161,11 @@ class Tester:
         ``['/tmp/tmp-Buildings-0-zABC44', '/tmp/tmp-Buildings-0-zQNS41']``
         contain previous results, then this method can be used as
 
-        >>> import buildingspy.development.unittest as u
+        >>> import buildingspy.development.unittest as r
         >>> l=['/tmp/tmp-Buildings-0-zABC44', '/tmp/tmp-Buildings-0-zQNS41']
-        >>> ut = u.Tester()
-        >>> ut.useExistingResults(l)
-        >>> ut.run()
+        >>> rt = r.Tester()
+        >>> rt.useExistingResults(l)
+        >>> rt.run() # doctest: +SKIP
 
         '''
         if len(dirs) == 0:
@@ -147,9 +177,9 @@ class Tester:
         self._useExistingResults = True
 
     def setNumberOfThreads(self, number):
-        ''' Set the number of parallel threads that are used to run the unit tests.
+        ''' Set the number of parallel threads that are used to run the regression tests.
         
-        :param number: The number of parallel threads that are used to run the unit tests.
+        :param number: The number of parallel threads that are used to run the regression tests.
 
         By default, the number of parallel threads are set to be equal to the number of
         processors of the computer.
@@ -163,15 +193,16 @@ class Tester:
         :param batchMode: Set to ``True`` to run without interactive prompts 
                           and without plot windows.
 
-        By default, the unit tests require the user to respond if results differ from previous simulations.
+        By default, the regression tests require the user to respond if results differ from previous simulations.
         This method can be used to run the script in batch mode, suppressing all prompts that require
         the user to enter a response. If run in batch mode, no new results will be stored.
-        To run the unit tests in batch mode, enter
+        To run the regression tests in batch mode, enter
         
-        >>> import buildingspy.development.unittest as u
-        >>> ut = u.Tester()
-        >>> ut.batchMode(True)
-        >>> ut.run()
+        >>> import os
+        >>> import buildingspy.development.unittest as r
+        >>> r = r.Tester()
+        >>> r.batchMode(True)
+        >>> r.run() # doctest: +SKIP
 
         '''
         self._batch = batchMode
@@ -208,19 +239,19 @@ class Tester:
         return False
 
     def isValidLibrary(self):
-        ''' Returns true if the name as returned by the function :func:`getLibraryName`
-            is a library that implements the scripts for the unit tests.
+        ''' Returns true if the regression tester points to a valid library
+            that implements the scripts for the regression tests.
         
-        "return: ``True`` if the library implements unit tests, ``False`` otherwise.
+        "return: ``True`` if the library implements regression tests, ``False`` otherwise.
         '''
         import os
-        return os.path.exists(os.path.join("Resources", "Scripts"))
+        return os.path.exists(os.path.join(self.__libHome, "Resources", "Scripts"))
 
 
     def getLibraryName(self):
-        ''' Return the name of the library that will be run by this unit test.
+        ''' Return the name of the library that will be run by this regression test.
         
-        "return: The name of the library that will be run by this unit test.
+        "return: The name of the library that will be run by this regression test.
         '''
         return self._libraryName
         
@@ -293,7 +324,7 @@ class Tester:
             if (self._excludeMos.count(fileName) == 0):
                 return True
             else:
-                print "*** Warning: Excluded file ", fileName, " from the unit tests."
+                print "*** Warning: Excluded file ", fileName, " from the regression tests."
                 return False
         else:
             False
@@ -362,8 +393,8 @@ class Tester:
                                     s +=  "The problem occurred at the line below:\n"
                                     s +=  "%s\n" % lin
                                     s += "Make sure that each assignment of the plot command is on one line.\n"
-                                    s += "Unit tests failed with error.\n"
-                                    self._reporter.writeError(s)
+                                    s += "Regression tests failed with error.\n"
+                                    self.__reporter.writeError(s)
                                     raise
                                 var=var.strip('{}"')
                                 y = var.split('","')
@@ -375,8 +406,8 @@ class Tester:
                         if len(plotVars) == 0:
                             s =  "%s does not contain any plot command.\n" % mosFil
                             s += "You need to add a plot command to include its\n"
-                            s += "results in the unit tests.\n"
-                            self._reporter.writeError(s)
+                            s += "results in the regression tests.\n"
+                            self.__reporter.writeError(s)
                             
                         dat['ResultVariables'] = plotVars
 
@@ -403,8 +434,9 @@ class Tester:
         return
 
 
+
     def _checkDataDictionary(self):
-        ''' Check if the data used to run the unit tests do not have duplicate ``*.mat`` files.
+        ''' Check if the data used to run the regression tests do not have duplicate ``*.mat`` files.
 
             Since Dymola writes all ``*.mat`` files to the current working directory,
             duplicate ``*.mat`` file names would cause a simulation to overwrite the results
@@ -853,7 +885,7 @@ class Tester:
         return (updateReferenceData, foundError, ans)
 
     # --------------------------
-    # Check reference points from each unit test and compare it with the previously
+    # Check reference points from each regression test and compare it with the previously
     # saved reference points of the same test stored in the library home folder.
     # If all the reference points are not within a certain tolerance with the previous results,
     # show a warning message containing the "file name" and "path".
@@ -960,6 +992,7 @@ class Tester:
 
         fil.close() #Closes the file (read session)
         if (iFal>0):
+<<<<<<< HEAD
                 self._reporter.writeError("Unit tests had " + str(iFal) + " error(s).\n" + \
                                                "Search 'dymola.log' for 'false' to see details.\n")
         if (iNumDer>0):
@@ -974,6 +1007,15 @@ class Tester:
                                         " warnings and " + \
                                         str(self._reporter.getNumberOfErrors()) + \
                                         " errors.\n")
+                self._reporter.writeError("Regression tests had " + str(iFal) + " error(s).\n" + \
+                                               "Search 'dymola.log' for 'false' to see details.\n")
+        if (iNumDer>0):
+                self._reporter.writeError("Regression tests had " + str(iNumDer) + " numerical Jacobians.\n" + \
+                                               "Search 'dymola.log' for 'Number of numerical Jacobians:' to see details.\n")
+        if (iUnuCon>0):
+                self._reporter.writeWarning("Regression tests had " + str(iUnuCon) + " unused connector variables.\n" + \
+                                               "Search 'dymola.log' for 'Warning: The following connector variables are not used in the model' to see details.\n")
+
         sys.stdout.write("See 'unitTests.log' for details.\n")
         if self._reporter.getNumberOfErrors() > 0:
             return 1
@@ -1091,6 +1133,7 @@ class Tester:
             runFil.write("Modelica.Utilities.Files.remove(\"dymola.log\");\n")
             # Store the variable for pedantic mode
             runFil.write("OriginalAdvancedPedanticModelica = Advanced.PedanticModelica;\n")
+
             # Write unit tests for this process
             for i in range(iPro, nTes, self._nPro):
                 # Check if this mos file should be simulated
@@ -1126,16 +1169,16 @@ class Tester:
                             dat['ResultDirectory']=allDat['ResultDirectory']
                             break
 
-        print "Generated ", nUniTes, " unit tests.\n"
+        print "Generated ", nUniTes, " regression tests.\n"
 
     def deleteTemporaryDirectories(self, delete):
         ''' Flag, if set to ``False``, then the temporary directories will not be deleted
-        after the unit tests are run.
+        after the regression tests are run.
         
         :param delete: Flag, set to ``False`` to avoid the temporary directories to be deleted.
         
-        Unless this method is called prior to running the unit tests with ``delete=False``,
-        all temporary directories will be deleted after the unit tests.
+        Unless this method is called prior to running the regression tests with ``delete=False``,
+        all temporary directories will be deleted after the regression tests.
         '''
         self._deleteTemporaryDirectories = delete
 
@@ -1163,9 +1206,9 @@ class Tester:
     #####################################################################################
 
     def run(self):
-        ''' Run all unit tests and checks the results.
+        ''' Run all regression tests and checks the results.
 
-        :return: 0 if no errros occurred during the unit tests, 
+        :return: 0 if no errros occurred during the regression tests, 
                  otherwise a non-zero value.
 
         This method
@@ -1173,14 +1216,14 @@ class Tester:
         - creates temporary directories for each processors, 
         - copies the directory ``CURRENT_DIRECTORY`` into these
           temporary directories,
-        - creates run scripts that run all unit tests,
-        - runs these unit tests,
+        - creates run scripts that run all regression tests,
+        - runs these regression tests,
         - collects the dymola log files from each process,
         - writes the combined log file ``dymola.log``
           to the current directory, 
         - compares the results of the new simulations with
           reference results that are stored in ``Resources/ReferenceResults``,
-        - writes the message `Unit tests completed successfully.` 
+        - writes the message `Regression tests completed successfully.` 
           if no error occured,
         - returns 0 if no errors occurred, or non-zero otherwise.
 
@@ -1213,6 +1256,7 @@ class Tester:
         if not self.isValidLibrary():
             print "*** This script must be run from the root directory of the library."
             print "*** The current directory is ", os.getcwd()
+            print "*** Expected directory ", os.path.abspath(os.path.join(self.__libHome, "Resources", "Scripts"))
             print "*** Exit with error. Did not do anything."
             return 2
 
@@ -1222,7 +1266,7 @@ class Tester:
 
         # Validate html
         val = v.Validator()
-        errMsg = val.validateHTMLInPackage(".")
+        errMsg = val.validateHTMLInPackage(self.__libHome)
         for i in range(len(errMsg)):
             if i == 0:
                 self._reporter.writeError("The following malformed html syntax has been found:\n%s" % errMsg[i])
@@ -1277,7 +1321,7 @@ class Tester:
 
         # Print list of files that may be excluded from unit tests
         if len(self._excludeMos) > 0:
-            print "*** Warning: The following files may be excluded from the unit tests:\n"
+            print "*** Warning: The following files may be excluded from the regression tests:\n"
             for fil in self._excludeMos:
                 print "            ", fil
 
