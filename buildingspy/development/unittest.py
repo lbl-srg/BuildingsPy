@@ -6,7 +6,6 @@
 # MWetter@lbl.gov                            2011-02-23
 #######################################################
 
-import pdb
 import os, sys
 
 
@@ -1076,7 +1075,6 @@ class Tester:
     # that searches for errors
     def _writeRunscripts(self):
         import os
-        pdb.set_trace()
 
         nUniTes = 0
 
@@ -1234,7 +1232,7 @@ class Tester:
 
         # Run simulations
         if not self._useExistingResults:
-            self._setTemporaryDirectories(self._nPro)
+            self._setTemporaryDirectories()
         self._writeRunscripts()
         if not self._useExistingResults:
             if self._nPro > 1:
@@ -1428,7 +1426,6 @@ class Tester:
                 stats[mo_file]['compilation_ok'] = False
                 stats[mo_file]['compilation_log'] = 'Not attempted'
             
-            #pdb.set_trace()            
             if load and stats[mo_file]['compilation_ok']:
                 sys.stdout = mystdout = StringIO()
                 try:
