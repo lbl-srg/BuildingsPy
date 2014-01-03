@@ -2,10 +2,10 @@ from buildingspy.io.outputfile import Reader
 import matplotlib.pyplot as plt
 import os
 
-# Change fonts to use LaTeX fonts
-from matplotlib import rc
-rc('text', usetex=True)
-rc('font', family='serif')
+# Optionally, change fonts to use LaTeX fonts
+#from matplotlib import rc
+#rc('text', usetex=True)
+#rc('font', family='serif')
 
 # Read results
 ofr1=Reader(os.path.join("buildingspy", "examples", "dymola", "case1", "PIDHysteresis.mat"), "dymola")
