@@ -1096,7 +1096,7 @@ class Tester:
             for i in range(iPro, nTes, self._nPro):
                 # Check if this mos file should be simulated
                 if self._data[i]['mustSimulate']:
-                    self._data[i].setResultDirectory(self._temDir[iPro])
+                    self._data[i]['ResultDirectory'] = self._temDir[iPro]
                     mosFilNam = os.path.join(self._temDir[iPro], self._libraryName, 
                                              "Resources", "Scripts", "Dymola",
                                              self._data[i]['ScriptDirectory'],
@@ -1124,7 +1124,7 @@ class Tester:
                     if allDat['mustSimulate']:
                         resFil = allDat['ResultFile']
                         if resFil == matFil:
-                            dat.setResultDirectory( allDat['ResultDirectory'] )
+                            dat['ResultDirectory']=allDat['ResultDirectory']
                             break
 
         print "Generated ", nUniTes, " unit tests.\n"
