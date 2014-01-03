@@ -66,9 +66,6 @@ class Simulator:
                 raise ValueError("Write permission to '" + directoryName + "' denied.")
 
 
-
-
-
     def addPreProcessingStatement(self, command):
         '''Adds a pre-processing statement to the simulation script.
 
@@ -126,9 +123,7 @@ class Simulator:
            >>> s=Simulator("myPackage.myModel", "dymola")
            >>> s.addParameters({'PID.k': 1.0, 'valve.m_flow_nominal' : 0.1})
            >>> s.getParameters()
-
-        This will return the list
-        ``[('valve.m_flow_nominal', 0.1), ('PID.k', 1.0)]``
+           [('valve.m_flow_nominal', 0.1), ('PID.k', 1.0)]
         '''
         return self.__parameters__.items()
 
@@ -174,7 +169,8 @@ class Simulator:
         This will return the list
         ``[('valve.m_flow_nominal', 0.1), ('PID.k', 1.0)]``
         '''
-        return self.__parameters__.items()
+        raise DeprecationWarning("The method Simulator.getSimulatorSettings() is deprecated. Use Simulator.getParameters() instead.")
+        return self.getParameters()
 
 
     def setStartTime(self, t0):
@@ -359,12 +355,28 @@ class Simulator:
     def deleteOutputFiles(self):
         ''' Deletes the output files of the simulator.
         '''
-        import os
         filLis=['buildlog.txt', 'dsfinal.txt', 'dsin.txt', 'dslog.txt', 
                 'dsmodel*', 'dymosim', 'dymosim.exe', 
                 str(self.__simulator__.get('resultFile')) + '.mat', 
                 'request.', 'status', 'failure', 'stop']
-        for fil in filLis:
+        self._deleteFiles(filLis)
+
+    def deleteLogFiles(self):
+        ''' Deletes the log files of the Python simulator, e.g. the
+            files ``BuildingsPy.log``, ``run.mos`` and ``simulator.log``.
+        '''
+        filLis=['BuildingsPy.log', 'run.mos', 'simulator.log']
+        self._deleteFiles(filLis)
+
+    def _deleteFiles(self, fileList):
+        ''' Deletes the output files of the simulator.
+        
+        :param fileList: List of files to be deleted.
+
+        '''
+        import os
+
+        for fil in fileList:
             try:
                 if os.path.exists(fil):
                     os.remove(fil)
@@ -401,18 +413,18 @@ class Simulator:
 
         if self.__outputDir__ != '.':
             self.__createDirectory(self.__outputDir__)
-            filLis=['run.mos', 'simulator.log', 'dslog.txt', 
-                    self.__simulator__.get('resultFile') + '.mat']
-            for fil in filLis:
-                srcFil = os.path.join(srcDir, fil)
-                newFil = os.path.join(self.__outputDir__, fil)
-                try:
-                    if os.path.exists(srcFil):
-                        shutil.copy(srcFil, newFil)
-                except IOError as e:
-                    self.__reporter.writeError("Failed to copy '" + 
-                                               srcFil + "' to '" + newFil + 
-                                               "; : " + e.strerror)
+        filLis=['run.mos', 'simulator.log', 'dslog.txt', 
+                self.__simulator__.get('resultFile') + '.mat']
+        for fil in filLis:
+            srcFil = os.path.join(srcDir, fil)
+            newFil = os.path.join(self.__outputDir__, fil)
+            try:
+                if os.path.exists(srcFil):
+                    shutil.copy(srcFil, newFil)
+            except IOError as e:
+                self.__reporter.writeError("Failed to copy '" + 
+                                           srcFil + "' to '" + newFil + 
+                                           "; : " + e.strerror)
 
 
     def __deleteTemporaryDirectory(self, worDir):
