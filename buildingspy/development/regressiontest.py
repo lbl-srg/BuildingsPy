@@ -23,17 +23,23 @@ def runSimulation(worDir):
     import subprocess
 
     t = Tester()
-    modCom = t.getModelicaCommand();
+    modCom = t.getModelicaCommand()
     libNam = t.getLibraryName()
+    if "BuildingsPy" in worDir:
+        raise ValueError("BuildingsPy is in worDir. fixme1.")
+    test = worDir
+#    worDir = os.path.join(worDir, libNam)
+    if "BuildingsPy" in worDir:
+        raise ValueError("BuildingsPy is in worDir. fixme2 %s." % test)
+
     try:
         logFilNam=os.path.join(worDir, 'stdout.log')
         logFil = open(logFilNam, 'w')
-        t = Tester()
-        retcode = subprocess.Popen(args=[modCom, "runAll.mos", "/nowindow"], 
+        retcode = subprocess.Popen(args=[modCom, "runAll.mos"],#fixme, "/nowindow"], 
                                    stdout=logFil,
                                    stderr=logFil,
                                    shell=False, 
-                                   cwd=os.path.join(worDir, libNam)).wait()
+                                   cwd=worDir).wait()
 
         logFil.close()
         if retcode != 0:
@@ -42,7 +48,8 @@ def runSimulation(worDir):
         else:
             return 0
     except OSError as e:
-        sys.stderr.write("Execution of " + [modCom, "runAll.mos", "/nowindow"] + " failed.")
+        sys.stderr.write("Execution of '" + modCom + " runAll.mos /nowindow' failed.\n" +
+                         "Working directory is '" + worDir + "'.")
         raise(e)
 
 
@@ -80,7 +87,7 @@ class Tester:
        >>> rt = r.Tester()
        >>> myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
        >>> rt.setLibraryRoot(myMoLib)
-       >>> rt.run()
+       >>> rt.run()  # doctest: +SKIP
 
     '''
     def __init__(self):
@@ -96,8 +103,8 @@ class Tester:
         self._batch = False
 
         # List of scripts that should be excluded from the regression tests
-        #self.__excludeMos=['Resources/Scripts/Dymola/Airflow/Multizone/Examples/OneOpenDoor.mos']
-        self.__excludeMos=[]
+        #self._excludeMos=['Resources/Scripts/Dymola/Airflow/Multizone/Examples/OneOpenDoor.mos']
+        self._excludeMos=[]
 
         # Number of data points that are used
         self._nPoi = 101
@@ -120,9 +127,8 @@ class Tester:
                  form `[[a.x, a.y], [b.x, b.y1, b.y2]]` if the
                  mos file plots `a.x` versus `a.y` and `b.x` versus `(b.y1, b.y2)`.
         '''
-        self.__data = []
-        self.__libraryName = self.__libHome.split(os.path.sep)[-1]
-        self.__reporter = rep.Reporter(os.path.join(os.getcwd(), "unitTests.log"))
+        self._data = []
+        self._reporter = rep.Reporter(os.path.join(os.getcwd(), "unitTests.log"))
 
     def setLibraryRoot(self, rootDir):
         ''' Set the root directory of the library.
@@ -139,16 +145,8 @@ class Tester:
            >>> myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
            >>> rt.setLibraryRoot(myMoLib)
         '''
-        import os
-        topPackage = os.path.abspath(os.path.join(rootDir, "package.mo"))
-        if not os.path.isfile(topPackage):
-            raise ValueError("Argument rootDir=%s is not a Modelica library. Expected file '%s'."
-                             % (rootDir, topPackage))
-        if not os.path.exists(os.path.join(rootDir, "Resources", "Scripts")):
-            raise ValueError("Argument rootDir=%s is not a Modelica library. Expected directories '%s'."
-                             % (rootDir, os.path.join(rootDir, "Resources", "Scripts")))
-        self.__libHome = os.path.abspath(rootDir)
-        self.__libraryName = self.__libHome.split(os.path.sep)[-1]
+        self._libHome = os.path.abspath(rootDir)
+        self.isValidLibrary()
 
     def useExistingResults(self, dirs):
         ''' This function allows to use existing results, as opposed to running a simulation.
@@ -245,7 +243,16 @@ class Tester:
         "return: ``True`` if the library implements regression tests, ``False`` otherwise.
         '''
         import os
-        return os.path.exists(os.path.join(self.__libHome, "Resources", "Scripts"))
+        topPackage = os.path.abspath(os.path.join(self._libHome, "package.mo"))
+        if not os.path.isfile(topPackage):
+            raise ValueError("Directory %s is not a Modelica library.\n    Expected file '%s'."
+                             % (self._libHome, topPackage))
+        scrDir = os.path.join(self._libHome, "Resources", "Scripts")
+        if not os.path.exists(scrDir):
+            raise ValueError("Directory %s is not a Modelica library.\n    Expected directories '%s'."
+                             % (self._libHome, scrDir))
+
+        return os.path.exists(os.path.join(self._libHome, "Resources", "Scripts"))
 
 
     def getLibraryName(self):
@@ -253,7 +260,7 @@ class Tester:
         
         "return: The name of the library that will be run by this regression test.
         '''
-        return self._libraryName
+        return os.path.basename(self._libHome)
         
         
     def checkPythonModuleAvailability(self):
@@ -344,7 +351,7 @@ class Tester:
                 for mosFil in files:
                     # find the desired mos file
                     pos=mosFil.endswith('.mos')
-                    if pos > -1 and (not mosFil.startswith("Convert" + self._libraryName)):
+                    if pos > -1 and (not mosFil.startswith("Convert" + self.getLibraryName())):
                         matFil = ""
                         dat = {}
                         dat['ScriptDirectory'] = root[len(scrPat)+1:]
@@ -394,7 +401,7 @@ class Tester:
                                     s +=  "%s\n" % lin
                                     s += "Make sure that each assignment of the plot command is on one line.\n"
                                     s += "Regression tests failed with error.\n"
-                                    self.__reporter.writeError(s)
+                                    self._reporter.writeError(s)
                                     raise
                                 var=var.strip('{}"')
                                 y = var.split('","')
@@ -407,7 +414,7 @@ class Tester:
                             s =  "%s does not contain any plot command.\n" % mosFil
                             s += "You need to add a plot command to include its\n"
                             s += "results in the regression tests.\n"
-                            self.__reporter.writeError(s)
+                            self._reporter.writeError(s)
                             
                         dat['ResultVariables'] = plotVars
 
@@ -495,7 +502,7 @@ class Tester:
             return r
             
         # Get the working directory that contains the ".mat" file
-        fulFilNam=os.path.join(data['ResultDirectory'], self._libraryName, data['ResultFile'])
+        fulFilNam=os.path.join(data['ResultDirectory'], self.getLibraryName(), data['ResultFile'])
         ret=[]
         try:
             r=Reader(fulFilNam, "dymola") 
@@ -903,7 +910,7 @@ class Tester:
             # Name of the reference file, which is the same as that matlab file name but with another extension
             if self._includeFile(data['ScriptFile']):
                 # Convert 'aa/bb.mos' to 'aa_bb.txt'
-                mosFulFilNam = os.path.join(self._libraryName, 
+                mosFulFilNam = os.path.join(self.getLibraryName(), 
                                             data['ScriptDirectory'], data['ScriptFile'])
                 mosFulFilNam = mosFulFilNam.replace(os.sep, '_')
                 refFilNam=os.path.splitext( mosFulFilNam )[0] + ".txt" 
@@ -1113,7 +1120,7 @@ class Tester:
         nTes = len(self._data)
         for iPro in range(min(self._nPro, nTes)):
 
-            runFil=open(os.path.join(self._temDir[iPro], self._libraryName, "runAll.mos"), 'w')
+            runFil=open(os.path.join(self._temDir[iPro], self.getLibraryName(), "runAll.mos"), 'w')
             runFil.write("// File autogenerated for process " 
                          + str(iPro+1) + " of " + str(self._nPro) + "\n")
             runFil.write("// Do not edit.\n")
@@ -1130,7 +1137,7 @@ class Tester:
                 # Check if this mos file should be simulated
                 if self._data[i]['mustSimulate']:
                     self._data[i]['ResultDirectory'] = self._temDir[iPro]
-                    mosFilNam = os.path.join(self._temDir[iPro], self._libraryName, 
+                    mosFilNam = os.path.join(self._temDir[iPro], self.getLibraryName(), 
                                              "Resources", "Scripts", "Dymola",
                                              self._data[i]['ScriptDirectory'],
                                              self._data[i]['ScriptFile'])
@@ -1185,10 +1192,13 @@ class Tester:
         # write run scripts to directory
         for iPro in range(self._nPro):
             #print "Calling parallel loop for iPro=", iPro, " self._nPro=", self._nPro
-            dirNam = tempfile.mkdtemp(prefix='tmp-' + self._libraryName + '-'+ str(iPro) +  "-")
+            dirNam = tempfile.mkdtemp(prefix='tmp-' + self.getLibraryName() + '-'+ str(iPro) +  "-")
             self._temDir.append( dirNam )
-            shutil.copytree(".." + os.sep + self._libraryName, 
-                            os.path.join(dirNam, self._libraryName), 
+            # Directory that contains the library as a sub directory
+            libDir = self._libHome
+
+            shutil.copytree(libDir, 
+                            os.path.join(dirNam, self.getLibraryName()), 
                             symlinks=False, 
                             ignore=shutil.ignore_patterns('.svn', '.mat'))
         return
@@ -1245,9 +1255,9 @@ class Tester:
 
         # Check current working directory
         if not self.isValidLibrary():
-            print "*** This script must be run from the root directory of the library."
+            print "*** %s is not a valid Modelica library." % self._libHome
             print "*** The current directory is ", os.getcwd()
-            print "*** Expected directory ", os.path.abspath(os.path.join(self.__libHome, "Resources", "Scripts"))
+            print "*** Expected directory ", os.path.abspath(os.path.join(self._libHome, "Resources", "Scripts"))
             print "*** Exit with error. Did not do anything."
             return 2
 
@@ -1257,7 +1267,7 @@ class Tester:
 
         # Validate html
         val = v.Validator()
-        errMsg = val.validateHTMLInPackage(self.__libHome)
+        errMsg = val.validateHTMLInPackage(self._libHome)
         for i in range(len(errMsg)):
             if i == 0:
                 self._reporter.writeError("The following malformed html syntax has been found:\n%s" % errMsg[i])
@@ -1270,16 +1280,17 @@ class Tester:
         self._writeRunscripts()
         if not self._useExistingResults:
             if self._nPro > 1:
+                libNam = self.getLibraryName()
                 po = multiprocessing.Pool(self._nPro)
-                po.map(runSimulation, self._temDir)
+                po.map(runSimulation, map(lambda x: os.path.join(x, libNam), self.__temDir))
             else:
-                runSimulation(self._temDir[0])
+                runSimulation(os.path.join(self._temDir[0], self.__temDir))
 
 
         # Concatenate output files into one file
         logFil = open('dymola.log', 'w')
         for d in self._temDir:
-            temLogFilNam = os.path.join(d, self._libraryName, 'dymola.log')
+            temLogFilNam = os.path.join(d, self.getLibraryName(), 'dymola.log')
             if os.path.exists(temLogFilNam):
                 fil=open(temLogFilNam,'r')
                 data=fil.read()
@@ -1376,7 +1387,6 @@ class Tester:
         
     def test_JModelica(self, cmpl=True, load=False, simulate=False, 
                       packages=['Examples'], number=-1):
-                          
         """
         Test the library compliance with JModelica.org.
         
