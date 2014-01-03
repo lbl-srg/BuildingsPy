@@ -29,9 +29,9 @@ class Reader:
            If ``pattern`` is unspecified, all variable names are returned.
 
            This method searches the variable names using the **search** function
-           from `Python's re module <http://docs.python.org/library/re.html>`_.
+           from `Python's re module <http://docs.python.org/2/library/re.html>`_.
 
-           See also http://docs.python.org/howto/regex.html#regex-howto.
+           See also http://docs.python.org/2/howto/regex.html#regex-howto.
 
            Usage: Type
 
