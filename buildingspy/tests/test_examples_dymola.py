@@ -14,8 +14,12 @@ class Test_example_dymola_runSimulation(unittest.TestCase):
         Tests the :mod:`buildingspy/examples/dymola/runSimulation`
         module.
         '''
+        import shutil
         import buildingspy.examples.dymola.runSimulation as s
         s.main()
+        # Delete output directories
+        shutil.rmtree('case1')
+        shutil.rmtree('case2')
 
 if __name__ == '__main__':
     unittest.main()        
