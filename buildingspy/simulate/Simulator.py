@@ -160,14 +160,8 @@ class Simulator:
 
         :return: A list of parameters (key, value) pairs, as 2-tuples.
 
-        Usage: Type
-           >>> from buildingspy.simulate.Simulator import Simulator
-           >>> s=Simulator("myPackage.myModel", "dymola")
-           >>> s.add({'PID.k': 1.0, 'valve.m_flow_nominal' : 0.1})
-           >>> s.getSimulatorSettings()
+        This method is deprecated. Use :meth:`~Simulator.getParameters` instead.
 
-        This will return the list
-        ``[('valve.m_flow_nominal', 0.1), ('PID.k', 1.0)]``
         '''
         raise DeprecationWarning("The method Simulator.getSimulatorSettings() is deprecated. Use Simulator.getParameters() instead.")
         return self.getParameters()
