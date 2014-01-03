@@ -6,6 +6,19 @@ BPDOC=doc
 doc:
 	(cd $(BPDOC); make html linkcheck)
 
+unittest:
+	python -m unittest discover buildingspy/tests
+#	python buildingspy/tests/test_io_postprocess.py
+
+doctest:
+	python -m doctest \
+	buildingspy/io/*.py \
+	buildingspy/examples/*.py \
+	buildingspy/examples/dymola/*.py \
+	buildingspy/simulate/*.py \
+        buildingspy/development/validator.py
+        buildingspy/development/data.py
+
 dist:	clean doc 
 	python setup.py sdist --formats=gztar,zip
 	python setup.py bdist_egg

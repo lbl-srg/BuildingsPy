@@ -19,7 +19,7 @@ package that can be used
 The package provides functions
 to extract data series from the output file for 
 further use in the python packages 
-`matplotlib <http://matplotlib.sourceforge.net/>`_
+`matplotlib <http://matplotlib.org/>`_
 for plotting and
 `SciPy <http://www.scipy.org/>`_ for scientific computing.
 
