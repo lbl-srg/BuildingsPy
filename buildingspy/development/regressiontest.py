@@ -1481,7 +1481,7 @@ class Tester:
             if load and stats[mo_file]['compilation_ok']:
                 sys.stdout = mystdout = StringIO()
                 try:
-                    mymodel = load_fmu(fmu)
+                    load_fmu(fmu)
                 except Exception as e:
                     stats[mo_file]['load_ok'] = False
                     stats[mo_file]['load_log'] = mystdout.getvalue()
