@@ -1413,8 +1413,8 @@ class Tester:
           2. cd to the root folder of the library
           3. type tye following commands:
 
-             >>> t = Tester()
-             >>> t.test_JModelica(...)
+             >>> t = Tester() # doctest: +SKIP
+             >>> t.test_JModelica(...) # doctest: +SKIP
 
         """
         
