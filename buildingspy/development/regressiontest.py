@@ -6,9 +6,6 @@
 # MWetter@lbl.gov                            2011-02-23
 #######################################################
 
-import os, sys
-
-
 def runSimulation(worDir):
     ''' Run the simulation.
 
@@ -24,7 +21,6 @@ def runSimulation(worDir):
 
     t = Tester()
     modCom = t.getModelicaCommand()
-    libNam = t.getLibraryName()
 
     try:
         logFilNam=os.path.join(worDir, 'stdout.log')
@@ -151,6 +147,7 @@ class Tester:
            >>> myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
            >>> rt.setLibraryRoot(myMoLib)
         '''
+        import os
         self._libHome = os.path.abspath(rootDir)
         self.isValidLibrary()
 
@@ -266,6 +263,7 @@ class Tester:
         
         "return: The name of the library that will be run by this regression test.
         '''
+        import os
         return os.path.basename(self._libHome)
         
         
@@ -1361,12 +1359,12 @@ class Tester:
         
         A list with the full paths to the .mo files of the found models
         """
-    
+        import os
         if folder is None:
             folder = self._temDir[0]
         
         res = []
-        for root, dirs, paths in os.walk(folder):
+        for root, __, paths in os.walk(folder):
             # check if this root has to be analysed            
             if packages is None:
                 checkroot = True
@@ -1385,7 +1383,7 @@ class Tester:
     
     def _model_from_mo(self, mo_file):
         """Return the model name from a .mo file"""
-        
+        import os
         # split the path of the mo_file
         splt = mo_file.split(os.sep)
         # find the root of the library name
@@ -1432,6 +1430,8 @@ class Tester:
         from pymodelica import compile_fmu
         from pyfmi import load_fmu
         import shutil
+        import sys
+        
         from cStringIO import StringIO
 
         if number < 0:
@@ -1512,9 +1512,9 @@ class Tester:
         Analyse the statistics dictionary resulting from a _test_Jmodelica() call
         """
         
-        count_cmpl = lambda x: [True for k,v in x.items() if v['compilation_ok']]
+        count_cmpl = lambda x: [True for _,v in x.items() if v['compilation_ok']]
         list_failed_cmpl = lambda x: [k for k,v in x.items() if not v['compilation_ok']]  
-        count_load = lambda x: [True for k,v in x.items() if v['load_ok']]
+        count_load = lambda x: [True for _,v in x.items() if v['load_ok']]
         list_failed_load = lambda x: [k for k,v in x.items() if not v['load_ok']]
         
         nbr_tot = len(self._jmstats)
