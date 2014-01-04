@@ -39,7 +39,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         s.setResultFile("myResults")
         s.exitSimulator(True)
         s.deleteOutputFiles()
-        s.showGUI(True)
+        s.showGUI(False)
 #        s.printModelAndTime()
         s.showProgressBar(False)
         s.simulate()

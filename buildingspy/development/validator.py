@@ -35,13 +35,12 @@ class Validator:
             :return: str[] Warning/error messages from tidylib.
 
         Usage: Type
-           >>> import os
-           >>> import buildingspy.development.Validator as v
-           >>>
-           >>> val = v.Validator() 
-           >>> myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
-           >>> # Get a list whose elements are the error strings
-           >>> errStr = val.validateHTMLInPackage(myMoLib)
+            >>> import os
+            >>> import buildingspy.development.validator as v
+            >>> val = v.Validator() 
+            >>> myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
+            >>> # Get a list whose elements are the error strings
+            >>> errStr = val.validateHTMLInPackage(myMoLib)
 
         '''
         import os

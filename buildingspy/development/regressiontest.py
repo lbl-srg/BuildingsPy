@@ -81,7 +81,19 @@ class Tester:
        >>> rt = r.Tester()
        >>> myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
        >>> rt.setLibraryRoot(myMoLib)
-       >>> rt.run()
+       >>> rt.run() # doctest: +ELLIPSIS
+       Using  1  of  24  processors to run unit tests.
+       Number of models   :  1
+                 blocks   :  0
+                 functions:  0
+       Generated  1  regression tests.
+       <BLANKLINE>
+       Script that runs unit tests had 0 warnings and 0 errors.
+       <BLANKLINE>
+       See 'unitTests.log' for details.
+       Unit tests completed successfully.
+       <BLANKLINE>
+       Execution time = ...
 
     '''
     def __init__(self):

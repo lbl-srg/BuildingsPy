@@ -17,9 +17,9 @@ doctest:
 	buildingspy/examples/dymola/*.py \
 	buildingspy/simulate/*.py \
         buildingspy/development/*.py
-	rm plot.pdf plot.png roomTemperatures.png
+	@rm plot.pdf plot.png roomTemperatures.png dymola.log unitTests.log
 
-dist:	clean doc 
+dist:	clean doctest unittest doc 
 	python setup.py sdist --formats=gztar,zip
 	python setup.py bdist_egg
 	@rm -rf build

@@ -10,8 +10,7 @@ class Test_development_Validator(unittest.TestCase):
 
     def test_validateHTMLInPackage(self):
         import os
-        from buildingspy.development.validator import Validator
-        import buildingspy.development.Validator as v
+        import buildingspy.development.validator as v
         val = v.Validator() 
         myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
         # Get a list whose elements are the error strings

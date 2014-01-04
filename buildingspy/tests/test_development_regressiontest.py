@@ -14,7 +14,6 @@ class Test_regressiontest_Tester(unittest.TestCase):
         rt = r.Tester()
         myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
         rt.setLibraryRoot(myMoLib)
-#        rt.setNumberOfThreads(1)
         rt.run()
         # Delete temporary files
         os.remove('dymola.log')
