@@ -261,7 +261,7 @@ class Tester:
     def getLibraryName(self):
         ''' Return the name of the library that will be run by this regression test.
         
-        "return: The name of the library that will be run by this regression test.
+        :return: The name of the library that will be run by this regression test.
         '''
         import os
         return os.path.basename(self._libHome)
@@ -1345,19 +1345,12 @@ class Tester:
 
     def _get_test_models(self, folder=None, packages=None):
         """
-        Search folder and subfolders for testmodels.  All models within 
-        packages are returned.
+        Return a list with the full path of test models that were found in ``packages``.
         
-        Parameters
-        ----------
         
-        folder: the path to the library to be searched
-        packages: the names of packages containing test models (Examples, Tests, ...)
-        
-        Returns
-        -------
-        
-        A list with the full paths to the .mo files of the found models
+        :param folder: The path to the library to be searched.
+        :param packages: The names of packages containing test models, such as ``Examples`` and ``Tests``
+        :return: A list with the full paths to the ``.mo`` files of the found models.
         """
         import os
         if folder is None:
@@ -1400,30 +1393,28 @@ class Tester:
         Test the library compliance with JModelica.org.
         
         This is the high-level method to test a complete library, even if there
-        are no specific .mos files in the library for regression testing. 
+        are no specific ``.mos`` files in the library for regression testing. 
         
-        Works only for a single core, so self._nPro is set to 1, and 
-        self.setTemporaryDirectories() is executed. 
+        This method sets self._nPro to 1 as it only works on a single core. It also
+        executes self.setTemporaryDirectories() 
         
-        * cpml (True): if the model has to be compiled or not
-        * load (False): if the model has to be loaded from the fmu or not
-        * simulate (False): if the model has to be simulated or not
-        * packages ['Examples']: the packages containing the test models in the
+        :param cpml: Set to ``True`` for the model to be compiled.
+        :param load: Set to ``True`` to load the model from the FMU.
+        :param simulate: Set to ``True`` to cause the model to be simulated.
+        :param packages: Set to an array whose elements are the packages that contain the test models of the
           library
-        * number (-1): number of test models to treat.  -1 means unlimited.
+        :param number: Number of models to test. Set to ``-1`` to test all models.
                 
         
-        Use
-        ---
+        Usage:
         
-        * Open a JModelica environment 
-          (ipython or pylab with JModelica environment variables set).
-  
-        * cd to the root folder of the library
-        * type tye following commands:
-            
-            t = Tester()
-            t.test_JModelica(...)
+          1. Open a JModelica environment 
+             (ipython or pylab with JModelica environment variables set).
+          2. cd to the root folder of the library
+          3. type tye following commands:
+
+             >>> t = Tester()
+             >>> t.test_JModelica(...)
 
         """
         
@@ -1509,7 +1500,7 @@ class Tester:
         
     def _analyse_jmstats(self):
         """
-        Analyse the statistics dictionary resulting from a _test_Jmodelica() call
+        Analyse the statistics dictionary resulting from a _test_Jmodelica() call.
         """
         
         count_cmpl = lambda x: [True for _,v in x.items() if v['compilation_ok']]
