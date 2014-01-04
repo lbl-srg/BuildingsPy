@@ -315,7 +315,7 @@ class Tester:
     def _includeFile(self, fileName):
         ''' Returns true if the file need to be included in the list of scripts to run
 
-        :param: fileName The name of the ``*.mos`` file.
+        :param fileName: The name of the ``*.mos`` file.
 
         The parameter *fileName* need to be of the form
         *Resources/Scripts/Dymola/Fluid/Actuators/Examples/Damper.mos*
@@ -1406,9 +1406,6 @@ class Tester:
         
         Works only for a single core, so self._nPro is set to 1, and 
         self.setTemporaryDirectories() is executed. 
-        
-        Parameters
-        ----------
         
         * cpml (True): if the model has to be compiled or not
         * load (False): if the model has to be loaded from the fmu or not
