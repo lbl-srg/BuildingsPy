@@ -14,19 +14,19 @@ class Reporter:
         '''
         import os
 
-        self.__logToFile = True
-        self.__verbose = True
-        self.__iWar = 0
-        self.__iErr = 0
+        self._logToFile = True
+        self._verbose = True
+        self._iWar = 0
+        self._iErr = 0
         self.logToFile()
-        self.__logFil = os.path.join(fileName)
+        self._logFil = os.path.join(fileName)
 
     def deleteLogFile(self):
         ''' Deletes the log file if it exists.
         '''
         import os
-        if os.path.isfile(self.__logFil):
-            os.remove(self.__logFil)
+        if os.path.isfile(self._logFil):
+            os.remove(self._logFil)
 
 
     def logToFile(self, log=True):
@@ -38,21 +38,21 @@ class Reporter:
         the file ''fileName''.
         The default setting is ``True``
         '''
-        self.__logToFile = log
+        self._logToFile = log
 
     def getNumberOfErrors(self):
         ''' Returns the number of error messages that were written.
         
         :return : The number of error messages that were written.
         '''
-        return self.__iErr
+        return self._iErr
 
     def getNumberOfWarnings(self):
         ''' Returns the number of warning messages that were written.
         
         :return : The number of warning messages that were written.
         '''
-        return self.__iWar
+        return self._iWar
 
     def writeError(self, message):
         ''' Writes an error message.
@@ -61,8 +61,8 @@ class Reporter:
         
         Note that this method adds a new line character at the end of the message.
         '''
-        self.__iErr += 1
-        self.__writeErrorOrWarning(True, message)
+        self._iErr += 1
+        self._writeErrorOrWarning(True, message)
         return
 
     def writeWarning(self, message):
@@ -72,12 +72,12 @@ class Reporter:
         
         Note that this method adds a new line character at the end of the message.
         '''
-        self.__iWar += 1
-        self.__writeErrorOrWarning(False, message)
+        self._iWar += 1
+        self._writeErrorOrWarning(False, message)
         return
 
 
-    def __writeErrorOrWarning(self, isError, message):
+    def _writeErrorOrWarning(self, isError, message):
         ''' Writes an error message or a warning message.
         
         :param isError: Set to 'True' if an error should be written, or 'False' for a warning.
@@ -88,15 +88,15 @@ class Reporter:
         import sys
 
         msg = ""
-        if self.__verbose:
+        if self._verbose:
             if isError:
                 msg += "*** Error: "
             else:
                 msg += "*** Warning: "                
         msg += message + "\n"
         sys.stderr.write(msg)
-        if self.__logToFile:
-            fil = open(self.__logFil, 'a')
+        if self._logToFile:
+            fil = open(self._logFil, 'a')
             fil.write(msg)
             fil.close()
         return
@@ -112,8 +112,8 @@ class Reporter:
         import sys
 
         msg = message + "\n"
-        if self.__logToFile:
-            fil = open(self.__logFil, 'a')
+        if self._logToFile:
+            fil = open(self._logFil, 'a')
             fil.write(msg)
             fil.close()
         sys.stdout.write(msg)

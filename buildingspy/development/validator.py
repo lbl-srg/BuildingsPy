@@ -14,8 +14,8 @@ class Validator:
 
         # --------------------------
         # Class variables
-#        self.__libHome=os.path.abspath(".")
-        self.__writeHTML = False
+#        self._libHome=os.path.abspath(".")
+        self._writeHTML = False
 
 
     def validateHTMLInPackage(self, rootDir):
@@ -123,7 +123,7 @@ class Validator:
                                                   'alt-text': '',
                                                   'wrap': 72})
         # Write html file.
-        if self.__writeHTML:
+        if self._writeHTML:
             htmlName = "%s%s" % (moFile[0:-2], "html")
             f = open(htmlName, "w")
             f.write(document)

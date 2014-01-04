@@ -18,7 +18,7 @@ class Reader:
             raise ValueError('Argument "simulator" needs to be set to "dymola".')
 
         self.fileName = fileName
-        self.__data__ = DyMatFile(fileName)
+        self._data_ = DyMatFile(fileName)
 
     def varNames(self, pattern=None):
         '''
@@ -52,7 +52,7 @@ class Reader:
         '''
         import re
 
-        AllNames = self.__data__.names()
+        AllNames = self._data_.names()
         if pattern is None:
             return AllNames
         else:
@@ -77,8 +77,8 @@ class Reader:
            >>> r=Reader(resultFile, "dymola")
            >>> (time, heatFlow) = r.values('preHea.port.Q_flow')
         '''
-        d = self.__data__.data(varName)
-        a = self.__data__.abscissa(blockOrName=varName, valuesOnly=True)
+        d = self._data_.data(varName)
+        a = self._data_.abscissa(blockOrName=varName, valuesOnly=True)
         return a, d
     
     def integral(self, varName):
