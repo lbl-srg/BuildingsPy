@@ -61,7 +61,7 @@ class Tester:
     tolerance, a plot such as the one below is shown.
 
     .. figure:: img/unitTestPlot.png
-       :scale: 75%
+       :width: 560 px
 
        Plot that compares the new results (solid line) of the regression test with the old results (dotted line).
        The blue line indicates the time where the largest error occurs.

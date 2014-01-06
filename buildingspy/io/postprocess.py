@@ -179,7 +179,7 @@ class Plotter:
            to create a plot as the one shown below.
 
         .. image:: ../../../BuildingsPy/doc/source/img/TwoRoomsWithStorage_T.png
-           :scale: 70 %
+           :width: 560 px
            :align: center
 
         '''
