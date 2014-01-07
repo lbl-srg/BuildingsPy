@@ -6,10 +6,12 @@
 # MWetter@lbl.gov                            2011-02-23
 #######################################################
 
-def runSimulation(worDir):
+def runSimulation(worDir, cmd):
     ''' Run the simulation.
 
     :param worDir: The working directory.
+    :param cmd: An array which is passed to the `args` argument of
+                :mod:`subprocess.Popen`
 
     .. note:: This method is outside the class definition to
               allow parallel computing.
@@ -19,13 +21,10 @@ def runSimulation(worDir):
     import sys
     import subprocess
 
-    t = Tester()
-    modCom = t.getModelicaCommand()
-
     try:
         logFilNam=os.path.join(worDir, 'stdout.log')
         logFil = open(logFilNam, 'w')
-        retcode = subprocess.Popen(args=[modCom, "runAll.mos", "/nowindow"], 
+        retcode = subprocess.Popen(args=cmd, 
                                    stdout=logFil,
                                    stderr=logFil,
                                    shell=False, 
@@ -93,6 +92,8 @@ class Tester:
 
     '''
     def __init__(self):
+        ''' Constructor.
+        '''
         import os
         import multiprocessing
         import buildingspy.io.reporter as rep
@@ -1239,10 +1240,9 @@ class Tester:
         import os
         import shutil
         import time
+        import functools
 
         self.checkPythonModuleAvailability()
-        # Delete log file
-        self._reporter.deleteLogFile()
 
         self.setDataDictionary()
 
@@ -1289,11 +1289,14 @@ class Tester:
         self._writeRunscripts()
         if not self._useExistingResults:
             libNam = self.getLibraryName()
+            cmd    = [self.getModelicaCommand(), "runAll.mos", "/nowindow"]
             if self._nPro > 1:
                 po = multiprocessing.Pool(self._nPro)
-                po.map(runSimulation, map(lambda x: os.path.join(x, libNam), self._temDir))
+                po.map(functools.partial(runSimulation, 
+                                         cmd=cmd),
+                       map(lambda x: os.path.join(x, libNam), self._temDir))
             else:
-                runSimulation(os.path.join(self._temDir[0], libNam))
+                runSimulation(os.path.join(self._temDir[0], libNam), cmd)
 
 
         # Concatenate output files into one file
