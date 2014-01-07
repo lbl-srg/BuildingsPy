@@ -1249,7 +1249,7 @@ class Tester:
 
         # Reset the number of processors to use no more processors than there are
         # examples to be run
-        self.setNumberOfThreads(len(self._data))
+        self.setNumberOfThreads(min(multiprocessing.cpu_count(), len(self._data)))
 
         retVal = 0
         # Start timer
