@@ -18,7 +18,7 @@ class Reader:
             raise ValueError('Argument "simulator" needs to be set to "dymola".')
 
         self.fileName = fileName
-        self.__data__ = DyMatFile(fileName)
+        self._data_ = DyMatFile(fileName)
 
     def varNames(self, pattern=None):
         '''
@@ -29,24 +29,30 @@ class Reader:
            If ``pattern`` is unspecified, all variable names are returned.
 
            This method searches the variable names using the **search** function
-           from `Python's re module <http://docs.python.org/library/re.html>`_.
+           from `Python's re module <http://docs.python.org/2/library/re.html>`_.
 
-           See also http://docs.python.org/howto/regex.html#regex-howto.
+           See also http://docs.python.org/2/howto/regex.html#regex-howto.
 
            Usage: Type
+
+              >>> import os
               >>> from buildingspy.io.outputfile import Reader
-              >>> r=Reader("PlotDemo.mat", "dymola")
+              >>> resultFile = os.path.join("buildingspy", "examples", "dymola", "PlotDemo.mat")
+              >>> r=Reader(resultFile, "dymola")
               >>> # Return a list with all variable names
-              >>> r.varNames()         
+              >>> r.varNames() #doctest: +ELLIPSIS
+              [u'PID.I.y_start', u'PID.Td', u'PID.I.der(y)', ...]
               >>> # Return ['const.k', 'const.y']
               >>> r.varNames('const')  
+              [u'const.k', u'const.y']
               >>> # Returns all variables whose last character is u
-              >>> r.varNames('u$') 
+              >>> r.varNames('u$')
+              [u'PID.gainPID.u', u'PID.limiter.u', u'PID.gainTrack.u', u'PID.P.u', u'PID.I.u', u'gain.u']
 
         '''
         import re
 
-        AllNames = self.__data__.names()
+        AllNames = self._data_.names()
         if pattern is None:
             return AllNames
         else:
@@ -65,12 +71,14 @@ class Reader:
                  column is the data series.
 
         Usage: Type
+           >>> import os
            >>> from buildingspy.io.outputfile import Reader
-           >>> r=Reader("PlotDemo.mat", "dymola")
-           >>> (time, fanPower) = r.values('fan.PEle')
+           >>> resultFile = os.path.join("buildingspy", "examples", "dymola", "PlotDemo.mat")
+           >>> r=Reader(resultFile, "dymola")
+           >>> (time, heatFlow) = r.values('preHea.port.Q_flow')
         '''
-        d = self.__data__.data(varName)
-        a = self.__data__.abscissa(blockOrName=varName, valuesOnly=True)
+        d = self._data_.data(varName)
+        a = self._data_.abscissa(blockOrName=varName, valuesOnly=True)
         return a, d
     
     def integral(self, varName):
@@ -86,9 +94,12 @@ class Reader:
           
         
         Usage: Type
+           >>> import os
            >>> from buildingspy.io.outputfile import Reader
-           >>> r=Reader("PlotDemo.mat", "dymola")
-           >>> fanEnergy = r.integral('fan.PEle')
+           >>> resultFile = os.path.join("buildingspy", "examples", "dymola", "PlotDemo.mat")
+           >>> r=Reader(resultFile, "dymola")
+           >>> r.integral('preHea.port.Q_flow')
+           -21.589191160164773
         '''
         (t, v)=self.values(varName)
         val=0.0;
@@ -114,9 +125,12 @@ class Reader:
           
         
         Usage: Type
+           >>> import os
            >>> from buildingspy.io.outputfile import Reader
-           >>> r=Reader("PlotDemo.mat", "dymola")
-           >>> fanEnergy = r.mean('fan.PEle')
+           >>> resultFile = os.path.join("buildingspy", "examples", "dymola", "PlotDemo.mat")
+           >>> r=Reader(resultFile, "dymola")
+           >>> r.mean('preHea.port.Q_flow')
+           -21.589191160164773
         '''
         t=self.values(varName)[0]
         r = self.integral(varName)/(max(t)-min(t))
@@ -132,9 +146,12 @@ class Reader:
         :math:`\{x_k\}_{k=0}^{N-1}` are the values of the variable ``varName``
         
         Usage: Type
+           >>> import os
            >>> from buildingspy.io.outputfile import Reader
-           >>> r=Reader("PlotDemo.mat", "dymola")
-           >>> fanEnergy = r.min('fan.PEle')
+           >>> resultFile = os.path.join("buildingspy", "examples", "dymola", "PlotDemo.mat")
+           >>> r=Reader(resultFile, "dymola")
+           >>> r.min('preHea.port.Q_flow')
+           -50.0
         '''
         v=self.values(varName)[1]
         return min(v)
@@ -149,9 +166,12 @@ class Reader:
         :math:`\{x_k\}_{k=0}^{N-1}` are the values of the variable ``varName``.
         
         Usage: Type
+           >>> import os
            >>> from buildingspy.io.outputfile import Reader
-           >>> r=Reader("PlotDemo.mat", "dymola")
-           >>> fanEnergy = r.max('fan.PEle')
+           >>> resultFile = os.path.join("buildingspy", "examples", "dymola", "PlotDemo.mat")
+           >>> r=Reader(resultFile, "dymola")
+           >>> r.max('preHea.port.Q_flow')
+           -11.284342
         '''
         v=self.values(varName)[1]
         return max(v)

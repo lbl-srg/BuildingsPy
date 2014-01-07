@@ -8,27 +8,14 @@
 
 class Validator:
     ''' Class that validates ``.mo`` files for the correct html syntax.
-
     '''
     def __init__(self):
         import os
-        import multiprocessing
 
         # --------------------------
         # Class variables
-        self.__libHome=os.path.abspath(".")
-        self.__nPro = multiprocessing.cpu_count()
-        self.__batch = False
-
-        # List of temporary directories that are used to validate the files
-        self.__temDir = []
-        self.__writeHTML = False
-
-        # Flag to delete temporary directories.
-#        self.__deleteTemporaryDirectories = True
-
-#        self.__libraryName = os.getcwd().split(os.path.sep)[-1]
-#        self.__reporter = rep.Reporter("validator.log")
+#        self._libHome=os.path.abspath(".")
+        self._writeHTML = False
 
 
     def validateHTMLInPackage(self, rootDir):
@@ -46,13 +33,26 @@ class Validator:
             
             :param rootDir: The root directory of the package.
             :return: str[] Warning/error messages from tidylib.
-            
-            '''
+
+        Usage: Type
+            >>> import os
+            >>> import buildingspy.development.validator as v
+            >>> val = v.Validator() 
+            >>> myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
+            >>> # Get a list whose elements are the error strings
+            >>> errStr = val.validateHTMLInPackage(myMoLib)
+
+        '''
         import os
         errMsg = list()
-        scrPat = self.__libHome
 
-        for root, _, files in os.walk(scrPat):
+        # Make sure that the parameter rootDir points to a Modelica package.
+        topPackage = os.path.join(rootDir, "package.mo")
+        if not os.path.isfile(topPackage):
+            raise ValueError("Argument rootDir=%s is not a Modelica package. Expected file '%s'."
+                             % (rootDir, topPackage))
+
+        for root, _, files in os.walk(rootDir):
             for moFil in files:
                 # find the .mo file
                 if moFil.endswith('.mo'):
@@ -73,12 +73,6 @@ class Validator:
         :return: (str, str): The tidied markup [0] and warning/error messages[1]. 
                              Warnings and errors are returned just as tidylib returns them.
 
-        Usage: Type
-           >>> import buildingspy.development.Validator as v; 
-           >>> val = v.Validator(); 
-           >>> doc, err = val.validateHTML('aaaa.mo'); 
-           >>> print doc;
-           >>> print err;
         '''
         from tidylib import tidy_document
         # Open file.
@@ -129,7 +123,7 @@ class Validator:
                                                   'alt-text': '',
                                                   'wrap': 72})
         # Write html file.
-        if self.__writeHTML:
+        if self._writeHTML:
             htmlName = "%s%s" % (moFile[0:-2], "html")
             f = open(htmlName, "w")
             f.write(document)

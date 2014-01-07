@@ -6,6 +6,15 @@ Version 1.4.0, xxx, 2013 -- Release 1.4
 - In development.unittest, added test that addresses the situation
   that some results are parameters in the Buildings library, but
   variables in the Annex 60 library.
+- In simulate.Simulator, corrected error that prevented output
+  files from being copied if the result directory was set to '.'
+- Added unit tests and documentation tests.
+- Corrected various errors in the documentation.
+- Renamed development.unittest to development.regressiontest. This
+  was required for the python doctest to work.
+- In development.regressiontest, added new method setLibraryRoot(rootDir)
+  to allow running the unit tests from a directory other than the library
+  root directory.
 
 Version 1.3.0, October 24, 2013 -- Release 1.3
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -20,9 +29,11 @@ Version 1.3.0, October 24, 2013 -- Release 1.3
   Avoided use of variable name exit which is a reserved keyword. 
   Avoided the use of temporary variables that are not needed.
 - In development.unittest, 
+
   - removed non-needed import statement,
   - removed argument dir from method printNumberOfClasses(self)
     as this argument is not used.
+
 - Updated to latest version of DyMat as on https://bitbucket.org/jraedler/dymat/,
   commit 4e819cb
 - In development.Tester, method __getSimulationResults(),

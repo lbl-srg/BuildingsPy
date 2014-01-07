@@ -2,4 +2,4 @@ Revisions
 =========
 
 
-.. include:: ../../CHANGES.txt
+.. include:: ../../buildingspy/CHANGES.txt

@@ -2,7 +2,7 @@ Install and Uninstall BuildingsPy
 =================================
 
 To install the *buildingspy* module, install 
-`pip <http://www.pip-installer.org>`_ and run from a console
+`pip <http://www.pip-installer.org/en/latest/>`_ and run from a console
 
 .. parsed-literal::
 
