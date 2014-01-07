@@ -20,6 +20,7 @@ class Reporter:
         self._iErr = 0
         self.logToFile()
         self._logFil = os.path.join(fileName)
+        self.deleteLogFile()
 
     def deleteLogFile(self):
         ''' Deletes the log file if it exists.
