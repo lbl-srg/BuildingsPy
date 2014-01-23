@@ -20,6 +20,8 @@ doctest:
 	@rm plot.pdf plot.png roomTemperatures.png dymola.log
 
 dist:	clean doctest unittest doc 
+	@# Make sure README.rst are consistent
+	cmp -s README.rst buildingspy/README.rst
 	python setup.py sdist --formats=gztar,zip
 	python setup.py bdist_egg
 	@rm -rf build
