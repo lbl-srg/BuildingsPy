@@ -566,7 +566,8 @@ class Tester:
         :param varNam: Variable name, used for reporting.
         :param filNam: File name, used for reporting.
         :return: A list with ``False`` if the results are not equal, and the time 
-                 of the maximum error, and a warning message or `None`
+                 of the maximum error, and a warning message or `None`.
+                 In case of errors, the time of the maximum error may by `None`.
         '''
         import numpy as np
         from buildingspy.io.postprocess import Plotter
@@ -587,7 +588,15 @@ class Tester:
         tol=1E-3  #Tolerance
 
         # Interpolate the new variables to the old time stamps
-        
+        #
+        # The next test may be true if a simulation stopped with an error prior to producing sufficient data points
+        if len(yNew) < len(yOld) and len(yNew) > 2:
+            warning = """%s: %s has fewer data points than reference results.
+len(yOld) = %d, 
+len(yNew) = %d
+Skipping error checking for this variable.""" % (filNam, varNam, len(yOld), len(yNew))
+            return (False, None, warning)
+
         if len(yNew) > 2:
             # Some reference results contain already a time grid, 
             # whereas others only contain the first and last time stamp.
@@ -595,7 +604,16 @@ class Tester:
             # call the interpolation.
             tGriOld = getTimeGrid(tOld)            
             tGriNew = getTimeGrid(tNew)
-            yInt = Plotter.interpolate(tGriOld, tGriNew, yNew)
+            try:
+                yInt = Plotter.interpolate(tGriOld, tGriNew, yNew)
+            except IndexError as e:
+                raise IndexError(
+"""Data series have different length: 
+File=%s, 
+variable=%s,
+len(tGriOld) = %d, 
+len(tGriNew) = %d,
+len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
         else:
             yInt = [yNew[0], yNew[0]]
 
