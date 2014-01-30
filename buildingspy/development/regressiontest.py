@@ -6,6 +6,9 @@
 # MWetter@lbl.gov                            2011-02-23
 #######################################################
 
+import sys, os
+
+
 def runSimulation(worDir, cmd):
     ''' Run the simulation.
 
@@ -17,8 +20,7 @@ def runSimulation(worDir, cmd):
               allow parallel computing.
 
     '''
-    import os
-    import sys
+    
     import subprocess
 
     try:
@@ -102,7 +104,6 @@ class Tester:
     def __init__(self, **kwargs):
         ''' Constructor.
         '''
-        import os
         import multiprocessing
         import buildingspy.io.reporter as rep
 
@@ -140,7 +141,7 @@ class Tester:
                  mos file plots `a.x` versus `a.y` and `b.x` versus `(b.y1, b.y2)`.
         '''
         self._data = []
-        self._reporter = rep.Reporter(os.path.join(os.getcwd(), "unitTests.log"))
+        self._reporter = rep.Reporter(os.path.join(os.getcwd(), "RegressionTests.log"))
 
     def setLibraryRoot(self, rootDir):
         ''' Set the root directory of the library.
@@ -157,7 +158,6 @@ class Tester:
            >>> myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
            >>> rt.setLibraryRoot(myMoLib)
         '''
-        import os
         self._libHome = os.path.abspath(rootDir)
         self.isValidLibrary()
 
@@ -229,7 +229,6 @@ class Tester:
     # --------------------------
     # Check if argument is an executable
     def isExecutable(self, program):
-        import os
         import platform
 
         def is_exe(fpath):
@@ -255,7 +254,6 @@ class Tester:
         
         "return: ``True`` if the library implements regression tests, ``False`` otherwise.
         '''
-        import os
         topPackage = os.path.abspath(os.path.join(self._libHome, "package.mo"))
         if not os.path.isfile(topPackage):
             raise ValueError("Directory %s is not a Modelica library.\n    Expected file '%s'."
@@ -273,7 +271,6 @@ class Tester:
         
         :return: The name of the library that will be run by this regression test.
         '''
-        import os
         return os.path.basename(self._libHome)
         
         
@@ -356,7 +353,6 @@ class Tester:
         ''' Build the data structures that are needed to parse the output files.
 
         '''
-        import os
         import re
 
         scrPat = os.path.join(self._libHome, 'Resources', 'Scripts', 'Dymola')
@@ -505,7 +501,6 @@ class Tester:
         a list of dictionaries. Each element of the list contains a dictionary
         of results that need to be printed together.
         '''    
-        import os
         from buildingspy.io.outputfile import Reader
         from buildingspy.io.postprocess import Plotter
 
@@ -757,7 +752,6 @@ class Tester:
                     and ``foundError`` are booleans, and ``ans`` is ``y``, ``Y``, ``n`` or ``N``.
    
         '''
-        import sys
         updateReferenceData = False
         foundError = False
 
@@ -915,7 +909,6 @@ class Tester:
     # If there is no .mat file of the reference points in the library home folder,
     # ask the user whether it should be generated.
     def _checkReferencePoints(self, ans):
-        import os
 
         #Check if the directory "self._libHome\\Resources\\ReferenceResults\\Dymola" exists, if not create it.
         refDir=os.path.join(self._libHome, 'Resources', 'ReferenceResults', 'Dymola')   
@@ -978,7 +971,6 @@ class Tester:
 
     # --------------------------
     def _checkSimulationError(self, errorFile):
-        import sys
 
         def _haveNumericalDerivatives(lin):
             ''' Return `True` if the argument contains
@@ -1044,7 +1036,6 @@ class Tester:
         ''' Print the number of models, blocks and functions to the 
             standard output stream
         '''
-        import os
 
         iMod=0
         iBlo=0
@@ -1129,7 +1120,6 @@ class Tester:
     # Write the script that runs all example problems, and
     # that searches for errors
     def _writeRunscripts(self):
-        import os
 
         nUniTes = 0
 
@@ -1200,7 +1190,6 @@ class Tester:
     def _setTemporaryDirectories(self):
         import tempfile
         import shutil
-        import os
 
         self._temDir = []
 
@@ -1248,10 +1237,11 @@ class Tester:
         import buildingspy.development.validator as v
 
         import multiprocessing
-        import os
         import shutil
         import time
         import functools
+
+        #import pdb;pdb.set_trace()
 
         self.checkPythonModuleAvailability()
 
@@ -1367,7 +1357,6 @@ class Tester:
         :param packages: The names of packages containing test models, such as ``Examples`` and ``Tests``
         :return: A list with the full paths to the ``.mo`` files of the found models.
         """
-        import os
         if folder is None:
             folder = self._temDir[0]
         
@@ -1391,7 +1380,6 @@ class Tester:
     
     def _model_from_mo(self, mo_file):
         """Return the model name from a .mo file"""
-        import os
         # split the path of the mo_file
         splt = mo_file.split(os.sep)
         # find the root of the library name
@@ -1402,7 +1390,7 @@ class Tester:
         return model[:-3]
         
         
-    def test_JModelica(self, cmpl=True, load=False, simulate=False, 
+    def testJM(self, cmpl=True, load=False, simulate=False, 
                       packages=['Examples'], number=-1):
         """
         Test the library compliance with JModelica.org.
@@ -1429,14 +1417,13 @@ class Tester:
           3. type tye following commands:
 
              >>> t = Tester() # doctest: +SKIP
-             >>> t.test_JModelica(...) # doctest: +SKIP
+             >>> t.testJmodelica(...) # doctest: +SKIP
 
         """
         
         from pymodelica import compile_fmu
         from pyfmi import load_fmu
         import shutil
-        import sys
         
         from cStringIO import StringIO
 
@@ -1510,10 +1497,10 @@ class Tester:
                 shutil.rmtree(d)
                 
         self._jmstats = stats
-        self._analyse_jmstats()
+        self._analyseJMStats()
         
         
-    def _analyse_jmstats(self):
+    def _analyseJMStats(self):
         """
         Analyse the statistics dictionary resulting from a _test_Jmodelica() call.
         """
@@ -1542,3 +1529,150 @@ class Tester:
             print p
         
         print "###################################################"
+
+
+    def _writeOMRunScript(self, worDir, models, cmpl, simulate):
+        """
+        Write an OpenModelica run script to test model compliance
+        
+        :param: wordir: path to working directory        
+        :param: models is a list of model names, typically obtained from 
+        :func:`~buildingspy.regressiontest.Tester._get_test_models`
+        :param: cmpl, simulate: booleans specifying if the models have to be
+        compiles and simulated respectively.
+        
+        
+        """
+        
+        mosfilename = os.path.join(worDir, 'OMTests.mos')
+    
+        with open(mosfilename, 'w') as mosfile:
+            # preamble
+            mosfile.write('//Automatically generated script for testing model compliance with OpenModelica.\n')
+            mosfile.write('loadModel(Modelica, {"3.2"});\n')
+            mosfile.write('getErrorString();\n')
+            mosfile.write('loadModel('+self.getLibraryName()+');\n\n')
+            
+            # one line per model
+            comp = ['checkModel(' + m + '); getErrorString();\n' for m in models]
+            sim = ['simulate(' + m + '); getErrorString();\n' for m in models]
+            
+            for c,s in zip(comp, sim):
+                if cmpl:
+                    mosfile.write(c)
+                if simulate:
+                    mosfile.write(s)
+            
+            
+            self._reporter.writeOutput('OpenModelica script {} created'.format(mosfilename))
+            return mosfilename
+            
+            
+    
+    def testOM(self, cmpl=True, simulate=False, 
+                      packages=['Examples'], number=-1):
+        """
+        Test the library compliance with OpenModelica.
+        
+        This is the high-level method to test a complete library, even if there
+        are no specific ``.mos`` files in the library for regression testing. 
+        
+        This method sets self._nPro to 1 as it only works on a single core. It also
+        executes self.setTemporaryDirectories() 
+        
+        :param cpml: Set to ``True`` for the model to be compiled.
+        :param simulate: Set to ``True`` to cause the model to be simulated (from 0 to 1s).
+        :param packages: Set to a list whose elements are the packages that contain the test models of the
+          library
+        :param number: Number of models to test. Set to ``-1`` to test all models.
+                
+        
+        Usage:
+        
+          1. In a python console or script, cd to the root folder of the library
+         
+             >>> t = Tester() # doctest: +SKIP
+             >>> t.testOpenModelica(...) # doctest: +SKIP
+
+        """
+        
+        import shutil
+        import subprocess
+        
+        from cStringIO import StringIO
+
+        #import pdb; pdb.set_trace()
+
+        if number < 0:
+            number = 1e15
+        old_stdout = sys.stdout
+        
+        self.setNumberOfThreads(1)
+        self._setTemporaryDirectories()
+
+        worDir = self._temDir[0]
+        
+        # return a list with pathnames of the .mo files to be tested        
+        tests = self._get_test_models(packages=['Examples'])
+        models = [self._model_from_mo(mo_file) for mo_file in tests]        
+        
+        mosfile = self._writeOMRunScript(worDir=worDir, models=models,
+                                         cmpl=cmpl, simulate=simulate)
+        env = os.environ.copy()
+        env['OPENMODELICALIBRARY'] = worDir + ':/usr/lib/omlibrary' 
+        
+        try:
+            logFilNam=os.path.join(worDir, 'stdout.log')
+            logFil = open(logFilNam, 'w')
+            retcode = subprocess.Popen(args=['omc', '+d=initialization', mosfile], 
+                                       stdout=logFil,
+                                       stderr=logFil,
+                                       shell=False,
+                                       env=env,
+                                       cwd=worDir).wait()
+    
+            logFil.close()
+            if retcode != 0:
+                print "Child was terminated by signal", retcode
+                return retcode
+            else:
+                return 0
+        except OSError as e:
+            sys.stderr.write("Execution of omc +d=initialization " + mosfile + " failed.\n" +
+                             "Working directory is '" + worDir + "'.")
+            raise(e)
+        else:
+            # process the log file
+            logfile = mosfile.replace('.mos', '.log')
+            self._analyseOMStats(logfile)
+
+            # Delete temporary directories
+            if self._deleteTemporaryDirectories:
+                for d in self._temDir:
+                    shutil.rmtree(d)
+                    
+        
+    def _analyseOMStats(self, filename):
+        """
+        Analyse the log file of the OM compatibility test.
+        
+        """
+        
+        with open('filename', 'r') as f:
+        
+            success = 0
+            failed = 0
+            
+            for line in f.readlines():
+                if line.find('resultFile = "') > 0:
+                    if line.find('""') > 0:
+                        failed += 1
+                    else:
+                        success += 1
+            
+            print '\n'
+            print 50*'#'
+            print "Succesful models = {}".format(success)
+            print "Failed models = {}".format(failed)
+            print "Check " + filename + " for the full log file."
+            print 50*'#'
