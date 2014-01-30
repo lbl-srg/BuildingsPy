@@ -17,7 +17,6 @@ class Validator:
 #        self._libHome=os.path.abspath(".")
         self._writeHTML = False
 
-
     def validateHTMLInPackage(self, rootDir):
         ''' This function recursively validates all ``.mo`` files
             in a package.
@@ -118,7 +117,7 @@ class Validator:
 
         # Validate the string
         document, errors = tidy_document(r"%s%s%s" % (header, body, footer),
-                                         options={'numeric-entities':1,
+                                         options={'numeric-entities': 1,
                                                   'output-html': 1,
                                                   'alt-text': '',
                                                   'wrap': 72})
