@@ -1172,11 +1172,16 @@ class Tester:
                         runFil.write('getErrorString();\n')
                     if self._modelicaCmd == 'dymola':
                         runFil.write("Advanced.PedanticModelica = OriginalAdvancedPedanticModelica;\n")
+                    
                     # Write line for run script
-                    runFil.write("RunScript(\"Resources/Scripts/Dymola/" 
+                    if self._modelicaCmd == 'dymola':
+                        runFil.write('RunScript("Resources/Scripts/Dymola/' 
                                  + self._data[i]['ScriptDirectory'] + "/" 
-                                 + self._data[i]['ScriptFile'] + "\");\n")
-                    if self._modelicaCmd == 'omc':
+                                 + self._data[i]['ScriptFile'] + '");\n')
+                    elif self._modelicaCmd == 'omc':
+                        runFil.write('runScript("Resources/Scripts/Dymola/' 
+                                 + self._data[i]['ScriptDirectory'] + "/" 
+                                 + self._data[i]['ScriptFile'] + '");\n')
                         runFil.write('getErrorString();\n')
                     self._removePlotCommands(mosFilNam)
                     nUniTes = nUniTes + 1
@@ -1326,11 +1331,17 @@ class Tester:
             else:
                 runSimulation(os.path.join(self._temDir[0], libNam), cmd)
 
-
         # Concatenate output files into one file
-        logFil = open('dymola.log', 'w')
+        if self._modelicaCmd == 'dymola':
+            logFil = open('dymola.log', 'w')
+        elif self._modelicaCmd == 'omc':
+            logFil = open('omc.log', 'w')
+        
         for d in self._temDir:
-            temLogFilNam = os.path.join(d, self.getLibraryName(), 'dymola.log')
+            if self._modelicaCmd == 'dymola':
+                temLogFilNam = os.path.join(d, self.getLibraryName(), 'dymola.log')
+            elif self._modelicaCmd == 'omc':
+                temLogFilNam = os.path.join(d, self.getLibraryName(), 'stdout.log')
             if os.path.exists(temLogFilNam):
                 fil=open(temLogFilNam,'r')
                 data=fil.read()
@@ -1341,13 +1352,19 @@ class Tester:
                 retVal = 1
         logFil.close()
 
+        # check logfile if omc        
+        if self._modelicaCmd == 'omc':
+            self._analyseOMStats(filename = 'omc.log')
+        
+        
         # Check reference results
         if self._batch:
             ans = "N"
         else:
             ans = "-"
 
-        ans = self._checkReferencePoints(ans)
+        if self._modelicaCmd == 'dymola':
+            ans = self._checkReferencePoints(ans)
 
 
         # Delete temporary directories
@@ -1356,10 +1373,11 @@ class Tester:
                 shutil.rmtree(d)
 
         # Check for errors
-        if retVal == 0:
-            retVal = self._checkSimulationError("dymola.log")
-        else:
-            self._checkSimulationError("dymola.log")
+        if self._modelicaCmd == 'dymola':
+            if retVal == 0:
+                retVal = self._checkSimulationError("dymola.log")
+            else:
+                self._checkSimulationError("dymola.log")
 
         # Print list of files that may be excluded from unit tests
         if len(self._excludeMos) > 0:
