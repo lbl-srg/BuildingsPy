@@ -45,6 +45,14 @@ def runSimulation(worDir, cmd):
 class Tester:
     ''' Class that runs all regression tests using Dymola.
     
+    Initiate with the following optional arguments:
+
+    :param checkHtml: bool (default=True). Specify whether to load tidylib and 
+        perform validation of html documentation
+    :param executable: {'dymola', 'omc'}.  Default is 'dymola', specifies the
+        executable to use for running the regression test with :func:`~buildingspy.development.Tester.run`.
+    :param cleanup: bool (default=True).  Specify whether to delete temporary directories.  
+    
     This class can be used to run all regression tests.
     It searches the directory ``CURRENT_DIRECTORY\Resources\Scripts\Dymola`` for 
     all ``*.mos`` files that contain the string ``simulate``,
@@ -91,7 +99,7 @@ class Tester:
        Execution time = ...
 
     '''
-    def __init__(self):
+    def __init__(self, **kwargs):
         ''' Constructor.
         '''
         import os
@@ -100,8 +108,9 @@ class Tester:
 
         # --------------------------
         # Class variables
+        self._checkHtml = kwargs.get('checkHtml', True)        
         self._libHome=os.path.abspath(".")
-        self._modelicaCmd='dymola'
+        self._modelicaCmd = kwargs.get('executable', 'dymola')
         self._nPro = multiprocessing.cpu_count()
         self._batch = False
 
@@ -116,7 +125,7 @@ class Tester:
         self._temDir = []
 
         # Flag to delete temporary directories.
-        self._deleteTemporaryDirectories = True
+        self._deleteTemporaryDirectories = kwargs.get('cleanup', True)
 
         # Flag to use existing results instead of running a simulation
         self._useExistingResults = False
@@ -273,7 +282,9 @@ class Tester:
 
             If some modules are missing, then an `ImportError` is raised.
         '''
-        requiredModules = ['buildingspy', 'matplotlib.pyplot', 'numpy', 'scipy.io', 'tidylib']
+        requiredModules = ['buildingspy', 'matplotlib.pyplot', 'numpy', 'scipy.io']
+        if self._checkHtml:
+            requiredModules.append('tidylib')
         missingModules = []
         for module in requiredModules:
             try:
@@ -1293,13 +1304,14 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
         self.printNumberOfClasses()    
 
         # Validate html
-        val = v.Validator()
-        errMsg = val.validateHTMLInPackage(self._libHome)
-        for i in range(len(errMsg)):
-            if i == 0:
-                self._reporter.writeError("The following malformed html syntax has been found:\n%s" % errMsg[i])
-            else:
-                self._reporter.writeError(errMsg[i])
+        if self._checkHtml:        
+            val = v.Validator()
+            errMsg = val.validateHTMLInPackage(self._libHome)
+            for i in range(len(errMsg)):
+                if i == 0:
+                    self._reporter.writeError("The following malformed html syntax has been found:\n%s" % errMsg[i])
+                else:
+                    self._reporter.writeError(errMsg[i])
 
         # Run simulations
         if not self._useExistingResults:
