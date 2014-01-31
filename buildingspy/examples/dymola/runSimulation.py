@@ -1,5 +1,6 @@
 from multiprocessing import Pool
-import buildingspy.simulate.Simulator as si 
+import buildingspy.simulate.Simulator as si
+
 
 # Function to set common parameters and to run the simulation
 def simulateCase(s):
@@ -10,10 +11,11 @@ def simulateCase(s):
     '''
     s.setStopTime(86400)
     # Kill the process if it does not finish in 1 minute
-    s.setTimeOut(60) 
+    s.setTimeOut(60)
     s.showProgressBar(False)
     s.printModelAndTime()
     s.simulate()
+
 
 def main():
     ''' Main method that configures and runs all simulations
@@ -33,7 +35,6 @@ def main():
     # Run all cases in parallel
     po = Pool()
     po.map(simulateCase, li)
-
 
 # Main function
 if __name__ == '__main__':

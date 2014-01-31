@@ -3,7 +3,7 @@ import unittest
 from buildingspy.development.regressiontest import Tester
 
 class Test_regressiontest_Tester(unittest.TestCase):
-    """      
+    """
        This class contains the unit tests for
        :mod:`buildingspy.regressiontest.Tester`.
     """

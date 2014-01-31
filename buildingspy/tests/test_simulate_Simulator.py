@@ -3,21 +3,20 @@ import unittest
 from buildingspy.simulate.Simulator import Simulator
 
 class Test_simulate_Simulator(unittest.TestCase):
-    """      
+    """
        This class contains the unit tests for
        :mod:`buildingspy.simulate.Simulator`.
     """
 
     def test_Constructor(self):
-        ''' 
+        '''
         Tests the :mod:`buildingspy.simulate.Simulator`
         constructor.
         '''
         self.assertRaises(ValueError, Simulator, "myModelicaLibrary.myModel", "notSupported")
 
-
     def test_addMethods(self):
-        ''' 
+        '''
         Tests the various add methods.
         '''
         import os
@@ -56,7 +55,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         s.deleteLogFiles()
 
     def test_addGetParameters(self):
-        ''' 
+        '''
         Tests the :mod:`buildingspy.simulate.Simulator.addParameters`
         and the :mod:`buildingspy.simulate.Simulator.getParameters`
         functions.
@@ -72,5 +71,5 @@ class Test_simulate_Simulator(unittest.TestCase):
         self.assertRaises(ValueError, s.addParameters, ["aaa", "bbb"])
 
 if __name__ == '__main__':
-    unittest.main()        
+    unittest.main()
 

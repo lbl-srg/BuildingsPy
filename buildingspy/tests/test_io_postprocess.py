@@ -4,13 +4,13 @@ from buildingspy.io.postprocess import Plotter
 import numpy.testing
 
 class Test_io_Plotter(unittest.TestCase):
-    """      
+    """
        This class contains the unit tests for
        :mod:`buildingspy.io.Plotter`.
     """
 
     def test_interpolate(self):
-        ''' 
+        '''
         Tests the :mod:`buildingspy.io.Plotter.interpolate`
         function.
         '''
@@ -29,7 +29,7 @@ class Test_io_Plotter(unittest.TestCase):
         numpy.testing.assert_allclose(y10, y10Int)
 
     def test_convertToPeriodic(self):
-        ''' 
+        '''
         Test the :mod:`buildingspy.io.Plotter.convertToPeriodic`
         function.
         '''
@@ -52,9 +52,8 @@ class Test_io_Plotter(unittest.TestCase):
         # Test for period to be larger than time vector
 #fixme        self.assertRaises(ValueError, Plotter.convertToPeriodic(100, range(10), range(10)))
 
-
     def test_boxplot(self):
-        ''' 
+        '''
         Test the :mod:`buildingspy.io.Plotter.boxplot`
         function.
         '''
@@ -67,11 +66,9 @@ class Test_io_Plotter(unittest.TestCase):
 #        (tP, y) = Plotter.convertToPeriodic(24, t, y)
         # Create plot
         Plotter.boxplot(t, y, increment=0.5, nIncrement=2*24,
-                notch=0, sym='b+', vert=1, whis=1.5, 
+                notch=0, sym='b+', vert=1, whis=1.5,
                 positions=None, widths=None, patch_artist=False, bootstrap=None, hold=None)
-        
-            
 
 if __name__ == '__main__':
-    unittest.main()        
+    unittest.main()
 
