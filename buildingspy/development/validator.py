@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 #######################################################
-# Class that validates the .mo file for correct 
+# Class that validates the .mo file for correct
 # html syntax
 #
 # MWetter@lbl.gov                            2013-05-31
 #######################################################
+
 
 class Validator:
     ''' Class that validates ``.mo`` files for the correct html syntax.
@@ -17,28 +18,29 @@ class Validator:
 #        self._libHome=os.path.abspath(".")
         self._writeHTML = False
 
-
     def validateHTMLInPackage(self, rootDir):
-        ''' This function recursively validates all ``.mo`` files
-            in a package.
-            
-            If there is malformed html code in the ``info`` or the 
-            ``revision`` section,
-            then this function write the error message of tidy to the
-            standard output.
+        '''
+        This function recursively validates all ``.mo`` files
+        in a package.
 
-            Note that the line number correspond to an intermediate format
-            (e.g., the output format of tidy), which may be different from
-            the ``.mo`` file.
-            
-            :param rootDir: The root directory of the package.
-            :return: str[] Warning/error messages from tidylib.
+        If there is malformed html code in the ``info`` or the
+        ``revision`` section,
+        then this function write the error message of tidy to the
+        standard output.
+
+        Note that the line number correspond to an intermediate format
+        (e.g., the output format of tidy), which may be different from
+        the ``.mo`` file.
+
+        :param rootDir: The root directory of the package.
+        :return: str[] Warning/error messages from tidylib.
 
         Usage: Type
             >>> import os
             >>> import buildingspy.development.validator as v
-            >>> val = v.Validator() 
-            >>> myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
+            >>> val = v.Validator()
+            >>> myMoLib = os.path.join(\
+                    "buildingspy", "tests", "MyModelicaLibrary")
             >>> # Get a list whose elements are the error strings
             >>> errStr = val.validateHTMLInPackage(myMoLib)
 
@@ -49,7 +51,8 @@ class Validator:
         # Make sure that the parameter rootDir points to a Modelica package.
         topPackage = os.path.join(rootDir, "package.mo")
         if not os.path.isfile(topPackage):
-            raise ValueError("Argument rootDir=%s is not a Modelica package. Expected file '%s'."
+            raise ValueError("Argument rootDir=%s is not a \
+Modelica package. Expected file '%s'."
                              % (rootDir, topPackage))
 
         for root, _, files in os.walk(rootDir):
@@ -64,14 +67,14 @@ class Validator:
                         errMsg.append("[-- %s ]\n%s" % (moFulNam, err))
         return errMsg
 
-
     def _validateHTML(self, moFile):
-        ''' This function validates the file ``moFile`` for correct html
-            syntax
-        
+        '''
+        This function validates the file ``moFile`` for correct html syntax.
+
         :param moFile: The name of a Modelica source file.
-        :return: (str, str): The tidied markup [0] and warning/error messages[1]. 
-                             Warnings and errors are returned just as tidylib returns them.
+        :return: (str, str) The tidied markup [0] and warning/error
+                 messages[1]. Warnings and errors are returned
+                 just as tidylib returns them.
 
         '''
         from tidylib import tidy_document
@@ -92,12 +95,12 @@ class Validator:
 <!-- +++++++++++++++++++++++++++++++++++++ -->\n"
         nLin = len(lines)
         firstHTML = True
-        body=""
+        body = ""
         for i in range(nLin):
             if firstHTML:
                 idx = lines[i].find("<html>")
                 if idx > -1:
-                    body += lines[i][idx+6:]  + '\n'
+                    body += lines[i][idx+6:] + '\n'
                     firstHTML = False
             else:
                 idx = lines[i].find("</html>")
@@ -118,7 +121,7 @@ class Validator:
 
         # Validate the string
         document, errors = tidy_document(r"%s%s%s" % (header, body, footer),
-                                         options={'numeric-entities':1,
+                                         options={'numeric-entities': 1,
                                                   'output-html': 1,
                                                   'alt-text': '',
                                                   'wrap': 72})

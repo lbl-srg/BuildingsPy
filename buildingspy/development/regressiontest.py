@@ -142,7 +142,7 @@ class Tester:
                  mos file plots `a.x` versus `a.y` and `b.x` versus `(b.y1, b.y2)`.
         '''
         self._data = []
-        self._reporter = rep.Reporter(os.path.join(os.getcwd(), "RegressionTests.log"))
+        self._reporter = rep.Reporter(os.path.join(os.getcwd(), "unitTests.log"))
 
     def setLibraryRoot(self, rootDir):
         ''' Set the root directory of the library.
@@ -573,7 +573,8 @@ class Tester:
         :param varNam: Variable name, used for reporting.
         :param filNam: File name, used for reporting.
         :return: A list with ``False`` if the results are not equal, and the time 
-                 of the maximum error, and a warning message or `None`
+                 of the maximum error, and a warning message or `None`.
+                 In case of errors, the time of the maximum error may by `None`.
         '''
         import numpy as np
         from buildingspy.io.postprocess import Plotter
@@ -594,7 +595,15 @@ class Tester:
         tol=1E-3  #Tolerance
 
         # Interpolate the new variables to the old time stamps
-        
+        #
+        # The next test may be true if a simulation stopped with an error prior to producing sufficient data points
+        if len(yNew) < len(yOld) and len(yNew) > 2:
+            warning = """%s: %s has fewer data points than reference results.
+len(yOld) = %d, 
+len(yNew) = %d
+Skipping error checking for this variable.""" % (filNam, varNam, len(yOld), len(yNew))
+            return (False, None, warning)
+
         if len(yNew) > 2:
             # Some reference results contain already a time grid, 
             # whereas others only contain the first and last time stamp.
@@ -602,7 +611,16 @@ class Tester:
             # call the interpolation.
             tGriOld = getTimeGrid(tOld)            
             tGriNew = getTimeGrid(tNew)
-            yInt = Plotter.interpolate(tGriOld, tGriNew, yNew)
+            try:
+                yInt = Plotter.interpolate(tGriOld, tGriNew, yNew)
+            except IndexError as e:
+                raise IndexError(
+"""Data series have different length: 
+File=%s, 
+variable=%s,
+len(tGriOld) = %d, 
+len(tGriNew) = %d,
+len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
         else:
             yInt = [yNew[0], yNew[0]]
 
@@ -1419,10 +1437,8 @@ class Tester:
                 for path in paths:
                     if path.endswith('.mo') and not path.endswith('package.mo'):
                         res.append(os.path.join(root, path))  
-        
         return res
-    
-    
+
     def _model_from_mo(self, mo_file):
         """Return the model name from a .mo file"""
         # split the path of the mo_file
@@ -1433,30 +1449,30 @@ class Tester:
         model = '.'.join(splt[root:])
         # remove the '.mo' at the end
         return model[:-3]
-        
-        
-    def testJM(self, cmpl=True, load=False, simulate=False, 
-                      packages=['Examples'], number=-1):
+
+    def test_JModelica(self, cmpl=True, load=False, simulate=False,
+                       packages=['Examples'], number=-1):
         """
         Test the library compliance with JModelica.org.
-        
+
         This is the high-level method to test a complete library, even if there
-        are no specific ``.mos`` files in the library for regression testing. 
-        
-        This method sets self._nPro to 1 as it only works on a single core. It also
-        executes self.setTemporaryDirectories() 
-        
+        are no specific ``.mos`` files in the library for regression testing.
+
+        This method sets self._nPro to 1 as it only works on a single core.
+        It also executes self.setTemporaryDirectories()
+
         :param cpml: Set to ``True`` for the model to be compiled.
         :param load: Set to ``True`` to load the model from the FMU.
         :param simulate: Set to ``True`` to cause the model to be simulated.
-        :param packages: Set to an array whose elements are the packages that contain the test models of the
-          library
-        :param number: Number of models to test. Set to ``-1`` to test all models.
-                
-        
+        :param packages: Set to an array whose elements are the packages
+                         that contain the test models of the library.
+        :param number: Number of models to test. Set to ``-1`` to test
+                       all models.
+
+
         Usage:
-        
-          1. Open a JModelica environment 
+
+          1. Open a JModelica environment
              (ipython or pylab with JModelica environment variables set).
           2. cd to the root folder of the library
           3. type tye following commands:
@@ -1465,42 +1481,42 @@ class Tester:
              >>> t.testJmodelica(...) # doctest: +SKIP
 
         """
-        
+
         from pymodelica import compile_fmu
         from pyfmi import load_fmu
         import shutil
-        
+        import sys
+
         from cStringIO import StringIO
 
         if number < 0:
             number = 1e15
         old_stdout = sys.stdout
-        
+
         self.setNumberOfThreads(1)
         self._setTemporaryDirectories()
 
         tempdir = self._temDir[0]
-        
-        # return a list with pathnames of the .mo files to be tested        
+
+        # return a list with pathnames of the .mo files to be tested
         tests = self._get_test_models(packages=['Examples'])
-        compiler_options = {'extra_lib_dirs':[tempdir]}
-        
-                
+        compiler_options = {'extra_lib_dirs': [tempdir]}
+
         # statistics
-        stats = {}        
+        stats = {}
         for mo_file in tests:
             if len(stats) >= number:
                 break
             # we keep all results for this model in a dictionary
-            stats[mo_file] = {}            
+            stats[mo_file] = {}
             model = self._model_from_mo(mo_file)
             if cmpl:
                 sys.stdout = mystdout = StringIO()
                 try:
-                    fmu = compile_fmu(model, 
-                                      mo_file, 
-                                      compiler_options = compiler_options,
-                                      compile_to = tempdir)
+                    fmu = compile_fmu(model,
+                                      mo_file,
+                                      compiler_options=compiler_options,
+                                      compile_to=tempdir)
                 except Exception as e:
                     stats[mo_file]['compilation_ok'] = False
                     stats[mo_file]['compilation_log'] = mystdout.getvalue()
@@ -1508,14 +1524,14 @@ class Tester:
                 else:
                     stats[mo_file]['compilation_ok'] = True
                     stats[mo_file]['compilation_log'] = mystdout.getvalue()
-                    
+
                 sys.stdout = old_stdout
-                mystdout.close()    
+                mystdout.close()
             else:
                 # cmpl = False
                 stats[mo_file]['compilation_ok'] = False
                 stats[mo_file]['compilation_log'] = 'Not attempted'
-            
+
             if load and stats[mo_file]['compilation_ok']:
                 sys.stdout = mystdout = StringIO()
                 try:
@@ -1527,52 +1543,56 @@ class Tester:
                 else:
                     stats[mo_file]['load_ok'] = True
                     stats[mo_file]['load_log'] = mystdout.getvalue()
-                    
+
                 sys.stdout = old_stdout
-                mystdout.close()    
+                mystdout.close()
             else:
                 # no loading attempted
                 stats[mo_file]['load_ok'] = False
                 stats[mo_file]['load_log'] = 'Not attempted'
-                
-                
+
         # Delete temporary directories
         if self._deleteTemporaryDirectories:
             for d in self._temDir:
                 shutil.rmtree(d)
-                
+
         self._jmstats = stats
         self._analyseJMStats()
         
         
     def _analyseJMStats(self):
         """
-        Analyse the statistics dictionary resulting from a _test_Jmodelica() call.
+        Analyse the statistics dictionary resulting from
+        a _test_Jmodelica() call.
         """
-        
-        count_cmpl = lambda x: [True for _,v in x.items() if v['compilation_ok']]
-        list_failed_cmpl = lambda x: [k for k,v in x.items() if not v['compilation_ok']]  
-        count_load = lambda x: [True for _,v in x.items() if v['load_ok']]
-        list_failed_load = lambda x: [k for k,v in x.items() if not v['load_ok']]
-        
+
+        count_cmpl = lambda x: [True for _, v in x.items()
+                                if v['compilation_ok']]
+        list_failed_cmpl = lambda x: [k for k, v in x.items()
+                                      if not v['compilation_ok']]
+        count_load = lambda x: [True for _, v in x.items() if v['load_ok']]
+        list_failed_load = lambda x: [k for k, v in x.items()
+                                      if not v['load_ok']]
+
         nbr_tot = len(self._jmstats)
         nbr_cmpl = len(count_cmpl(self._jmstats))
         nbr_load = len(count_load(self._jmstats))
-        
+
         print "###################################################"
-        print "Tested {} models:\n\t* {} compiled successfully (={:.1%})\n\t* {} loaded successfully (={:.1%})"\
-              .format(nbr_tot, 
+        print "Tested {} models:\n\t* {} compiled \
+successfully (={:.1%})\n\t* {} loaded successfully (={:.1%})"\
+              .format(nbr_tot,
                       nbr_cmpl, float(nbr_cmpl)/float(nbr_tot),
                       nbr_load, float(nbr_load)/float(nbr_tot))
-        
+
         print "\nFailed compilation for the following models:"
         for p in list_failed_cmpl(self._jmstats):
             print p
-        
+
         print "\nFailed loading for the following models:"
         for p in list_failed_load(self._jmstats):
             print p
-        
+
         print "###################################################"
 
 

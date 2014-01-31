@@ -1,6 +1,7 @@
 recursive-include buildingspy/thirdParty *
-recursive-include buildingspy *.txt
+recursive-include buildingspy *.txt *.rst *.mo
 recursive-include doc *
-recursive-include buildingspy/examples *.mo *.mat *.png *.pdf *.py
+recursive-include buildingspy/examples *.mat *.png *.pdf *.py
+
 
 

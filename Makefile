@@ -6,6 +6,13 @@ BPDOC=doc
 doc:
 	(cd $(BPDOC); make html linkcheck)
 
+pep8:
+	pep8 buildingspy/io/*.py \
+	buildingspy/examples/*.py \
+	buildingspy/examples/dymola/*.py \
+	buildingspy/simulate/*.py \
+        buildingspy/development/*.py
+
 unittest:
 	python -m unittest discover buildingspy/tests
 #	python buildingspy/tests/test_io_postprocess.py
@@ -20,6 +27,8 @@ doctest:
 	@rm plot.pdf plot.png roomTemperatures.png dymola.log
 
 dist:	clean doctest unittest doc 
+	@# Make sure README.rst are consistent
+	cmp -s README.rst buildingspy/README.rst
 	python setup.py sdist --formats=gztar,zip
 	python setup.py bdist_egg
 	@rm -rf build
