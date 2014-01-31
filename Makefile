@@ -6,6 +6,13 @@ BPDOC=doc
 doc:
 	(cd $(BPDOC); make html linkcheck)
 
+pep8:
+	pep8 buildingspy/io/*.py \
+	buildingspy/examples/*.py \
+	buildingspy/examples/dymola/*.py \
+	buildingspy/simulate/*.py \
+        buildingspy/development/*.py
+
 unittest:
 	python -m unittest discover buildingspy/tests
 #	python buildingspy/tests/test_io_postprocess.py
