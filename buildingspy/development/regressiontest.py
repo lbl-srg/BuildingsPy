@@ -1405,7 +1405,7 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
                 print "            ", fil
 
         # Print time
-        elapsedTime = time.time()-startTime;
+        elapsedTime = time.time()-startTime
         print "Execution time = %.3f s" % elapsedTime
 
         return retVal
