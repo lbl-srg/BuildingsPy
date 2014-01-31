@@ -6,6 +6,7 @@
 # MWetter@lbl.gov                            2011-02-23
 #######################################################
 
+from __future__ import division
 import sys, os
 
 
@@ -1354,7 +1355,7 @@ class Tester:
 
         # check logfile if omc        
         if self._modelicaCmd == 'omc':
-            self._analyseOMStats(filename = 'omc.log')
+            self._analyseOMStats(filename = 'omc.log', nModels=len(self._data))
         
         
         # Check reference results
@@ -1647,7 +1648,7 @@ class Tester:
         #import pdb; pdb.set_trace()
 
         if number < 0:
-            number = 1e15
+            number = int(1e15)
         old_stdout = sys.stdout
         
         self.setNumberOfThreads(1)
@@ -1687,7 +1688,7 @@ class Tester:
             # process the log file
             print "Logfile created: {}".format(logFilNam)
             print "Starting analysis of logfile"                
-            self._analyseOMStats(logFilNam)
+            self._analyseOMStats(logFilNam, len(models))
 
             # Delete temporary directories
             if self._deleteTemporaryDirectories:
@@ -1695,9 +1696,11 @@ class Tester:
                     shutil.rmtree(d)
                     
         
-    def _analyseOMStats(self, filename):
+    def _analyseOMStats(self, filename, nModels=None):
         """
         Analyse the log file of the OM compatibility test.
+        
+        :param nModels: optional, number of models that were tested.
         
         """
         with open(filename, 'r') as f:
@@ -1717,11 +1720,15 @@ class Tester:
                     else:
                         check_nok += 1
             
+            if nModels is not None:
+                check_nok = nModels - check_ok
+                sim_nok = nModels - sim_ok
+                
             print '\n'
             print 50*'#'
-            print "Succesful model checks = {}".format(check_ok)
-            print "Failed model checks = {}".format(check_nok)
-            print "Succesful model simulations = {}".format(sim_ok)
-            print "Failed model simulations = {}".format(sim_nok)
+            print "Succesful model checks = {} ({:.1%})".format(check_ok, check_ok/(check_ok+check_nok))
+            #print "Failed model checks = {}".format(check_nok)
+            print "Succesful model simulations = {} ({:.1%})".format(sim_ok, sim_ok/(sim_ok+sim_nok))
+            #print "Failed model simulations = {}".format(sim_nok)
             print "Check " + filename + " for the full log file."
             print 50*'#'
