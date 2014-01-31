@@ -1082,7 +1082,10 @@ class Tester:
         retVal = None
         for lin in fil.readlines():
             if "simulateModel" in lin:
-                retVal = "checkModel(\"%s\")" % getModelName(mosFilNam, lin)
+                if self._modelicaCmd == 'dymola':
+                    retVal = 'checkModel("{}")'.format(getModelName(mosFilNam, lin))
+                elif self._modelicaCmd == 'omc':
+                    retVal = "checkModel({})".format(getModelName(mosFilNam, lin))
                 break;
         fil.close()
         return retVal
@@ -1141,12 +1144,13 @@ class Tester:
             elif self._modelicaCmd == 'omc':
                 runFil.write('loadModel(Modelica, {"3.2"});\n')
                 runFil.write('getErrorString();\n')
-                runFil.write('loadModel("package.mo");\n')            
+                runFil.write('loadFile("package.mo");\n')            
             
             # Add a flag so that translation info appears in console output.
             # This allows checking for numerical derivatives.
-            runFil.write("Advanced.TranslationInCommandLog := true;\n")
+            
             if self._modelicaCmd == 'dymola':
+                runFil.write("Advanced.TranslationInCommandLog := true;\n")
                 runFil.write("Modelica.Utilities.Files.remove(\"dymola.log\");\n")
                 # Store the variable for pedantic mode
                 runFil.write("OriginalAdvancedPedanticModelica = Advanced.PedanticModelica;\n")
@@ -1164,12 +1168,16 @@ class Tester:
                     if self._modelicaCmd == 'dymola':
                         runFil.write("Advanced.PedanticModelica = true;\n")
                     runFil.write("%s;\n" % self._getModelCheckCommand(mosFilNam))
+                    if self._modelicaCmd == 'omc':
+                        runFil.write('getErrorString();\n')
                     if self._modelicaCmd == 'dymola':
                         runFil.write("Advanced.PedanticModelica = OriginalAdvancedPedanticModelica;\n")
                     # Write line for run script
                     runFil.write("RunScript(\"Resources/Scripts/Dymola/" 
                                  + self._data[i]['ScriptDirectory'] + "/" 
                                  + self._data[i]['ScriptFile'] + "\");\n")
+                    if self._modelicaCmd == 'omc':
+                        runFil.write('getErrorString();\n')
                     self._removePlotCommands(mosFilNam)
                     nUniTes = nUniTes + 1
             runFil.write("// Save log file\n")
@@ -1557,7 +1565,7 @@ class Tester:
         :param: models is a list of model names, typically obtained from 
         :func:`~buildingspy.regressiontest.Tester._get_test_models`
         :param: cmpl, simulate: booleans specifying if the models have to be
-        compiles and simulated respectively.
+        compiled and simulated respectively.
         
         
         """
