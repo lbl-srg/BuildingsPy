@@ -1590,8 +1590,8 @@ class Tester:
                     mosfile.write(s)
             
             
-            self._reporter.writeOutput('OpenModelica script {} created'.format(mosfilename))
-            return mosfilename
+        self._reporter.writeOutput('OpenModelica script {} created'.format(mosfilename))
+        return mosfilename
             
             
     
@@ -1621,7 +1621,6 @@ class Tester:
              >>> t.testOpenModelica(...) # doctest: +SKIP
 
         """
-        
         import shutil
         import subprocess
         
@@ -1640,37 +1639,37 @@ class Tester:
         
         # return a list with pathnames of the .mo files to be tested        
         tests = self._get_test_models(packages=['Examples'])
-        models = [self._model_from_mo(mo_file) for mo_file in tests]        
+        models = [self._model_from_mo(mo_file) for mo_file in tests[:number]]        
         
         mosfile = self._writeOMRunScript(worDir=worDir, models=models,
                                          cmpl=cmpl, simulate=simulate)
         env = os.environ.copy()
+        # note: hard coded path to the default modelica library here: to be removed!!        
         env['OPENMODELICALIBRARY'] = worDir + ':/usr/lib/omlibrary' 
         
         try:
-            logFilNam=os.path.join(worDir, 'stdout.log')
-            logFil = open(logFilNam, 'w')
-            retcode = subprocess.Popen(args=['omc', '+d=initialization', mosfile], 
-                                       stdout=logFil,
-                                       stderr=logFil,
-                                       shell=False,
-                                       env=env,
-                                       cwd=worDir).wait()
+            logFilNam=mosfile.replace('.mos', '.log')
+            with open(logFilNam, 'w') as logFil:
+                retcode = subprocess.Popen(args=['omc', '+d=initialization', mosfile], 
+                                           stdout=logFil,
+                                           stderr=logFil,
+                                           shell=False,
+                                           env=env,
+                                           cwd=worDir).wait()
     
-            logFil.close()
             if retcode != 0:
                 print "Child was terminated by signal", retcode
                 return retcode
-            else:
-                return 0
+            
         except OSError as e:
             sys.stderr.write("Execution of omc +d=initialization " + mosfile + " failed.\n" +
                              "Working directory is '" + worDir + "'.")
             raise(e)
         else:
             # process the log file
-            logfile = mosfile.replace('.mos', '.log')
-            self._analyseOMStats(logfile)
+            print "Logfile created: {}".format(logFilNam)
+            print "Starting analysis of logfile"                
+            self._analyseOMStats(logFilNam)
 
             # Delete temporary directories
             if self._deleteTemporaryDirectories:
@@ -1683,22 +1682,28 @@ class Tester:
         Analyse the log file of the OM compatibility test.
         
         """
+        with open(filename, 'r') as f:
         
-        with open('filename', 'r') as f:
-        
-            success = 0
-            failed = 0
+            check_ok, sim_ok = 0, 0             
+            check_nok, sim_nok = 0, 0
             
             for line in f.readlines():
                 if line.find('resultFile = "') > 0:
                     if line.find('""') > 0:
-                        failed += 1
+                        sim_nok += 1
                     else:
-                        success += 1
+                        sim_ok += 1
+                elif line.find('Check of ') > 0 :
+                    if line.find(' completed successfully.') > 0:
+                        check_ok += 1
+                    else:
+                        check_nok += 1
             
             print '\n'
             print 50*'#'
-            print "Succesful models = {}".format(success)
-            print "Failed models = {}".format(failed)
+            print "Succesful model checks = {}".format(check_ok)
+            print "Failed model checks = {}".format(check_nok)
+            print "Succesful model simulations = {}".format(sim_ok)
+            print "Failed model simulations = {}".format(sim_nok)
             print "Check " + filename + " for the full log file."
             print 50*'#'
