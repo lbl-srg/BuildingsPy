@@ -397,7 +397,7 @@ class Tester:
                 for mosFil in files:
                     # find the desired mos file
                     pos=mosFil.endswith('.mos')
-                    if pos > -1 and (not mosFil.startswith("Convert" + self.getLibraryName())):
+                    if pos and (not mosFil.startswith("Convert" + self.getLibraryName())):
                         matFil = ""
                         dat = {}
                         dat['ScriptDirectory'] = root[\
