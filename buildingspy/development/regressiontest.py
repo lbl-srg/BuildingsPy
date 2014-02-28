@@ -165,6 +165,7 @@ class Tester:
            >>> rt.setLibraryRoot(myMoLib)
         '''
         self._libHome = os.path.abspath(rootDir)
+        self._rootPackage = os.path.join(self._libHome, 'Resources', 'Scripts', 'Dymola')
         self.isValidLibrary()
 
     def useExistingResults(self, dirs):
@@ -231,9 +232,10 @@ class Tester:
         '''
         return self._modelicaCmd
 
-    # --------------------------
-    # Check if argument is an executable
+
     def isExecutable(self, program):
+        """ Return ``True`` if the ``program`` is an executable
+        """
         import platform
 
         def is_exe(fpath):
@@ -263,10 +265,10 @@ class Tester:
         if not os.path.isfile(topPackage):
             raise ValueError("Directory %s is not a Modelica library.\n    Expected file '%s'."
                              % (self._libHome, topPackage))
-        scrDir = os.path.join(self._libHome, "Resources", "Scripts")
-        if not os.path.exists(scrDir):
+        srcDir = os.path.join(self._libHome, "Resources", "Scripts")
+        if not os.path.exists(srcDir):
             raise ValueError("Directory %s is not a Modelica library.\n    Expected directories '%s'."
-                             % (self._libHome, scrDir))
+                             % (self._libHome, srcDir))
 
         return os.path.exists(os.path.join(self._libHome, "Resources", "Scripts"))
 
@@ -378,7 +380,7 @@ class Tester:
         if not os.path.isdir(rooPat):
             msg = """Requested to test only package '%s', but directory
 '%s' does not exist.""" % (packageName, rooPat)
-            raise OSError(msg)
+            raise ValueError(msg)
         
         self._rootPackage = rooPat
 
@@ -482,6 +484,11 @@ class Tester:
                             raise  ValueError('Did not find *.mat file in ' + mosFil)
                         dat['ResultFile'] = matFil
                         self._data.append(dat)
+        # Make sure we found at least one unit test
+        if len(self._data) == 0:
+            msg = """Did not find any regression tests in '%s'.""" % self._rootPackage
+            raise ValueError(msg)
+
         self._checkDataDictionary()
         return
 
@@ -1304,8 +1311,6 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
                             ignore=shutil.ignore_patterns('.svn', '.mat'))
         return
 
-    #####################################################################################
-    #####################################################################################
 
     def run(self):
         ''' Run all regression tests and checks the results.
