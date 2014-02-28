@@ -40,7 +40,7 @@ def runSimulation(worDir, cmd):
         else:
             return 0
     except OSError as e:
-        sys.stderr.write("Execution of '" + modCom + " runAll.mos /nowindow' failed.\n" +
+        sys.stderr.write("Execution of '" + cmd + " runAll.mos /nowindow' failed.\n" +
                          "Working directory is '" + worDir + "'.")
         raise(e)
 
@@ -558,7 +558,7 @@ class Tester:
                 ret.append(dat)
         return ret
 
-    def _areResultsEqual(self, tOld, yOld, tNew, yNew, varNam, filNam):
+    def areResultsEqual(self, tOld, yOld, tNew, yNew, varNam, filNam):
         ''' Return `True` if the data series are equal within a tolerance.
 
         :param tOld: List of old time values.
@@ -607,7 +607,7 @@ Skipping error checking for this variable.""" % (filNam, varNam, len(yOld), len(
             tGriNew = getTimeGrid(tNew)
             try:
                 yInt = Plotter.interpolate(tGriOld, tGriNew, yNew)
-            except IndexError as e:
+            except IndexError:
                 raise IndexError(
 """Data series have different length:
 File=%s,
@@ -618,16 +618,27 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
         else:
             yInt = [yNew[0], yNew[0]]
 
+        # If the variable is heatPort.T or heatPort.Q_flow, with lenght=2, then
+        # it has been evaluated as a parameter in the Buildings library. In the Annex60
+        # library, this may be a variable as the Buildings library uses a more efficient
+        # implementation of the heatPort. Hence, we test for this special case, and
+        # store the parameter as if it were a variable so that the reference result are not
+        # going to be changed.
+        if (varNam.endswith("heatPort.T") or varNam.endswith("heatPort.Q_flow")) and (len(yInt) == 2) \
+        and len(yOld) != len(yInt):
+            yInt = np.ones(len(yOld)) * yInt[0]
+            
         # Compute error for the variable with name varNam
         if len(yOld) != len(yInt):
-            # If the variable is heatPort.T or heatPort.Q_flow, with lenght=2, then
-            # it has been evaluated as a parameter in the Buildings library. In the Annex60
-            # library, this may be a variable as the Buildings library uses a more efficient
-            # implementation of the heatPort. Hence, we test for this special case, and
-            # store the parameter as if it were a variable so that the reference result are not
-            # going to be changed.
-            if (varNam.endswith("heatPort.T") or varNam.endswith("heatPort.Q_flow")) and (len(yInt) == 2):
-                yInt = np.ones(len(yOld)) * yInt[0]
+            # If yOld has two points, by yInt has more points, then
+            # extrapolate yOld to nPoi
+            t = self._getTimeGrid(tOld[0], tOld[-1], self._nPoi)
+            if len(yOld) == 2 and len(yInt) == self._nPoi:
+                t = self._getTimeGrid(t[0], t[-1], self._nPoi)
+                yOld = Plotter.interpolate(t, tOld, yOld)
+            # If yInt has only two data points, but yOld has more, then interpolate yInt
+            elif len(yInt) == 2 and len(yOld) == self._nPoi:
+                yInt = Plotter.interpolate(t, [tOld[0], tOld[-1]], yInt)            
             else:
                 raise ValueError("""Program error, yOld and yInt have different length.
   Result file : %s
@@ -843,7 +854,7 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
                         else:
                             t=tS
 
-                        (res, timMaxErr, warning) = self._areResultsEqual(tR, yR[varNam], t, pai[varNam], varNam, matFilNam)
+                        (res, timMaxErr, warning) = self.areResultsEqual(tR, yR[varNam], t, pai[varNam], varNam, matFilNam)
                         if warning:
                             self._reporter.writeWarning(warning)
                         if not res:
