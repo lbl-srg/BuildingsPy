@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import unittest
-from buildingspy.development.regressiontest import Tester
 
 class Test_regressiontest_Tester(unittest.TestCase):
     """
@@ -51,6 +50,16 @@ class Test_regressiontest_Tester(unittest.TestCase):
         self.assertFalse(equ, "Test 2 for equality should have returned false.")
         self.assertEqual(tNew[2], timMaxErr, "Time of maximum error is wrong for test 2.")        
         
+        # Test the case where the simulation may have failed and hence the end
+        # time is smaller than the end time of the reference results
+        tNew = [tMin+float(i)/(nPoi-1)*0.9*(tMax-tMin) for i in range(nPoi) ]
+        yNew = [10.0 for i in range(nPoi)]
+        (equ, timMaxErr, _) = rt.areResultsEqual(tNew, yNew, tOld, yOld, varNam, filNam)        
+        self.assertFalse(equ, "Test with smaller simulation end time should have returned false.")
+        # Test for different start time
+        tNew = [0.1 + tMin+float(i)/(nPoi-1)*(tMax-tMin) for i in range(nPoi) ]
+        (equ, timMaxErr, _) = rt.areResultsEqual(tNew, yNew, tOld, yOld, varNam, filNam)        
+        self.assertFalse(equ, "Test with smaller simulation start time should have returned false.")
 
 if __name__ == '__main__':
     unittest.main()
