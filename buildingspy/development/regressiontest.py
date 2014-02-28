@@ -147,7 +147,7 @@ class Tester:
         self._data = []
         self._reporter = rep.Reporter(os.path.join(os.getcwd(), "unitTests.log"))
 
-        self._singlePackage = None
+        self._rootPackage = os.path.join(self._libHome, 'Resources', 'Scripts', 'Dymola')
 
     def setLibraryRoot(self, rootDir):
         ''' Set the root directory of the library.
@@ -354,8 +354,7 @@ class Tester:
 
     def setSinglePackage(self, packageName):
         '''
-        Set the name of a single Modelica package, and all its sub-packages,
-        to be tested.
+        Set the name of a single Modelica package to be tested.
 
         :param packageName: The name of the package to be tested.
 
@@ -366,32 +365,30 @@ class Tester:
         ``Annex60.Fluid.Sensors.*``.
 
         '''
-        self._singlePackage = packageName
+        import string
+
+        # Issue a warning to inform the user that not all tests are run
+        self._reporter.writeWarning("""Regression tests are only run for '%s'.""" % packageName)
+        # Remove the top-level package name as the unit test directory does not
+        # contain the name of the library.
+        pacPat = packageName[string.find(packageName, '.')+1:]
+        pacPat = pacPat.replace('.', os.sep)
+        rooPat = os.path.join(self._libHome, 'Resources', 'Scripts', 'Dymola', pacPat)
+        # Verify that the directory indeed exists
+        if not os.path.isdir(rooPat):
+            msg = """Requested to test only package '%s', but directory
+'%s' does not exist.""" % (packageName, rooPat)
+            raise OSError(msg)
+        
+        self._rootPackage = rooPat
 
     def setDataDictionary(self):
         ''' Build the data structures that are needed to parse the output files.
 
         '''
         import re
-        import string
 
-        srcPat = os.path.join(self._libHome, 'Resources', 'Scripts', 'Dymola')
-
-        if self._singlePackage is None:
-            rooPat = srcPat
-        else:
-            # Remove first pacakge name as the unit test directory does not
-            # contain the name of the library.
-            pacPat = self._singlePackage[string.find(self._singlePackage, '.')+1:]
-            pacPat = pacPat.replace('.', os.sep)
-            rooPat = os.path.join(self._libHome, 'Resources', 'Scripts', 'Dymola', pacPat)
-            # Verify that the directory indeed exists
-            if not os.path.isdir(rooPat):
-                msg = """Requested to test only package '%s', but directory
-'%s' does not exist.""" % (self._singlePackage, rooPat)
-                raise OSError(msg)
-
-        for root, _, files in os.walk(rooPat):
+        for root, _, files in os.walk(self._rootPackage):
             pos=root.find('.svn')
             # skip .svn folders
             if pos == -1:
@@ -401,7 +398,8 @@ class Tester:
                     if pos > -1 and (not mosFil.startswith("Convert" + self.getLibraryName())):
                         matFil = ""
                         dat = {}
-                        dat['ScriptDirectory'] = root[len(srcPat)+1:]
+                        dat['ScriptDirectory'] = root[\
+                            len(os.path.join(self._libHome, 'Resources', 'Scripts', 'Dymola'))+1:]
                         dat['ScriptFile'] = mosFil
                         dat['mustSimulate'] = False
 
