@@ -353,8 +353,8 @@ class Tester:
         '''
         import re
 
-        scrPat = os.path.join(self._libHome, 'Resources', 'Scripts', 'Dymola')
-        for root, _, files in os.walk(scrPat):
+        srcPat = os.path.join(self._libHome, 'Resources', 'Scripts', 'Dymola')
+        for root, _, files in os.walk(srcPat):
             pos=root.find('.svn')
             # skip .svn folders
             if pos == -1:
@@ -364,7 +364,7 @@ class Tester:
                     if pos > -1 and (not mosFil.startswith("Convert" + self.getLibraryName())):
                         matFil = ""
                         dat = {}
-                        dat['ScriptDirectory'] = root[len(scrPat)+1:]
+                        dat['ScriptDirectory'] = root[len(srcPat)+1:]
                         dat['ScriptFile'] = mosFil
                         dat['mustSimulate'] = False
 
