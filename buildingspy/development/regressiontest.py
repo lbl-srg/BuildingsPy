@@ -88,7 +88,7 @@ class Tester:
        >>> myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
        >>> rt.setLibraryRoot(myMoLib)
        >>> rt.run() # doctest: +ELLIPSIS
-       Using  1  of  24  processors to run unit tests.
+       Using  1  of ... processors to run unit tests.
        Number of models   :  1
                  blocks   :  0
                  functions:  0
@@ -584,6 +584,18 @@ class Tester:
             Stop processing %s\n" % (len(tNew), self._nPoi, filNam)
                 raise ValueError(s)
 
+        if (abs(tOld[-1]-tNew[-1]) > 1E-5):
+            msg = """The new results and the reference results have a different end time.
+            tNew = [%d, %d]
+            tOld = [%d, %d]""" % (tNew[0], tNew[-1], tOld[0], tOld[-1])            
+            return (False, min(tOld[-1], tNew[-1]), msg)
+
+        if (abs(tOld[0]-tNew[0]) > 1E-5):
+            msg = """The new results and the reference results have a different start time.
+            tNew = [%d, %d]
+            tOld = [%d, %d]""" % (tNew[0], tNew[-1], tOld[0], tOld[-1])            
+            return (False, min(tOld[0], tNew[0]), msg)
+        
         timMaxErr = 0
 
         tol=1E-3  #Tolerance
@@ -854,7 +866,9 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
                         else:
                             t=tS
 
-                        (res, timMaxErr, warning) = self.areResultsEqual(tR, yR[varNam], t, pai[varNam], varNam, matFilNam)
+                        (res, timMaxErr, warning) = self.areResultsEqual(tR, yR[varNam], \
+                                                                         t, pai[varNam], \
+                                                                         varNam, matFilNam)
                         if warning:
                             self._reporter.writeWarning(warning)
                         if not res:
