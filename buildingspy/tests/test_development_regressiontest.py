@@ -18,9 +18,8 @@ class Test_regressiontest_Tester(unittest.TestCase):
         os.remove('dymola.log')
         os.remove('unitTests.log')
         
-        # Verify that invalid packages raise an OSError.
-        rt.setSinglePackage("this.package.does.not.exist")
-        self.assertRaises(OSError, rt.run)
+        # Verify that invalid packages raise a ValueError.
+        self.assertRaises(ValueError, rt.setSinglePackage, "this.package.does.not.exist")
         
 
     def test_runSimulation(self):
@@ -65,6 +64,20 @@ class Test_regressiontest_Tester(unittest.TestCase):
         tNew = [0.1 + tMin+float(i)/(nPoi-1)*(tMax-tMin) for i in range(nPoi) ]
         (equ, timMaxErr, _) = rt.areResultsEqual(tNew, yNew, tOld, yOld, varNam, filNam)        
         self.assertFalse(equ, "Test with smaller simulation start time should have returned false.")
+
+    def test_setLibraryRoot(self):
+        import buildingspy.development.regressiontest as r
+        import os
+
+        rt = r.Tester()
+        myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
+        # This call should succeed, even if used twice
+        rt.setLibraryRoot(myMoLib)
+        rt.setLibraryRoot(myMoLib)
+        # This call must raise an exception
+        self.assertRaises(ValueError, \
+                          rt.setLibraryRoot, "this_is_not_the_root_dir_of_a_library")
+
 
 if __name__ == '__main__':
     unittest.main()
