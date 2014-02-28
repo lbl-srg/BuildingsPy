@@ -1,8 +1,8 @@
 BuildingsPy Changelog
 ---------------------
 
-Version 1.4.0, xxx, 2013 -- Release 1.4
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Version 1.4.0, February 28, 2014 -- Release 1.4
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 - In development.unittest, added test that addresses the situation
   that some results are parameters in the Buildings library, but
   variables in the Annex 60 library.

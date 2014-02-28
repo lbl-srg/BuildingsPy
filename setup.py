@@ -8,10 +8,10 @@ def read(fname):
 
 setup(
     name = "buildingspy",
-    version = "1.3.0",
+    version = "1.4.0",
     author = "Michael Wetter",
     author_email = "mwetter@lbl.gov",
-    description = ("Package for running and post-processing models from the Modelica Buildings library"),
+    description = ("Package for simulating and testing models from the Modelica Buildings and Annex 60 libraries"),
     long_description = read('buildingspy/README.rst'),
     license = "3-clause BSD",
     keywords = "modelica dymola openmodelica mat",
