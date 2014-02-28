@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 import unittest
-from buildingspy.development.validator import Validator
 
 class Test_development_Validator(unittest.TestCase):
     """
