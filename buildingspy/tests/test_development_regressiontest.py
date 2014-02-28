@@ -17,6 +17,11 @@ class Test_regressiontest_Tester(unittest.TestCase):
         # Delete temporary files
         os.remove('dymola.log')
         os.remove('unitTests.log')
+        
+        # Verify that invalid packages raise an OSError.
+        rt.setSinglePackage("this.package.does.not.exist")
+        self.assertRaises(OSError, rt.run)
+        
 
     def test_runSimulation(self):
         import buildingspy.development.regressiontest as r

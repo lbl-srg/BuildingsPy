@@ -101,6 +101,9 @@ class Tester:
        <BLANKLINE>
        Execution time = ...
 
+    To run regression tests only for a single package, call :func:`setSinglePackage`
+    prior to :func:`run`.
+
     '''
     def __init__(self, **kwargs):
         ''' Constructor.
@@ -143,6 +146,8 @@ class Tester:
         '''
         self._data = []
         self._reporter = rep.Reporter(os.path.join(os.getcwd(), "unitTests.log"))
+
+        self._singlePackage = None
 
     def setLibraryRoot(self, rootDir):
         ''' Set the root directory of the library.
@@ -347,14 +352,46 @@ class Tester:
         else:
             False
 
+    def setSinglePackage(self, packageName):
+        '''
+        Set the name of a single Modelica package, and all its sub-packages,
+        to be tested.
+
+        :param packageName: The name of the package to be tested.
+
+        Calling this method will cause the regression tests to run
+        only for the examples in the package ``packageName``, and in
+        all its sub-packages. For example, if ``packageName = Annex60.Fluid.Sensors``,
+        then a test of the ``Annex60`` library will run all examples in
+        ``Annex60.Fluid.Sensors.*``.
+
+        '''
+        self._singlePackage = packageName
+
     def setDataDictionary(self):
         ''' Build the data structures that are needed to parse the output files.
 
         '''
         import re
+        import string
 
         srcPat = os.path.join(self._libHome, 'Resources', 'Scripts', 'Dymola')
-        for root, _, files in os.walk(srcPat):
+
+        if self._singlePackage is None:
+            rooPat = srcPat
+        else:
+            # Remove first pacakge name as the unit test directory does not
+            # contain the name of the library.
+            pacPat = self._singlePackage[string.find(self._singlePackage, '.')+1:]
+            pacPat = pacPat.replace('.', os.sep)
+            rooPat = os.path.join(self._libHome, 'Resources', 'Scripts', 'Dymola', pacPat)
+            # Verify that the directory indeed exists
+            if not os.path.isdir(rooPat):
+                msg = """Requested to test only package '%s', but directory
+'%s' does not exist.""" % (self._singlePackage, rooPat)
+                raise OSError(msg)
+
+        for root, _, files in os.walk(rooPat):
             pos=root.find('.svn')
             # skip .svn folders
             if pos == -1:
