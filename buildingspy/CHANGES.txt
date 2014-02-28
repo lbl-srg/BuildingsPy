@@ -16,8 +16,10 @@ Version 1.4.0, xxx, 2013 -- Release 1.4
   to allow running the unit tests from a directory other than the library
   root directory.
 - In development.regressiontest, added a test that avoids an IndexError
-  if a new simulation result contains fewer support points than the
-  reference result.
+  if a new simulation result contains a different number of support points 
+  than the reference result. This is needed if models change variables
+  to parameters or vice versa.
+
 
 Version 1.3.0, October 24, 2013 -- Release 1.3
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
