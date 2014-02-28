@@ -1,4 +1,4 @@
-''' 
+'''
 Examples
 ========
 This module provides examples that illustrate the

@@ -1,58 +1,61 @@
 #!/usr/bin/env python
 #######################################################
-# Class that validates the .mo file for correct 
+# Class that validates the .mo file for correct
 # html syntax
 #
 # MWetter@lbl.gov                            2013-05-31
 #######################################################
 
+
 class Validator:
     ''' Class that validates ``.mo`` files for the correct html syntax.
-
     '''
     def __init__(self):
         import os
-        import multiprocessing
 
         # --------------------------
         # Class variables
-        self.__libHome=os.path.abspath(".")
-        self.__nPro = multiprocessing.cpu_count()
-        self.__batch = False
-
-        # List of temporary directories that are used to validate the files
-        self.__temDir = []
-        self.__writeHTML = False
-
-        # Flag to delete temporary directories.
-#        self.__deleteTemporaryDirectories = True
-
-#        self.__libraryName = os.getcwd().split(os.path.sep)[-1]
-#        self.__reporter = rep.Reporter("validator.log")
-
+#        self._libHome=os.path.abspath(".")
+        self._writeHTML = False
 
     def validateHTMLInPackage(self, rootDir):
-        ''' This function recursively validates all ``.mo`` files
-            in a package.
-            
-            If there is malformed html code in the ``info`` or the 
-            ``revision`` section,
-            then this function write the error message of tidy to the
-            standard output.
+        '''
+        This function recursively validates all ``.mo`` files
+        in a package.
 
-            Note that the line number correspond to an intermediate format
-            (e.g., the output format of tidy), which may be different from
-            the ``.mo`` file.
-            
-            :param rootDir: The root directory of the package.
-            :return: str[] Warning/error messages from tidylib.
-            
-            '''
+        If there is malformed html code in the ``info`` or the
+        ``revision`` section,
+        then this function write the error message of tidy to the
+        standard output.
+
+        Note that the line number correspond to an intermediate format
+        (e.g., the output format of tidy), which may be different from
+        the ``.mo`` file.
+
+        :param rootDir: The root directory of the package.
+        :return: str[] Warning/error messages from tidylib.
+
+        Usage: Type
+            >>> import os
+            >>> import buildingspy.development.validator as v
+            >>> val = v.Validator()
+            >>> myMoLib = os.path.join(\
+                    "buildingspy", "tests", "MyModelicaLibrary")
+            >>> # Get a list whose elements are the error strings
+            >>> errStr = val.validateHTMLInPackage(myMoLib)
+
+        '''
         import os
         errMsg = list()
-        scrPat = self.__libHome
 
-        for root, _, files in os.walk(scrPat):
+        # Make sure that the parameter rootDir points to a Modelica package.
+        topPackage = os.path.join(rootDir, "package.mo")
+        if not os.path.isfile(topPackage):
+            raise ValueError("Argument rootDir=%s is not a \
+Modelica package. Expected file '%s'."
+                             % (rootDir, topPackage))
+
+        for root, _, files in os.walk(rootDir):
             for moFil in files:
                 # find the .mo file
                 if moFil.endswith('.mo'):
@@ -64,21 +67,15 @@ class Validator:
                         errMsg.append("[-- %s ]\n%s" % (moFulNam, err))
         return errMsg
 
-
     def _validateHTML(self, moFile):
-        ''' This function validates the file ``moFile`` for correct html
-            syntax
-        
-        :param moFile: The name of a Modelica source file.
-        :return: (str, str): The tidied markup [0] and warning/error messages[1]. 
-                             Warnings and errors are returned just as tidylib returns them.
+        '''
+        This function validates the file ``moFile`` for correct html syntax.
 
-        Usage: Type
-           >>> import buildingspy.development.Validator as v; 
-           >>> val = v.Validator(); 
-           >>> doc, err = val.validateHTML('aaaa.mo'); 
-           >>> print doc;
-           >>> print err;
+        :param moFile: The name of a Modelica source file.
+        :return: (str, str) The tidied markup [0] and warning/error
+                 messages[1]. Warnings and errors are returned
+                 just as tidylib returns them.
+
         '''
         from tidylib import tidy_document
         # Open file.
@@ -98,12 +95,12 @@ class Validator:
 <!-- +++++++++++++++++++++++++++++++++++++ -->\n"
         nLin = len(lines)
         firstHTML = True
-        body=""
+        body = ""
         for i in range(nLin):
             if firstHTML:
                 idx = lines[i].find("<html>")
                 if idx > -1:
-                    body += lines[i][idx+6:]  + '\n'
+                    body += lines[i][idx+6:] + '\n'
                     firstHTML = False
             else:
                 idx = lines[i].find("</html>")
@@ -124,12 +121,12 @@ class Validator:
 
         # Validate the string
         document, errors = tidy_document(r"%s%s%s" % (header, body, footer),
-                                         options={'numeric-entities':1,
+                                         options={'numeric-entities': 1,
                                                   'output-html': 1,
                                                   'alt-text': '',
                                                   'wrap': 72})
         # Write html file.
-        if self.__writeHTML:
+        if self._writeHTML:
             htmlName = "%s%s" % (moFile[0:-2], "html")
             f = open(htmlName, "w")
             f.write(document)

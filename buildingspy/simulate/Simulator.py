@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+
 class Simulator:
     """Class to simulate a Modelica model.
 
@@ -24,33 +25,33 @@ class Simulator:
         logFilNam = os.path.join(outputDirectory, "BuildingsPy.log")
 
         self.modelName = modelName
-        self.__outputDir__ = outputDirectory
+        self._outputDir_ = outputDirectory
         ## This call is needed so that the reporter can write to the working directory
-        self.__createDirectory(outputDirectory)
-        self.__preProcessing__ = list()
-        self.__postProcessing__ = list()
-        self.__parameters__ = {}
-        self.__modelModifiers__ = list()
-        self.__simulator__ = {}
+        self._createDirectory(outputDirectory)
+        self._preProcessing_ = list()
+        self._postProcessing_ = list()
+        self._parameters_ = {}
+        self._modelModifiers_ = list()
+        self._simulator_ = {}
         self.setStartTime(0)
         self.setStopTime(1)
         self.setTolerance(1E-6)
         self.setSolver("radau")
         self.setResultFile(modelName)
         self.setTimeOut(-1)
-        self.__MODELICA_EXE='dymola'
-        self.__reporter = reporter.Reporter(fileName=logFilNam)
-        self.__showProgressBar = True
-        self.__showGUI = False
-        self.__exitSimulator = True
+        self._MODELICA_EXE='dymola'
+        self._reporter = reporter.Reporter(fileName=logFilNam)
+        self._showProgressBar = True
+        self._showGUI = False
+        self._exitSimulator = True
 
-    def __createDirectory(self, directoryName):
+    def _createDirectory(self, directoryName):
         ''' Creates the directory *directoryName*
 
         :param directoryName: The name of the directory
 
         This method validates the directory *directoryName* and if the
-        argument is valid and write permissions exists, it creates the 
+        argument is valid and write permissions exists, it creates the
         directory. Otherwise, a *ValueError* is raised.
         '''
         import os
@@ -64,10 +65,6 @@ class Simulator:
             # Check write permission
             if not os.access(directoryName, os.W_OK):
                 raise ValueError("Write permission to '" + directoryName + "' denied.")
-
-
-
-
 
     def addPreProcessingStatement(self, command):
         '''Adds a pre-processing statement to the simulation script.
@@ -83,7 +80,7 @@ class Simulator:
         This will execute the two statements after the ``openModel`` and
         before the ``simulateModel`` statement.
         '''
-        self.__preProcessing__.append(command)
+        self._preProcessing_.append(command)
         return
 
     def addPostProcessingStatement(self, command):
@@ -94,10 +91,8 @@ class Simulator:
         This will execute ``command`` after the simulation, and before
         the log file is written.
         '''
-        self.__postProcessing__.append(command)
+        self._postProcessing_.append(command)
         return
-
-
 
     def addParameters(self, dictionary):
         '''Adds parameter declarations to the simulator.
@@ -113,7 +108,7 @@ class Simulator:
         This will add the three parameters ``PID.k``, ``valve.m_flow_nominal``
         and ``PID.t`` to the list of model parameters.
         '''
-        self.__parameters__.update(dictionary)
+        self._parameters_.update(dictionary)
         return
 
     def getParameters(self):
@@ -126,11 +121,9 @@ class Simulator:
            >>> s=Simulator("myPackage.myModel", "dymola")
            >>> s.addParameters({'PID.k': 1.0, 'valve.m_flow_nominal' : 0.1})
            >>> s.getParameters()
-
-        This will return the list
-        ``[('valve.m_flow_nominal', 0.1), ('PID.k', 1.0)]``
+           [('valve.m_flow_nominal', 0.1), ('PID.k', 1.0)]
         '''
-        return self.__parameters__.items()
+        return self._parameters_.items()
 
     def getOutputDirectory(self):
         '''Returns the name of the output directory.
@@ -138,7 +131,7 @@ class Simulator:
         :return: The name of the output directory.
 
         '''
-        return self.__outputDir__
+        return self._outputDir_
 
     def addModelModifier(self, modelModifier):
         '''Adds a model modifier.
@@ -151,31 +144,24 @@ class Simulator:
            >>> s.addModelModifier('redeclare package MediumA = Buildings.Media.IdealGases.SimpleAir')
 
         This method adds a model modifier. The modifier is added to the list
-        of model parameters. For example, the above statement would yield the 
+        of model parameters. For example, the above statement would yield the
         command
         ``simulateModel(myPackage.myModel(redeclare package MediumA = Buildings.Media.IdealGases.SimpleAir), startTime=...``
 
         '''
-        self.__modelModifiers__.append(modelModifier)
+        self._modelModifiers_.append(modelModifier)
         return
-
 
     def getSimulatorSettings(self):
         '''Returns a list of settings for the parameter as (key, value)-tuples.
 
         :return: A list of parameters (key, value) pairs, as 2-tuples.
 
-        Usage: Type
-           >>> from buildingspy.simulate.Simulator import Simulator
-           >>> s=Simulator("myPackage.myModel", "dymola")
-           >>> s.add({'PID.k': 1.0, 'valve.m_flow_nominal' : 0.1})
-           >>> s.getSimulatorSettings()
+        This method is deprecated. Use :meth:`~Simulator.getParameters` instead.
 
-        This will return the list
-        ``[('valve.m_flow_nominal', 0.1), ('PID.k', 1.0)]``
         '''
-        return self.__parameters__.items()
-
+        raise DeprecationWarning("The method Simulator.getSimulatorSettings() is deprecated. Use Simulator.getParameters() instead.")
+        return self.getParameters()
 
     def setStartTime(self, t0):
         '''Sets the start time.
@@ -184,7 +170,7 @@ class Simulator:
 
         The default stop time is 1.
         '''
-        self.__simulator__.update(t0=t0)
+        self._simulator_.update(t0=t0)
         return
 
     def setStopTime(self, t1):
@@ -194,7 +180,7 @@ class Simulator:
 
         The default start time is 0.
         '''
-        self.__simulator__.update(t1=t1)
+        self._simulator_.update(t1=t1)
         return
 
     def setTimeOut(self, sec):
@@ -205,7 +191,7 @@ class Simulator:
         The default value is -1, which means that the simulation will
         never be killed.
         '''
-        self.__simulator__.update(timeout=sec)
+        self._simulator_.update(timeout=sec)
         return
 
     def setTolerance(self, eps):
@@ -215,7 +201,7 @@ class Simulator:
 
         The default solver tolerance is 1E-6.
         '''
-        self.__simulator__.update(eps=eps)
+        self._simulator_.update(eps=eps)
         return
 
     def setSolver(self, solver):
@@ -225,7 +211,7 @@ class Simulator:
 
         The default solver is *radau*.
         '''
-        self.__simulator__.update(solver=solver)
+        self._simulator_.update(solver=solver)
         return
 
     def setNumberOfIntervals(self, n):
@@ -235,7 +221,7 @@ class Simulator:
 
         The default is unspecified, which defaults by Dymola to 500.
         '''
-        self.__simulator__.update(numberOfIntervals=n)
+        self._simulator_.update(numberOfIntervals=n)
         return
 
     def setResultFile(self, resultFile):
@@ -247,7 +233,7 @@ class Simulator:
         # If resultFile=aa.bb.cc, then split returns [aa, bb, cc]
         # This is needed to get the short model name
         rs=resultFile.split(".")
-        self.__simulator__.update(resultFile=rs[len(rs)-1])
+        self._simulator_.update(resultFile=rs[len(rs)-1])
         return
 
     def exitSimulator(self, exitAfterSimulation=True):
@@ -257,11 +243,11 @@ class Simulator:
                      after the simulation.
 
         This function is useful during debugging, as it allows to
-        keep the simulator open after the simulation in order to 
+        keep the simulator open after the simulation in order to
         inspect results or log messages.
 
         '''
-        self.__exitSimulator = exitAfterSimulation
+        self._exitSimulator = exitAfterSimulation
         return
 
     def simulate(self):
@@ -302,9 +288,9 @@ class Simulator:
         # Construct the model instance with all parameter values
         # and the package redeclarations
         dec = list()
-        for k, v in self.__parameters__.items():
+        for k, v in self._parameters_.items():
             dec.append('{param}={value}'.format(param=k, value=v))
-        dec.extend(self.__modelModifiers__)
+        dec.extend(self._modelModifiers_)
 
         mi = '"{mn}({dec})"'.format(mn=self.modelName, dec=','.join(dec))
 
@@ -319,128 +305,141 @@ class Simulator:
             fil.write("openModel(\"package.mo\");\n")
             fil.write('OutputCPUtime:=true;\n')
             # Pre-processing commands
-            for prePro in self.__preProcessing__:
+            for prePro in self._preProcessing_:
                 fil.write(prePro + '\n')
 
             fil.write('modelInstance=' + mi + ';\n')
             fil.write('simulateModel(modelInstance, ')
-            fil.write('startTime=' + str(self.__simulator__.get('t0')) + \
-                          ', stopTime='  + str(self.__simulator__.get('t1')) + \
-                          ', method="' + self.__simulator__.get('solver') + '"' + \
-                          ', tolerance=' + str(self.__simulator__.get('eps')) + \
-                          ', resultFile="' + str(self.__simulator__.get('resultFile')  
+            fil.write('startTime=' + str(self._simulator_.get('t0')) + \
+                          ', stopTime='  + str(self._simulator_.get('t1')) + \
+                          ', method="' + self._simulator_.get('solver') + '"' + \
+                          ', tolerance=' + str(self._simulator_.get('eps')) + \
+                          ', resultFile="' + str(self._simulator_.get('resultFile')
                                                  + '"'))
-            if self.__simulator__.has_key('numberOfIntervals'):
-                fil.write(', numberOfIntervals=' + 
-                          str(self.__simulator__.get('numberOfIntervals')))
+            if self._simulator_.has_key('numberOfIntervals'):
+                fil.write(', numberOfIntervals=' +
+                          str(self._simulator_.get('numberOfIntervals')))
             fil.write(');\n')
             # Post-processing commands
-            for posPro in self.__postProcessing__:
+            for posPro in self._postProcessing_:
                 fil.write(posPro + '\n')
 
             fil.write("savelog(\"simulator.log\");\n")
-            if self.__exitSimulator:
+            if self._exitSimulator:
                 fil.write("Modelica.Utilities.System.exit();\n")
             fil.close()
             # Copy files to working directory
 
             # Run simulation
-            self.__runSimulation(runScriptName, 
-                                 self.__simulator__.get('timeout'), 
+            self._runSimulation(runScriptName,
+                                 self._simulator_.get('timeout'),
                                  worDir)
-            self.__copyResultFiles(worDir)
-            self.__deleteTemporaryDirectory(worDir)
+            self._copyResultFiles(worDir)
+            self._deleteTemporaryDirectory(worDir)
         except: # Catch all possible exceptions
             sys.exc_info()[1]
-            self.__reporter.writeError("Simulation failed in '" + worDir + "'\n" 
+            self._reporter.writeError("Simulation failed in '" + worDir + "'\n"
                                        + "   You need to delete the directory manually.")
-            raise 
+            raise
 
     def deleteOutputFiles(self):
         ''' Deletes the output files of the simulator.
         '''
-        import os
-        filLis=['buildlog.txt', 'dsfinal.txt', 'dsin.txt', 'dslog.txt', 
-                'dsmodel*', 'dymosim', 'dymosim.exe', 
-                str(self.__simulator__.get('resultFile')) + '.mat', 
+        filLis=['buildlog.txt', 'dsfinal.txt', 'dsin.txt', 'dslog.txt',
+                'dsmodel*', 'dymosim', 'dymosim.exe',
+                str(self._simulator_.get('resultFile')) + '.mat',
                 'request.', 'status', 'failure', 'stop']
-        for fil in filLis:
+        self._deleteFiles(filLis)
+
+    def deleteLogFiles(self):
+        ''' Deletes the log files of the Python simulator, e.g. the
+            files ``BuildingsPy.log``, ``run.mos`` and ``simulator.log``.
+        '''
+        filLis=['BuildingsPy.log', 'run.mos', 'simulator.log']
+        self._deleteFiles(filLis)
+
+    def _deleteFiles(self, fileList):
+        ''' Deletes the output files of the simulator.
+
+        :param fileList: List of files to be deleted.
+
+        '''
+        import os
+
+        for fil in fileList:
             try:
                 if os.path.exists(fil):
                     os.remove(fil)
             except OSError as e:
-                self.__reporter.writeError("Failed to delete '" + fil + "' : " + e.strerror)
+                self._reporter.writeError("Failed to delete '" + fil + "' : " + e.strerror)
 
     def showGUI(self, show=True):
         ''' Call this function to show the GUI of the simulator.
-        
+
         By default, the simulator runs without GUI
         '''
-        self.__showGUI = show;
+        self._showGUI = show;
         return
 
     def printModelAndTime(self):
         ''' Prints the current time and the model name to the standard output.
-        
+
         This method may be used to print logging information.
         '''
         import time
-        self.__reporter.writeOutput("Model name       = " + self.modelName + '\n' +
-                                    "Output directory = " + self.__outputDir__ + '\n' +
+        self._reporter.writeOutput("Model name       = " + self.modelName + '\n' +
+                                    "Output directory = " + self._outputDir_ + '\n' +
                                     "Time             = " + time.asctime() + '\n')
         return
 
-    def __copyResultFiles(self, srcDir):
+    def _copyResultFiles(self, srcDir):
         ''' Copies the output files of the simulator.
-        
+
         :param srcDir: The source directory of the files
-        
+
         '''
         import shutil
         import os
 
-        if self.__outputDir__ != '.':
-            self.__createDirectory(self.__outputDir__)
-            filLis=['run.mos', 'simulator.log', 'dslog.txt', 
-                    self.__simulator__.get('resultFile') + '.mat']
-            for fil in filLis:
-                srcFil = os.path.join(srcDir, fil)
-                newFil = os.path.join(self.__outputDir__, fil)
-                try:
-                    if os.path.exists(srcFil):
-                        shutil.copy(srcFil, newFil)
-                except IOError as e:
-                    self.__reporter.writeError("Failed to copy '" + 
-                                               srcFil + "' to '" + newFil + 
-                                               "; : " + e.strerror)
+        if self._outputDir_ != '.':
+            self._createDirectory(self._outputDir_)
+        filLis=['run.mos', 'simulator.log', 'dslog.txt',
+                self._simulator_.get('resultFile') + '.mat']
+        for fil in filLis:
+            srcFil = os.path.join(srcDir, fil)
+            newFil = os.path.join(self._outputDir_, fil)
+            try:
+                if os.path.exists(srcFil):
+                    shutil.copy(srcFil, newFil)
+            except IOError as e:
+                self._reporter.writeError("Failed to copy '" +
+                                           srcFil + "' to '" + newFil +
+                                           "; : " + e.strerror)
 
-
-    def __deleteTemporaryDirectory(self, worDir):
+    def _deleteTemporaryDirectory(self, worDir):
         ''' Deletes the working directory.
-        
+
         :param srcDir: The name of the working directory.
-        
+
         '''
         import shutil
         import os
-        
+
         # Walk one level up, since we appended the name of the current directory to the name of the working directory
         dirNam=os.path.split(worDir)[0]
         # Make sure we don't delete a root directory
         if dirNam.find('tmp-simulator-') == -1:
-            self.__reporter.writeError("Failed to delete '" + 
+            self._reporter.writeError("Failed to delete '" +
                                        dirNam + "' as it does not seem to be a valid directory name.")
         else:
             try:
                 if os.path.exists(worDir):
                     shutil.rmtree(dirNam)
             except IOError as e:
-                self.__reporter.writeError("Failed to delete '" + 
+                self._reporter.writeError("Failed to delete '" +
                                            worDir + ": " + e.strerror)
 
-
-                
-    def __isExecutable(self, program):
+    def _isExecutable(self, program):
         import os
         import platform
 
@@ -461,44 +460,43 @@ class Simulator:
                     return True
         return False
 
-    def __runSimulation(self, mosFile, timeout, directory):
+    def _runSimulation(self, mosFile, timeout, directory):
         '''Runs the simulation.
-        
+
         :param mosFile: The Modelica *mos* file name, including extension
         :param timeout: Time out in seconds
         :param directory: The working directory
-        
+
         '''
-        
+
         import sys
         import subprocess
         import time
         import datetime
 
-
         # List of command and arguments
-        if self.__showGUI:
-            cmd=[self.__MODELICA_EXE, mosFile]
+        if self._showGUI:
+            cmd=[self._MODELICA_EXE, mosFile]
         else:
-            cmd=[self.__MODELICA_EXE, mosFile, "/nowindow"]
-#        cmd=[self.__MODELICA_EXE, mosFile]
+            cmd=[self._MODELICA_EXE, mosFile, "/nowindow"]
+#        cmd=[self._MODELICA_EXE, mosFile]
 #        cmd=["sleep", "1"]
 
         # Check if executable is on the path
-        if not self.__isExecutable(cmd[0]):
+        if not self._isExecutable(cmd[0]):
             print "Error: Did not find executable '", cmd[0], "'."
             print "       Make sure it is on the PATH variable of your operating system."
             exit(3)
         # Run command
         try:
             staTim = datetime.datetime.now()
-            self.__reporter.writeOutput("Starting simulation in '" + 
+            self._reporter.writeOutput("Starting simulation in '" +
                                         directory + "' at " +
                                         str(staTim))
-            pro = subprocess.Popen(args=cmd, 
+            pro = subprocess.Popen(args=cmd,
                                    stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE,
-                                   shell=False, 
+                                   shell=False,
                                    cwd=directory)
             killedProcess=False
             if timeout > 0:
@@ -513,51 +511,50 @@ class Simulator:
                         if killedProcess == False:
                             killedProcess=True
                             # This output needed because of the progress bar
-                            sys.stdout.write("\n") 
-                            self.__reporter.writeError("Terminating simulation in "
+                            sys.stdout.write("\n")
+                            self._reporter.writeError("Terminating simulation in "
                                              + directory + ".")
                             pro.terminate()
                         else:
-                            self.__reporter.writeError("Killing simulation in "
+                            self._reporter.writeError("Killing simulation in "
                                              + directory + ".")
                             pro.kill()
                     else:
-                        if self.__showProgressBar:
+                        if self._showProgressBar:
                             fractionComplete = float(elapsedTime)/float(timeout)
-                            self.__printProgressBar(fractionComplete)
+                            self._printProgressBar(fractionComplete)
 
             else:
                 pro.wait()
             # This output is needed because of the progress bar
-            if not killedProcess: 
-                sys.stdout.write("\n") 
+            if not killedProcess:
+                sys.stdout.write("\n")
 
             if not killedProcess:
-                self.__reporter.writeOutput("*** Standard output stream from simulation:\n" + pro.stdout.read())
-                self.__reporter.writeError("Standard error stream from simulation:\n" + pro.stderr.read())
+                self._reporter.writeOutput("*** Standard output stream from simulation:\n" + pro.stdout.read())
+                self._reporter.writeError("Standard error stream from simulation:\n" + pro.stderr.read())
             else:
-                self.__reporter.writeError("Killed process as it computed longer than " +
+                self._reporter.writeError("Killed process as it computed longer than " +
                              str(timeout) + " seconds.")
 
         except OSError as e:
             print "Execution of ", cmd, " failed:", e
 
-
     def showProgressBar(self, show=True):
         ''' Enables or disables the progress bar.
-        
+
         :param show: Set to *false* to disable the progress bar.
-        
+
         If this function is not called, then a progress bar will be shown as the simulation runs.
         '''
-        self.__showProgressBar = show
+        self._showProgressBar = show
         return
 
-    def __printProgressBar(self, fractionComplete):
+    def _printProgressBar(self, fractionComplete):
         '''Prints a progress bar to the console.
-        
+
         :param fractionComplete: The fraction of the time that is completed.
-        
+
         '''
         import sys
         nInc = 50
@@ -569,5 +566,5 @@ class Simulator:
             else:
                 proBar += " "
         proBar += "|"
-        print proBar, int(fractionComplete*100), "%\r", 
+        print proBar, int(fractionComplete*100), "%\r",
         sys.stdout.flush()

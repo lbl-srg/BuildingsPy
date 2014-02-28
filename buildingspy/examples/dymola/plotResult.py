@@ -2,14 +2,14 @@ from buildingspy.io.outputfile import Reader
 import matplotlib.pyplot as plt
 import os
 
-# Change fonts to use LaTeX fonts
-from matplotlib import rc
-rc('text', usetex=True)
-rc('font', family='serif')
+# Optionally, change fonts to use LaTeX fonts
+#from matplotlib import rc
+#rc('text', usetex=True)
+#rc('font', family='serif')
 
 # Read results
-ofr1=Reader(os.path.join("case1", "PIDHysteresis.mat"), "dymola")
-ofr2=Reader(os.path.join("case2", "PIDHysteresis.mat"), "dymola")
+ofr1=Reader(os.path.join("buildingspy", "examples", "dymola", "case1", "PIDHysteresis.mat"), "dymola")
+ofr2=Reader(os.path.join("buildingspy", "examples", "dymola", "case2", "PIDHysteresis.mat"), "dymola")
 (time1, T1) = ofr1.values("cap.T")
 (time1, y1) = ofr1.values("con.y")
 (time2, T2) = ofr2.values("cap.T")
@@ -42,5 +42,6 @@ ax.grid(True)
 plt.savefig('plot.pdf')
 plt.savefig('plot.png')
 
-plt.show()
+# To show the plot on the screen, uncomment the line below
+#plt.show()
 
