@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import unittest
+import os
 from buildingspy.simulate.Simulator import Simulator
 
 class Test_simulate_Simulator(unittest.TestCase):
@@ -7,13 +8,46 @@ class Test_simulate_Simulator(unittest.TestCase):
        This class contains the unit tests for
        :mod:`buildingspy.simulate.Simulator`.
     """
-
+    def setUp(self):
+        '''
+        This method creates an environmental variable that points to an existing folder
+        that contains a Modelica package.
+        '''
+        os.environ["MODELICAPATH"] = os.path.abspath(os.path.join("buildingspy", "tests", "MyModelicaLibrary"))
+    
+    def tearDown(self):
+        '''
+        This method delete the environmental variable that points to an existing folder
+        that contains a Modelica package.
+        '''
+        del(os.environ["MODELICAPATH"])
+        
     def test_Constructor(self):
         '''
         Tests the :mod:`buildingspy.simulate.Simulator`
         constructor.
         '''
         self.assertRaises(ValueError, Simulator, "myModelicaLibrary.myModel", "notSupported")
+        
+        # Check that this path does not exists
+        self.assertRaises(ValueError, Simulator, "myModelicaLibrary.myModel", "notSupported", "ThisIsAWrongPath")
+        
+        # Check that this path does not contain a package.mo file
+        path = os.path.abspath(os.path.join("buildingspy", "tests"))
+        self.assertRaises(ValueError, Simulator, "myModelicaLibrary.myModel", "notSupported", path)
+        
+    def test_setPackagePath(self):
+        '''
+        Tests the ``setPackagePath'' method.
+        '''
+        s = Simulator("MyModelicaLibrary.MyModel", "dymola")
+        
+        # try to load a not existing path
+        self.assertFalse(s.setPackagePath("ThisIsAWrongPath"))
+        
+        # Check that if the path is not provided there is an error
+        self.assertRaises(TypeError, s.setPackagePath)
+        
 
     def test_addMethods(self):
         '''
@@ -24,7 +58,7 @@ class Test_simulate_Simulator(unittest.TestCase):
 
         from buildingspy.io.outputfile import Reader
 
-        os.environ["MODELICAPATH"] = os.path.abspath(os.path.join("buildingspy", "tests", "MyModelicaLibrary"))
+        
         s = Simulator("MyModelicaLibrary.MyModel", "dymola")
         s.addPreProcessingStatement("Advanced.StoreProtectedVariables:= true;")
         s.addPostProcessingStatement("Advanced.StoreProtectedVariables:= false;")
