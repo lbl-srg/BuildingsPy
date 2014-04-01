@@ -1499,6 +1499,7 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
         # remove the '.mo' at the end
         return model[:-3]
 
+
     def test_JModelica(self, cmpl=True, load=False, simulate=False,
                        packages=['Examples'], number=-1):
         """
@@ -1583,7 +1584,7 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
             if load and stats[mo_file]['compilation_ok']:
                 sys.stdout = mystdout = StringIO()
                 try:
-                    load_fmu(fmu)
+                    loaded_fmu = load_fmu(fmu)
                 except Exception as e:
                     stats[mo_file]['load_ok'] = False
                     stats[mo_file]['load_log'] = mystdout.getvalue()
@@ -1591,13 +1592,29 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
                 else:
                     stats[mo_file]['load_ok'] = True
                     stats[mo_file]['load_log'] = mystdout.getvalue()
-
+                    if simulate:
+                        try:
+                            loaded_fmu.simulate()
+                        except Exception as e:
+                            stats[mo_file]['sim_ok'] = False
+                            stats[mo_file]['sim_log'] = mystdout.getvalue()
+                            stats[mo_file]['sim_err'] = str(e)
+                        else:
+                            stats[mo_file]['sim_ok'] = True
+                            stats[mo_file]['sim_log'] = mystdout.getvalue()
+                            
+                    else:
+                        stats[mo_file]['sim_ok'] = False
+                        stats[mo_file]['sim_log'] = 'Not attempted'
+                
                 sys.stdout = old_stdout
                 mystdout.close()
             else:
                 # no loading attempted
                 stats[mo_file]['load_ok'] = False
                 stats[mo_file]['load_log'] = 'Not attempted'
+                stats[mo_file]['sim_ok'] = False
+                stats[mo_file]['sim_log'] = 'Not attempted'
 
         # Delete temporary directories
         if self._deleteTemporaryDirectories:
@@ -1624,9 +1641,14 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
         list_failed_load = lambda x: [k for k, v in x.items()
                                       if not v['load_ok']]
 
+        count_sim = lambda x: [True for _, v in x.items() if v['sim_ok']]
+        list_failed_sim = lambda x: [k for k, v in x.items()
+                                      if not v['sim_ok']]
+
         nbr_tot = len(self._jmstats)
         nbr_cmpl = len(count_cmpl(self._jmstats))
         nbr_load = len(count_load(self._jmstats))
+        nbr_sim = len(count_sim(self._jmstats))
 
         print '\n'
         print 70*'#'
@@ -1637,6 +1659,9 @@ successfully (={:.1%})"\
         if load:
             print "\t* {} loaded successfully (={:.1%})".format(nbr_load, float(nbr_load)/float(nbr_tot))
         
+        if simulate: 
+            print "\t* {} simulated successfully (={:.1%})".format(nbr_sim, float(nbr_sim)/float(nbr_tot))
+            
         print "\nFailed compilation for the following models:"
         for p in list_failed_cmpl(self._jmstats):
             print p.split(os.sep)[-1].split('.mo')[0]
@@ -1645,7 +1670,13 @@ successfully (={:.1%})"\
             print "\nFailed loading for the following models:"
             for p in list_failed_load(self._jmstats):
                 print p.split(os.sep)[-1].split('.mo')[0]
+                
+        if simulate:            
+            print "\nFailed simulation for the following models:"
+            for p in list_failed_sim(self._jmstats):
+                print p.split(os.sep)[-1].split('.mo')[0]
 
+        print "\nMore detailed information is stored in self._jmstats"        
         print 70*'#'
 
     def _writeOMRunScript(self, worDir, models, cmpl, simulate):
