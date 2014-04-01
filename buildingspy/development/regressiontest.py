@@ -1713,7 +1713,7 @@ successfully (={:.1%})"\
         self._reporter.writeOutput('OpenModelica script {} created'.format(mosfilename))
         return mosfilename
 
-    def testOM(self, cmpl=True, simulate=False,
+    def test_OpenModelica(self, cmpl=True, simulate=False,
                       packages=['Examples'], number=-1):
         """
         Test the library compliance with OpenModelica.
@@ -1735,7 +1735,7 @@ successfully (={:.1%})"\
           1. In a python console or script, cd to the root folder of the library
 
              >>> t = Tester() # doctest: +SKIP
-             >>> t.testOpenModelica(...) # doctest: +SKIP
+             >>> t.test_OpenModelica(...) # doctest: +SKIP
 
         """
         import shutil
