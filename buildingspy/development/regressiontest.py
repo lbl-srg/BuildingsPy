@@ -1523,7 +1523,7 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
           1. Open a JModelica environment
              (ipython or pylab with JModelica environment variables set).
           2. cd to the root folder of the library
-          3. type tye following commands:
+          3. type the following commands:
 
              >>> t = Tester() # doctest: +SKIP
              >>> t.testJmodelica(...) # doctest: +SKIP
@@ -1605,12 +1605,15 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
                 shutil.rmtree(d)
 
         self._jmstats = stats
-        self._analyseJMStats()
+        self._analyseJMStats(load=load, simulate=simulate)
 
-    def _analyseJMStats(self):
+    def _analyseJMStats(self, load=False, simulate=False):
         """
         Analyse the statistics dictionary resulting from
         a _test_Jmodelica() call.
+        
+        :param load: Set to ``True`` to load the model from the FMU.
+        :param simulate: Set to ``True`` to cause the model to be simulated.
         """
 
         count_cmpl = lambda x: [True for _, v in x.items()
@@ -1625,22 +1628,25 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
         nbr_cmpl = len(count_cmpl(self._jmstats))
         nbr_load = len(count_load(self._jmstats))
 
-        print "###################################################"
+        print '\n'
+        print 70*'#'
         print "Tested {} models:\n\t* {} compiled \
-successfully (={:.1%})\n\t* {} loaded successfully (={:.1%})"\
+successfully (={:.1%})"\
               .format(nbr_tot,
-                      nbr_cmpl, float(nbr_cmpl)/float(nbr_tot),
-                      nbr_load, float(nbr_load)/float(nbr_tot))
-
+                      nbr_cmpl, float(nbr_cmpl)/float(nbr_tot))
+        if load:
+            print "\t* {} loaded successfully (={:.1%})".format(nbr_load, float(nbr_load)/float(nbr_tot))
+        
         print "\nFailed compilation for the following models:"
         for p in list_failed_cmpl(self._jmstats):
-            print p
+            print p.split(os.sep)[-1].split('.mo')[0]
 
-        print "\nFailed loading for the following models:"
-        for p in list_failed_load(self._jmstats):
-            print p
+        if load:            
+            print "\nFailed loading for the following models:"
+            for p in list_failed_load(self._jmstats):
+                print p.split(os.sep)[-1].split('.mo')[0]
 
-        print "###################################################"
+        print 70*'#'
 
     def _writeOMRunScript(self, worDir, models, cmpl, simulate):
         """
@@ -1719,7 +1725,7 @@ successfully (={:.1%})\n\t* {} loaded successfully (={:.1%})"\
 
         # return a list with pathnames of the .mo files to be tested
         tests = self._get_test_models(packages=['Examples'])
-        models = [self._model_from_mo(mo_file) for mo_file in tests[:number]]
+        models = sorted([self._model_from_mo(mo_file) for mo_file in tests[:number]])
 
         mosfile = self._writeOMRunScript(worDir=worDir, models=models,
                                          cmpl=cmpl, simulate=simulate)
@@ -1749,24 +1755,30 @@ successfully (={:.1%})\n\t* {} loaded successfully (={:.1%})"\
             # process the log file
             print "Logfile created: {}".format(logFilNam)
             print "Starting analysis of logfile"
-            self._analyseOMStats(logFilNam, len(models))
+            self._analyseOMStats(logFilNam, models, simulate=simulate)
 
             # Delete temporary directories
             if self._deleteTemporaryDirectories:
                 for d in self._temDir:
                     shutil.rmtree(d)
 
-    def _analyseOMStats(self, filename, nModels=None):
+    def _analyseOMStats(self, filename, models=None, simulate=False):
         """
         Analyse the log file of the OM compatibility test.
 
+        :param filename: logfilename 
         :param nModels: optional, number of models that were tested.
-
+        :param simulate: True if simulation was tested
+        
+        A list of models is passed to this function because it is easier to 
+        get an overview of the FAILED models based on a list of all tested
+        models.  
         """
         with open(filename, 'r') as f:
 
             check_ok, sim_ok = 0, 0
             check_nok, sim_nok = 0, 0
+            models_check_ok, models_check_nok, models_sim_ok, models_sim_nok = [],[],[],[]
 
             for line in f.readlines():
                 if line.find('resultFile = "') > 0:
@@ -1774,21 +1786,57 @@ successfully (={:.1%})\n\t* {} loaded successfully (={:.1%})"\
                         sim_nok += 1
                     else:
                         sim_ok += 1
+                        models_sim_ok.append(line.split(os.sep)[-1].split('_res.mat')[0])
                 elif line.find('Check of ') > 0 :
                     if line.find(' completed successfully.') > 0:
                         check_ok += 1
+                        models_check_ok.append(line.split('Check of')[-1].split('completed successfully')[0].strip())
                     else:
-                        check_nok += 1
+                        # we never get in this clause
+                        pass
 
-            if nModels is not None:
+            # normally, we can get the total number of tested models 
+            try:
+                nModels = len(models)
+            except:
+                pass
+            else:
                 check_nok = nModels - check_ok
                 sim_nok = nModels - sim_ok
-
+                
+            # get failed models
+            if models is not None:
+                models_check_nok = models[:]
+                for m in models_check_ok:
+                    models_check_nok.remove(m)
+                
+                if simulate:
+                    models_sim_nok = models[:]
+                    for m in models_sim_ok:
+                        models_sim_nok.remove(m)            
             print '\n'
-            print 50*'#'
-            print "Succesful model checks = {} ({:.1%})".format(check_ok, check_ok/(check_ok+check_nok))
-            #print "Failed model checks = {}".format(check_nok)
-            print "Succesful model simulations = {} ({:.1%})".format(sim_ok, sim_ok/(sim_ok+sim_nok))
-            #print "Failed model simulations = {}".format(sim_nok)
-            print "Check " + filename + " for the full log file."
-            print 50*'#'
+            print 70*'#'
+            print "Successful model checks = {} ({:.1%})".format(check_ok, check_ok/(check_ok+check_nok))
+            print "Successfully checked models:"
+            for m in models_check_ok:
+                print "  * {}".format(m)
+            print "Failed model checks:"
+            for m in models_check_nok:
+                print "  * {}".format(m)
+            
+            if simulate:
+                print "\nSuccessful model simulations = {} ({:.1%})".format(sim_ok, sim_ok/(sim_ok+sim_nok))
+                print "Successfully simulated models:"
+                for m in models_sim_ok:
+                    print "  * {}".format(m)
+                print "Failed model simulations:"
+                for m in models_sim_nok:
+                    print "  * {}".format(m)
+                        
+            if self._deleteTemporaryDirectories:
+                print "\nThe log files have been deleted.  Put '_deleteTemporaryDirectories' to False and run again."
+            else:
+                print "\nCheck " + filename + " for the full log file."
+            
+            
+            print 70*'#'
