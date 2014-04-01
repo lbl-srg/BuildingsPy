@@ -1652,29 +1652,29 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
 
         print '\n'
         print 70*'#'
-        print "Tested {} models:\n\t* {} compiled \
+        print "Tested {} models:\n  * {} compiled \
 successfully (={:.1%})"\
               .format(nbr_tot,
                       nbr_cmpl, float(nbr_cmpl)/float(nbr_tot))
         if load:
-            print "\t* {} loaded successfully (={:.1%})".format(nbr_load, float(nbr_load)/float(nbr_tot))
+            print "  * {} loaded successfully (={:.1%})".format(nbr_load, float(nbr_load)/float(nbr_tot))
         
         if simulate: 
-            print "\t* {} simulated successfully (={:.1%})".format(nbr_sim, float(nbr_sim)/float(nbr_tot))
+            print "  * {} simulated successfully (={:.1%})".format(nbr_sim, float(nbr_sim)/float(nbr_tot))
             
         print "\nFailed compilation for the following models:"
         for p in list_failed_cmpl(self._jmstats):
-            print p.split(os.sep)[-1].split('.mo')[0]
+            print "  * {}".format(p.split(os.sep)[-1].split('.mo')[0])
 
         if load:            
             print "\nFailed loading for the following models:"
             for p in list_failed_load(self._jmstats):
-                print p.split(os.sep)[-1].split('.mo')[0]
+                print "  * {}".format(p.split(os.sep)[-1].split('.mo')[0])
                 
         if simulate:            
             print "\nFailed simulation for the following models:"
             for p in list_failed_sim(self._jmstats):
-                print p.split(os.sep)[-1].split('.mo')[0]
+                print "  * {}".format(p.split(os.sep)[-1].split('.mo')[0])
 
         print "\nMore detailed information is stored in self._jmstats"        
         print 70*'#'
@@ -1756,9 +1756,9 @@ successfully (={:.1%})"\
 
         # return a list with pathnames of the .mo files to be tested
         tests = self._get_test_models(packages=['Examples'])
-        models = sorted([self._model_from_mo(mo_file) for mo_file in tests[:number]])
+        self._ommodels = sorted([self._model_from_mo(mo_file) for mo_file in tests[:number]])
 
-        mosfile = self._writeOMRunScript(worDir=worDir, models=models,
+        mosfile = self._writeOMRunScript(worDir=worDir, models=self._ommodels,
                                          cmpl=cmpl, simulate=simulate)
         env = os.environ.copy()
         # note: hard coded path to the default modelica library here: to be removed!!
@@ -1786,88 +1786,89 @@ successfully (={:.1%})"\
             # process the log file
             print "Logfile created: {}".format(logFilNam)
             print "Starting analysis of logfile"
-            self._analyseOMStats(logFilNam, models, simulate=simulate)
+            f = open(logFilNam, 'r')
+            self._omstats = f.readlines()
+            f.close()            
+            self._analyseOMStats(lines=self._omstats, models=self._ommodels, simulate=simulate)
 
             # Delete temporary directories
             if self._deleteTemporaryDirectories:
                 for d in self._temDir:
                     shutil.rmtree(d)
 
-    def _analyseOMStats(self, filename, models=None, simulate=False):
+    def _analyseOMStats(self, lines=None, models=None, simulate=False):
         """
         Analyse the log file of the OM compatibility test.
 
-        :param filename: logfilename 
-        :param nModels: optional, number of models that were tested.
+        :param lines: lines of the log file. 
+        :param nModels: number of models that were tested.
         :param simulate: True if simulation was tested
         
         A list of models is passed to this function because it is easier to 
         get an overview of the FAILED models based on a list of all tested
         models.  
         """
-        with open(filename, 'r') as f:
+        
+        if lines is None:
+            lines = self._omstats
+        if models is None:
+            models = self._ommodels
+        
+        check_ok, sim_ok = 0, 0
+        check_nok, sim_nok = 0, 0
+        models_check_ok, models_check_nok, models_sim_ok, models_sim_nok = [],[],[],[]
 
-            check_ok, sim_ok = 0, 0
-            check_nok, sim_nok = 0, 0
-            models_check_ok, models_check_nok, models_sim_ok, models_sim_nok = [],[],[],[]
+        for line in lines:
+            if line.find('resultFile = "') > 0:
+                if line.find('""') > 0:
+                    sim_nok += 1
+                else:
+                    sim_ok += 1
+                    models_sim_ok.append(line.split(os.sep)[-1].split('_res.mat')[0])
+            elif line.find('Check of ') > 0 :
+                if line.find(' completed successfully.') > 0:
+                    check_ok += 1
+                    models_check_ok.append(line.split('Check of')[-1].split('completed successfully')[0].strip())
+                else:
+                    # we never get in this clause
+                    pass
 
-            for line in f.readlines():
-                if line.find('resultFile = "') > 0:
-                    if line.find('""') > 0:
-                        sim_nok += 1
-                    else:
-                        sim_ok += 1
-                        models_sim_ok.append(line.split(os.sep)[-1].split('_res.mat')[0])
-                elif line.find('Check of ') > 0 :
-                    if line.find(' completed successfully.') > 0:
-                        check_ok += 1
-                        models_check_ok.append(line.split('Check of')[-1].split('completed successfully')[0].strip())
-                    else:
-                        # we never get in this clause
-                        pass
+        # get the total number of tested models 
+        check_nok = len(models) - check_ok
+        sim_nok = len(models) - sim_ok
+            
+        # get failed models
+        models_check_nok = models[:]
+        for m in models_check_ok:
+            models_check_nok.remove(m)
+        
+        if simulate:
+            models_sim_nok = models[:]
+            for m in models_sim_ok:
+                models_sim_nok.remove(m)            
+        
+        print '\n'
+        print 70*'#'
+        print "Tested {} models:\n  * {} compiled successfully (={:.1%})"\
+          .format(check_ok+check_nok,
+                  check_ok, float(check_ok)/float(check_ok+check_nok))
+        if simulate: 
+            print "  * {} simulated successfully (={:.1%})".format(sim_ok, float(sim_ok)/float(sim_ok+sim_nok))
 
-            # normally, we can get the total number of tested models 
-            try:
-                nModels = len(models)
-            except:
-                pass
-            else:
-                check_nok = nModels - check_ok
-                sim_nok = nModels - sim_ok
-                
-            # get failed models
-            if models is not None:
-                models_check_nok = models[:]
-                for m in models_check_ok:
-                    models_check_nok.remove(m)
-                
-                if simulate:
-                    models_sim_nok = models[:]
-                    for m in models_sim_ok:
-                        models_sim_nok.remove(m)            
-            print '\n'
-            print 70*'#'
-            print "Successful model checks = {} ({:.1%})".format(check_ok, check_ok/(check_ok+check_nok))
-            print "Successfully checked models:"
-            for m in models_check_ok:
+        print "\nSuccessfully checked models:"
+        for m in models_check_ok:
+            print "  * {}".format(m)
+        print "Failed model checks:"
+        for m in models_check_nok:
+            print "  * {}".format(m)
+        
+        if simulate:
+            print "\nSuccessfully simulated models:"
+            for m in models_sim_ok:
                 print "  * {}".format(m)
-            print "Failed model checks:"
-            for m in models_check_nok:
+            print "Failed model simulations:"
+            for m in models_sim_nok:
                 print "  * {}".format(m)
-            
-            if simulate:
-                print "\nSuccessful model simulations = {} ({:.1%})".format(sim_ok, sim_ok/(sim_ok+sim_nok))
-                print "Successfully simulated models:"
-                for m in models_sim_ok:
-                    print "  * {}".format(m)
-                print "Failed model simulations:"
-                for m in models_sim_nok:
-                    print "  * {}".format(m)
-                        
-            if self._deleteTemporaryDirectories:
-                print "\nThe log files have been deleted.  Put '_deleteTemporaryDirectories' to False and run again."
-            else:
-                print "\nCheck " + filename + " for the full log file."
-            
-            
-            print 70*'#'
+                    
+        print "\nMore detailed information is stored in self._omstats"
+        print 70*'#'
