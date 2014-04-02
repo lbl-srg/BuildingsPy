@@ -1309,10 +1309,10 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
                             os.path.join(dirNam, self.getLibraryName()),
                             symlinks=False,
                             ignore=shutil.ignore_patterns('.svn', '.mat'))
-			shutil.copytree(os.path.join(libDir,"..","Inputs"),
+            shutil.copytree(os.path.join(libDir,"..","Inputs"),
                             os.path.join(dirNam, "Inputs"),
                             symlinks=False,
-                            ignore=shutil.ignore_patterns('.svn', '.mat’))
+                            ignore=shutil.ignore_patterns('.svn', '.mat'))
         return
 
 
