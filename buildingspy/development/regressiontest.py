@@ -1241,7 +1241,7 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
                                              self._data[i]['ScriptFile'])
                     # Add checkModel(...) in pedantic mode
                     if self._modelicaCmd == 'dymola':
-                        runFil.write("Advanced.PedanticModelica = true;\n")
+                        runFil.write("Advanced.PedanticModelica = false;\n")
                     runFil.write("%s;\n" % self._getModelCheckCommand(mosFilNam))
                     if self._modelicaCmd == 'omc':
                         runFil.write('getErrorString();\n')
@@ -1309,6 +1309,10 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
                             os.path.join(dirNam, self.getLibraryName()),
                             symlinks=False,
                             ignore=shutil.ignore_patterns('.svn', '.mat'))
+			shutil.copytree(os.path.join(libDir,"..","Inputs"),
+                            os.path.join(dirNam, "Inputs"),
+                            symlinks=False,
+                            ignore=shutil.ignore_patterns('.svn', '.mat’))
         return
 
 
@@ -1350,7 +1354,7 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
 
         # Reset the number of processors to use no more processors than there are
         # examples to be run
-        self.setNumberOfThreads(min(multiprocessing.cpu_count(), len(self._data)))
+        self.setNumberOfThreads(min(multiprocessing.cpu_count(), len(self._data),self._nPro))
 
         retVal = 0
         # Start timer
