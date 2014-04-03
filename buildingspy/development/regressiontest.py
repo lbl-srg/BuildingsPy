@@ -1499,6 +1499,7 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
         # remove the '.mo' at the end
         return model[:-3]
 
+
     def test_JModelica(self, cmpl=True, load=False, simulate=False,
                        packages=['Examples'], number=-1):
         """
@@ -1523,7 +1524,7 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
           1. Open a JModelica environment
              (ipython or pylab with JModelica environment variables set).
           2. cd to the root folder of the library
-          3. type tye following commands:
+          3. type the following commands:
 
              >>> t = Tester() # doctest: +SKIP
              >>> t.testJmodelica(...) # doctest: +SKIP
@@ -1583,7 +1584,7 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
             if load and stats[mo_file]['compilation_ok']:
                 sys.stdout = mystdout = StringIO()
                 try:
-                    load_fmu(fmu)
+                    loaded_fmu = load_fmu(fmu)
                 except Exception as e:
                     stats[mo_file]['load_ok'] = False
                     stats[mo_file]['load_log'] = mystdout.getvalue()
@@ -1591,13 +1592,29 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
                 else:
                     stats[mo_file]['load_ok'] = True
                     stats[mo_file]['load_log'] = mystdout.getvalue()
-
+                    if simulate:
+                        try:
+                            loaded_fmu.simulate()
+                        except Exception as e:
+                            stats[mo_file]['sim_ok'] = False
+                            stats[mo_file]['sim_log'] = mystdout.getvalue()
+                            stats[mo_file]['sim_err'] = str(e)
+                        else:
+                            stats[mo_file]['sim_ok'] = True
+                            stats[mo_file]['sim_log'] = mystdout.getvalue()
+                            
+                    else:
+                        stats[mo_file]['sim_ok'] = False
+                        stats[mo_file]['sim_log'] = 'Not attempted'
+                
                 sys.stdout = old_stdout
                 mystdout.close()
             else:
                 # no loading attempted
                 stats[mo_file]['load_ok'] = False
                 stats[mo_file]['load_log'] = 'Not attempted'
+                stats[mo_file]['sim_ok'] = False
+                stats[mo_file]['sim_log'] = 'Not attempted'
 
         # Delete temporary directories
         if self._deleteTemporaryDirectories:
@@ -1605,12 +1622,15 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
                 shutil.rmtree(d)
 
         self._jmstats = stats
-        self._analyseJMStats()
+        self._analyseJMStats(load=load, simulate=simulate)
 
-    def _analyseJMStats(self):
+    def _analyseJMStats(self, load=False, simulate=False):
         """
         Analyse the statistics dictionary resulting from
         a _test_Jmodelica() call.
+        
+        :param load: Set to ``True`` to load the model from the FMU.
+        :param simulate: Set to ``True`` to cause the model to be simulated.
         """
 
         count_cmpl = lambda x: [True for _, v in x.items()
@@ -1621,26 +1641,43 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
         list_failed_load = lambda x: [k for k, v in x.items()
                                       if not v['load_ok']]
 
+        count_sim = lambda x: [True for _, v in x.items() if v['sim_ok']]
+        list_failed_sim = lambda x: [k for k, v in x.items()
+                                      if not v['sim_ok']]
+
         nbr_tot = len(self._jmstats)
         nbr_cmpl = len(count_cmpl(self._jmstats))
         nbr_load = len(count_load(self._jmstats))
+        nbr_sim = len(count_sim(self._jmstats))
 
-        print "###################################################"
-        print "Tested {} models:\n\t* {} compiled \
-successfully (={:.1%})\n\t* {} loaded successfully (={:.1%})"\
+        print '\n'
+        print 70*'#'
+        print "Tested {} models:\n  * {} compiled \
+successfully (={:.1%})"\
               .format(nbr_tot,
-                      nbr_cmpl, float(nbr_cmpl)/float(nbr_tot),
-                      nbr_load, float(nbr_load)/float(nbr_tot))
-
+                      nbr_cmpl, float(nbr_cmpl)/float(nbr_tot))
+        if load:
+            print "  * {} loaded successfully (={:.1%})".format(nbr_load, float(nbr_load)/float(nbr_tot))
+        
+        if simulate: 
+            print "  * {} simulated successfully (={:.1%})".format(nbr_sim, float(nbr_sim)/float(nbr_tot))
+            
         print "\nFailed compilation for the following models:"
         for p in list_failed_cmpl(self._jmstats):
-            print p
+            print "  * {}".format(p.split(os.sep)[-1].split('.mo')[0])
 
-        print "\nFailed loading for the following models:"
-        for p in list_failed_load(self._jmstats):
-            print p
+        if load:            
+            print "\nFailed loading for the following models:"
+            for p in list_failed_load(self._jmstats):
+                print "  * {}".format(p.split(os.sep)[-1].split('.mo')[0])
+                
+        if simulate:            
+            print "\nFailed simulation for the following models:"
+            for p in list_failed_sim(self._jmstats):
+                print "  * {}".format(p.split(os.sep)[-1].split('.mo')[0])
 
-        print "###################################################"
+        print "\nMore detailed information is stored in self._jmstats"        
+        print 70*'#'
 
     def _writeOMRunScript(self, worDir, models, cmpl, simulate):
         """
@@ -1676,7 +1713,7 @@ successfully (={:.1%})\n\t* {} loaded successfully (={:.1%})"\
         self._reporter.writeOutput('OpenModelica script {} created'.format(mosfilename))
         return mosfilename
 
-    def testOM(self, cmpl=True, simulate=False,
+    def test_OpenModelica(self, cmpl=True, simulate=False,
                       packages=['Examples'], number=-1):
         """
         Test the library compliance with OpenModelica.
@@ -1698,7 +1735,7 @@ successfully (={:.1%})\n\t* {} loaded successfully (={:.1%})"\
           1. In a python console or script, cd to the root folder of the library
 
              >>> t = Tester() # doctest: +SKIP
-             >>> t.testOpenModelica(...) # doctest: +SKIP
+             >>> t.test_OpenModelica(...) # doctest: +SKIP
 
         """
         import shutil
@@ -1719,9 +1756,9 @@ successfully (={:.1%})\n\t* {} loaded successfully (={:.1%})"\
 
         # return a list with pathnames of the .mo files to be tested
         tests = self._get_test_models(packages=['Examples'])
-        models = [self._model_from_mo(mo_file) for mo_file in tests[:number]]
+        self._ommodels = sorted([self._model_from_mo(mo_file) for mo_file in tests[:number]])
 
-        mosfile = self._writeOMRunScript(worDir=worDir, models=models,
+        mosfile = self._writeOMRunScript(worDir=worDir, models=self._ommodels,
                                          cmpl=cmpl, simulate=simulate)
         env = os.environ.copy()
         # note: hard coded path to the default modelica library here: to be removed!!
@@ -1749,46 +1786,89 @@ successfully (={:.1%})\n\t* {} loaded successfully (={:.1%})"\
             # process the log file
             print "Logfile created: {}".format(logFilNam)
             print "Starting analysis of logfile"
-            self._analyseOMStats(logFilNam, len(models))
+            f = open(logFilNam, 'r')
+            self._omstats = f.readlines()
+            f.close()            
+            self._analyseOMStats(lines=self._omstats, models=self._ommodels, simulate=simulate)
 
             # Delete temporary directories
             if self._deleteTemporaryDirectories:
                 for d in self._temDir:
                     shutil.rmtree(d)
 
-    def _analyseOMStats(self, filename, nModels=None):
+    def _analyseOMStats(self, lines=None, models=None, simulate=False):
         """
         Analyse the log file of the OM compatibility test.
 
-        :param nModels: optional, number of models that were tested.
-
+        :param lines: lines of the log file. 
+        :param nModels: number of models that were tested.
+        :param simulate: True if simulation was tested
+        
+        A list of models is passed to this function because it is easier to 
+        get an overview of the FAILED models based on a list of all tested
+        models.  
         """
-        with open(filename, 'r') as f:
+        
+        if lines is None:
+            lines = self._omstats
+        if models is None:
+            models = self._ommodels
+        
+        check_ok, sim_ok = 0, 0
+        check_nok, sim_nok = 0, 0
+        models_check_ok, models_check_nok, models_sim_ok, models_sim_nok = [],[],[],[]
 
-            check_ok, sim_ok = 0, 0
-            check_nok, sim_nok = 0, 0
+        for line in lines:
+            if line.find('resultFile = "') > 0:
+                if line.find('""') > 0:
+                    sim_nok += 1
+                else:
+                    sim_ok += 1
+                    models_sim_ok.append(line.split(os.sep)[-1].split('_res.mat')[0])
+            elif line.find('Check of ') > 0 :
+                if line.find(' completed successfully.') > 0:
+                    check_ok += 1
+                    models_check_ok.append(line.split('Check of')[-1].split('completed successfully')[0].strip())
+                else:
+                    # we never get in this clause
+                    pass
 
-            for line in f.readlines():
-                if line.find('resultFile = "') > 0:
-                    if line.find('""') > 0:
-                        sim_nok += 1
-                    else:
-                        sim_ok += 1
-                elif line.find('Check of ') > 0 :
-                    if line.find(' completed successfully.') > 0:
-                        check_ok += 1
-                    else:
-                        check_nok += 1
+        # get the total number of tested models 
+        check_nok = len(models) - check_ok
+        sim_nok = len(models) - sim_ok
+            
+        # get failed models
+        models_check_nok = models[:]
+        for m in models_check_ok:
+            models_check_nok.remove(m)
+        
+        if simulate:
+            models_sim_nok = models[:]
+            for m in models_sim_ok:
+                models_sim_nok.remove(m)            
+        
+        print '\n'
+        print 70*'#'
+        print "Tested {} models:\n  * {} compiled successfully (={:.1%})"\
+          .format(check_ok+check_nok,
+                  check_ok, float(check_ok)/float(check_ok+check_nok))
+        if simulate: 
+            print "  * {} simulated successfully (={:.1%})".format(sim_ok, float(sim_ok)/float(sim_ok+sim_nok))
 
-            if nModels is not None:
-                check_nok = nModels - check_ok
-                sim_nok = nModels - sim_ok
-
-            print '\n'
-            print 50*'#'
-            print "Succesful model checks = {} ({:.1%})".format(check_ok, check_ok/(check_ok+check_nok))
-            #print "Failed model checks = {}".format(check_nok)
-            print "Succesful model simulations = {} ({:.1%})".format(sim_ok, sim_ok/(sim_ok+sim_nok))
-            #print "Failed model simulations = {}".format(sim_nok)
-            print "Check " + filename + " for the full log file."
-            print 50*'#'
+        print "\nSuccessfully checked models:"
+        for m in models_check_ok:
+            print "  * {}".format(m)
+        print "Failed model checks:"
+        for m in models_check_nok:
+            print "  * {}".format(m)
+        
+        if simulate:
+            print "\nSuccessfully simulated models:"
+            for m in models_sim_ok:
+                print "  * {}".format(m)
+            print "Failed model simulations:"
+            for m in models_sim_nok:
+                print "  * {}".format(m)
+                    
+        print "\nMore detailed information is stored in self._omstats"
+        print 70*'#'
