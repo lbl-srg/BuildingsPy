@@ -1676,7 +1676,7 @@ successfully (={:.1%})\n\t* {} loaded successfully (={:.1%})"\
         self._reporter.writeOutput('OpenModelica script {} created'.format(mosfilename))
         return mosfilename
 
-    def testOM(self, cmpl=True, simulate=False,
+    def test_OpenModelica(self, cmpl=True, simulate=False,
                       packages=['Examples'], number=-1):
         """
         Test the library compliance with OpenModelica.
@@ -1697,20 +1697,28 @@ successfully (={:.1%})\n\t* {} loaded successfully (={:.1%})"\
 
           1. In a python console or script, cd to the root folder of the library
 
-             >>> t = Tester() # doctest: +SKIP
-             >>> t.testOpenModelica(...) # doctest: +SKIP
+             >>> t = Tester()
+             >>> t.test_OpenModelica() # doctest: +ELLIPSIS, +REPORT_NDIFF
+             OpenModelica script ... created
+             Logfile created: ...OMTests.log
+             Starting analysis of logfile
+             <BLANKLINE>
+             <BLANKLINE>
+             ##################################################
+             Succesful model checks = 0 (0.0%)
+             Succesful model simulations = 0 (0.0%)
+             Check ... for the full log file.
+             ##################################################
+
 
         """
         import shutil
         import subprocess
-
-        from cStringIO import StringIO
-
-        #import pdb; pdb.set_trace()
-
+        # fixme: Why is there a number as an argument?
+        # Isn't it sufficient to select the package to be tested?
         if number < 0:
             number = int(1e15)
-        old_stdout = sys.stdout
+
 
         self.setNumberOfThreads(1)
         self._setTemporaryDirectories()
@@ -1718,14 +1726,24 @@ successfully (={:.1%})\n\t* {} loaded successfully (={:.1%})"\
         worDir = self._temDir[0]
 
         # return a list with pathnames of the .mo files to be tested
-        tests = self._get_test_models(packages=['Examples'])
+        tests = self._get_test_models(packages=packages)
         models = [self._model_from_mo(mo_file) for mo_file in tests[:number]]
+        if len(models) == 0:
+                raise RuntimeError("Did not find any examples to test.")
 
         mosfile = self._writeOMRunScript(worDir=worDir, models=models,
                                          cmpl=cmpl, simulate=simulate)
         env = os.environ.copy()
-        # note: hard coded path to the default modelica library here: to be removed!!
-        env['OPENMODELICALIBRARY'] = worDir + ':/usr/lib/omlibrary'
+
+        # Check whether OPENMODELICALIBRARY is set.
+        # If it is not set, try to use /usr/lib/omlibrary if it exists.
+        # if it does not exist, stop with an error.
+        if not os.environ.has_key('OPENMODELICALIBRARY'):
+            if os.path.exists('/usr/lib/omlibrary'):
+                env['OPENMODELICALIBRARY'] = worDir + ':/usr/lib/omlibrary'
+            else:
+                raise OSError(\
+                    "Environment flag 'OPENMODELICALIBRARY' must be set, or '/usr/lib/omlibrary' must be present.")
 
         try:
             logFilNam=mosfile.replace('.mos', '.log')
