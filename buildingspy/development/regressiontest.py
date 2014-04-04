@@ -397,7 +397,7 @@ class Tester:
                 for mosFil in files:
                     # find the desired mos file
                     pos=mosFil.endswith('.mos')
-                    if pos > -1 and (not mosFil.startswith("Convert" + self.getLibraryName())):
+                    if pos and (not mosFil.startswith("Convert" + self.getLibraryName())):
                         matFil = ""
                         dat = {}
                         dat['ScriptDirectory'] = root[\
@@ -1350,7 +1350,7 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
 
         # Reset the number of processors to use no more processors than there are
         # examples to be run
-        self.setNumberOfThreads(min(multiprocessing.cpu_count(), len(self._data)))
+        self.setNumberOfThreads(min(multiprocessing.cpu_count(), len(self._data),self._nPro))
 
         retVal = 0
         # Start timer
