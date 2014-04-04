@@ -73,7 +73,7 @@ class Simulator:
             if packagePath == None:
                 # If the variable has not been defined, use current directory
                 packagePath = "."
-        
+        packagePath = os.path.abspath(packagePath)
         # Check if the package Path parameter is correct
         if os.path.exists(packagePath) == False:
             msg = "Directory 'packagePath'=%s does not exist." %packagePath
@@ -85,11 +85,11 @@ class Simulator:
                 raise ValueError(msg)
             else:    
                 # Check if the file package.mo exists in the directory specified
-                fileMo = os.path.join(packagePath, "package.mo")
+                fileMo = os.path.abspath(os.path.join(packagePath, "package.mo"))
                 
                 if os.path.isfile(fileMo) == False:
-                    msg = "The directory 'packagePath'=%s does not contain a " % packagePath
-                    msg +="package.mo file and perhaps is not a Modelica package."
+                    msg = "The directory '%s' does not contain the required " % packagePath
+                    msg +="file '%s'." %fileMo
                     raise ValueError(msg)
                 else:
                     # All the checks have been successfully passed
@@ -123,7 +123,7 @@ class Simulator:
 
         Usage: Type
            >>> from buildingspy.simulate.Simulator import Simulator
-           >>> s=Simulator("myPackage.myModel", "dymola")
+           >>> s=Simulator("myPackage.myModel", "dymola", packagePath="buildingspy/tests/MyModelicaLibrary")
            >>> s.addPreProcessingStatement("Advanced.StoreProtectedVariables:= true;")
            >>> s.addPreProcessingStatement("Advanced.GenerateTimers = true;")
 
@@ -151,7 +151,7 @@ class Simulator:
 
         Usage: Type
            >>> from buildingspy.simulate.Simulator import Simulator
-           >>> s=Simulator("myPackage.myModel", "dymola")
+           >>> s=Simulator("myPackage.myModel", "dymola", packagePath="buildingspy/tests/MyModelicaLibrary")
            >>> s.addParameters({'PID.k': 1.0, 'valve.m_flow_nominal' : 0.1})
            >>> s.addParameters({'PID.t': 10.0})
 
@@ -168,7 +168,7 @@ class Simulator:
 
         Usage: Type
            >>> from buildingspy.simulate.Simulator import Simulator
-           >>> s=Simulator("myPackage.myModel", "dymola")
+           >>> s=Simulator("myPackage.myModel", "dymola", packagePath="buildingspy/tests/MyModelicaLibrary")
            >>> s.addParameters({'PID.k': 1.0, 'valve.m_flow_nominal' : 0.1})
            >>> s.getParameters()
            [('valve.m_flow_nominal', 0.1), ('PID.k', 1.0)]
@@ -198,7 +198,7 @@ class Simulator:
 
         Usage: Type
            >>> from buildingspy.simulate.Simulator import Simulator
-           >>> s=Simulator("myPackage.myModel", "dymola")
+           >>> s=Simulator("myPackage.myModel", "dymola", packagePath="buildingspy/tests/MyModelicaLibrary")
            >>> s.addModelModifier('redeclare package MediumA = Buildings.Media.IdealGases.SimpleAir')
 
         This method adds a model modifier. The modifier is added to the list
