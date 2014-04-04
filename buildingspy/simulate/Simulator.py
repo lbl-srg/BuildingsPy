@@ -7,14 +7,20 @@ class Simulator:
     :param modelName: The name of the Modelica model.
     :param simulator: The simulation engine. Currently, the only supported value is ``dymola``.
     :param outputDirectory: An optional output directory.
+    :param packagePath: An optional path where the Modelica package to be loaded is located. 
 
     If the parameter ``outputDirectory`` is specified, then the
     output files and log files will be moved to this directory
     when the simulation is completed.
     Outputs from the python functions will be written to ``outputDirectory/BuildingsPy.log``.
+    
+    If the parameter ``packagePath'' is specified the Simulator will load the Modelica 
+    package located at the specified path. Default value is ``None'' and in this case it starts 
+    looking for directories specified by the environmental variable ``MODELICAPATH''. If not available
+    then it uses the current working directory.
     """
 
-    def __init__(self, modelName, simulator, outputDirectory='.'):
+    def __init__(self, modelName, simulator, outputDirectory='.', packagePath=None):
         import buildingspy.io.reporter as reporter
         import os
 
@@ -26,6 +32,14 @@ class Simulator:
 
         self.modelName = modelName
         self._outputDir_ = outputDirectory
+        
+        # Check if the package Path parameter is correct
+        self._packagePath = None
+        if packagePath == None:
+            self.setPackagePath(self._getDefaultPackagePath())
+        else:
+            self.setPackagePath(packagePath)
+                    
         ## This call is needed so that the reporter can write to the working directory
         self._createDirectory(outputDirectory)
         self._preProcessing_ = list()
@@ -44,6 +58,53 @@ class Simulator:
         self._showProgressBar = True
         self._showGUI = False
         self._exitSimulator = True
+
+    def _getDefaultPackagePath(self):
+        ''' Returns the default value where the top-level Modelica package is
+        assumed to be.
+        
+        :return packagePath: The path where the Modelica package to be loaded is
+                             assumed to be.
+        
+        '''
+        import os
+        
+        # Return the environmental variable MODELICAPATH if it exists, or "." otherwise
+        return os.getenv('MODELICAPATH', '.')
+
+
+    def setPackagePath(self, packagePath):
+        ''' Set the path specified by ``packagePath``.
+        
+        :param packagePath: The path where the Modelica package to be loaded is located.
+        
+        It first check if the path exists, whether it is a directory 
+        and whether it contains a file named ``package.mo``. 
+        If all these conditons are satisfied the path is set.
+        Otherwise, a ``ValueError`` is raised.
+        '''
+        import os
+        
+        # Check whether the package Path parameter is correct
+        if os.path.exists(packagePath) == False:
+            msg = "Argument packagePath=%s does not exist." % packagePath
+            raise ValueError(msg)
+
+        if os.path.isdir(packagePath) == False:
+            msg = "Argument packagePath=%s must be a directory " % packagePath
+            msg +="containing a Modelica package."
+            raise ValueError(msg)
+
+        # Check whether the file package.mo exists in the directory specified
+        fileMo = os.path.abspath(os.path.join(packagePath, "package.mo"))
+        if os.path.isfile(fileMo) == False:
+            msg = "The directory '%s' does not contain the required " % packagePath
+            msg +="file '%s'." %fileMo
+            raise ValueError(msg)
+
+        # All the checks have been successfully passed
+        self._packagePath = packagePath
+                    
 
     def _createDirectory(self, directoryName):
         ''' Creates the directory *directoryName*
@@ -73,7 +134,7 @@ class Simulator:
 
         Usage: Type
            >>> from buildingspy.simulate.Simulator import Simulator
-           >>> s=Simulator("myPackage.myModel", "dymola")
+           >>> s=Simulator("myPackage.myModel", "dymola", packagePath="buildingspy/tests/MyModelicaLibrary")
            >>> s.addPreProcessingStatement("Advanced.StoreProtectedVariables:= true;")
            >>> s.addPreProcessingStatement("Advanced.GenerateTimers = true;")
 
@@ -101,7 +162,7 @@ class Simulator:
 
         Usage: Type
            >>> from buildingspy.simulate.Simulator import Simulator
-           >>> s=Simulator("myPackage.myModel", "dymola")
+           >>> s=Simulator("myPackage.myModel", "dymola", packagePath="buildingspy/tests/MyModelicaLibrary")
            >>> s.addParameters({'PID.k': 1.0, 'valve.m_flow_nominal' : 0.1})
            >>> s.addParameters({'PID.t': 10.0})
 
@@ -118,7 +179,7 @@ class Simulator:
 
         Usage: Type
            >>> from buildingspy.simulate.Simulator import Simulator
-           >>> s=Simulator("myPackage.myModel", "dymola")
+           >>> s=Simulator("myPackage.myModel", "dymola", packagePath="buildingspy/tests/MyModelicaLibrary")
            >>> s.addParameters({'PID.k': 1.0, 'valve.m_flow_nominal' : 0.1})
            >>> s.getParameters()
            [('valve.m_flow_nominal', 0.1), ('PID.k', 1.0)]
@@ -132,7 +193,15 @@ class Simulator:
 
         '''
         return self._outputDir_
+    
+    def getPackagePath(self):
+        '''Returns the path of the directory containing the Modelica package.
 
+        :return: The paht of the Modelica package directory.
+
+        '''
+        return self._packagePath
+        
     def addModelModifier(self, modelModifier):
         '''Adds a model modifier.
 
@@ -140,7 +209,7 @@ class Simulator:
 
         Usage: Type
            >>> from buildingspy.simulate.Simulator import Simulator
-           >>> s=Simulator("myPackage.myModel", "dymola")
+           >>> s=Simulator("myPackage.myModel", "dymola", packagePath="buildingspy/tests/MyModelicaLibrary")
            >>> s.addModelModifier('redeclare package MediumA = Buildings.Media.IdealGases.SimpleAir')
 
         This method adds a model modifier. The modifier is added to the list
@@ -278,12 +347,15 @@ class Simulator:
 
         # Get directory name. This ensures for example that if the directory is called xx/Buildings
         # then the simulations will be done in tmp??/Buildings
-        curDir = os.path.abspath(".")
+        curDir = os.path.abspath(self._packagePath)
         ds=curDir.split(os.sep)
         dirNam=ds[len(ds)-1]
         worDir = os.path.join(tempfile.mkdtemp(prefix='tmp-simulator-' + getpass.getuser() + '-'), dirNam)
         # Copy directory
-        shutil.copytree(os.path.abspath("."), worDir)
+        try:
+            shutil.copytree(os.path.abspath(self._packagePath), worDir)
+        except shutil.Error:
+            print "Missing file... simbolink link"
 
         # Construct the model instance with all parameter values
         # and the package redeclarations
