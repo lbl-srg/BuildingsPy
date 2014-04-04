@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 import unittest
+import sys
+import os
+sys.path.append(os.getcwd())
+
+# To run this test, navigate to the BuildingsPy folder, then type
+# python buildingspy/tests/test_development_regressiontest.py
 
 class Test_regressiontest_Tester(unittest.TestCase):
     """
@@ -10,9 +16,10 @@ class Test_regressiontest_Tester(unittest.TestCase):
     def test_regressiontest(self):
         import os
         import buildingspy.development.regressiontest as r
-        rt = r.Tester()
+        rt = r.Tester(checkHtml=False)
         myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
         rt.setLibraryRoot(myMoLib)
+        
         rt.run()
         # Delete temporary files
         os.remove('dymola.log')
@@ -77,6 +84,15 @@ class Test_regressiontest_Tester(unittest.TestCase):
         # This call must raise an exception
         self.assertRaises(ValueError, \
                           rt.setLibraryRoot, "this_is_not_the_root_dir_of_a_library")
+                          
+    def test_test_OpenModelica(self):
+        import buildingspy.development.regressiontest as r
+        rt = r.Tester(checkHtml=False)
+        myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
+        rt.setLibraryRoot(myMoLib)
+        
+        rt.test_OpenModelica(simulate=True)
+
 
 
 if __name__ == '__main__':
