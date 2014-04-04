@@ -74,7 +74,7 @@ class Simulator:
 
 
     def setPackagePath(self, packagePath):
-        ''' Set the path specified by ``packagePath``
+        ''' Set the path specified by ``packagePath``.
         
         :param packagePath: The path where the Modelica package to be loaded is located.
         
