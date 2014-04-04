@@ -1350,7 +1350,7 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
 
         # Reset the number of processors to use no more processors than there are
         # examples to be run
-        self.setNumberOfThreads(min(multiprocessing.cpu_count(), len(self._data)))
+        self.setNumberOfThreads(min(multiprocessing.cpu_count(), len(self._data), self._nPro))
 
         retVal = 0
         # Start timer
@@ -1734,20 +1734,33 @@ successfully (={:.1%})"\
 
           1. In a python console or script, cd to the root folder of the library
 
-             >>> t = Tester() # doctest: +SKIP
-             >>> t.test_OpenModelica(...) # doctest: +SKIP
+             >>> t = Tester()
+             >>> t.test_OpenModelica() # doctest: +ELLIPSIS, +REPORT_NDIFF
+             OpenModelica script ...OMTests.mos created
+             Logfile created: ...OMTests.log
+             Starting analysis of logfile
+             <BLANKLINE>
+             <BLANKLINE>
+             ######################################################################
+             Tested 1 models:
+               * 0 compiled successfully (=0.0%)
+             <BLANKLINE>
+             Successfully checked models:
+             Failed model checks:
+               * BuildingsPy.buildingspy.tests.MyModelicaLibrary.Examples.MyStep
+             <BLANKLINE>
+             More detailed information is stored in self._omstats
+             ######################################################################
+
 
         """
         import shutil
         import subprocess
-
-        from cStringIO import StringIO
-
-        #import pdb; pdb.set_trace()
-
+        # fixme: Why is there a number as an argument?
+        # Isn't it sufficient to select the package to be tested?
         if number < 0:
             number = int(1e15)
-        old_stdout = sys.stdout
+
 
         self.setNumberOfThreads(1)
         self._setTemporaryDirectories()
@@ -1755,31 +1768,40 @@ successfully (={:.1%})"\
         worDir = self._temDir[0]
 
         # return a list with pathnames of the .mo files to be tested
-        tests = self._get_test_models(packages=['Examples'])
+
+        tests = self._get_test_models(packages=packages)
+        if len(tests) == 0:
+                raise RuntimeError("Did not find any examples to test.")
         self._ommodels = sorted([self._model_from_mo(mo_file) for mo_file in tests[:number]])
 
         mosfile = self._writeOMRunScript(worDir=worDir, models=self._ommodels,
                                          cmpl=cmpl, simulate=simulate)
         
         env = os.environ.copy() # will be passed to the subprocess.Popen call
-        # note: hard coded path to the default modelica library here: to be removed!!
+        
+        # Check whether OPENMODELICALIBRARY is set.
+        # If it is not set, try to use /usr/lib/omlibrary if it exists.
+        # if it does not exist, stop with an error.
         if env.has_key('OPENMODELICALIBRARY'):
             # append worDir
             env['OPENMODELICALIBRARY'] += os.pathsep + worDir
         else:
-            # create OPENMODELICALIBRARY, this is probably only working on linux
-            env['OPENMODELICALIBRARY'] = worDir + ':/usr/lib/omlibrary'
-            
+            if os.path.exists('/usr/lib/omlibrary'):
+                env['OPENMODELICALIBRARY'] = worDir + ':/usr/lib/omlibrary'
+            else:
+                raise OSError(\
+                    "Environment flag 'OPENMODELICALIBRARY' must be set, or '/usr/lib/omlibrary' must be present.")
+
         # get the executable for omc, depending on platform
         if sys.platform == 'win32':
             try:
                 omc = os.path.join(env['OPENMODELICAHOME'], 'bin', 'omc') 
             except KeyError:
-                print 'Set an environment variable OPENMODELICAHOME pointing to your OpenModelica installation'
-                raise
+                raise OSError("Environment flag 'OPENMODELICAHOME' must be set")
         else:
             # we suppose the omc executable is known
             omc = 'omc'
+
 
         try:
             logFilNam=mosfile.replace('.mos', '.log')
