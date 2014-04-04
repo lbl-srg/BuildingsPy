@@ -88,6 +88,8 @@ class Test_regressiontest_Tester(unittest.TestCase):
     def test_test_OpenModelica(self):
         import buildingspy.development.regressiontest as r
         rt = r.Tester(checkHtml=False)
+        rt._deleteTemporaryDirectories=False
+        
         myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
         rt.setLibraryRoot(myMoLib)
         
@@ -97,3 +99,7 @@ class Test_regressiontest_Tester(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+    #selection = unittest.TestSuite()
+    #selection.addTest(Test_regressiontest_Tester('test_test_OpenModelica'))
+    #unittest.TextTestRunner().run(selection)
+    

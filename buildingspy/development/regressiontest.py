@@ -1760,14 +1760,31 @@ successfully (={:.1%})"\
 
         mosfile = self._writeOMRunScript(worDir=worDir, models=self._ommodels,
                                          cmpl=cmpl, simulate=simulate)
-        env = os.environ.copy()
+        
+        env = os.environ.copy() # will be passed to the subprocess.Popen call
         # note: hard coded path to the default modelica library here: to be removed!!
-        env['OPENMODELICALIBRARY'] = worDir + ':/usr/lib/omlibrary'
+        if env.has_key('OPENMODELICALIBRARY'):
+            # append worDir
+            env['OPENMODELICALIBRARY'] += os.pathsep + worDir
+        else:
+            # create OPENMODELICALIBRARY, this is probably only working on linux
+            env['OPENMODELICALIBRARY'] = worDir + ':/usr/lib/omlibrary'
+            
+        # get the executable for omc, depending on platform
+        if sys.platform == 'win32':
+            try:
+                omc = os.path.join(env['OPENMODELICAHOME'], 'bin', 'omc') 
+            except KeyError:
+                print 'Set an environment variable OPENMODELICAHOME pointing to your OpenModelica installation'
+                raise
+        else:
+            # we suppose the omc executable is known
+            omc = 'omc'
 
         try:
             logFilNam=mosfile.replace('.mos', '.log')
             with open(logFilNam, 'w') as logFil:
-                retcode = subprocess.Popen(args=['omc', '+d=initialization', mosfile],
+                retcode = subprocess.Popen(args=[omc, '+d=initialization', mosfile],
                                            stdout=logFil,
                                            stderr=logFil,
                                            shell=False,
@@ -1824,7 +1841,7 @@ successfully (={:.1%})"\
                     sim_nok += 1
                 else:
                     sim_ok += 1
-                    models_sim_ok.append(line.split(os.sep)[-1].split('_res.mat')[0])
+                    models_sim_ok.append(line.split('/')[-1].split('_res.mat')[0])
             elif line.find('Check of ') > 0 :
                 if line.find(' completed successfully.') > 0:
                     check_ok += 1
@@ -1843,6 +1860,8 @@ successfully (={:.1%})"\
             models_check_nok.remove(m)
         
         if simulate:
+            import pdb            
+            pdb.set_trace()
             models_sim_nok = models[:]
             for m in models_sim_ok:
                 models_sim_nok.remove(m)            
