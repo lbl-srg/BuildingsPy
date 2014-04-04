@@ -27,14 +27,17 @@ class Test_simulate_Simulator(unittest.TestCase):
         Tests the :mod:`buildingspy.simulate.Simulator`
         constructor.
         '''
-        self.assertRaises(ValueError, Simulator, "myModelicaLibrary.myModel", "notSupported")
+        self.assertRaises(ValueError, Simulator, 
+                          "myModelicaLibrary.myModel", "notSupported")
         
         # Check that this path does not exists
-        self.assertRaises(ValueError, Simulator, "myModelicaLibrary.myModel", "notSupported", "ThisIsAWrongPath")
+        self.assertRaises(ValueError, Simulator, 
+                          "myModelicaLibrary.myModel", "notSupported", "ThisIsAWrongPath")
         
         # Check that this path does not contain a package.mo file
         path = os.path.abspath(os.path.join("buildingspy", "tests"))
-        self.assertRaises(ValueError, Simulator, "myModelicaLibrary.myModel", "notSupported", path)
+        self.assertRaises(ValueError, Simulator, 
+                          "myModelicaLibrary.myModel", "notSupported", path)
         
     def test_setPackagePath(self):
         '''
@@ -43,12 +46,8 @@ class Test_simulate_Simulator(unittest.TestCase):
         s = Simulator("MyModelicaLibrary.MyModel", "dymola")
         
         # try to load a not existing path
-        self.assertFalse(s.setPackagePath("ThisIsAWrongPath"))
+        self.assertRaises(ValueError, s.setPackagePath, "ThisIsAWrongPath")
         
-        # Check that if the path is not provided there is an error
-        self.assertRaises(TypeError, s.setPackagePath)
-        
-
     def test_addMethods(self):
         '''
         Tests the various add methods.

@@ -34,7 +34,11 @@ class Simulator:
         self._outputDir_ = outputDirectory
         
         # Check if the package Path parameter is correct
-        self._packagePath = self._checkPackagePath(packagePath)
+        self._packagePath = None
+        if packagePath == None:
+            self.setPackagePath(self._getDefaultPackagePath())
+        else:
+            self.setPackagePath(packagePath)
                     
         ## This call is needed so that the reporter can write to the working directory
         self._createDirectory(outputDirectory)
@@ -55,45 +59,52 @@ class Simulator:
         self._showGUI = False
         self._exitSimulator = True
 
-    def _checkPackagePath(self, packagePath):
-        ''' Check if the path specified by *packagePath* is correct.
+    def _getDefaultPackagePath(self):
+        ''' Returns the default value where the top-level Modelica package is
+        assumed to be.
         
-        :param packagePath: The path where the Modelica package to be loaded is located.
+        :return packagePath: The path where the Modelica package to be loaded is
+                             assumed to be.
         
-        It first check if the path exists, if it is a directory and then if it contains a file
-        named ``package.mo''. If all these conditons are satisfied the path is accepted
-        and used to load the Modelica package.
         '''
         import os
         
-        if packagePath == None:
-            # if the value is None, look for environmental variable MODELICAPATH
-            packagePath = os.environ.get('MODELICAPATH')
-            
-            if packagePath == None:
-                # If the variable has not been defined, use current directory
-                packagePath = "."
-        packagePath = os.path.abspath(packagePath)
-        # Check if the package Path parameter is correct
+        # Return the environmental variable MODELICAPATH if it exists, or "." otherwise
+        return os.getenv('MODELICAPATH', '.')
+
+
+    def setPackagePath(self, packagePath):
+        ''' Set the path specified by ``packagePath``
+        
+        :param packagePath: The path where the Modelica package to be loaded is located.
+        
+        It first check if the path exists, whether it is a directory 
+        and whether it contains a file named ``package.mo``. 
+        If all these conditons are satisfied the path is set.
+        Otherwise, a ``ValueError`` is raised.
+        '''
+        import os
+        
+        # Check whether the package Path parameter is correct
         if os.path.exists(packagePath) == False:
-            msg = "Directory 'packagePath'=%s does not exist." %packagePath
+            msg = "Argument packagePath=%s does not exist." % packagePath
             raise ValueError(msg)
-        else:
-            if os.path.isdir(packagePath) == False:
-                msg = "Argument 'packagePath'=%s must be a directory " % packagePath
-                msg +="containing a Modelica package."
-                raise ValueError(msg)
-            else:    
-                # Check if the file package.mo exists in the directory specified
-                fileMo = os.path.abspath(os.path.join(packagePath, "package.mo"))
-                
-                if os.path.isfile(fileMo) == False:
-                    msg = "The directory '%s' does not contain the required " % packagePath
-                    msg +="file '%s'." %fileMo
-                    raise ValueError(msg)
-                else:
-                    # All the checks have been successfully passed
-                    return packagePath
+
+        if os.path.isdir(packagePath) == False:
+            msg = "Argument packagePath=%s must be a directory " % packagePath
+            msg +="containing a Modelica package."
+            raise ValueError(msg)
+
+        # Check whether the file package.mo exists in the directory specified
+        fileMo = os.path.abspath(os.path.join(packagePath, "package.mo"))
+        if os.path.isfile(fileMo) == False:
+            msg = "The directory '%s' does not contain the required " % packagePath
+            msg +="file '%s'." %fileMo
+            raise ValueError(msg)
+
+        # All the checks have been successfully passed
+        self._packagePath = packagePath
+                    
 
     def _createDirectory(self, directoryName):
         ''' Creates the directory *directoryName*
@@ -220,18 +231,6 @@ class Simulator:
         '''
         raise DeprecationWarning("The method Simulator.getSimulatorSettings() is deprecated. Use Simulator.getParameters() instead.")
         return self.getParameters()
-
-    def setPackagePath(self, packagePath):
-        '''Set the path of the package that contains the Modelica package.
-        
-        :param packagePath: The path of the directory containing the Modelica package.
-        '''
-        # Check if the package path parameter is correct
-        try: 
-            self._packagePath = self._checkPackagePath(packagePath)
-            return True
-        except ValueError:
-            return False
 
     def setStartTime(self, t0):
         '''Sets the start time.
