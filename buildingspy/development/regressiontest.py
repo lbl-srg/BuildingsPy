@@ -1308,7 +1308,7 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
             shutil.copytree(libDir,
                             os.path.join(dirNam, self.getLibraryName()),
                             symlinks=False,
-                            ignore=shutil.ignore_patterns('.svn', '.mat'))
+                            ignore=shutil.ignore_patterns('.svn', '.mat', 'request.', 'status.'))
         return
 
 
@@ -1841,6 +1841,7 @@ successfully (={:.1%})"\
                     sim_nok += 1
                 else:
                     sim_ok += 1
+                    # Seems like OpenModelica always uses '/' as file separator
                     models_sim_ok.append(line.split('/')[-1].split('_res.mat')[0])
             elif line.find('Check of ') > 0 :
                 if line.find(' completed successfully.') > 0:
@@ -1860,8 +1861,6 @@ successfully (={:.1%})"\
             models_check_nok.remove(m)
         
         if simulate:
-            import pdb            
-            pdb.set_trace()
             models_sim_nok = models[:]
             for m in models_sim_ok:
                 models_sim_nok.remove(m)            
