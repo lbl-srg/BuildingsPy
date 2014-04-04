@@ -1,6 +1,10 @@
 BuildingsPy Changelog
 ---------------------
 
+Version 1.5.0, xxx, 2014 -- Release 1.5
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- Added regression tests for OpenModelica.
+
 Version 1.4.0, February 28, 2014 -- Release 1.4
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 - In development.unittest, added test that addresses the situation
