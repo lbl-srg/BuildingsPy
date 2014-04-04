@@ -1350,7 +1350,7 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
 
         # Reset the number of processors to use no more processors than there are
         # examples to be run
-        self.setNumberOfThreads(min(multiprocessing.cpu_count(), len(self._data)))
+        self.setNumberOfThreads(min(multiprocessing.cpu_count(), len(self._data), self._nPro))
 
         retVal = 0
         # Start timer
