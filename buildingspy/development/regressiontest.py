@@ -395,9 +395,9 @@ class Tester:
             # skip .svn folders
             if pos == -1:
                 for mosFil in files:
-                    # find the desired mos file
-                    pos=mosFil.endswith('.mos')
-                    if pos > -1 and (not mosFil.startswith("Convert" + self.getLibraryName())):
+                    # Exclude the conversion scripts and also backup copies
+                    # which have the extensions .mos~ if they are generated from emacs
+                    if mosFil.endswith('.mos') and (not mosFil.startswith("Convert" + self.getLibraryName())):
                         matFil = ""
                         dat = {}
                         dat['ScriptDirectory'] = root[\
