@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 import unittest
-import sys
 import os
-sys.path.append(os.getcwd())
+
 
 # To run this test, navigate to the BuildingsPy folder, then type
 # python buildingspy/tests/test_development_regressiontest.py
@@ -14,7 +13,6 @@ class Test_regressiontest_Tester(unittest.TestCase):
     """
 
     def test_regressiontest(self):
-        import os
         import buildingspy.development.regressiontest as r
         rt = r.Tester(checkHtml=False)
         myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
@@ -74,7 +72,6 @@ class Test_regressiontest_Tester(unittest.TestCase):
 
     def test_setLibraryRoot(self):
         import buildingspy.development.regressiontest as r
-        import os
 
         rt = r.Tester()
         myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
