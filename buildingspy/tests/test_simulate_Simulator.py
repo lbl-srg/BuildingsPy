@@ -103,6 +103,21 @@ class Test_simulate_Simulator(unittest.TestCase):
         # Arguments must be a dictionary
         self.assertRaises(ValueError, s.addParameters, ["aaa", "bbb"])
 
+    def test_addVectorOfParameterValues(self):
+        '''
+        Tests the :mod:`buildingspy.simulate.Simulator.addParameters`
+        function for the situation where values for a parameter that is
+        a vector is added.
+        '''
+        s = Simulator("myPackage.myModel", "dymola")
+        s.addParameters({'heat_setting' : {1,0,0,0}})
+        s.addParameters({'weather_setting' : {1,0}})
+        self.assertEqual(sorted(s.getParameters()), [{'heat_setting' : {1,0,0,0}}])
+        self.assertEqual(sorted(s.getParameters()), [{'weather_setting' : {1,0}}])        
+#        s.showGUI(True)
+#        s.exitSimulator(False)
+#        s.simulate()
+        
 if __name__ == '__main__':
     unittest.main()
 
