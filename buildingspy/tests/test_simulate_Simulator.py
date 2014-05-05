@@ -109,14 +109,32 @@ class Test_simulate_Simulator(unittest.TestCase):
         function for the situation where values for a parameter that is
         a vector is added.
         '''
-        s = Simulator("myPackage.myModel", "dymola")
-        s.addParameters({'heat_setting' : {1,0,0,0}})
-        s.addParameters({'weather_setting' : {1,0}})
-        self.assertEqual(sorted(s.getParameters()), [{'heat_setting' : {1,0,0,0}}])
-        self.assertEqual(sorted(s.getParameters()), [{'weather_setting' : {1,0}}])        
-#        s.showGUI(True)
-#        s.exitSimulator(False)
-#        s.simulate()
+        import numpy as np
+        from buildingspy.io.outputfile import Reader
+        # Delete output file
+        resultFile = os.path.join("Constants.mat")
+        if os.path.exists(resultFile):
+            os.remove(resultFile)
+
+        s = Simulator("MyModelicaLibrary.Examples.Constants", "dymola")
+        s.addParameters({'const1.k' : [2, 3]})
+        s.addParameters({'const2.k' : [[1.1, 1.2], [2.1, 2.2], [3.1, 3.2]]})
+        s.addParameters({'const3.k' : 3})
+        s.simulate()
+
+        r=Reader(resultFile, "dymola")
+
+        np.testing.assert_allclose(2, r.max('const1[1].y'))
+        np.testing.assert_allclose(3, r.max('const1[2].y'))
+
+        np.testing.assert_allclose(1.1, r.max('const2[1, 1].y'))
+        np.testing.assert_allclose(1.2, r.max('const2[1, 2].y'))
+        np.testing.assert_allclose(2.1, r.max('const2[2, 1].y'))
+        np.testing.assert_allclose(2.2, r.max('const2[2, 2].y'))
+        np.testing.assert_allclose(3.1, r.max('const2[3, 1].y'))
+        np.testing.assert_allclose(3.2, r.max('const2[3, 2].y'))
+
+        np.testing.assert_allclose(3, r.max('const3.y'))
         
 if __name__ == '__main__':
     unittest.main()

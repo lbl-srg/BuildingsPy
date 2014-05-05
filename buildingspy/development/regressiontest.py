@@ -88,11 +88,11 @@ class Tester:
        >>> myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
        >>> rt.setLibraryRoot(myMoLib)
        >>> rt.run() # doctest: +ELLIPSIS
-       Using  1  of ... processors to run unit tests.
+       Using  ...  of ... processors to run unit tests.
        Number of models   :  1
                  blocks   :  0
                  functions:  0
-       Generated  1  regression tests.
+       Generated  2  regression tests.
        <BLANKLINE>
        Script that runs unit tests had 0 warnings and 0 errors.
        <BLANKLINE>
@@ -1742,11 +1742,12 @@ successfully (={:.1%})"\
              <BLANKLINE>
              <BLANKLINE>
              ######################################################################
-             Tested 1 models:
+             Tested 2 models:
                * 0 compiled successfully (=0.0%)
              <BLANKLINE>
              Successfully checked models:
              Failed model checks:
+               * BuildingsPy.buildingspy.tests.MyModelicaLibrary.Examples.Constants
                * BuildingsPy.buildingspy.tests.MyModelicaLibrary.Examples.MyStep
              <BLANKLINE>
              More detailed information is stored in self._omstats
