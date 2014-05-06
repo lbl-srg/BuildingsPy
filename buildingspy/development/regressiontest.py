@@ -255,22 +255,24 @@ class Tester:
                     return True
         return False
 
-    def isValidLibrary(self):
+    @staticmethod
+    def isValidLibrary(library_home):
         ''' Returns true if the regression tester points to a valid library
             that implements the scripts for the regression tests.
 
-        "return: ``True`` if the library implements regression tests, ``False`` otherwise.
+        :param library_home: top-level directory of the library, such as ``Buildings``.
+        :return: ``True`` if the library implements regression tests, ``False`` otherwise.
         '''
-        topPackage = os.path.abspath(os.path.join(self._libHome, "package.mo"))
+        topPackage = os.path.abspath(os.path.join(library_home, "package.mo"))
         if not os.path.isfile(topPackage):
             raise ValueError("Directory %s is not a Modelica library.\n    Expected file '%s'."
-                             % (self._libHome, topPackage))
-        srcDir = os.path.join(self._libHome, "Resources", "Scripts")
+                             % (library_home, topPackage))
+        srcDir = os.path.join(library_home, "Resources", "Scripts")
         if not os.path.exists(srcDir):
             raise ValueError("Directory %s is not a Modelica library.\n    Expected directories '%s'."
-                             % (self._libHome, srcDir))
+                             % (library_home, srcDir))
 
-        return os.path.exists(os.path.join(self._libHome, "Resources", "Scripts"))
+        return os.path.exists(os.path.join(library_home, "Resources", "Scripts"))
 
     def getLibraryName(self):
         ''' Return the name of the library that will be run by this regression test.
@@ -1364,7 +1366,7 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
                 return 3
 
         # Check current working directory
-        if not self.isValidLibrary():
+        if not self.isValidLibrary(self._libHome):
             print "*** %s is not a valid Modelica library." % self._libHome
             print "*** The current directory is ", os.getcwd()
             print "*** Expected directory ", os.path.abspath(os.path.join(self._libHome, "Resources", "Scripts"))
