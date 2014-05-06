@@ -78,9 +78,9 @@ class Simulator:
         
         :param packagePath: The path where the Modelica package to be loaded is located.
         
-        It first check if the path exists, whether it is a directory 
+        It first checks whether the path exists, whether it is a directory 
         and whether it contains a file named ``package.mo``. 
-        If all these conditons are satisfied the path is set.
+        If all these conditions are satisfied, the path is set.
         Otherwise, a ``ValueError`` is raised.
         '''
         import os
@@ -168,6 +168,17 @@ class Simulator:
 
         This will add the three parameters ``PID.k``, ``valve.m_flow_nominal``
         and ``PID.t`` to the list of model parameters.
+
+        For parameters that are arrays, use a syntax such as
+           >>> from buildingspy.simulate.Simulator import Simulator
+           >>> s = Simulator("MyModelicaLibrary.Examples.Constants", "dymola", packagePath="buildingspy/tests/MyModelicaLibrary")
+           >>> s.addParameters({'const1.k' : [2, 3]})
+           >>> s.addParameters({'const2.k' : [[1.1, 1.2], [2.1, 2.2], [3.1, 3.2]]})
+
+        Do not use curly brackets for the values of parameters, such as
+        ``s.addParameters({'const1.k' : {2, 3}})``
+        as Python converts this entry to ``{'const1.k': set([2, 3])}``.
+
         '''
         self._parameters_.update(dictionary)
         return
@@ -342,6 +353,17 @@ class Simulator:
         import getpass
         import shutil
 
+
+        def to_modelica(arg):
+            """ Convert to Modelica array.
+            """
+            if isinstance(arg, str):
+                return repr(arg)
+            try:
+                return '{' + ", ".join(to_modelica(x) for x in arg) + '}'
+            except TypeError:
+                return repr(arg)
+
         # Delete dymola output files
         self.deleteOutputFiles()
 
@@ -361,7 +383,13 @@ class Simulator:
         # and the package redeclarations
         dec = list()
         for k, v in self._parameters_.items():
-            dec.append('{param}={value}'.format(param=k, value=v))
+            # Dymola requires vectors of parameters to be set in the format
+            # p = {1, 2, 3} rather than in the format of python arrays, which 
+            # is p = [1, 2, 3].
+            # Hence, we convert the value of the parameter if required.
+            s = to_modelica(v)
+            dec.append('{param}={value}'.format(param=k, value=s))
+
         dec.extend(self._modelModifiers_)
 
         mi = '"{mn}({dec})"'.format(mn=self.modelName, dec=','.join(dec))
