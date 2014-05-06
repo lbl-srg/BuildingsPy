@@ -14,9 +14,9 @@ class Simulator:
     when the simulation is completed.
     Outputs from the python functions will be written to ``outputDirectory/BuildingsPy.log``.
     
-    If the parameter ``packagePath'' is specified the Simulator will load the Modelica 
-    package located at the specified path. Default value is ``None'' and in this case it starts 
-    looking for directories specified by the environmental variable ``MODELICAPATH''. If not available
+    If the parameter ``packagePath`` is specified the Simulator will load the Modelica 
+    package located at the specified path. Default value is ``None`` and in this case it starts 
+    looking for directories specified by the environmental variable ``MODELICAPATH``. If not available
     then it uses the current working directory.
     """
 
