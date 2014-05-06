@@ -166,7 +166,7 @@ class Tester:
         '''
         self._libHome = os.path.abspath(rootDir)
         self._rootPackage = os.path.join(self._libHome, 'Resources', 'Scripts', 'Dymola')
-        self.isValidLibrary()
+        self.isValidLibrary(self._libHome)
 
     def useExistingResults(self, dirs):
         ''' This function allows to use existing results, as opposed to running a simulation.
