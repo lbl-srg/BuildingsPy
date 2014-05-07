@@ -132,7 +132,10 @@ class Annex60:
         :param source_file: Name of the file to be copied.
         :param destination_file: Name of the new file.
         """
+        import os
+        import re
         import string
+
         rep = {"Annex60":
                self._new_library_name}
         # For the Buildings library, do these additional replacements.
@@ -164,10 +167,27 @@ class Annex60:
     #           "Buildings.Media.PerfectGases.MoistAirUnsaturated":
     #           "Buildings.Media.Air"
 
+        # Read destination file if it exists.
+        # This is needed as we do not yet want to replace the medium.
+        if os.path.isfile(destination_file):
+            f_des = open(destination_file, 'r')
+            desLin = f_des.readlines()
+        else:
+            desLin = None
+
         # Read source file, store the lines and update the content of the lines
         f_sou = open(source_file, 'r')
         lines = list()
-        for lin in f_sou.readlines():
+        for i, lin in enumerate(f_sou):
+            if desLin is not None and i < len(desLin)-1:
+                # Check if the destination file contains at that line a medium declaration.
+                patAnn = re.compile('package\s+Medium\w*\s*=\s*Annex60.Media')
+                patDes = re.compile('package\s+Medium\w*\s*=\s*Buildings.Media')
+                if patDes.search(desLin[i]) and patAnn.search(lin):
+                    # This line contains the Media declaration.
+                    # Copy the declaration from the destination file into this line
+                    #FIXME lin = re.sub(r'Media[a-zA-Z_]', "OldMedia", lin)
+                    lin = desLin[i]
             for ori, new in rep.iteritems():
                 lin = string.replace(lin, ori, new)
             lines.append(lin)
