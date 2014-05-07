@@ -91,8 +91,10 @@ class Annex60:
         s = moveItemToEnd("Data", s)
         s = moveItemToEnd("Types", s)
         s = moveItemToEnd("Examples", s)
+        s = moveItemToEnd("Experimental", s)
         s = moveItemToEnd("BaseClasses", s)
         s = moveItemToEnd("Interfaces", s)
+        s = moveItemToEnd("Obsolete", s)
 
         return s
 
