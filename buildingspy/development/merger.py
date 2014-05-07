@@ -10,7 +10,6 @@ class Annex60:
 
         Both libraries need to have the same package structure.
 
-
     '''
     def __init__(self, annex60_dir, dest_dir):
         ''' Constructor.
@@ -31,6 +30,7 @@ class Annex60:
 
         isValidLibrary(annex60_dir)
         isValidLibrary(dest_dir)
+
         # --------------------------
         # Class variables
         self._annex60_home=annex60_dir
@@ -201,6 +201,9 @@ class Annex60:
 
     def merge(self):
         """ Merge all files except the license file and the top-level ``package.mo``
+
+            .. warning:: This method is experimental. Do not use it without
+                         having a backup of your code.
 
             A typical usage is
                 >>> import buildingspy.development.merger as m
