@@ -59,13 +59,13 @@ class Test_development_merger_Annex60(unittest.TestCase):
 
         s = ['aa', 'bb', 'C', 'Examples']    
         d = ['c', 'bb', 'Examples', 'Interfaces']    
-        m = mer.get_merged_package_order(s, d)
+        m = mer.get_merged_package_order('.', s, d)
         self.assertEqual(['C', 'aa', 'bb', 'c', 'Examples', 'Interfaces'], m, "Sorting failed.")
 
 
         s = ['aa1', 'bb', 'C', 'UsersGuide', 'Data', 'Examples']    
         d = ['A', 'c', 'bb', 'BaseClasses', 'Examples', 'Interfaces']    
-        m = mer.get_merged_package_order(s, d)
+        m = mer.get_merged_package_order('.', s, d)
         self.assertEqual(['UsersGuide', 'A', 'C', 'aa1', 'bb', 'c', 'Data', 'Examples', 'BaseClasses', 'Interfaces'], 
                          m, "Sorting failed.")
         
