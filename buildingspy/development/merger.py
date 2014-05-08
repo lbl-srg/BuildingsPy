@@ -9,8 +9,11 @@ class Annex60:
     ''' Class that merges a Modelica library with the `Annex60` library.
 
         Both libraries need to have the same package structure.
-        
-        By default, the packages 
+
+        By default, the top-level packages `Media`, `Experimental`,
+        and `Obsolete` are not included in the merge.
+        This can be overwritten with the function
+        :meth:`~set_excluded_packages`.
 
     '''
     def __init__(self, annex60_dir, dest_dir):
@@ -39,16 +42,26 @@ class Annex60:
         self._target_home=dest_dir
         # Library name, such as Buildings
         self._new_library_name = os.path.basename(dest_dir)
-        
+
         # This is a hack to exclude top-level packages
-        self._exclude_packages = ["Media", "Experimental", "Obsolete"]
+        self.set_excluded_packages(["Media", "Experimental", "Obsolete"])
+
+    def set_excluded_packages(self, packages):
+        ''' Set the packages that are excluded from the merge.
+        
+        :param packages: A list of packages.
+        
+        '''
+        if not isinstance(packages, list):
+            raise ValueError("Argument must be a list.")
+        self._excluded_packages = packages
 
 
-    def get_merged_package_order(self, dir, src, des):
+    def get_merged_package_order(self, directory, src, des):
         """ Return a set where each entry is a line for the merged
             `package.order` file.
 
-            :param dir: Directory of the `package.order` file.
+            :param directory: Directory of the `package.order` file.
             :param src: Lines of the source file for `package.order`.
             :param des: Lines of the destination file for `package.order`.
 
@@ -65,9 +78,9 @@ class Annex60:
                 lis.append(item)
             return lis
 
-        def isPackage(dir, item):
+        def isPackage(directory, item):
             import os
-            if os.path.isdir(os.path.join(dir, item)):
+            if os.path.isdir(os.path.join(directory, item)):
                 return True
             if os.path.isfile(item + ".mo"):
                 fil = open(item + ".mo", 'r')
@@ -91,13 +104,13 @@ class Annex60:
         # Packages need to be listed first.
         for ele in reversed(s):
             if ele[0].isupper():
-                if isPackage(dir, ele):
+                if isPackage(directory, ele):
                     s = moveItemToFront(ele, s)
         # Remove excluded top-level packages
-        for pac in self._exclude_packages:
-            if pac in s and not isPackage(dir, pac):
+        for pac in self._excluded_packages:
+            if pac in s and not isPackage(directory, pac):
                 s.remove(pac)
-        
+
         s = moveItemToFront("UsersGuide", s)
         s = moveItemToEnd("Data", s)
         s = moveItemToEnd("Types", s)
@@ -153,32 +166,17 @@ class Annex60:
                self._new_library_name}
         # For the Buildings library, do these additional replacements.
         if self._new_library_name == "Buildings":
+            # Update the models that we use from Buildings.HeatTransfer rather
+            # than from the MSL
             rep.update({"Modelica.Thermal.HeatTransfer.Sources.PrescribedTemperature":
                         "Buildings.HeatTransfer.Sources.PrescribedTemperature",
                         "Modelica.Thermal.HeatTransfer.Sources.PrescribedHeatFlow":
                         "Buildings.HeatTransfer.Sources.PrescribedHeatFlow"})
-
-        # fixme: We don't yet want to replace media
-    #           "Buildings.Media.ConstantPropertyLiquidWater":
-    #           "Buildings.Media.Water",
-    #           "Buildings.Media.GasesPTDecoupled.MoistAir":
-    #           "Buildings.Media.Air",
-    #           "Buildings.Media.GasesPTDecoupled.MoistAirUnsaturated":
-    #           "Buildings.Media.Air",
-    #           "Buildings.Media.GasesPTDecoupled.SimpleAir":
-    #           "Buildings.Media.Air",
-    #           "Buildings.Media.GasesConstantDensity.MoistAir":
-    #           "Buildings.Media.Air",
-    #           "Buildings.Media.GasesConstantDensity.MoistAirUnsaturated":
-    #           "Buildings.Media.Air",
-    #           "Buildings.Media.GasesConstantDensity.SimpleAir":
-    #           "Buildings.Media.Air",
-    #           "Buildings.Media.IdealGases.SimpleAir":
-    #           "Buildings.Media.Air",
-    #           "Buildings.Media.PerfectGases.MoistAir":
-    #           "Buildings.Media.Air",
-    #           "Buildings.Media.PerfectGases.MoistAirUnsaturated":
-    #           "Buildings.Media.Air"
+            # Update the call to the Psychrometric function
+            rep.update({"Annex60.Media.Air.saturationPressure":
+                        "Buildings.Media.PerfectGases.MoistAirUnsaturated.saturationPressure",
+                        "Set the medium model to <code>Annex60.Media.Air</code>.":
+                        "Set the medium model to <code>Buildings.Media.PerfectGases.MoistAirUnsaturated</code>."})
 
         # Read destination file if it exists.
         # This is needed as we do not yet want to replace the medium.
@@ -232,17 +230,16 @@ class Annex60:
         import re
         import fnmatch
 
-        excludes = '|'.join([x for x in self._exclude_packages]) or r'$.'
+        excludes = '|'.join([x for x in self._excluded_packages]) or r'$.'
 
         # Location of reference results
         ref_res = os.path.join(self._target_home, "Resources", "ReferenceResults", "Dymola")
 
         for root, dirs, files in os.walk(self._annex60_home):
-            
             # Exclude certain folders
             dirs[:] = [os.path.join(root, d) for d in dirs]
-            dirs[:] = [d for d in dirs if not re.search(excludes, d)]            
-                    
+            dirs[:] = [d for d in dirs if not re.search(excludes, d)]
+
             for fil in files:
                 srcFil=os.path.join(root, fil)
                 # Loop over all
