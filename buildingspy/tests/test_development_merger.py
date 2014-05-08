@@ -69,6 +69,13 @@ class Test_development_merger_Annex60(unittest.TestCase):
         self.assertEqual(['UsersGuide', 'A', 'C', 'aa1', 'bb', 'c', 'Data', 'Examples', 'BaseClasses', 'Interfaces'], 
                          m, "Sorting failed.")
         
+        s = ["UsersGuide", "Controls", "Fluid", "Media", "Utilities"]
+        d = ["UsersGuide", "Airflow", "BoundaryConditions", "Controls", 
+             "Fluid", "HeatTransfer", "Media", "Rooms", "Utilities", "Examples", "BaseClasses", "Obsolete"]
+        m = mer.get_merged_package_order('.', s, d)
+        self.assertEqual(d, m, "Sorting failed.")
+
+        
     def test_merge(self):
         """Test merging the libraries
         """

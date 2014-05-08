@@ -93,23 +93,41 @@ class Annex60:
 
         # Remove all line endings, and trim white spaces.
         li = list()
-        for ele in src+des:
+        for ele in src:
             e = ele.strip(' \t\n\r')
             if e is not "":
                 li.append(e)
 
+        # Remove excluded top-level packages
+        for pac in self._excluded_packages:
+            if pac in li and not isPackage(directory, pac):
+                li.remove(pac)
+
+        # Add the destination packages
+        for ele in des:
+            e = ele.strip(' \t\n\r')
+            if e is not "":
+                li.append(e)
+
+        # Sort the list
         s = list(sorted(set(li)))
 
         # Uppercase entries could be packages or models.
-        # Packages need to be listed first.
-        for ele in reversed(s):
+        # List packages first, followed by models
+        m = list()
+        p = list()
+        for ele in s:
             if ele[0].isupper():
                 if isPackage(directory, ele):
-                    s = moveItemToFront(ele, s)
-        # Remove excluded top-level packages
-        for pac in self._excluded_packages:
-            if pac in s and not isPackage(directory, pac):
-                s.remove(pac)
+                    p.append(ele)
+                else:
+                    m.append(ele)
+            else:
+                m.append(ele)
+
+        s = p
+        for ele in m:
+            s.append(ele)
 
         s = moveItemToFront("UsersGuide", s)
         s = moveItemToEnd("Data", s)
