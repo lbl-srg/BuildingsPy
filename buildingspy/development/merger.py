@@ -118,6 +118,7 @@ class Annex60:
         s = moveItemToEnd("Experimental", s)
         s = moveItemToEnd("BaseClasses", s)
         s = moveItemToEnd("Interfaces", s)
+        s = moveItemToEnd("Internal", s)        
         s = moveItemToEnd("Obsolete", s)
 
         return s
@@ -193,11 +194,10 @@ class Annex60:
             if desLin is not None and i < len(desLin)-1:
                 # Check if the destination file contains at that line a medium declaration.
                 patAnn = re.compile('package\s+Medium\w*\s*=\s*Annex60.Media')
-                patDes = re.compile('package\s+Medium\w*\s*=\s*Buildings.Media')
+                patDes = re.compile('package\s+Medium\w*\s*=\s*Buildings.Media|package\s+Medium\w*\s*=\s*Modelica.Media')
                 if patDes.search(desLin[i]) and patAnn.search(lin):
                     # This line contains the Media declaration.
                     # Copy the declaration from the destination file into this line
-                    #FIXME lin = re.sub(r'Media[a-zA-Z_]', "OldMedia", lin)
                     lin = desLin[i]
             for ori, new in rep.iteritems():
                 lin = string.replace(lin, ori, new)
