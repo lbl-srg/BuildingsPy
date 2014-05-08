@@ -49,7 +49,7 @@ class Annex60:
     def set_excluded_packages(self, packages):
         ''' Set the packages that are excluded from the merge.
         
-        :param packages: A list of packages.
+        :param packages: A list of packages to be excluded.
         
         '''
         if not isinstance(packages, list):
