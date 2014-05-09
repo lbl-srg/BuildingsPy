@@ -8,6 +8,12 @@ Version 1.5.0, xxx, 2014 -- Release 1.5
   setting values of parameters that are arrays.
 - Corrected bug that lead to files such as .DStore in Resources/Scripts
   to be processed as if they were scripts that run unit tests.
+- Added class buildingspy.development.merger, which can be used
+  to merge the Annex60 Modelica library to other Modelica libraries,
+  such as the Buildings library.
+- Corrected bug in copying the files for the unit tests, which
+  caused libpython2.7.so not to be copied on some computers
+
 
 Version 1.4.0, February 28, 2014 -- Release 1.4
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
