@@ -1309,7 +1309,7 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
 
             shutil.copytree(libDir,
                             os.path.join(dirNam, self.getLibraryName()),
-                            symlinks=False,
+                            symlinks=True,
                             ignore=shutil.ignore_patterns('.svn', '.mat'))
         return
 
