@@ -696,7 +696,7 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
             elif len(yInt) == 2 and len(yOld) == self._nPoi:
                 yInt = Plotter.interpolate(t, [tOld[0], tOld[-1]], yInt)            
             else:
-                raise ValueError("""Program error, yOld and yInt have different length.
+                raise ValueError("""Program error, yOld and yInt have different lengths.
   Result file : %s
   Variable    : %s
   len(yOld)=%d
