@@ -123,7 +123,7 @@ class Tester:
         # File to which the console output of the simulator is written to
         self._simulator_log_file = "simulator.log"
         # File to which statistics is written to
-        self._statistics_log = "statistics.log"
+        self._statistics_log = "statistics.json"
         self._nPro = multiprocessing.cpu_count()
         self._batch = False
 
@@ -1290,17 +1290,17 @@ Modelica.Utilities.Streams.print("{{", "{statisticsLog}");
                     # Add checkModel(...) in pedantic mode
                     if self._modelicaCmd == 'dymola':
                         runFil.write("Advanced.PedanticModelica = true;\n")
-                        template = """
-Modelica.Utilities.Streams.print("\\"model\\" : \\"{model}\\",", "{statisticsLog}");
+                        template = r"""
+Modelica.Utilities.Streams.print("\"model\" : \"{model}\",", "{statisticsLog}");
 r = {checkCommand};
 Modelica.Utilities.Streams.print("check : {{", "{statisticsLog}");
-Modelica.Utilities.Streams.print("  \\"command\\" : {checkCommandString}", "{statisticsLog}");
-Modelica.Utilities.Streams.print("  \\"result\\"  : " + String(r), "{statisticsLog}");
+Modelica.Utilities.Streams.print("  \"command\" : \"{checkCommandString};\"", "{statisticsLog}");
+Modelica.Utilities.Streams.print("  \"result\"  : " + String(r), "{statisticsLog}");
 Modelica.Utilities.Streams.print("}},", "{statisticsLog}");
 """
                         values = {"model": modNam,
                                   "checkCommand": self._getModelCheckCommand(mosFilNam),                                  
-                                  "checkCommandString": self._getModelCheckCommand(mosFilNam).replace('"', '\\"'),
+                                  "checkCommandString": self._getModelCheckCommand(mosFilNam).replace('\"', r'\\\"'),
                                   "statisticsLog": self._statistics_log}
                         runFil.write(template.format(**values))
                         runFil.write("Advanced.PedanticModelica = OriginalAdvancedPedanticModelica;\n")
@@ -1310,11 +1310,11 @@ Modelica.Utilities.Streams.print("}},", "{statisticsLog}");
 
                     # Write line for run script
                     if self._modelicaCmd == 'dymola':
-                        template = """
-r=RunScript("Resources/Scripts/Dymola/{scriptDir}/{scriptFile}");\n
+                        template = r"""
+r=RunScript("Resources/Scripts/Dymola/{scriptDir}/{scriptFile}");
 Modelica.Utilities.Streams.print("simulate : {{", "{statisticsLog}");
-Modelica.Utilities.Streams.print("  \\"command\\" : RunScript(\\"Resources/Scripts/Dymola/{scriptDir}/{scriptFile}\\");", "{statisticsLog}");
-Modelica.Utilities.Streams.print("  \\"result\\"  : " + String(r), "{statisticsLog}");
+Modelica.Utilities.Streams.print("  \"command\" : \"RunScript(\\\"Resources/Scripts/Dymola/{scriptDir}/{scriptFile}\\\");\"", "{statisticsLog}");
+Modelica.Utilities.Streams.print("  \"result\"  : " + String(r), "{statisticsLog}");
 Modelica.Utilities.Streams.print("}},", "{statisticsLog}");
 """
                         values = {"scriptDir": self._data[i]['ScriptDirectory'],
@@ -1323,11 +1323,11 @@ Modelica.Utilities.Streams.print("}},", "{statisticsLog}");
                         runFil.write(template.format(**values))
                         
                         if self._include_fmu_test:
-                            template = """
+                            template = r"""
 f=translateModelFMU("{modelName}", false, "", "2", "me", false);
 Modelica.Utilities.Streams.print("FMUExport : {{", "{statisticsLog}");
-Modelica.Utilities.Streams.print("  \\"command\\" : translateModelFMU(\\"{modelName}\\", false, \\"\\", \\"2\\", \\"me\\", false);", "{statisticsLog}");
-Modelica.Utilities.Streams.print("  \\"result\\"  : " + String(f == "{modNam}"), "{statisticsLog}");
+Modelica.Utilities.Streams.print("  \"command\" : \"translateModelFMU(\\\"{modelName}\\\", false, \\\"\\\", \\\"2\\\", \\\"me\\\", false);\"", "{statisticsLog}");
+Modelica.Utilities.Streams.print("  \"result\"  : " + String(f == "{modNam}"), "{statisticsLog}");
 Modelica.Utilities.Streams.print("}},", "{statisticsLog}");
 """
                             values = {"modelName": self._data[i]['modelName'],
