@@ -1085,40 +1085,7 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
         ''' Check whether the simulation had any errors, and
             write the error messages to ``self._reporter``.
         '''
-
-        def _haveNumericalDerivatives(lin):
-            ''' Return `True` if the argument contains
-            `  Number of numerical Jacobians: ` followed by a non-zero number
-
-            :param: lin A line from the dymola command line output
-            '''
-            s=lin.strip().split("Number of numerical Jacobians:")
-            if len(s) > 1:
-                nNumDer=s[-1].strip()
-                if nNumDer != '0':
-                    return True
-            return False
-
-        def _haveUnusedConnectors(lin):
-            ''' Return `True` if the argument contains
-            `Warning: The following connector variables are not used in the model`
-
-            :param: lin A line from the dymola command line output
-            '''
-            return "Warning: The following connector variables are not used in the model" in lin
-
         import json
-        
-        fil = open(errorFile, "r")
-        iFal=0    # Number of false return values
-        iUnuCon=0 # Number of unused connector variables
-        iNumDer=0 # Number of numerical derivatives
-        for lin in fil.readlines():
-                if _haveNumericalDerivatives(lin):
-                    iNumDer = iNumDer + 1
-                if _haveUnusedConnectors(lin):
-                    iUnuCon = iUnuCon + 1
-        fil.close()
         
         # Read the json file with the statistics
         fil = open(self._statistics_log, "r")
@@ -1128,6 +1095,8 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
         iChe = 0
         iSim = 0
         iFMU = 0
+        iJac = 0
+        iCon = 0
         checkedFMU = False
         # Check for errors
         for ele in stat:
@@ -1137,6 +1106,14 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
             if ele['simulate']['result'] is False:
                 iSim = iSim + 1
                 self._reporter.writeError("'%s' failed to simulate." % ele["simulate"]["command"])
+            else:
+                # Simulation succeeeded. Check for problems.
+                if ele['simulate']["numerical Jacobians"] > 0:
+                    self._reporter.writeWarning("'%s' had a numerical Jacobian." % ele["simulate"]["command"])
+                    iJac = iJac + 1
+                if ele['simulate']["unused connector"] > 0:
+                    self._reporter.writeWarning("'%s' had unused connector variables." % ele["simulate"]["command"])
+                    iCon = iCon + 1
             if ele.has_key('FMUExport'):
                 if ele['FMUExport']['result'] is False:
                     iFMU = iFMU + 1
@@ -1147,20 +1124,14 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
             print "Number of models that failed check               :", iChe
         if iSim > 0:
             print "Number of models that failed to simulate         :", iSim
+        if iJac > 0:
+            print "Number of models with numerical Jacobian         :", iJac
+        if iCon > 0:
+            print "Number of models with ununsed connector variables:", iCon
         if iFMU > 0:
             print "Number of models that failed to export as an FMU :", iFMU
         if not checkedFMU:
             print "FMU export was not tested."
-
-        if (iFal>0):
-                self._reporter.writeError("Unit tests had " + str(iFal) + " error(s).\n" + \
-                                               "Search '" + self._simulator_log_file + "' for 'false' to see details.\n")
-        if (iNumDer>0):
-                self._reporter.writeError("Unit tests had " + str(iNumDer) + " numerical Jacobians.\n" + \
-                                               "Search '" + self._simulator_log_file + "' for 'Number of numerical Jacobians:' to see details.\n")
-        if (iUnuCon>0):
-                self._reporter.writeWarning("Unit tests had " + str(iUnuCon) + " unused connector variables.\n" + \
-                                               "Search '" + self._simulator_log_file + "' for 'Warning: The following connector variables are not used in the model' to see details.\n")
 
         self._reporter.writeOutput("Script that runs unit tests had " + \
                                         str(self._reporter.getNumberOfWarnings()) + \
@@ -1361,11 +1332,29 @@ Modelica.Utilities.Streams.print("      }},", "{statisticsLog}");
 
                     # Write line for run script
                     if self._modelicaCmd == 'dymola':
+                        # Remove dslog.txt, run a simulation, rename dslog.txt, and
+                        # scan this log file for errors.
+                        # This is needed as RunScript returns true even if the simulation failed.
                         template = r"""
+Modelica.Utilities.Files.removeFile("dslog.txt");
 r=RunScript("Resources/Scripts/Dymola/{scriptDir}/{scriptFile}");
+if Modelica.Utilities.Files.exist("dslog.txt") then
+  Modelica.Utilities.Files.move("dslog.txt", "{modelName}.log");
+  lines=Modelica.Utilities.Streams.readFile("{modelName}.log");
+  iSuc=sum(Modelica.Utilities.Strings.count(lines, "Integration terminated successfully"));
+  iJac=sum(Modelica.Utilities.Strings.count(lines, "Number of numerical Jacobians:"));
+  iCon=sum(Modelica.Utilities.Strings.count(lines, "Warning: The following connector variables are not used in the model"));
+else
+  Modelica.Utilities.Streams.print("dslog.txt was not generated.", "{modelName}.log");
+  iSuc=0;
+  iJac=0;
+  iCon=0;
+end if;
 Modelica.Utilities.Streams.print("      \"simulate\" : {{", "{statisticsLog}");
 Modelica.Utilities.Streams.print("        \"command\" : \"RunScript(\\\"Resources/Scripts/Dymola/{scriptDir}/{scriptFile}\\\");\",", "{statisticsLog}");
-Modelica.Utilities.Streams.print("        \"result\"  : " + String(r), "{statisticsLog}");
+Modelica.Utilities.Streams.print("        \"result\"  : " + String(iSuc > 0) + ",", "{statisticsLog}");
+Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(iJac) + ",", "{statisticsLog}");
+Modelica.Utilities.Streams.print("        \"unused connector\"  : " + String(iCon), "{statisticsLog}");
 """
                         runFil.write(template.format(**values))
                         _printEndOfJsonItem(iItem == nItem and not self._include_fmu_test, 
