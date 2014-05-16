@@ -1288,9 +1288,14 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
             runFil.write(r"""
 Modelica.Utilities.Streams.print("{\"testCase\" : [", "%s");
 """ % self._statistics_log)
-            # Write unit tests for this process
+            # Count the number of experiments that need to be simulated.
+            # This is needed to properly close the json brackets.
+            nItem = 0
+            for i in range(iPro, nTes, self._nPro):
+                if self._data[i]['mustSimulate']:
+                    nItem = nItem + 1
             iItem = 0
-            nItem = len(range(iPro, nTes, self._nPro))
+            # Write unit tests for this process
             for i in range(iPro, nTes, self._nPro):
                 iItem = iItem + 1
                 # Check if this mos file should be simulated
@@ -1357,8 +1362,11 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
 Modelica.Utilities.Streams.print("        \"unused connector\"  : " + String(iCon), "{statisticsLog}");
 """
                         runFil.write(template.format(**values))
-                        _printEndOfJsonItem(iItem == nItem and not self._include_fmu_test, 
-                                            not self._include_fmu_test, runFil, self._statistics_log);
+                        runFil.write("//// iItem=%s, nItem=%s, closeElement=%s\n" %(iItem, nItem, not self._include_fmu_test))
+                        _printEndOfJsonItem(iItem == nItem and (not self._include_fmu_test), 
+                                            not self._include_fmu_test, 
+                                            runFil, 
+                                            self._statistics_log);
                         
                         if self._include_fmu_test:
                             template = r"""
@@ -1368,7 +1376,10 @@ Modelica.Utilities.Streams.print("        \"command\" : \"translateModelFMU(\\\"
 Modelica.Utilities.Streams.print("        \"result\"  : " + String(f == "{modelName_underscore}"), "{statisticsLog}");
 """
                             runFil.write(template.format(**values))
-                            _printEndOfJsonItem(iItem == nItem, True, runFil, self._statistics_log);
+                            _printEndOfJsonItem(iItem == nItem, 
+                                                True, 
+                                                runFil, 
+                                                self._statistics_log);
                         # Close bracket for this .mos file
                         runFil.write("Modelica.Utilities.Streams.print(\"  }},\");")
                     elif self._modelicaCmd == 'omc':
