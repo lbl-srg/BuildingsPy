@@ -131,6 +131,7 @@ class Tester:
 
         # Flag to delete temporary directories.
         self._deleteTemporaryDirectories = kwargs.get('cleanup', True)
+        self._loadPackages=[]
 
         # Flag to use existing results instead of running a simulation
         self._useExistingResults = False
@@ -1218,10 +1219,13 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
 
             if self._modelicaCmd == 'dymola':
                 runFil.write('openModel("package.mo");\n')
+                for package in self._loadPackages:
+                    runFil.write('openModel("' + package + '");\n')
             elif self._modelicaCmd == 'omc':
                 runFil.write('loadModel(Modelica, {"3.2"});\n')
                 runFil.write('getErrorString();\n')
                 runFil.write('loadFile("package.mo");\n')
+
 
             # Add a flag so that translation info appears in console output.
             # This allows checking for numerical derivatives.
