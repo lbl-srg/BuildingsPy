@@ -131,6 +131,9 @@ class Tester:
 
         # Flag to delete temporary directories.
         self._deleteTemporaryDirectories = kwargs.get('cleanup', True)
+        
+        # External packages that need to be loaded
+        self._externalPackages=[]
 
         # Flag to use existing results instead of running a simulation
         self._useExistingResults = False
@@ -193,6 +196,14 @@ class Tester:
         self._temDir = dirs
         self.deleteTemporaryDirectories(False)
         self._useExistingResults = True
+        
+    def setExternalPackages(self, dirs):
+        ''' This function allows to use external packages that are needed for the tested package. This only works for dymola.
+
+        :param dirs: A list of paths to package.mo files that need to be loaded after the main package.
+
+        '''
+        self._externalPackages = dirs
 
     def setNumberOfThreads(self, number):
         ''' Set the number of parallel threads that are used to run the regression tests.
@@ -1218,10 +1229,19 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
 
             if self._modelicaCmd == 'dymola':
                 runFil.write('openModel("package.mo");\n')
+                if len(self._externalPackages) > 0:
+                    # store current work directory path before overwriting it by loading new packages
+                    runFil.write('path = Modelica.Utilities.System.getWorkDirectory()\n')
+                    for package in self._externalPackages:
+                        runFil.write('openModel("' + package + '");\n')
+                    # reset original work directory path
+                    runFil.write('Modelica.Utilities.System.setWorkDirectory(path)\n')
+                
             elif self._modelicaCmd == 'omc':
                 runFil.write('loadModel(Modelica, {"3.2"});\n')
                 runFil.write('getErrorString();\n')
                 runFil.write('loadFile("package.mo");\n')
+
 
             # Add a flag so that translation info appears in console output.
             # This allows checking for numerical derivatives.
