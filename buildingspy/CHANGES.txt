@@ -13,7 +13,10 @@ Version 1.5.0, xxx, 2014 -- Release 1.5
   such as the Buildings library.
 - Corrected bug in copying the files for the unit tests, which
   caused libpython2.7.so not to be copied on some computers
-
+- Added method development.include_fmu_tests that allow testing
+  the export of FMUs.
+- development.regressiontest now also reports when Dymola
+  had to select default initial conditions.
 
 Version 1.4.0, February 28, 2014 -- Release 1.4
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

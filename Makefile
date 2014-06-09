@@ -24,7 +24,7 @@ doctest:
 	buildingspy/examples/dymola/*.py \
 	buildingspy/simulate/*.py \
         buildingspy/development/*.py
-	@rm plot.pdf plot.png roomTemperatures.png dymola.log
+	@rm -f plot.pdf plot.png roomTemperatures.png dymola.log
 
 dist:	clean doctest unittest doc 
 	@# Make sure README.rst are consistent
