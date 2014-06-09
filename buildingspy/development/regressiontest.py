@@ -1644,6 +1644,9 @@ getErrorString();
         elapsedTime = time.time()-startTime
         print "Execution time = %.3f s" % elapsedTime
 
+        # Delete statistics file
+        os.remove(self._statistics_log)
+                
         return retVal
 
     def _get_test_models(self, folder=None, packages=None):
