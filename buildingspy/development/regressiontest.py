@@ -1104,25 +1104,25 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
         for ele in stat:
             if ele['check']['result'] is False:
                 iChe = iChe + 1
-                self._reporter.writeError("'%s' failed model check." % ele["model"])
+                self._reporter.writeError("Model check failed for '%s'." % ele["model"])
             if ele['simulate']['result'] is False:
                 iSim = iSim + 1
-                self._reporter.writeError("'%s' failed to simulate." % ele["simulate"]["command"])
+                self._reporter.writeError("Simulation failed for '%s'." % ele["simulate"]["command"])
             else:
                 # Simulation succeeeded. Check for problems.
                 if ele['simulate']["numerical Jacobians"] > 0:
-                    self._reporter.writeWarning("'%s' had a numerical Jacobian." % ele["simulate"]["command"])
+                    self._reporter.writeWarning("Numerical Jacobian in '%s'." % ele["simulate"]["command"])
                     iJac = iJac + 1
                 if ele['simulate']["unused connector"] > 0:
-                    self._reporter.writeWarning("'%s' had unused connector variables." % ele["simulate"]["command"])
+                    self._reporter.writeWarning("Unused connector variables in '%s'." % ele["simulate"]["command"])
                     iCon = iCon + 1
                 if ele['simulate']["unspecified initial conditions"] > 0:
-                    self._reporter.writeWarning("'%s' had unspecified initial conditions." % ele["simulate"]["command"])
+                    self._reporter.writeWarning("Unspecified initial conditions in '%s'." % ele["simulate"]["command"])
                     iIni = iIni + 1
             if ele.has_key('FMUExport'):
                 if ele['FMUExport']['result'] is False:
                     iFMU = iFMU + 1
-                    self._reporter.writeError("'%s' FMU export failed." % ele["model"])
+                    self._reporter.writeError("FMU export failed for '%s'." % ele["model"])
                 checkedFMU = True
 
         if iChe > 0:
