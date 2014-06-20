@@ -54,7 +54,7 @@ class Tester:
 
     Initiate with the following optional arguments:
 
-    :param checkHtml: bool (default=True). Specify whether to load tidylib and
+    :param check_html: bool (default=True). Specify whether to load tidylib and
         perform validation of html documentation
     :param executable: {'dymola', 'omc'}.  Default is 'dymola', specifies the
         executable to use for running the regression test with :func:`~buildingspy.development.Tester.run`.
