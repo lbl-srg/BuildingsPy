@@ -1103,6 +1103,7 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
         iFMU = 0
         iJac = 0
         iCon = 0
+        iRed = 0
         iIni = 0
         checkedFMU = False
         # Check for errors
@@ -1121,6 +1122,9 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
                 if ele['simulate']["unused connector"] > 0:
                     self._reporter.writeWarning("Unused connector variables in '%s'." % ele["simulate"]["command"])
                     iCon = iCon + 1
+                if ele['simulate']["redundant consistent initial conditions"] > 0:
+                    self._reporter.writeWarning("Redundant consistent initial conditions in '%s'." % ele["simulate"]["command"])
+                    iRed = iRed + 1
                 if ele['simulate']["unspecified initial conditions"] > 0:
                     self._reporter.writeWarning("Unspecified initial conditions in '%s'." % ele["simulate"]["command"])
                     iIni = iIni + 1
@@ -1138,6 +1142,8 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
             print "Number of models with numerical Jacobian         :", iJac
         if iCon > 0:
             print "Number of models with ununsed connector variables:", iCon
+        if iRed > 0:
+            print "Number of models with redundant consistent initial conditions:", iRed
         if iIni > 0:
             print "Number of models with unspecified initial conditions:", iIni
         if iFMU > 0:
@@ -1389,14 +1395,16 @@ end if;
 if Modelica.Utilities.Files.exist("{modelName}.simulator.log") then  
   lines=Modelica.Utilities.Streams.readFile("{modelName}.simulator.log");
   iJac=sum(Modelica.Utilities.Strings.count(lines, "Number of numerical Jacobians: 0"));
-  lJac=sum(Modelica.Utilities.Strings.count(lines, "Number of numerical Jacobians:"));  
+  lJac=sum(Modelica.Utilities.Strings.count(lines, "Number of numerical Jacobians:"));
   iCon=sum(Modelica.Utilities.Strings.count(lines, "Warning: The following connector variables are not used in the model"));
+  iRed=sum(Modelica.Utilities.Strings.count(lines, "Redundant consistent initial conditions:"));
   iIni=sum(Modelica.Utilities.Strings.count(lines, "Dymola has selected default initial condition"));  
 else
   Modelica.Utilities.Streams.print("dslog.txt was not generated.", "{modelName}.simulator.log");
   iJac=0;
   lJac=0;
   iCon=0;
+  iRed=0;
   iIni=0;
 end if;
 Modelica.Utilities.Streams.print("      \"simulate\" : {{", "{statisticsLog}");
@@ -1404,6 +1412,7 @@ Modelica.Utilities.Streams.print("        \"command\" : \"RunScript(\\\"Resource
 Modelica.Utilities.Streams.print("        \"result\"  : " + String(iSuc > 0) + ",", "{statisticsLog}");
 Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(iJac-lJac) + ",", "{statisticsLog}");
 Modelica.Utilities.Streams.print("        \"unused connector\"  : " + String(iCon) + ",", "{statisticsLog}");
+Modelica.Utilities.Streams.print("        \"redundant consistent initial conditions\"  : " + String(iRed) + ",", "{statisticsLog}");
 Modelica.Utilities.Streams.print("        \"unspecified initial conditions\"  : " + String(iIni > 0), "{statisticsLog}");
 """
                         runFil.write(template.format(**values))
