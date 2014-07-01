@@ -892,6 +892,8 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
 
         '''
         import matplotlib.pyplot as plt
+        import matplotlib as mpl
+        mpl.rcParams['figure.figsize'] = 24, 18
 
         # Reset answer, unless it is set to Y or N
         if not (ans == "Y" or ans == "N"):
@@ -968,6 +970,7 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
             plt.clf()
             for pai in yS:
                 iPlo += 1
+
                 plt.subplot(nPlo, 1, iPlo)
                 # Iterate over the variable names that are to be plotted together
                 color=['k', 'r', 'b', 'g', 'c', 'm']
@@ -1005,7 +1008,9 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
                 plt.grid(True)
                 if iPlo == 1:
                     plt.title(matFilNam)
+
             plt.show()
+            
             while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
                 ans = raw_input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
             if ans == "y" or ans == "Y":
