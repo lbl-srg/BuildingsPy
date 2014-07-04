@@ -16,8 +16,9 @@ Version 1.5.0, xxx, 2014 -- Release 1.5
 - Added method development.include_fmu_tests that allow testing
   the export of FMUs.
 - development.regressiontest now also reports when Dymola
-  had to select default initial conditions, and when a
-  model had redundant consistent initial conditions.
+  had to select default initial conditions, 
+  a model had redundant consistent initial conditions, or
+  a model had type inconsistent definition equations.
   
 
 Version 1.4.0, February 28, 2014 -- Release 1.4

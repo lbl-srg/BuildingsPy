@@ -1104,6 +1104,8 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
         iJac = 0
         iCon = 0
         iRed = 0
+        iTyp = 0
+        iCom = 0
         iIni = 0
         checkedFMU = False
         # Check for errors
@@ -1125,6 +1127,12 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
                 if ele['simulate']["redundant consistent initial conditions"] > 0:
                     self._reporter.writeWarning("Redundant consistent initial conditions in '%s'." % ele["simulate"]["command"])
                     iRed = iRed + 1
+                if ele['simulate']["type inconsistent definition equations"] > 0:
+                    self._reporter.writeWarning("Type inconsistent definition equations in '%s'." % ele["simulate"]["command"])
+                    iTyp = iTyp + 1
+                if ele['simulate']["type incompatibility"] > 0:
+                    self._reporter.writeWarning("Type incompabitibility in '%s'." % ele["simulate"]["command"])
+                    iCom = iCom + 1
                 if ele['simulate']["unspecified initial conditions"] > 0:
                     self._reporter.writeWarning("Unspecified initial conditions in '%s'." % ele["simulate"]["command"])
                     iIni = iIni + 1
@@ -1135,19 +1143,23 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
                 checkedFMU = True
 
         if iChe > 0:
-            print "Number of models that failed check               :", iChe
+            print "Number of models that failed check                           :", iChe
         if iSim > 0:
-            print "Number of models that failed to simulate         :", iSim
+            print "Number of models that failed to simulate                     :", iSim
         if iJac > 0:
-            print "Number of models with numerical Jacobian         :", iJac
+            print "Number of models with numerical Jacobian                     :", iJac
         if iCon > 0:
-            print "Number of models with ununsed connector variables:", iCon
+            print "Number of models with ununsed connector variables            :", iCon
         if iRed > 0:
             print "Number of models with redundant consistent initial conditions:", iRed
+        if iTyp > 0:
+            print "Number of models with type inconsistent definition equations :", iTyp
+        if iCom > 0:
+            print "Number of models with incompatible types                     :", iCom
         if iIni > 0:
-            print "Number of models with unspecified initial conditions:", iIni
+            print "Number of models with unspecified initial conditions         :", iIni
         if iFMU > 0:
-            print "Number of models that failed to export as an FMU :", iFMU
+            print "Number of models that failed to export as an FMU             :", iFMU
         if not checkedFMU:
             print "FMU export was not tested."
 
@@ -1398,6 +1410,8 @@ if Modelica.Utilities.Files.exist("{modelName}.simulator.log") then
   lJac=sum(Modelica.Utilities.Strings.count(lines, "Number of numerical Jacobians:"));
   iCon=sum(Modelica.Utilities.Strings.count(lines, "Warning: The following connector variables are not used in the model"));
   iRed=sum(Modelica.Utilities.Strings.count(lines, "Redundant consistent initial conditions:"));
+  iTyp=sum(Modelica.Utilities.Strings.count(lines, "Type inconsistent definition equation"));
+  iCom=sum(Modelica.Utilities.Strings.count(lines, "but they must be compatible"));
   iIni=sum(Modelica.Utilities.Strings.count(lines, "Dymola has selected default initial condition"));  
 else
   Modelica.Utilities.Streams.print("dslog.txt was not generated.", "{modelName}.simulator.log");
@@ -1405,6 +1419,8 @@ else
   lJac=0;
   iCon=0;
   iRed=0;
+  iTyp=0;
+  iCom=0;
   iIni=0;
 end if;
 Modelica.Utilities.Streams.print("      \"simulate\" : {{", "{statisticsLog}");
@@ -1412,8 +1428,10 @@ Modelica.Utilities.Streams.print("        \"command\" : \"RunScript(\\\"Resource
 Modelica.Utilities.Streams.print("        \"result\"  : " + String(iSuc > 0) + ",", "{statisticsLog}");
 Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(iJac-lJac) + ",", "{statisticsLog}");
 Modelica.Utilities.Streams.print("        \"unused connector\"  : " + String(iCon) + ",", "{statisticsLog}");
-Modelica.Utilities.Streams.print("        \"redundant consistent initial conditions\"  : " + String(iRed) + ",", "{statisticsLog}");
-Modelica.Utilities.Streams.print("        \"unspecified initial conditions\"  : " + String(iIni > 0), "{statisticsLog}");
+Modelica.Utilities.Streams.print("        \"redundant consistent initial conditions\"    : " + String(iRed) + ",", "{statisticsLog}");
+Modelica.Utilities.Streams.print("        \"type inconsistent definition equations\"     : " + String(iTyp) + ",", "{statisticsLog}");
+Modelica.Utilities.Streams.print("        \"type incompatibility\"                       : " + String(iCom) + ",", "{statisticsLog}");
+Modelica.Utilities.Streams.print("        \"unspecified initial conditions\"             : " + String(iIni > 0), "{statisticsLog}");
 """
                         runFil.write(template.format(**values))
                         _printEndOfJsonItem(isLastItem and (not self._include_fmu_test), 
