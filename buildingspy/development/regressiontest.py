@@ -898,8 +898,6 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
 
         '''
         import matplotlib.pyplot as plt
-#        import matplotlib as mpl
-#        mpl.rcParams['figure.figsize'] = 24, 18
 
         # Reset answer, unless it is set to Y or N
         if not (ans == "Y" or ans == "N"):
