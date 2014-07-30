@@ -185,17 +185,21 @@ class Annex60:
                self._new_library_name}
         # For the Buildings library, do these additional replacements.
         if self._new_library_name == "Buildings":
+            # Replace some strings
+            rep.update({"Annex60.Experimental.Media.AirPTDecoupled":
+                        "Buildings.Media.GasesPTDecoupled.MoistAirUnsaturated",
+                         "Annex60.Media.Air.saturationPressure":
+                        "Buildings.Media.PerfectGases.MoistAirUnsaturated.saturationPressure",
+                        "Set the medium model to <code>Annex60.Media.Air</code>.":
+                        "Set the medium model to <code>Buildings.Media.PerfectGases.MoistAirUnsaturated</code>."})
             # Update the models that we use from Buildings.HeatTransfer rather
             # than from the MSL
             rep.update({"Modelica.Thermal.HeatTransfer.Sources.PrescribedTemperature":
                         "Buildings.HeatTransfer.Sources.PrescribedTemperature",
+                        "Modelica.Thermal.HeatTransfer.Sources.FixedTemperature":
+                        "Buildings.HeatTransfer.Sources.FixedTemperature",
                         "Modelica.Thermal.HeatTransfer.Sources.PrescribedHeatFlow":
                         "Buildings.HeatTransfer.Sources.PrescribedHeatFlow"})
-            # Update the call to the Psychrometric function
-            rep.update({"Annex60.Media.Air.saturationPressure":
-                        "Buildings.Media.PerfectGases.MoistAirUnsaturated.saturationPressure",
-                        "Set the medium model to <code>Annex60.Media.Air</code>.":
-                        "Set the medium model to <code>Buildings.Media.PerfectGases.MoistAirUnsaturated</code>."})
 
         # Read destination file if it exists.
         # This is needed as we do not yet want to replace the medium.
