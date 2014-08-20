@@ -100,12 +100,11 @@ class Simulator:
         # Check whether the file package.mo or a .mos-script exists in the directory specified
         fileMo = os.path.abspath(os.path.join(packagePath, "package.mo"))
         if os.path.isfile(fileMo) == False:
-            listOfFiles = [f for f in os.listdir(packagePath) if os.path.isfile(os.path.join(packagePath,f)) ]
+            listOfFiles = [f for f in os.listdir(packagePath) if os.path.isfile(os.path.join(packagePath,f))]
             for i in listOfFiles:
                 if '.mos' in i:
                     self.ScriptToOpen = i
                     self.openAPackage = False
-
             if self.openAPackage == True:
                 msg = "The directory '%s' does not contain the required " % packagePath
                 msg +="file '%s' or a *.mos-script to open multiple libraries." %fileMo
