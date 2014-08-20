@@ -58,6 +58,7 @@ class Simulator:
         self._showProgressBar = True
         self._showGUI = False
         self._exitSimulator = True
+		self.openAPackage = True
 
     def _getDefaultPackagePath(self):
         ''' Returns the default value where the top-level Modelica package is
@@ -70,7 +71,15 @@ class Simulator:
         import os
         
         # Return the environmental variable MODELICAPATH if it exists, or "." otherwise
-        return os.getenv('MODELICAPATH', '.')
+        modelicaPath = os.getenv('MODELICAPATH', '.')
+        if modelicaPath != '.':
+            listOfFiles = [ f for f in os.listdir(modelicaPath) if os.path.isfile(os.path.join(modelicaPath,f)) ]
+            if 'package.mo' in listOfFiles:
+                self.openAPackage = True
+            elif '.mos' in listOfFiles:
+                self.openAPackage = False
+        print self.openAPackage
+        return modelicaPath
 
 
     def setPackagePath(self, packagePath):
