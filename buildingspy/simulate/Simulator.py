@@ -97,12 +97,19 @@ class Simulator:
             msg +="containing a Modelica package."
             raise ValueError(msg)
 
-        # Check whether the file package.mo exists in the directory specified
+        # Check whether the file package.mo or a .mos-script exists in the directory specified
         fileMo = os.path.abspath(os.path.join(packagePath, "package.mo"))
         if os.path.isfile(fileMo) == False:
-            msg = "The directory '%s' does not contain the required " % packagePath
-            msg +="file '%s'." %fileMo
-            raise ValueError(msg)
+            listOfFiles = [f for f in os.listdir(packagePath) if os.path.isfile(os.path.join(packagePath,f)) ]
+            for i in listOfFiles:
+                if '.mos' in i:
+                    self.ScriptToOpen = i
+                    self.openAPackage = False
+
+            if self.openAPackage == True:
+                msg = "The directory '%s' does not contain the required " % packagePath
+                msg +="file '%s' or a *.mos-script to open multiple libraries." %fileMo
+                raise ValueError(msg)
 
         # All the checks have been successfully passed
         self._packagePath = packagePath
@@ -368,16 +375,6 @@ class Simulator:
 
         # Delete dymola output files
         self.deleteOutputFiles()
-        
-        # Check if packagePath includes package.mo or .mos-script to open
-        listOfFiles = [f for f in os.listdir(self._packagePath) if os.path.isfile(os.path.join(self._packagePath,f)) ]
-        if 'package.mo' in listOfFiles:
-            self.openAPackage = True
-        elif '.mos' in listOfFiles:
-            self.openAPackage = False
-            self.ScriptToOpen = [x for x in listOfFiles if x[-4:-1] == '.mos']
-            print self.ScriptToOpen
-        print self.openAPackage
 
         # Get directory name. This ensures for example that if the directory is called xx/Buildings
         # then the simulations will be done in tmp??/Buildings
