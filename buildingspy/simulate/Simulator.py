@@ -58,7 +58,7 @@ class Simulator:
         self._showProgressBar = True
         self._showGUI = False
         self._exitSimulator = True
-		self.openAPackage = True
+        self.openAPackage = True
         self.ScriptToOpen = None
 
     def _getDefaultPackagePath(self):
@@ -72,17 +72,7 @@ class Simulator:
         import os
         
         # Return the environmental variable MODELICAPATH if it exists, or "." otherwise
-        modelicaPath = os.getenv('MODELICAPATH', '.')
-        if modelicaPath != '.':
-            listOfFiles = [f for f in os.listdir(modelicaPath) if os.path.isfile(os.path.join(modelicaPath,f)) ]
-            if 'package.mo' in listOfFiles:
-                self.openAPackage = True
-            elif '.mos' in listOfFiles:
-                self.openAPackage = False
-                self.ScriptToOpen = [x for x in listOfFiles if x[-4:-1] == '.mos']
-                print self.ScriptToOpen
-        print self.openAPackage
-        return modelicaPath
+        return os.getenv('MODELICAPATH', '.')
 
 
     def setPackagePath(self, packagePath):
@@ -378,6 +368,16 @@ class Simulator:
 
         # Delete dymola output files
         self.deleteOutputFiles()
+        
+        # Check if packagePath includes package.mo or .mos-script to open
+        listOfFiles = [f for f in os.listdir(self._packagePath) if os.path.isfile(os.path.join(self._packagePath,f)) ]
+        if 'package.mo' in listOfFiles:
+            self.openAPackage = True
+        elif '.mos' in listOfFiles:
+            self.openAPackage = False
+            self.ScriptToOpen = [x for x in listOfFiles if x[-4:-1] == '.mos']
+            print self.ScriptToOpen
+        print self.openAPackage
 
         # Get directory name. This ensures for example that if the directory is called xx/Buildings
         # then the simulations will be done in tmp??/Buildings
