@@ -59,6 +59,7 @@ class Simulator:
         self._showGUI = False
         self._exitSimulator = True
 		self.openAPackage = True
+        self.ScriptToOpen = None
 
     def _getDefaultPackagePath(self):
         ''' Returns the default value where the top-level Modelica package is
@@ -73,11 +74,13 @@ class Simulator:
         # Return the environmental variable MODELICAPATH if it exists, or "." otherwise
         modelicaPath = os.getenv('MODELICAPATH', '.')
         if modelicaPath != '.':
-            listOfFiles = [ f for f in os.listdir(modelicaPath) if os.path.isfile(os.path.join(modelicaPath,f)) ]
+            listOfFiles = [f for f in os.listdir(modelicaPath) if os.path.isfile(os.path.join(modelicaPath,f)) ]
             if 'package.mo' in listOfFiles:
                 self.openAPackage = True
             elif '.mos' in listOfFiles:
                 self.openAPackage = False
+                self.ScriptToOpen = [x for x in listOfFiles if x[-4:-1] == '.mos']
+                print self.ScriptToOpen
         print self.openAPackage
         return modelicaPath
 
@@ -411,7 +414,10 @@ class Simulator:
             fil.write("// Do not edit.\n")
             fil.write('cd("' + worDir + '");\n')
             fil.write("Modelica.Utilities.Files.remove(\"simulator.log\");\n")
-            fil.write("openModel(\"package.mo\");\n")
+            if self.openAPackage == True:
+                fil.write("openModel(\"package.mo\");\n")
+            else:
+                fil.write("RunScript(\"" + self.scriptToOpen + "\");\n")
             fil.write('OutputCPUtime:=true;\n')
             # Pre-processing commands
             for prePro in self._preProcessing_:
