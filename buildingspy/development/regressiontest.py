@@ -96,7 +96,7 @@ class Tester:
        Number of models   :  1
                  blocks   :  0
                  functions:  0
-       Generated  2  regression tests.
+       Generated  3  regression tests.
        <BLANKLINE>
        FMU export was not tested.
        Script that runs unit tests had 0 warnings and 0 errors.
@@ -1977,11 +1977,12 @@ successfully (={:.1%})"\
              <BLANKLINE>
              <BLANKLINE>
              ######################################################################
-             Tested 2 models:
+             Tested 3 models:
                * 0 compiled successfully (=0.0%)
              <BLANKLINE>
              Successfully checked models:
              Failed model checks:
+               * BuildingsPy.buildingspy.tests.MyModelicaLibrary.Examples.BooleanParameters
                * BuildingsPy.buildingspy.tests.MyModelicaLibrary.Examples.Constants
                * BuildingsPy.buildingspy.tests.MyModelicaLibrary.Examples.MyStep
              <BLANKLINE>

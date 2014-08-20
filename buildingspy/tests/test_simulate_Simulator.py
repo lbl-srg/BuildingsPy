@@ -119,7 +119,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         s = Simulator("MyModelicaLibrary.Examples.Constants", "dymola")
         s.addParameters({'const1.k' : [2, 3]})
         s.addParameters({'const2.k' : [[1.1, 1.2], [2.1, 2.2], [3.1, 3.2]]})
-        s.addParameters({'const3.k' : 3})
+        s.addParameters({'const3.k' : 0})
         s.simulate()
 
         r=Reader(resultFile, "dymola")
@@ -134,7 +134,32 @@ class Test_simulate_Simulator(unittest.TestCase):
         np.testing.assert_allclose(3.1, r.max('const2[3, 1].y'))
         np.testing.assert_allclose(3.2, r.max('const2[3, 2].y'))
 
-        np.testing.assert_allclose(3, r.max('const3.y'))
+        np.testing.assert_allclose(0, r.max('const3.y'))
+
+    def test_setBooleanParameterValues(self):
+        '''
+        Tests the :mod:`buildingspy.simulate.Simulator.addParameters`
+        function for boolean parameters.
+        '''
+
+        from buildingspy.io.outputfile import Reader
+        # Delete output file
+        resultFile = os.path.join("BooleanParameters.mat")
+
+        if os.path.exists(resultFile):
+            os.remove(resultFile)
+
+        s = Simulator("MyModelicaLibrary.Examples.BooleanParameters", "dymola")
+        s.addParameters({'p1' : True})
+        s.addParameters({'p2' : False})
+        s.simulate()
+
+        r=Reader(resultFile, "dymola")
+
+        (_, p) = r.values('p1')
+        self.assertEqual(p[0], 1.0)
+        (_, p) = r.values('p2')
+        self.assertEqual(p[0], 0.0)
         
 if __name__ == '__main__':
     unittest.main()

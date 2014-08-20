@@ -357,8 +357,14 @@ class Simulator:
         def to_modelica(arg):
             """ Convert to Modelica array.
             """
+            # Check for strings and booleans
             if isinstance(arg, str):
                 return repr(arg)
+            elif isinstance(arg, bool):
+                if arg is True:
+                    return 'true'
+                else:
+                    return 'false'
             try:
                 return '{' + ", ".join(to_modelica(x) for x in arg) + '}'
             except TypeError:

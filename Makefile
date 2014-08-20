@@ -15,6 +15,7 @@ pep8:
 
 unittest:
 	python -m unittest discover buildingspy/tests
+#	python buildingspy/tests/test_simulate_Simulator.py
 #	python buildingspy/tests/test_io_postprocess.py
 
 doctest:

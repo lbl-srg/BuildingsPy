@@ -19,6 +19,8 @@ Version 1.5.0, xxx, 2014 -- Release 1.5
   had to select default initial conditions, 
   a model had redundant consistent initial conditions, or
   a model had type inconsistent definition equations.
+- Corrected bug in simulate.Simulator that caused a syntax error
+  in the Modelica .mos script when setting boolean variables.
   
 
 Version 1.4.0, February 28, 2014 -- Release 1.4
