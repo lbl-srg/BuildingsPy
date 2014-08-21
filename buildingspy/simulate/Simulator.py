@@ -58,6 +58,8 @@ class Simulator:
         self._showProgressBar = True
         self._showGUI = False
         self._exitSimulator = True
+        self.openAPackage = True
+        self.ScriptToOpen = None
 
     def _getDefaultPackagePath(self):
         ''' Returns the default value where the top-level Modelica package is
@@ -95,12 +97,18 @@ class Simulator:
             msg +="containing a Modelica package."
             raise ValueError(msg)
 
-        # Check whether the file package.mo exists in the directory specified
+        # Check whether the file package.mo or a .mos-script exists in the directory specified
         fileMo = os.path.abspath(os.path.join(packagePath, "package.mo"))
         if os.path.isfile(fileMo) == False:
-            msg = "The directory '%s' does not contain the required " % packagePath
-            msg +="file '%s'." %fileMo
-            raise ValueError(msg)
+            listOfFiles = [f for f in os.listdir(packagePath) if os.path.isfile(os.path.join(packagePath,f))]
+            for i in listOfFiles:
+                if '.mos' in i:
+                    self.ScriptToOpen = i
+                    self.openAPackage = False
+            if self.openAPackage == True:
+                msg = "The directory '%s' does not contain the required " % packagePath
+                msg +="file '%s' or a *.mos-script to open multiple libraries." %fileMo
+                raise ValueError(msg)
 
         # All the checks have been successfully passed
         self._packagePath = packagePath
@@ -408,7 +416,10 @@ class Simulator:
             fil.write("// Do not edit.\n")
             fil.write('cd("' + worDir + '");\n')
             fil.write("Modelica.Utilities.Files.remove(\"simulator.log\");\n")
-            fil.write("openModel(\"package.mo\");\n")
+            if self.openAPackage == True:
+                fil.write("openModel(\"package.mo\");\n")
+            else:
+                fil.write("RunScript(\"" + self.scriptToOpen + "\");\n")
             fil.write('OutputCPUtime:=true;\n')
             # Pre-processing commands
             for prePro in self._preProcessing_:
