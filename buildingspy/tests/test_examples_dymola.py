@@ -6,26 +6,6 @@ class Test_example_dymola_runSimulation(unittest.TestCase):
        This class contains the unit tests for
        :mod:`buildingspy.io.Plotter`.
     """
-    
-    def setUp(self):
-        '''
-        This method creates a variable that points to an existing folder
-        that contains a Modelica package.
-        '''
-        import os
-        self._oldWorDir = os.getcwd()
-        # Change to a directory that contains a package.mo file
-#        os.chdir(os.path.abspath(os.path.join("buildingspy", "tests", "MyModelicaLibrary")))
-        print "**************** PYTHONPATH =", os.getenv("PYTHONPATH", "not specified")
-
-
-    def tearDown(self):
-        '''
-        This method resets the current working directory
-        '''
-        import os
-        os.chdir(self._oldWorDir)
-    
 
     def test_runSimulation(self):
         '''
