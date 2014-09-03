@@ -21,7 +21,13 @@ Version 1.5.0, xxx, 2014 -- Release 1.5
   a model had type inconsistent definition equations.
 - Corrected bug in simulate.Simulator that caused a syntax error
   in the Modelica .mos script when setting boolean variables.
-  
+- Changed the API of buildingspy.simulate.Simulator.
+  Previously, the MODELICAPATH was used as the default
+  to load the package.mo file. This was changed because the
+  MODELICAPATH variable points one directory higher than the
+  location of the package.mo file.
+  Now, the current directory is used as the default value, which
+  can be overwritten using the parameter packagePath.
 
 Version 1.4.0, February 28, 2014 -- Release 1.4
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

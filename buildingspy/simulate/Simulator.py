@@ -7,17 +7,20 @@ class Simulator:
     :param modelName: The name of the Modelica model.
     :param simulator: The simulation engine. Currently, the only supported value is ``dymola``.
     :param outputDirectory: An optional output directory.
-    :param packagePath: An optional path where the Modelica package to be loaded is located. 
+    :param packagePath: An optional path where the Modelica package.mo file is located. 
 
     If the parameter ``outputDirectory`` is specified, then the
     output files and log files will be moved to this directory
     when the simulation is completed.
     Outputs from the python functions will be written to ``outputDirectory/BuildingsPy.log``.
     
-    If the parameter ``packagePath`` is specified the Simulator will load the Modelica 
-    package located at the specified path. Default value is ``None`` and in this case it starts 
-    looking for directories specified by the environmental variable ``MODELICAPATH``. If not available
-    then it uses the current working directory.
+    If the parameter ``packagePath`` is specified, the Simulator will copy this directory
+    and all its subdirectories to a temporary directory when running the simulations.
+    
+    .. note:: Up to version 1.4, the environmental variable ``MODELICAPATH``
+              has been used as the default value. This has been changed as
+              ``MODELICAPATH`` can have multiple entries in which case it is not
+              clear what entry should be used.
     """
 
     def __init__(self, modelName, simulator, outputDirectory='.', packagePath=None):
@@ -36,7 +39,7 @@ class Simulator:
         # Check if the package Path parameter is correct
         self._packagePath = None
         if packagePath == None:
-            self.setPackagePath(self._getDefaultPackagePath())
+            self.setPackagePath(os.path.abspath('.'))
         else:
             self.setPackagePath(packagePath)
                     
@@ -59,28 +62,14 @@ class Simulator:
         self._showGUI = False
         self._exitSimulator = True
 
-    def _getDefaultPackagePath(self):
-        ''' Returns the default value where the top-level Modelica package is
-        assumed to be.
-        
-        :return packagePath: The path where the Modelica package to be loaded is
-                             assumed to be.
-        
-        '''
-        import os
-        
-        # Return the environmental variable MODELICAPATH if it exists, or "." otherwise
-        return os.getenv('MODELICAPATH', '.')
-
 
     def setPackagePath(self, packagePath):
         ''' Set the path specified by ``packagePath``.
         
         :param packagePath: The path where the Modelica package to be loaded is located.
         
-        It first checks whether the path exists, whether it is a directory 
-        and whether it contains a file named ``package.mo``. 
-        If all these conditions are satisfied, the path is set.
+        It first checks whether the path exists and whether it is a directory. 
+        If both conditions are satisfied, the path is set.
         Otherwise, a ``ValueError`` is raised.
         '''
         import os
@@ -96,11 +85,11 @@ class Simulator:
             raise ValueError(msg)
 
         # Check whether the file package.mo exists in the directory specified
-        fileMo = os.path.abspath(os.path.join(packagePath, "package.mo"))
-        if os.path.isfile(fileMo) == False:
-            msg = "The directory '%s' does not contain the required " % packagePath
-            msg +="file '%s'." %fileMo
-            raise ValueError(msg)
+#        fileMo = os.path.abspath(os.path.join(packagePath, "package.mo"))
+        #if os.path.isfile(fileMo) == False:
+            #msg = "The directory '%s' does not contain the required " % packagePath
+            #msg +="file '%s'." %fileMo
+            #raise ValueError(msg)
 
         # All the checks have been successfully passed
         self._packagePath = packagePath
@@ -335,7 +324,8 @@ class Simulator:
 
         This method
           1. Deletes dymola output files
-          2. Copies the current directory to a temporary directory.
+          2. Copies the current directory, or the directory specified by the ``packagePath``
+             parameter of the constructor, to a temporary directory.
           3. Writes a Modelica script to the temporary directory.
           4. Starts the Modelica simulation environment from the temporary directory.
           5. Translates and simulates the model.
@@ -380,10 +370,7 @@ class Simulator:
         dirNam=ds[len(ds)-1]
         worDir = os.path.join(tempfile.mkdtemp(prefix='tmp-simulator-' + getpass.getuser() + '-'), dirNam)
         # Copy directory
-        try:
-            shutil.copytree(os.path.abspath(self._packagePath), worDir)
-        except shutil.Error:
-            print "Missing file... simbolink link"
+        shutil.copytree(os.path.abspath(self._packagePath), worDir)
 
         # Construct the model instance with all parameter values
         # and the package redeclarations
