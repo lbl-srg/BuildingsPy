@@ -32,6 +32,7 @@ Version 1.5.0, xxx, 2014 -- Release 1.5
   caused the html section to be not validated if the Modelica
   file contained the </html> and <html> element on the same line.
 
+
 Version 1.4.0, February 28, 2014 -- Release 1.4
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 - In development.unittest, added test that addresses the situation
