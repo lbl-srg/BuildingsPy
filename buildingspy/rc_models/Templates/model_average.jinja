@@ -1,0 +1,35 @@
+model {{modelName}} "{{ description }}"
+  extends EplusBuildingSimulators.BRCModel.BaseClasses.AveragedBuildingTemp(
+    n_zones = {{ N_zones }},
+    weights = {{ weigths }});
+annotation (Documentation(info="<html>
+<p>
+This model has been automatically generated starting from an Energy Plus Model
+and the BRCM Matlab toolbox.
+This model computes the averaged tempererature of the building using the volumes
+of the zones as weighting factor.
+</p>
+<p>
+The model averages the temperature of {{ N_zones }} zones.
+</p>
+
+<p>
+<table summary=\"summary\" border=\"1\" cellspacing=0 cellpadding=2 style=\"border-collapse:collapse;\">
+<tr><th>Zone #</th><th>Area [m<sup>2</sup>]</th><th>Volume [m<sup>3</sup>]</th></tr>
+{% for z in Zones %}
+    <tr><td>{{ loop.index }}</td><td>{{ z[0] }}</td><td>{{ z[1] }}</td></tr>
+{% endfor %}
+</table>
+</p>
+
+</html>",
+
+revisions="<html>
+<ul>
+<li>
+Model Created by Marco Bonvini <a href=\"mailto:mbonvini@lbl.gov\">MBonvini@lbl.gov</a><br/>
+{{ date_time }}
+</li>
+</ul>
+</html>"));
+end {{modelName}};

@@ -1,0 +1,56 @@
+model {{modelName}} "{{ description }}"
+  extends EplusBuildingSimulators.BRCModel.BaseClasses.BaseBuilding(
+    A = {{ A }},
+    B = {{ B }});
+annotation (Documentation(info="<html>
+<p>
+This model has been automatically generated starting from an Energy Plus Model
+and the BRCM Matlab toolbox.
+</p>
+<p>
+The model has the following characteristics:
+</p>
+<ul>
+<li>{{N_zones}} zones,</li>
+<li>{{N_states}} state variables,</li>
+<li>{{N_dist}} disturbances.</li>
+</ul>
+
+<p>
+<table summary=\"summary\" border=\"1\" cellspacing=0 cellpadding=2 style=\"border-collapse:collapse;\">
+<tr><th>Zone #</th><th>Area [m<sup>2</sup>]</th><th>Volume [m<sup>3</sup>]</th></tr>
+{% for z in Zones %}
+    <tr><td>{{ loop.index }}</td><td>{{ z[0] }}</td><td>{{ z[1] }}</td></tr>
+{% endfor %}
+</table>
+</p>
+
+<p>
+<table summary=\"summary\" border=\"1\" cellspacing=0 cellpadding=2 style=\"border-collapse:collapse;\">
+<tr><th>Disturbances</th><th>Name</th></tr>
+{% for dist in dist_vars %}
+    <tr><td>u[{{ loop.index }}]</td><td>{{ dist }}</td></tr>
+{% endfor %}
+</table>
+</p>
+
+<p>
+<table summary=\"summary\" border=\"1\" cellspacing=0 cellpadding=2 style=\"border-collapse:collapse;\">
+<tr><th>State variable</th><th>Name</th></tr>
+{% for state in state_vars %}
+    <tr><td>x[{{ loop.index }}]</td><td>{{ state }}</td></tr>
+{% endfor %}
+</table>
+</p>
+
+</html>",
+
+revisions="<html>
+<ul>
+<li>
+Model Created by Marco Bonvini <a href=\"mailto:mbonvini@lbl.gov\">MBonvini@lbl.gov</a><br/>
+{{ date_time }}
+</li>
+</ul>
+</html>"));
+end {{modelName}};
