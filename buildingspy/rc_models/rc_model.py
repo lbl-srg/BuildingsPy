@@ -251,6 +251,7 @@ class RcModel:
         keywords["state_vars"] = self._states_names_
         keywords["dist_vars"] = self._dist_names_
         keywords["Zones"] = self._zones_
+        keywords["A_tot"] = sum(self._zones_[:,0])
         
         # Create the file path of the model
         model_file_path = os.path.abspath(os.path.join(dir_path, modelName+".mo" ))
@@ -296,7 +297,7 @@ class RcModel:
         keywords["N_zones"] = self._zones_.shape[0]
         keywords["Zones"] = self._zones_
         keywords["date_time"] = datetime.datetime.now().strftime("%A, %d. %B %Y %I:%M%p")
-        keywords["weigths"] = matrix_to_string(self._zones_[:,0]/sum(self._zones_[:,0]))
+        keywords["weigths"] = matrix_to_string(self._zones_[:,1]/sum(self._zones_[:,1]))
         
         # Create the file path of the model
         model_file_path = os.path.abspath(os.path.join(dir_path, modelName+".mo" ))

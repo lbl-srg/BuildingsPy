@@ -34,7 +34,7 @@ class Test_rc_models(unittest.TestCase):
         dict = {}
         dict["A"] = np.ones((2,2))
         dict["Bv"] = np.ones((2,4))
-        dict["zone"] = np.ones((3,1))
+        dict["zone"] = np.ones((3,2))
         dict["state_x"] = [[array('u', u'one')], [array('u', u'two')]]
         dict["state_v"] = [[array('u', u'A1')], [array('u', u'D2')], [array('u', u'C3')], [array('u', u'D4')]]
         scipy.io.savemat(self.correct_mat_file, mdict = dict)
