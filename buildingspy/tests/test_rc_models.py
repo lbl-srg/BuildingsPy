@@ -4,7 +4,7 @@ import os
 import shutil
 import scipy.io
 import numpy as np
-from buildingspy.rc_models.rc_model import RcModel, matrix_to_string
+from buildingspy.rc_models.rc_model import RcModel, matrix_to_string, read_zones_table
 
 class Test_rc_models(unittest.TestCase):
     """
@@ -34,9 +34,15 @@ class Test_rc_models(unittest.TestCase):
         dict = {}
         dict["A"] = np.ones((2,2))
         dict["Bv"] = np.ones((2,4))
-        dict["zone"] = np.ones((3,2))
         dict["state_x"] = [[array('u', u'one')], [array('u', u'two')]]
         dict["state_v"] = [[array('u', u'A1')], [array('u', u'D2')], [array('u', u'C3')], [array('u', u'D4')]]
+        zones_table = np.array([[[u'identifier'],[u'description'],[u'area'],[u'volume']],\
+                       [[u'Z001'],[u'zone 1'],[u'11.00'],[u'33.00']],\
+                       [[u'Z002'],[u'zone 2'],[u'11.00'],[u'33.00']],\
+                       [[u'Z003'],[u'zone 3'],[u'11.00'],[u'33.00']],\
+                       [[u'Z004'],[u'zone 4'],[u'11.00'],[u'33.00']],\
+                       [[u'Z005'],[u'zone 5'],[u'11.00'],[u'33.00']]])
+        dict["zone"] = zones_table
         scipy.io.savemat(self.correct_mat_file, mdict = dict)
         
         # Create a wrong mat file
@@ -100,7 +106,52 @@ class Test_rc_models(unittest.TestCase):
         self.assertRaises(OSError, rc.set_templates_details, avg_model_template = "UnknownFile")
         self.assertRaises(ValueError, rc.set_templates_details, dir_path = self.temp_dir, avg_model_template = self.wrong_template)
         self.assertRaises(ValueError, rc.set_templates_details, dir_path = self.temp_dir, rc_model_template = self.wrong_template)\
+    
+    def test_read_zones_table(self):
+        """
+        Tests the :mod:`buildingspy.rc_models.rc_model.read_zones_table`
+        function.
+        """
+        import numpy as np
+        import array
         
+        # Create a valid zone table
+        zones_table = np.array([[[u'identifier'],[u'description'],[u'area'],[u'volume']],\
+                       [[u'Z001'],[u'zone 1'],[u'11.00'],[u'33.00']],\
+                       [[u'Z002'],[u'zone 2'],[u'22.00'],[u'66.00']],\
+                       [[u'Z003'],[u'zone 3'],[u'33.00'],[u'99.00']],\
+                       [[u'Z004'],[u'zone 4'],[u'44.00'],[u'132.00']],\
+                       [[u'Z005'],[u'zone 5'],[u'55.00'],[u'165.00']]])
+        
+        # Read the data
+        (zones, zones_id, zones_desc) = read_zones_table(zones_table)
+        
+        # Check correctness
+        self.assertListEqual(['zone 1','zone 2','zone 3','zone 4','zone 5'], zones_desc, "The zones descriptions are different")
+        self.assertListEqual(['Z001','Z002','Z003','Z004','Z005'], zones_id, "The zones ids are different")
+        zones_expected = np.array([range(1,6), range(1,6)]).T
+        zones_expected[:,0] *= 11.0
+        zones_expected[:,1] *= 33.0
+        np.testing.assert_array_equal(zones_expected, zones, "The zones values are different")
+        
+        # Check with wrong tables
+        zones_table = np.array([[[u'identifier'],[u'description'],[u'volume']],\
+                       [[u'Z001'],[u'zone 1'],[u'33.00']],\
+                       [[u'Z002'],[u'zone 2'],[u'66.00']],\
+                       [[u'Z003'],[u'zone 3'],[u'99.00']],\
+                       [[u'Z004'],[u'zone 4'],[u'132.00']],\
+                       [[u'Z005'],[u'zone 5'],[u'165.00']]])
+        self.assertRaises(KeyError, read_zones_table, zones_table)
+        
+        zones_table = np.array([[[u'identifier'],[u'description'],[u'area']],\
+                       [[u'Z001'],[u'zone 1'],[u'33.00']],\
+                       [[u'Z002'],[u'zone 2'],[u'66.00']],\
+                       [[u'Z003'],[u'zone 3'],[u'99.00']],\
+                       [[u'Z004'],[u'zone 4'],[u'132.00']],\
+                       [[u'Z005'],[u'zone 5'],[u'165.00']]])
+        self.assertRaises(KeyError, read_zones_table, zones_table)
+        
+       
     def test_load_from_brcm(self):
         '''
         Tests the :cls:`buildingspy.rc_models.rc_model.RcModel`
@@ -125,7 +176,10 @@ class Test_rc_models(unittest.TestCase):
                                              "Matrix A is different")
         np.testing.assert_array_almost_equal(np.ones((2,4)), rc.get_B(), 4,\
                                              "Matrix B is different")
-        np.testing.assert_array_almost_equal(np.ones((3,1)), rc.get_zone_volumes(), 4,\
+        zones_expected = np.ones((5,2))
+        zones_expected[:,0] *= 11.0
+        zones_expected[:,1] *= 33.0
+        np.testing.assert_array_almost_equal(zones_expected, rc.get_zone_volumes(), 4,\
                                              "Zones volumes are different")
         
     def test_create_model_from_brcm(self):
@@ -161,16 +215,16 @@ class Test_rc_models(unittest.TestCase):
             expected_model += "[1.000000, 1.000000; 1.000000, 1.000000]\n"
             expected_model += "[1.000000, 1.000000, 1.000000, 1.000000; 1.000000, 1.000000, 1.000000, 1.000000]"
             
-            self.assertEqual(expected_model, modelRC, "The model is different from the expected one")
+            self.assertEqual(expected_model, modelRC, "The RC model is different from the expected one")
             
         with open(os.path.join(self.temp_dir, "AvgModel.mo"), "r") as f:
             modelAvg = f.read()
             expected_model = "AvgModel\n"
             expected_model += "This is the description of the AVG model\n"
-            expected_model += "{0.333333, 0.333333, 0.333333}\n"
-            expected_model += "3"
+            expected_model += "{0.200000, 0.200000, 0.200000, 0.200000, 0.200000}\n"
+            expected_model += "5"
             
-            self.assertEqual(expected_model, modelAvg, "The model is different from the expected one")
+            self.assertEqual(expected_model, modelAvg, "The AVG model is different from the expected one")
         
         
 if __name__ == '__main__':

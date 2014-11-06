@@ -4,6 +4,7 @@ import scipy.io
 import jinja2
 import datetime
 import logging
+import numpy as np
 
 # Set up a default log configuration that writes to a log file named 'buildingspy.log'
 # The log file will be saved in the current directory
@@ -51,8 +52,12 @@ class RcModel:
         self._states_names_ = []
         self._dist_names_ = []
         
-        # Array that contains the volumes of the zones
+        # Matrix that contains the area and volume of each zone
         self._zones_ = None
+        
+        # List of identifier and description for each zone
+        self._zones_ids_ = []
+        self._zones_desc_ = []
         
         # The location of the folder that contains the templates
         dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -148,6 +153,18 @@ class RcModel:
         """
         return self._zones_
     
+    def get_zones_ids(self):
+        """
+        This method returns an array that contains the ID of each zone
+        """
+        return self._zones_ids_
+    
+    def get_zones_description(self):
+        """
+        This method returns an array that contains the description of each zone
+        """
+        return self._zones_desc_
+    
     def load_from_brcm(self, mat_file_path):
         """This method load the data of a BRCM model exported as a ``*.mat``
         file.
@@ -196,6 +213,22 @@ class RcModel:
         self._A_ = workspace["A"]
         self._B_ = workspace["Bv"]
         
+        logger.debug("The matrix A has size %s" % str(self._A_.shape))
+        logger.debug("The matrix B has size %s" % str(self._B_.shape))
+        
+        # Check matrix consistency
+        (row_A, col_A) = self._A_.shape
+        (row_B, col_B) = self._B_.shape
+        
+        if row_A != col_A:
+            logger.error("Error in the RC model,  A is not a square matrix: %s" % str(self._A_.shape))
+            return False
+        
+        if row_A != row_B:
+            logger.error("Error in the RC model, A %s and B %s have not compatible shapes" %\
+                         (str(self._A_.shape), str(self._B_.shape)))
+            return False
+        
         # Lambda function that extracts strings from object in the mat file
         f_get_string = lambda x: x[0][0]
         
@@ -203,8 +236,25 @@ class RcModel:
         self._states_names_ = [f_get_string(x) for x in workspace["state_x"]]
         self._dist_names_ = [f_get_string(x) for x in workspace["state_v"]]
         
+        # Check consistency between the names of the state
+        if row_A != len(self._states_names_):
+            logger.error("Error in the RC model, the number state variables (=%s) and the size of A (=%s) do not match" %\
+                         (str(len(self._states_names_)), str(self._A_.shape)))
+            return False
+        
+        # Check consistency between the names of the disturbances
+        if col_B != len(self._dist_names_):
+            logger.error("Error in the RC model, number of disturbance variables (=%s) and the size of B (=%s) do not match" %\
+                         (str(len(self._dist_names_)), str(self._B_.shape)))
+            return False
+        
         # Get the matrix that contains the zone info
-        self._zones_ = workspace["zone"]
+        try:
+            (self._zones_, self._zones_ids_, self._zones_desc_) = read_zones_table(workspace["zone"])
+        except Exception, e:
+            logger.error("Problem while reading the zones table: %s" % str(e))
+            logger.debug(workspace["zone"])
+            return False
         
         msg = "Workspace successfully read"
         logger.info(msg)
@@ -402,3 +452,71 @@ def matrix_to_string(M):
                 Ms += "}"
                 
     return Ms
+
+def read_zones_table(zone_table):
+    """
+    :zone_table: is a variable exported by the Matlab workspace that contains the details of the
+    zones of the Energy Plus model exported with the BRCM toolbox.
+    
+    The method parses the table and returns the following variables:
+    
+    * ``zones`` a matrix that contains the information about area and volume of
+    each building zone,
+    * ``zones_id`` a list of the IDs associated to the zones,
+    * ``zones_desc`` a list of descriptions associated to the zones.
+    
+    The table has to be structured in the following way
+    
+    +--------------------------------------------------+
+    | 'identifier' | 'description' | 'area' | 'volume' |
+    +--------------------------------------------------+
+    |    <id_1>    |   zone 1 ...  | 23.3   |  77.5    |
+    +--------------------------------------------------+
+    |    <id_2>    |   zone 2 ...  | 23.3   |  77.5    |
+    +--------------------------------------------------+
+    |    <id_3>    |   zone 3 ...  | 23.3   |  77.5    |
+    +--------------------------------------------------+
+    |    ...       |          ...  |  ...   |  ....    |
+    +--------------------------------------------------+
+    |    <id_N>    |   zone N ...  | 23.3   |  77.5    |
+    +--------------------------------------------------+
+    
+    """
+    
+    # Get the first row
+    first_row = [str(x[0]).strip() for x in zone_table[0,:]]
+    
+    # Check if the first rows contains the required identifiers
+    required_col_names = ['identifier', 'description', 'area', 'volume']
+    
+    for col_name in required_col_names:
+        if col_name not in first_row:
+            # Error, table does not contains a required column identifier
+            msg = "The zone table does not have the column named %s" % (col_name)
+            logger.exception(msg)
+            raise KeyError(msg)
+        
+    # Read the column 'identifier'
+    ix = first_row.index('identifier')
+    zones_id = [x[0] for x in zone_table[1:,ix]]
+    
+    # Read the column 'description'
+    ix = first_row.index('description')
+    zones_desc = [x[0] for x in zone_table[1:,ix]]
+    
+    # Read the column 'area'
+    ix = first_row.index('area')
+    zones_area = np.array([float(x[0]) for x in zone_table[1:,ix]])
+    
+    # Read the column 'volume'
+    ix = first_row.index('volume')
+    zones_vol = np.array([float(x[0]) for x in zone_table[1:,ix]])
+    
+    # Combine together the area and the volume
+    zones = np.vstack((zones_area, zones_vol)).T
+    
+    return (zones, zones_id, zones_desc) 
+    
+    
+    
+        
