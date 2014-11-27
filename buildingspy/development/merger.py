@@ -254,9 +254,10 @@ class Annex60:
 
         excludes = '|'.join([x for x in self._excluded_packages]) or r'$.'
         
+        # path where a list of all copied files is saved
         copFilPat = os.path.join(self._target_home,"CopiedFiles.txt")
         
-        # remove file from previous merge if this merge exists
+        # remove files from previous merge
         if os.path.isfile(copFilPat):
             with open(copFilPat,'r') as fp:
                 files = fp.read()
