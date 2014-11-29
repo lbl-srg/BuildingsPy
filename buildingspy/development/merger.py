@@ -257,12 +257,12 @@ class Annex60:
         # path where a list of all copied files is saved
         copFilPat = os.path.join(self._target_home,"CopiedFiles.txt")
         
-        # remove files from previous merge
+        # remove files from previous merge (except for .order file and package.mo files)
         if os.path.isfile(copFilPat):
             with open(copFilPat,'r') as fp:
                 files = fp.read()
             for filPat in files.split("\n"):
-                if not filPat.startswith("#") and os.path.isfile(filPat):
+                if not filPat.startswith("#") and os.path.isfile(filPat) and not filPat.endswith(".order") and not filPat.endswith("package.mo"):
                     os.remove(filPat)
         
         
