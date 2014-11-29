@@ -53,6 +53,7 @@ class Test_development_merger_Annex60(unittest.TestCase):
         # Test packages that do exist
         m.Annex60(self._annex60_dir, self._dest_dir)
  
+         
     def test_get_merged_package_order(self):
         import buildingspy.development.merger as m        
         mer = m.Annex60(self._annex60_dir, self._dest_dir)

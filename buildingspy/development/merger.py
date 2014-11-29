@@ -66,18 +66,7 @@ class Annex60:
             :param des: Lines of the destination file for `package.order`.
 
         """
-        def moveItemToFront(item, lis):
-            if item in lis:
-                lis.remove(item)
-                lis.insert(0, item)
-            return lis
-
-        def moveItemToEnd(item, lis):
-            if item in lis:
-                lis.remove(item)
-                lis.append(item)
-            return lis
-
+        import buildingspy.development.refactor as r
         def isPackage(directory, item):
             import os
             if os.path.isdir(os.path.join(directory, item)):
@@ -129,17 +118,7 @@ class Annex60:
         for ele in m:
             s.append(ele)
 
-        s = moveItemToFront("UsersGuide", s)
-        s = moveItemToEnd("Data", s)
-        s = moveItemToEnd("Types", s)
-        s = moveItemToEnd("Examples", s)
-        s = moveItemToEnd("Experimental", s)
-        s = moveItemToEnd("BaseClasses", s)
-        s = moveItemToEnd("Interfaces", s)
-        s = moveItemToEnd("Internal", s)        
-        s = moveItemToEnd("Obsolete", s)
-
-        return s
+        return r.Refactor.sort_package_order(s)
 
 
     def _merge_package_order(self, source_file, destination_file):
