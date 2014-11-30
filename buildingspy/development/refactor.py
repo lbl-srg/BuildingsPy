@@ -53,8 +53,8 @@ def _sort_package_order(package_order):
     s = moveItemToEnd([__PAC, "Validation"], s)
     s = moveItemToEnd([__PAC, "Benchmarks"], s)    
     s = moveItemToEnd([__PAC, "Experimental"], s)
-    s = moveItemToEnd([__PAC, "BaseClasses"], s)
     s = moveItemToEnd([__PAC, "Interfaces"], s)
+    s = moveItemToEnd([__PAC, "BaseClasses"], s)
     s = moveItemToEnd([__PAC, "Internal"], s)
     s = moveItemToEnd([__PAC, "Obsolete"], s)
 
@@ -378,7 +378,15 @@ def write_package_order(directory=".", recursive=False):
                                 break
             # Add directories.
             if os.path.isdir(os.path.join(directory, f)):
-                pacLis.append([__PAC, f])
+                # List all files in this directory. If there is at least one
+                # file with the .mo extension, then it is a Modelica package.
+                pat=os.path.join(directory, f)
+                files_in_sub_dir = (fil for fil in os.listdir(pat) 
+                                    if os.path.isfile(os.path.join(pat, fil)))
+                for file_in_sub_dir in files_in_sub_dir:
+                    if file_in_sub_dir.endswith(".mo"):
+                        pacLis.append([__PAC, f])
+                        break
         
         pacLis = _sort_package_order(pacLis)
         # Write the new package.order file
