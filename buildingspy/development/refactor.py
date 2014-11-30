@@ -51,6 +51,7 @@ def _sort_package_order(package_order):
     s = moveItemToEnd([__MOD, "Types"], s)
     s = moveItemToEnd([__PAC, "Examples"], s)
     s = moveItemToEnd([__PAC, "Validation"], s)
+    s = moveItemToEnd([__PAC, "Benchmarks"], s)    
     s = moveItemToEnd([__PAC, "Experimental"], s)
     s = moveItemToEnd([__PAC, "BaseClasses"], s)
     s = moveItemToEnd([__PAC, "Interfaces"], s)
@@ -322,58 +323,69 @@ def _move_image_files(source, target):
                                    os.path.join(imgDir(target), f))
 
 
-def write_package_order(directory):
+def write_package_order(directory=".", recursive=False):
     ''' Write the `package.order` file in the directory `directory`.
 
         Any existing `package.order` file will be overwritten.
 
         :param directory: The name of the directory in which the `package.order` file
                           will be written.
+        :param recursive: Set to `True` to recursively include all sub directories.
 
         Usage: To rewrite `package.order` in the current directory, type
 
         >>> import buildingspy.development.refactor as r
         >>> r.write_package_order(".") #doctest: +ELLIPSIS
 
-
-
     '''
-    files = [f for f in os.listdir( directory )]
-    pacLis = list()
-    for f in files:
-        if os.path.isfile(os.path.join(directory, f)):
-            if f.endswith(".mo") and (not f == 'package.mo'):
-                # Check the first two lines for "record class_name" as
-                # records should be listed after all the models.
-                class_name = f[:-3]
-                recordString = "record %s" % class_name
-                fil = open(os.path.join(directory, f), 'r')
-                typ=__MOD
-                for _ in range(2):
-                    if recordString in fil.readline():
-                        typ = __REC
-                        break;
-                fil.close()
-
-                pacLis.append([typ, class_name])
-            if f == 'package.mo':
-                # Some package.mo file contain a UsersGuide.
-                # Add this to the list if needed.
-                with open(os.path.join(directory, f), 'r') as fil:
-                    for line in fil:
-                        if "package UsersGuide" in line:
-                            pacLis.append([__MOD, "UsersGuide"])
-                            break
-        # Add directories.
-        if os.path.isdir(os.path.join(directory, f)):
-            pacLis.append([__PAC, f])
-
-    pacLis = _sort_package_order(pacLis)
-    # Write the new package.order file
-    filPac = open(os.path.join(directory, 'package.order'), 'w')
-    for p in pacLis:
-        filPac.write(p[1] + "\n")
-    filPac.close()
+    if recursive:
+        s = set()        
+        for root, _, files in os.walk(os.path.curdir):
+            for fil in files:
+                if fil.endswith(".mo"):
+                    # Include the directory
+                    s.add(root)
+    #            srcFil=os.path.join(root, fil)
+        for ele in s:
+            write_package_order(directory=ele, recursive=False)
+    else:
+        # Update the package.order file in the current directory.
+        files = [f for f in os.listdir( directory )]
+        pacLis = list()
+        for f in files:
+            if os.path.isfile(os.path.join(directory, f)):
+                if f.endswith(".mo") and (not f == 'package.mo'):
+                    # Check the first two lines for "record class_name" as
+                    # records should be listed after all the models.
+                    class_name = f[:-3]
+                    recordString = "record %s" % class_name
+                    fil = open(os.path.join(directory, f), 'r')
+                    typ=__MOD
+                    for _ in range(2):
+                        if recordString in fil.readline():
+                            typ = __REC
+                            break;
+                    fil.close()
+        
+                    pacLis.append([typ, class_name])
+                if f == 'package.mo':
+                    # Some package.mo file contain a UsersGuide.
+                    # Add this to the list if needed.
+                    with open(os.path.join(directory, f), 'r') as fil:
+                        for line in fil:
+                            if "package UsersGuide" in line:
+                                pacLis.append([__MOD, "UsersGuide"])
+                                break
+            # Add directories.
+            if os.path.isdir(os.path.join(directory, f)):
+                pacLis.append([__PAC, f])
+        
+        pacLis = _sort_package_order(pacLis)
+        # Write the new package.order file
+        filPac = open(os.path.join(directory, 'package.order'), 'w')
+        for p in pacLis:
+            filPac.write(p[1] + "\n")
+        filPac.close()
 
 
 def move_class(source, target):
