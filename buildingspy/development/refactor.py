@@ -10,9 +10,11 @@ __all__ = ["create_modelica_package", "move_class", "write_package_order"]
 
 # Constants that are used to properly order models prior to packages in
 # the package.order file.
+# First, models are listed, then records, then packages and at the end constants.
 __MOD=0
 __REC=1
 __PAC=2
+__CON=3
 
 
 def _sort_package_order(package_order):
@@ -51,7 +53,7 @@ def _sort_package_order(package_order):
     s = moveItemToEnd([__MOD, "Types"], s)
     s = moveItemToEnd([__PAC, "Examples"], s)
     s = moveItemToEnd([__PAC, "Validation"], s)
-    s = moveItemToEnd([__PAC, "Benchmarks"], s)    
+    s = moveItemToEnd([__PAC, "Benchmarks"], s)
     s = moveItemToEnd([__PAC, "Experimental"], s)
     s = moveItemToEnd([__PAC, "Interfaces"], s)
     s = moveItemToEnd([__PAC, "BaseClasses"], s)
@@ -338,8 +340,9 @@ def write_package_order(directory=".", recursive=False):
         >>> r.write_package_order(".") #doctest: +ELLIPSIS
 
     '''
+    import re
     if recursive:
-        s = set()        
+        s = set()
         for root, _, files in os.walk(os.path.curdir):
             for fil in files:
                 if fil.endswith(".mo"):
@@ -366,28 +369,39 @@ def write_package_order(directory=".", recursive=False):
                             typ = __REC
                             break;
                     fil.close()
-        
+
                     pacLis.append([typ, class_name])
                 if f == 'package.mo':
-                    # Some package.mo file contain a UsersGuide.
+                    # Some package.mo files contain a UsersGuide.
                     # Add this to the list if needed.
                     with open(os.path.join(directory, f), 'r') as fil:
                         for line in fil:
                             if "package UsersGuide" in line:
                                 pacLis.append([__MOD, "UsersGuide"])
                                 break
+                    # Some package.mo files contain constants for the whole package.
+                    # The need to be added to the package.order as well.
+                    with open(os.path.join(directory, f), 'r') as fil:
+                        lines = fil.read()
+                        # Constants can be 'constant Real n = ..." or "constant someClass n(..."
+                        con=re.findall(r";\s*constant\s+[a-zA-Z0-9_\.]+\s+(\w+)\s*[=\(]", lines, re.MULTILINE);
+#                        con=re.search(r"constant\s+\w+\s+(\w+)\s*=", lines, re.MULTILINE);
+                        for ele in con:
+                            # Found a constant whose name is in con.group(1)
+                            pacLis.append([__CON, ele])
+
             # Add directories.
             if os.path.isdir(os.path.join(directory, f)):
                 # List all files in this directory. If there is at least one
                 # file with the .mo extension, then it is a Modelica package.
                 pat=os.path.join(directory, f)
-                files_in_sub_dir = (fil for fil in os.listdir(pat) 
+                files_in_sub_dir = (fil for fil in os.listdir(pat)
                                     if os.path.isfile(os.path.join(pat, fil)))
                 for file_in_sub_dir in files_in_sub_dir:
                     if file_in_sub_dir.endswith(".mo"):
                         pacLis.append([__PAC, f])
                         break
-        
+
         pacLis = _sort_package_order(pacLis)
         # Write the new package.order file
         filPac = open(os.path.join(directory, 'package.order'), 'w')
