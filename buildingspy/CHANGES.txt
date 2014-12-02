@@ -28,6 +28,10 @@ Version 1.5.0, xxx, 2014 -- Release 1.5
   location of the package.mo file.
   Now, the current directory is used as the default value, which
   can be overwritten using the parameter packagePath.
+- Corrected bug in buildingspy.development.regressiontest that
+  only used the first word in the result mat file. This bug
+  caused the unit tests to return with an error if for example
+  an output file was named Obsolete.FlowMachine
 - Corrected bug in buildingspy.development.Validator that
   caused the html section to be not validated if the Modelica
   file contained the </html> and <html> element on the same line.
