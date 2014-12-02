@@ -511,6 +511,7 @@ class Tester:
                         for lin in Lines:
                             if 'resultFile=\"' in lin:
                                 matFil = re.search('(?<=resultFile=\")[a-zA-Z0-9_\.]+', lin).group()
+                                # Add the .mat extension as this is not included in the resultFile entry.
                                 matFil =  matFil + '.mat'
                                 break
                         # Some *.mos file only contain plot commands, but no simulation.
@@ -519,11 +520,12 @@ class Tester:
                         if len(matFil) == 0:
                             for lin in Lines:
                                 if 'filename=\"' in lin:
+                                    # Note that the filename entry already has the .mat extension.
                                     matFil = re.search('(?<=filename=\")[a-zA-Z0-9_\.]+', lin).group()
-                                    matFil = matFil + '.mat'
                                     break
                         if len(matFil) == 0:
                             raise  ValueError('Did not find *.mat file in ' + mosFil)
+
                         dat['ResultFile'] = matFil
                         self._data.append(dat)
         # Make sure we found at least one unit test
