@@ -259,20 +259,19 @@ class Annex60:
                 srcFil=os.path.join(root, fil)
                 # Loop over all
                 # - .mo files except for top-level .mo file
-                # - package.order
                 # - .mos files
                 # - ReferenceResults
                 if (not srcFil.endswith(os.path.join("Annex60", "package.mo")) \
                     or srcFil.endswith("legal.html")):
 
                     desFil=srcFil.replace(self._annex60_home, self._target_home)
-                    copiedFiles.append(desFil)
                     desPat=os.path.dirname(desFil)
                     if not os.path.exists(desPat):
                         os.makedirs(desPat)
                     # Process file.
                     # Copy mo and mos files, and replace the library name
                     if desFil.endswith(".mo") or desFil.endswith(".mos"):
+                        copiedFiles.append(desFil)
                         self._copy_mo_and_mos(srcFil, desFil)
                     # Only copy reference results if no such file exists.
                     # If a reference file already exists, then don't change it.
@@ -285,10 +284,12 @@ class Annex60:
                                                 base_name.replace("Annex60",
                                                                   self._new_library_name))
                         if not os.path.isfile(new_file):
+                            copiedFiles.append(new_file)
                             shutil.copy2(srcFil, new_file)
 
                     # Copy all other files. This may be images, C-source, libraries etc.
                     else:
+                        copiedFiles.append(desFil)
                         shutil.copy2(srcFil, desFil)
             
             #save a list of all files that were copied            
