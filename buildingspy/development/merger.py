@@ -229,7 +229,6 @@ class Annex60:
         import os
         import shutil
         import re
-        import fnmatch
 
         excludes = '|'.join([x for x in self._excluded_packages]) or r'$.'
         
