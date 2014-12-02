@@ -510,7 +510,7 @@ class Tester:
                         # search for the result file
                         for lin in Lines:
                             if 'resultFile=\"' in lin:
-                                matFil = re.search('(?<=resultFile=\")\w+', lin).group()
+                                matFil = re.search('(?<=resultFile=\")[a-zA-Z0-9_\.]+', lin).group()
                                 matFil =  matFil + '.mat'
                                 break
                         # Some *.mos file only contain plot commands, but no simulation.
@@ -519,7 +519,7 @@ class Tester:
                         if len(matFil) == 0:
                             for lin in Lines:
                                 if 'filename=\"' in lin:
-                                    matFil = re.search('(?<=filename=\")\w+', lin).group()
+                                    matFil = re.search('(?<=filename=\")[a-zA-Z0-9_\.]+', lin).group()
                                     matFil = matFil + '.mat'
                                     break
                         if len(matFil) == 0:
