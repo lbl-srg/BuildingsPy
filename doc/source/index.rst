@@ -6,7 +6,7 @@
 buildingspy
 ===========
 
-*buildingspy* is a `Python <http://www.python.org/>`_
+*buildingspy* is a `Python <https://www.python.org/>`_
 package that can be used
 
  - to run Modelica simulations using
