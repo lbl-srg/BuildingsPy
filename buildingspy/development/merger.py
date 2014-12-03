@@ -49,9 +49,9 @@ class Annex60:
 
     def set_excluded_packages(self, packages):
         ''' Set the packages that are excluded from the merge.
-        
+
         :param packages: A list of packages to be excluded.
-        
+
         '''
         if not isinstance(packages, list):
             raise ValueError("Argument must be a list.")
@@ -216,6 +216,18 @@ class Annex60:
             .. warning:: This method is experimental. Do not use it without
                          having a backup of your code.
 
+            This function merges the `Annex60` library into other
+            Modelica libraries. In the top-level directory of the
+            destination library, this function creates the file
+            `.copiedFiles.txt` that lists all files that have been
+            copied. In subsequent calls, this function
+            deletes all files listed in `.copiedFiles.txt`,
+            then merges the libraries, and creates a new version of
+            `.copiedFiles.txt`. Therefore, if a model is moved
+            in the `Annex60` library, it will also be moved in the
+            target library by deleting the old file and copying
+            the new file.
+
             A typical usage is
                 >>> import buildingspy.development.merger as m
                 >>> import os
@@ -235,7 +247,7 @@ class Annex60:
 
         # path where a list of all copied files is saved
         copFilPat = os.path.join(self._target_home, ".copiedFiles.txt")
-        
+
         # Remove files from previous merge
         if os.path.isfile(copFilPat):
             roo = self._target_home.split(self._new_library_name)[0]
@@ -246,9 +258,9 @@ class Annex60:
                         absFil = os.path.join(roo, fil)
                         if os.path.isfile(absFil):
                             os.remove(fil)
-        
+
         copiedFiles=list()
-        
+
         # Location of reference results
         ref_res = os.path.join(self._target_home, "Resources", "ReferenceResults", "Dymola")
 
@@ -295,7 +307,7 @@ class Annex60:
                     else:
                         copiedFiles.append(desFil)
                         shutil.copy2(srcFil, desFil)
-            
+
         # Generate package.order files
         r.write_package_order(self._target_home, True)
         # Save a list of all files that were copied.
