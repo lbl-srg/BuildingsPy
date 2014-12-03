@@ -4,6 +4,16 @@
 #
 # MWetter@lbl.gov                            2014-11-23
 #######################################################
+'''
+  This module provides functions to 
+
+  * create Modelica packages and autopopulate for example the
+    `package.mo` and `package.order` files
+  * move Modelica classes include any associated `.mos` scripts,
+    reference results and images, and
+  * rewrite the `package.order` file.
+
+'''
 import os
 
 __all__ = ["create_modelica_package", "move_class", "write_package_order"]
