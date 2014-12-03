@@ -16,7 +16,7 @@ Version 1.5.0, xxx, 2014 -- Release 1.5
 - Added method development.include_fmu_tests that allow testing
   the export of FMUs.
 - development.regressiontest now also reports when Dymola
-  had to select default initial conditions, 
+  had to select default initial conditions,
   a model had redundant consistent initial conditions, or
   a model had type inconsistent definition equations.
 - Corrected bug in simulate.Simulator that caused a syntax error
@@ -35,7 +35,8 @@ Version 1.5.0, xxx, 2014 -- Release 1.5
 - Corrected bug in buildingspy.development.Validator that
   caused the html section to be not validated if the Modelica
   file contained the </html> and <html> element on the same line.
-
+- Added new module buildingspy.development.refactor that provides
+  functions to refactor Modelica libraries.
 
 Version 1.4.0, February 28, 2014 -- Release 1.4
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
