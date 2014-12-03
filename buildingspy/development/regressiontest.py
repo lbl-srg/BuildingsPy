@@ -248,6 +248,7 @@ class Tester:
         :param fmu_export: Set to ``True`` to test the export of FMUs.
 
         To run the unit tests and also test the export of FMUs, type
+
         >>> import os
         >>> import buildingspy.development.regressiontest as r
         >>> r = r.Tester()
