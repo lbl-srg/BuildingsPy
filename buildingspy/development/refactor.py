@@ -55,6 +55,8 @@ def _sort_package_order(package_order):
 
     # Some items can be files or they can be in an own directory
     # such as UsersGuilde/package.mo
+    s = moveItemToFront([__MOD, "Tutorial"], s)            
+    s = moveItemToFront([__PAC, "Tutorial"], s)    
     s = moveItemToFront([__MOD, "UsersGuide"], s)
     s = moveItemToFront([__PAC, "UsersGuide"], s)
     s = moveItemToEnd([__PAC, "Data"], s)
@@ -229,14 +231,21 @@ def get_modelica_file_name(source):
     '''
     return os.path.join(*source.split(".")) + ".mo"
 
-def replace_text_in_file(file_name, old, new):
+def replace_text_in_file(file_name, old, new, isRegExp=False):
     ''' Replace `old` with `new` in file `file_name`.
+    
+        If `isRegExp==True`, then old must be a regular expression, and
+        `re.sub(old, new, ...)` is called where `...` is each line of the file.
     '''
+    import re
     # Read source file, store the lines and update the content of the lines
     f_sou = open(file_name, 'r')
     lines = list()
     for _, lin in enumerate(f_sou):
-        lin = lin.replace(old, new)
+        if isRegExp == True:
+            lin = re.sub(old, new, lin)
+        else:
+            lin = lin.replace(old, new)
         lines.append(lin)
     f_sou.close
     # Write the lines to the new file
@@ -453,6 +462,7 @@ def move_class(source, target):
         >>>              "Buildings.Fluid.Movers.FlowControlled_dp") #doctest: +ELLIPSIS
 
     '''
+    from multiprocessing import Pool
     ##############################################################
     # Move .mo file
     _move_mo_file(source, target)
@@ -471,27 +481,93 @@ def move_class(source, target):
     _move_image_files(source, target)
 
     # Update all references in the mo and mos files
+    fileList=list()
     for root, _, files in os.walk(os.path.curdir):
         # Exclude certain folders
 #            dirs[:] = [os.path.join(root, d) for d in dirs]
 #            dirs[:] = [d for d in dirs if not re.search(excludes, d)]
 
         for fil in files:
-            srcFil=os.path.join(root, fil)
-            # Loop over all
-            # - .mo
-            # - package.order
-            # - ReferenceResults
-            if fil.endswith(".mo"):
-                # Replace the Modelica class name that may be used in hyperlinks
-                # or when instantiating the class.
-                # For now, this requires a full class name.
-                replace_text_in_file(srcFil, source, target)
-                # Replace the hyperlinks, without the top-level library name.
-                # This updates for example the RunScript command that points to
-                # "....Dymola/Fluid/..."
-                sd = lambda s: "Resources/Scripts/Dymola/" + s[s.find('.')+1:].replace(".", "/")
-                replace_text_in_file(srcFil, sd(source), sd(target))
-            elif fil.endswith("package.order"):
-                # Update package.order
-                write_package_order(os.path.dirname(srcFil))
+            fileList.append([root, fil, source, target])
+    # Update the files
+    pool=Pool()
+    pool.map(_updateFile, fileList)
+    
+def _updateFile(arg):
+    ''' Update all `.mo`, `package.order` and reference result file
+        
+        The argument `arg` is a list where the first item is
+        the relative file name (e.g., `./Buildings/package.mo`),
+        the second element is the class name of the source and
+        the third element is the class name of the target.
+        
+        This function has been implemented as doing the text replace is time
+        consuming and hence this is done in parallel.
+        
+        :param arg: A list with the arguments.
+    '''
+
+    def _getShortName(fileName, className):
+        import re
+            
+        pos=re.search(r'\w', fileName).start()
+        splFil=fileName[pos:].split(os.path.sep)
+        splCla=className.split(".")
+        shortSource = None
+        for i in range(min(len(splFil), len(splCla))):
+            if splFil[i] != splCla[i]:
+                # shortSource starts with a space as instance names are
+                # preceeded with a space
+                shortSource=" "
+                for j in range(i, len(splCla)):
+                    shortSource += splCla[j] + "."
+                # Remove last dot
+                shortSource = shortSource[:-1]
+                if shortSource == " Validation.ControlledFlowMachineDynamic":
+                    print("****** fixme: %s, %s, %s" % (fileName, className, shortSource))
+                break
+        return shortSource
+    
+
+    root  =arg[0]
+    fil   =arg[1]
+    source=arg[2]
+    target=arg[3]
+    
+    srcFil=os.path.join(root, fil)
+    # Loop over all
+    # - .mo
+    # - package.order
+    # - ReferenceResults
+    if srcFil.endswith(".mo"):
+        # Replace the Modelica class name that may be used in hyperlinks
+        # or when instantiating the class.
+        # For now, this requires a full class name.
+        replace_text_in_file(srcFil, source, target)
+        
+        # For example, in Buildings/Fluid/Sources/xx.mo, the model Buildings.Fluid.Sensors.yy
+        # may be instanciated as Sensors.yy.
+        # Hence, we search for the common packages, remove them from the
+        # source name, call this shortSource, and replace this short name
+        # with the new name.
+        # The same is done with the target name so that short instance names
+        # remain short instance names.
+        shortSource=_getShortName(srcFil, source)
+        shortTarget=_getShortName(srcFil, target)
+        # If shortSource is only one class (e.g., "xx" and not "xx.yy", 
+        # then this is also used in constructs such as "model xx" and "end xx;"
+        # Hence, we only replace it if it is proceeded only by empty characters, and nothing else.
+        if "." in shortSource:  
+            replace_text_in_file(srcFil, shortSource, shortTarget, isRegExp=False)
+        else:
+            regExp = "(?!\w)" + shortTarget
+            replace_text_in_file(srcFil, regExp, shortTarget, isRegExp=True)
+                
+        # Replace the hyperlinks, without the top-level library name.
+        # This updates for example the RunScript command that points to
+        # "....Dymola/Fluid/..."
+        sd = lambda s: "Resources/Scripts/Dymola/" + s[s.find('.')+1:].replace(".", "/")
+        replace_text_in_file(srcFil, sd(source), sd(target))
+    elif srcFil.endswith("package.order"):
+        # Update package.order
+        write_package_order(os.path.dirname(srcFil))
