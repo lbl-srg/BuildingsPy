@@ -146,7 +146,23 @@ end Validation;
 ''' % (parentPackage, parentPackage, parentPackage)
                 f.write(s)
                 f.close()
-
+            elif d == "BaseClasses":
+                f = open(os.path.join(fd, "package.mo"), "w")
+                s = '''
+within %s;
+package BaseClasses "Package with base classes for %s"
+  extends Modelica.Icons.ExamplesPackage;
+annotation (preferredView="info", Documentation(info="<html>
+<p>
+This package contains base classes that are used to construct the models in
+<a href=\\"modelica://%s\\">
+%s</a>.
+</p>
+</html>"));
+end BaseClasses;
+''' % (parentPackage, parentPackage, parentPackage, parentPackage)
+                f.write(s)
+                f.close()                
             else:
                 f = open(os.path.join(fd, "package.mo"), "w")
                 s = '''
@@ -159,7 +175,7 @@ fixme: add a package description.
 </p>
 </html>"));
 end %s;
-''' % (parentPackage, d, parentPackage, parentPackage, d)
+''' % (parentPackage, d, d)
                 f.write(s)
                 f.close()
 
