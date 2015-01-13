@@ -16,6 +16,7 @@ setup(
     license = "3-clause BSD",
     keywords = "modelica dymola openmodelica mat",
     url = "http://simulationresearch.lbl.gov/modelica/",
+    install_requires = ["pytidylib"],
     packages = ['buildingspy',
                 'buildingspy/development', 
                 'buildingspy/examples', 

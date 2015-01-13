@@ -15,6 +15,7 @@ pep8:
 
 unittest:
 	python -m unittest discover buildingspy/tests
+#	python buildingspy/tests/test_simulate_Simulator.py
 #	python buildingspy/tests/test_io_postprocess.py
 
 doctest:
@@ -24,7 +25,7 @@ doctest:
 	buildingspy/examples/dymola/*.py \
 	buildingspy/simulate/*.py \
         buildingspy/development/*.py
-	@rm plot.pdf plot.png roomTemperatures.png dymola.log
+	@rm -f plot.pdf plot.png roomTemperatures.png dymola.log
 
 dist:	clean doctest unittest doc 
 	@# Make sure README.rst are consistent

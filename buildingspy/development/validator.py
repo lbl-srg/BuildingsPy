@@ -110,7 +110,13 @@ Modelica package. Expected file '%s'."
                     body += lines[i][0:idx] + '\n'
                     firstHTML = True
                     body += "<h4>Revisions</h4>\n"
-#                    break
+                    # Next, we need to check whether the line that contains </html> also
+                    # contains <html>.
+                    idx = lines[i].find("<html>")
+                    if idx > -1:
+                        body += lines[i][idx+6:] + '\n'
+                        firstHTML = False
+
         # Replace \" with "
         body = body.replace('\\"', '"')
 

@@ -1,0 +1,5 @@
+simulateModel("MyModelicaLibrary.Examples.BooleanParameters", method="dassl", resultFile="BooleanParameters");
+createPlot(
+  id=1, 
+  y={"p1", "p2"}
+)
