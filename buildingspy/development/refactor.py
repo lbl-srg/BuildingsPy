@@ -458,8 +458,8 @@ def move_class(source, target):
     Usage: Type
 
         >>> import buildingspy.development.refactor as r
-        >>> r.move_class("Buildings.Fluid.Movers.FlowMachine_dp",
-        >>>              "Buildings.Fluid.Movers.FlowControlled_dp") #doctest: +ELLIPSIS
+        >>> r.move_class("Buildings.Fluid.Movers.FlowControlled_dp", \
+        >>>              "Buildings.Fluid.Movers.Flow_dp") #doctest: +SKIP
 
     '''
     from multiprocessing import Pool
