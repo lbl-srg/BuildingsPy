@@ -1361,15 +1361,15 @@ Modelica.Utilities.Streams.print("{\"testCase\" : [", "%s");
                                              self._data[i]['ScriptFile'])
                     absMosFilNam = os.path.join(self._temDir[iPro], mosFilNam)
 
-                    values = {"mosWithPath": mosFilNam,
-                              "checkCommand": self._getModelCheckCommand(absMosFilNam),
+                    values = {"mosWithPath": mosFilNam.replace("\\","/"),
+                              "checkCommand": self._getModelCheckCommand(absMosFilNam).replace("\\","/"),
                               "checkCommandString": self._getModelCheckCommand(absMosFilNam).replace('\"', r'\\\"'),
-                              "scriptDir": self._data[i]['ScriptDirectory'],
-                              "scriptFile": self._data[i]['ScriptFile'],
-                              "modelName": self._data[i]['modelName'],
+                              "scriptDir": self._data[i]['ScriptDirectory'].replace("\\","/"),
+                              "scriptFile": self._data[i]['ScriptFile'].replace("\\","/"),
+                              "modelName": self._data[i]['modelName'].replace("\\","/"),
                               "modelName_underscore":  self._data[i]['modelName'].replace(".", "_"),
-                              "statisticsLog": self._statistics_log,
-                              "simulatorLog": self._simulator_log_file}
+                              "statisticsLog": self._statistics_log.replace("\\","/"),
+                              "simulatorLog": self._simulator_log_file.replace("\\","/")}
 
 
                     # Add checkModel(...) in pedantic mode
@@ -1646,7 +1646,7 @@ getErrorString();
             for d in self._temDir:
                 temLogFilNam = os.path.join(d, self.getLibraryName(), self._statistics_log)
                 if os.path.exists(temLogFilNam):
-                    temSta=open(temLogFilNam, 'r')
+                    temSta=open(temLogFilNam.replace('Temp\tmp','Temp\\tmp'), 'r')
                     try:
                         cas = json.load(temSta)["testCase"]
                         # Iterate over all test cases of this output file
