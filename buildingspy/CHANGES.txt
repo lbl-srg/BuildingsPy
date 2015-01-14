@@ -37,6 +37,9 @@ Version 1.5.0, xxx, 2014 -- Release 1.5
   file contained the </html> and <html> element on the same line.
 - Added new module buildingspy.development.refactor that provides
   functions to refactor Modelica libraries.
+- Corrected forward and backward slashes in module that runs
+  the regression tests.
+
 
 Version 1.4.0, February 28, 2014 -- Release 1.4
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
