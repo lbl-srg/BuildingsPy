@@ -39,7 +39,10 @@ Version 1.5.0, xxx, 2014 -- Release 1.5
   functions to refactor Modelica libraries.
 - Corrected forward and backward slashes in module that runs
   the regression tests.
-
+- Added new function buildingspy.io.outputfile.get_model_statistics,
+  which allows obtaining the statistics of the model, such as the
+  number of nonlinear equations.
+  
 
 Version 1.4.0, February 28, 2014 -- Release 1.4
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

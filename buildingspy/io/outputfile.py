@@ -1,6 +1,87 @@
 #!/usr/bin/env python
 from buildingspy.thirdParty.dymat.DyMat import DyMatFile
 
+def get_model_statistics(log_file, simulator):
+    """ Open the simulation file *log_file* and return a dictionary
+        with the model statistics.
+
+        :log_file: The name of the log file.
+        :simulator: The file format. Currently, the only supported
+                    value is ``dymola``.
+
+        With Dymola, a log file with the simulation statistics can
+        be written using syntax such as
+
+        >>> Advanced.TranslationInCommandLog := true;  #doctest: +SKIP
+        >>> simulateModel(...);                        #doctest: +SKIP
+        >>> savelog("simulator.log");                  #doctest: +SKIP
+
+        This function returns a nested dictionary. The top level keys are
+        ``initialization`` and ``simulation``, which contain the statistics
+        for the initialization and the simulation problem.
+        Note that not all models have an initialization problem, in which case
+        the ``simulation`` dictionary is not present.
+
+        Both dictionaries, if present, have the following keys
+        if Dymola reported the corresponding statistic:
+
+        - ``nonlinear``: The size of the nonlinear system of equations
+          after the symbolic manipulation in the format ``2, 3, 1``.
+        - ``linear``: The size of the linear system of equations
+          after the symbolic manipulation.
+        - ``numerical Jacobian``: The number of numerical Jacobians.
+    """
+    import re
+
+    if simulator != "dymola":
+        raise ValueError('Argument "simulator" needs to be set to "dymola".')
+
+    with open(log_file) as fil:
+        lines = fil.readlines();
+        # Instantiate a dictionary that is used for the return value
+
+        ret = {}
+        dicIni = {}
+        dicSim = {}
+
+        reg = re.compile('\{(.*?)\}')
+
+        NONLIN="Sizes after manipulation of the nonlinear systems:"
+        LIN=   "Sizes after manipulation of the linear systems:"
+        NUMJAC="Number of numerical Jacobians"
+        initalizationMode=False
+
+        for lin in lines:
+            if lin.find(NONLIN) > 0:
+                temp = lin.rpartition(":")[2]
+                m = reg.search(temp)
+                if initalizationMode:
+                    dicIni['nonlinear'] = m.group(1)
+                else:
+                    dicSim['nonlinear'] = m.group(1)
+            elif lin.find(LIN) > 0:
+                temp = lin.rpartition(":")[2]
+                m = reg.search(temp)
+                if initalizationMode:
+                    dicIni['linear'] = m.group(1)
+                else:
+                    dicSim['linear'] = m.group(1)
+
+            elif lin.find(NUMJAC) > 0:
+                temp = lin.rpartition(":")[2].strip()
+                if initalizationMode:
+                    dicIni['numerical Jacobians'] = temp
+                else:
+                    dicSim['numerical Jacobians'] = temp
+
+            if lin.find("Initialization problem") > 0:
+                initalizationMode=True
+
+
+        if initalizationMode:
+            ret["initialization"]=dicIni
+        ret["simulation"]=dicSim
+        return ret
 
 class Reader:
     """Open the file *fileName* and parse its content.
@@ -20,6 +101,7 @@ class Reader:
 
         self.fileName = fileName
         self._data_ = DyMatFile(fileName)
+
 
     def varNames(self, pattern=None):
         '''
