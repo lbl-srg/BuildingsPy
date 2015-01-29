@@ -65,6 +65,9 @@ Translated Model
         self.assertEqual(stats['initialization']['nonlinear'],
                          "1, 3, 1, 1, 17",
                          "Parsing nonlinear equations for initialization problem failed")
+        self.assertEqual(stats['translated'],
+                         True,
+                         "Parsing translation aborted failed")
         self.assertEqual(stats['simulation']['nonlinear'],
                          "1, 0, 1, 3",
                          "Parsing nonlinear equations for simulation problem failed")

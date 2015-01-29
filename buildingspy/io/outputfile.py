@@ -49,10 +49,14 @@ def get_model_statistics(log_file, simulator):
         NONLIN="Sizes after manipulation of the nonlinear systems:"
         LIN=   "Sizes after manipulation of the linear systems:"
         NUMJAC="Number of numerical Jacobians"
+        TRAABO="Translation aborted"
         initalizationMode=False
 
+        ret['translated'] = True
         for lin in lines:
-            if lin.find(NONLIN) > 0:
+            if lin.find(TRAABO) > 0:
+                ret['translated'] = False
+            elif lin.find(NONLIN) > 0:
                 temp = lin.rpartition(":")[2]
                 m = reg.search(temp)
                 if initalizationMode:
