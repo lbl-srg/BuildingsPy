@@ -42,6 +42,9 @@ Version 1.5.0, xxx, 2014 -- Release 1.5
 - Added new function buildingspy.io.outputfile.get_model_statistics,
   which allows obtaining the statistics of the model, such as the
   number of nonlinear equations.
+- Addeed in buildingspy.development.regressiontest.Tester() the
+  new function writeOpenModelicaResultDictionary() that writes
+  a result dictionary for the OpenModelica regression tests.
   
 
 Version 1.4.0, February 28, 2014 -- Release 1.4

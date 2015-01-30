@@ -119,7 +119,8 @@ class Tester:
         # --------------------------
         # Class variables
         self._checkHtml = check_html
-        self._libHome=os.path.abspath(".")
+        self.setLibraryRoot(".")
+
         self._modelicaCmd = executable
         # File to which the console output of the simulator is written to
         self._simulator_log_file = "simulator.log"
@@ -156,11 +157,9 @@ class Tester:
         self._data = []
         self._reporter = rep.Reporter(os.path.join(os.getcwd(), "unitTests.log"))
 
-        self._rootPackage = os.path.join(self._libHome, 'Resources', 'Scripts', 'Dymola')
-
         # By default, do not include export of FMUs.
         self._include_fmu_test = False
-        
+
         # Variable that contains the figure size in inches.
         # This variable is set after the first plot has been rendered.
         # If a user resizes the plot, then the next plot will be displayed with
@@ -420,6 +419,46 @@ class Tester:
             raise ValueError(msg)
 
         self._rootPackage = rooPat
+
+    def writeOpenModelicaResultDictionary(self):
+        ''' Write in ``Resources/Scripts/OpenModelica/compareVars`` files whose
+        name are the name of the example model, and whose content is::
+
+            compareVars :=
+              {
+                "controler.y",
+                "sensor.T",
+                "heater.Q_flow"
+              };
+
+        '''
+        # Create the data dictionary.
+        self._data = []
+        self.setDataDictionary();
+
+        # Directory where files will be stored
+        desDir=os.path.join(self._libHome, "Resources", "Scripts", "OpenModelica", "compareVars")
+        if not os.path.exists(desDir):
+            os.makedirs(desDir)
+        # Loop over all experiments and write the files.
+        for experiment in self._data:
+            if 'modelName' in experiment and experiment['mustSimulate']:
+                if 'ResultVariables' in experiment:
+                    # For OpenModelica, don't group variables into those
+                    # who should be plotted together, as all are plotted in
+                    # the same plot.
+                    res = []
+                    for pair in experiment['ResultVariables']:
+                        for var in pair:
+                            res.append(var)
+                    # Content of the file.
+                    filCon = "compareVars :=\n  {\n    \"%s\"\n  };\n" % ("\",\n    \"".join(res))
+                    # File name.
+                    filNam = os.path.join(desDir, experiment['modelName'] + ".mos")
+                    # Write the file
+                    with open(filNam, 'w') as fil:
+                        fil.write(filCon)
+
 
     def setDataDictionary(self):
         ''' Build the data structures that are needed to parse the output files.
