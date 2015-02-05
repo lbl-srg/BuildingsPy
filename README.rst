@@ -9,3 +9,5 @@ the output file for further use in the python packages
 matplotlib for plotting and SciPy for scientific computing.
 
 Documentation is available at http://simulationresearch.lbl.gov/modelica/buildingspy/
+
+The license is at buildingspy/license.txt
