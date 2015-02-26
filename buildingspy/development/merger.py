@@ -228,9 +228,11 @@ class Annex60:
             filNam = self._new_library_name + fil.split(self._target_home)[1]
             if previouslyCopiedFiles.count(filNam) > 0:
                 previouslyCopiedFiles.remove(filNam)
-        # Now, remove the files.
+        # Now, remove the files, unless they are no longer in the repository anyway.
         for fil in previouslyCopiedFiles:
-            os.remove(fil)
+            filNam = os.path.join(self._target_home[0: self._target_home.rfind( self._new_library_name )], fil)
+            if os.path.isfile(filNam):
+                os.remove(filNam)
             
         # Generate package.order files
         r.write_package_order(self._target_home, True)
