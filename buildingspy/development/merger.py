@@ -125,7 +125,9 @@ class Annex60:
                          having a backup of your code.
 
             This function merges the `Annex60` library into other
-            Modelica libraries. In the top-level directory of the
+            Modelica libraries. 
+
+            In the top-level directory of the
             destination library, this function creates the file
             `.copiedFiles.txt` that lists all files that have been
             copied. In subsequent calls, this function
@@ -135,6 +137,21 @@ class Annex60:
             in the `Annex60` library, it will also be moved in the
             target library by deleting the old file and copying
             the new file.
+
+            This function will merge all Modelica files,
+            Modelica scripts, regression results and images.
+            An exception is the file `Annex60/package.mo`, as libraries
+            typically have their own top-level package file that contains
+            their release notes and version information.
+
+            When copying the files, all references and file names 
+            that contain the string `Annex60` will be renamed with 
+            the name of the top-level
+            directory of the destination library.
+            Afterwards, the `package.order` files will be regenerated,
+            which allows libraries to have Modelica classes in the same
+            directory as are used by the `Annex60` library, as long
+            as their name differs.
 
             A typical usage is
                 >>> import buildingspy.development.merger as m
