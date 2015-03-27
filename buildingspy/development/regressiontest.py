@@ -431,6 +431,9 @@ class Tester:
                 "heater.Q_flow"
               };
 
+        These files are then used in the regression testing that is done by the
+        OpenModelica development team.
+
         '''
         # Create the data dictionary.
         self._data = []
@@ -1616,7 +1619,7 @@ getErrorString();
         self.checkPythonModuleAvailability()
 
         self.setDataDictionary()
-        
+
         # Remove all data that do not require a simulation
         # Otherwise, some processes may have no simulation to run and then
         # the json output file would have an invalid syntax
