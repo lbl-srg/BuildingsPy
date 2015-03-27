@@ -11,7 +11,7 @@ class Annex60:
 
         Both libraries need to have the same package structure.
 
-        By default, the top-level packages `Media`, `Experimental`,
+        By default, the top-level packages `Experimental`
         and `Obsolete` are not included in the merge.
         This can be overwritten with the function
         :meth:`~set_excluded_packages`.
@@ -44,8 +44,8 @@ class Annex60:
         # Library name, such as Buildings
         self._new_library_name = os.path.basename(dest_dir)
 
-        # This is a hack to exclude top-level packages
-        self.set_excluded_packages(["Media", "Experimental", "Obsolete"])
+        # Exclude top-level packages
+        self.set_excluded_packages(["Experimental", "Obsolete"])
 
     def set_excluded_packages(self, packages):
         ''' Set the packages that are excluded from the merge.
@@ -73,13 +73,6 @@ class Annex60:
                self._new_library_name}
         # For the Buildings library, do these additional replacements.
         if self._new_library_name == "Buildings":
-            # Replace some strings
-            rep.update({"Annex60.Experimental.Media.AirPTDecoupled":
-                        "Buildings.Media.GasesPTDecoupled.MoistAirUnsaturated",
-                         "Annex60.Media.Air.saturationPressure":
-                        "Buildings.Media.PerfectGases.MoistAirUnsaturated.saturationPressure",
-                        "Set the medium model to <code>Annex60.Media.Air</code>.":
-                        "Set the medium model to <code>Buildings.Media.PerfectGases.MoistAirUnsaturated</code>."})
             # Update the models that we use from Buildings.HeatTransfer rather
             # than from the MSL
             rep.update({"Modelica.Thermal.HeatTransfer.Sources.PrescribedTemperature":
@@ -89,26 +82,10 @@ class Annex60:
                         "Modelica.Thermal.HeatTransfer.Sources.PrescribedHeatFlow":
                         "Buildings.HeatTransfer.Sources.PrescribedHeatFlow"})
 
-        # Read destination file if it exists.
-        # This is needed as we do not yet want to replace the medium.
-        if os.path.isfile(destination_file):
-            f_des = open(destination_file, 'r')
-            desLin = f_des.readlines()
-        else:
-            desLin = None
-
         # Read source file, store the lines and update the content of the lines
         f_sou = open(source_file, 'r')
         lines = list()
-        for i, lin in enumerate(f_sou):
-            if desLin is not None and i < len(desLin)-1:
-                # Check if the destination file contains at that line a medium declaration.
-                patAnn = re.compile('package\s+Medium\w*\s*=\s*Annex60.Media')
-                patDes = re.compile('package\s+Medium\w*\s*=\s*Buildings.Media|package\s+Medium\w*\s*=\s*Modelica.Media')
-                if patDes.search(desLin[i]) and patAnn.search(lin):
-                    # This line contains the Media declaration.
-                    # Copy the declaration from the destination file into this line
-                    lin = desLin[i]
+        for _, lin in enumerate(f_sou):
             for ori, new in rep.iteritems():
                 lin = string.replace(lin, ori, new)
             lines.append(lin)
@@ -176,8 +153,6 @@ class Annex60:
         # Build a list of files that were previously merged.
         # If these file will not be merged again, then we will
         # delete them.
-        # To avoid replacing the Media, we can however not yet delete
-        # them at this point
         previouslyCopiedFiles = list()
         if os.path.isfile(copFilPat):
             roo = self._target_home.split(self._new_library_name)[0]
@@ -188,7 +163,6 @@ class Annex60:
                         absFil = os.path.join(roo, fil)
                         if os.path.isfile(absFil):
                             previouslyCopiedFiles.append(fil)
-#                            os.remove(fil)
 
         copiedFiles=list()
 
