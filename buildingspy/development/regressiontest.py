@@ -126,7 +126,7 @@ class Tester:
         # hence for the default value in this constructor,
         # we do not verify whether the directory contains
         # a valid library.
-        self._libHome = os.path.abspath(rootDir)
+        self._libHome = os.path.abspath(".")
         self._rootPackage = os.path.join(self._libHome, 'Resources', 'Scripts', 'Dymola')
 
         self._modelicaCmd = executable
