@@ -119,7 +119,15 @@ class Tester:
         # --------------------------
         # Class variables
         self._checkHtml = check_html
-        self.setLibraryRoot(".")
+        # Set the default directory for the library.
+        # We are not calling setLibraryRoot because the
+        # function checks for the argument to be a valid
+        # library directory. This is also checked in run(),
+        # hence for the default value in this constructor,
+        # we do not verify whether the directory contains
+        # a valid library.
+        self._libHome = os.path.abspath(rootDir)
+        self._rootPackage = os.path.join(self._libHome, 'Resources', 'Scripts', 'Dymola')
 
         self._modelicaCmd = executable
         # File to which the console output of the simulator is written to
