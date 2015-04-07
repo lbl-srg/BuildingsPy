@@ -237,7 +237,7 @@ class Simulator:
 
         :param t0: The start time of the simulation in seconds.
 
-        The default stop time is 1.
+        The default start time is 0.
         '''
         self._simulator_.update(t0=t0)
         return
@@ -245,9 +245,9 @@ class Simulator:
     def setStopTime(self, t1):
         '''Sets the start time.
 
-        :param t0: The start time of the simulation in seconds.
+        :param t1: The stop time of the simulation in seconds.
 
-        The default start time is 0.
+        The default stop time is 1.
         '''
         self._simulator_.update(t1=t1)
         return
