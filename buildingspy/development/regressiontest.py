@@ -1373,6 +1373,8 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
             runFil.write("// File created for execution by {}. Do not edit.\n".format(self._modelicaCmd))
 
             if self._modelicaCmd == 'dymola':
+                # Disable parallel computing as this can give slightly different results.
+                runFil.write('Advanced.ParallelizeCode = false;\n')
                 runFil.write('openModel("package.mo");\n')
             elif self._modelicaCmd == 'omc':
                 runFil.write('loadModel(Modelica, {"3.2"});\n')
