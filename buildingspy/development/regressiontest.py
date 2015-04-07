@@ -1064,7 +1064,7 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
                         if varNam in timOfMaxErr:
                             plt.axvline(x=timOfMaxErr[varNam])
 
-                leg = plt.legend(loc='best', fancybox=True)
+                leg = plt.legend(loc='right', fancybox=True)
                 leg.get_frame().set_alpha(0.5) # transparent legend
                 plt.xlabel('time')
                 plt.grid(True)
