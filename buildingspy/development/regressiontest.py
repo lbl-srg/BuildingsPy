@@ -153,6 +153,11 @@ class Tester:
         # Flag to use existing results instead of running a simulation
         self._useExistingResults = False
 
+        # Flag, set to True if a message was written that statistics has been
+        # found in the reference results. This is because this version
+        # of BuildingsPy does not do anything with the statistics yet.
+        self._reported_statistics_found = False
+
         '''
         List of dicts, each dict with all meta-information about a single model to be tested.
         keys equal to the ``*.mos`` file name, and values
@@ -903,6 +908,20 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
 
             try:
                 (key, value) = lin.split("=")
+                # If the key starts with "statistics/", then
+                # skip this line. Because Modelica variables cannot
+                # contain the character "/", there is no risk of a
+                # name clash.
+                # This test is done for compatibility to allow in the future
+                # to add simulation statistics, while still using
+                # this version of BuildingsPy to process these
+                # new reference results.
+                if key.startswith("statistics/"):
+                    if not self._reported_statistics_found:
+                        self._reporter.writeWarning(
+                          "Found statistics in the results, but this version of BuildingsPy does not process it.")
+                        self._reported_statistics_found = True
+                    continue
                 s = (value[value.find('[')+1: value.rfind(']')]).strip()
                 numAsStr=s.split(',')
             except ValueError as detail:
