@@ -519,6 +519,7 @@ class Tester:
                                         modNam = modNam[0:modNam.index('"')]
                                         dat['mustSimulate'] = True
                                         dat['modelName'] = modNam
+                                        dat['TranslationLogFile'] = modNam + ".translation.log"
                                 # parse startTime and stopTime, if any
                                 for attr in ["startTime", "stopTime"]:
                                     pos = lin.find(attr)
@@ -629,7 +630,7 @@ class Tester:
 
     def _getSimulationResults(self, data, warnings, errors):
         '''
-        Get the simulation results.
+        Get the simulation results for a single unit test.
 
         :param data: The class that contains the data structure for the simulation results.
         :param warning: An empty list in which all warnings will be written.
@@ -704,6 +705,29 @@ class Tester:
             if len(dat) > 0:
                 ret.append(dat)
         return ret
+
+    def _getTranslationStatistics(self, data, warnings, errors):
+        '''
+        Get the translation statistics for a single unit test.
+
+        :param data: The class that contains the data structure for the simulation results.
+        :param warning: An empty list in which all warnings will be written.
+        :param errors: An empty list in which all errors will be written.
+
+        Extracts and returns the translation log from the `*.translation.log` file as
+        a list of dictionaries.
+        '''
+        import buildingspy.io.outputfile as of
+        
+        # Get the working directory that contains the ".log" file
+        fulFilNam=os.path.join(data['ResultDirectory'], self.getLibraryName(), data['TranslationLogFile'])
+        try:
+            data['statistics'] = of.get_model_statistics(fulFilNam, "dymola")
+            print "fixme ==== ", data['statistics']            
+        except Exception as e:
+            errors.append("Error when reading %s \n" + e.strerror % fulFilNam)
+        
+
 
     def areResultsEqual(self, tOld, yOld, tNew, yNew, varNam, filNam):
         ''' Return `True` if the data series are equal within a tolerance.
@@ -1138,7 +1162,10 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
                     # extract reference points from the ".mat" file corresponding to "filNam"
                     warnings = []
                     errors = []
-                    yS=self._getSimulationResults(data, warnings, errors)
+                    # Get the simulation results
+                    y_sim=self._getSimulationResults(data, warnings, errors)
+                    # Get the translation statistics
+                    y_tra=self._getTranslationStatistics(data, warnings, errors)
                     for entry in warnings:
                         self._reporter.writeWarning(entry)
                     for entry in errors:
@@ -1162,7 +1189,7 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
                     if os.path.exists(oldRefFulFilNam):
                         # compare the new reference data with the old one
                         [updateReferenceData, _, ans]=self._compareResults(
-                            data['ResultFile'], oldRefFulFilNam, yS, refFilNam, ans)
+                            data['ResultFile'], oldRefFulFilNam, y_sim, refFilNam, ans)
                     else:
                         # Reference file does not exist
                         print "*** Warning: Reference file ", refFilNam, " does not yet exist."
@@ -1173,7 +1200,7 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
                             updateReferenceData = True
                     if updateReferenceData:    # If the reference data of any variable was updated
                         # Make dictionary to save the results and the svn information
-                        self._writeReferenceResults(oldRefFulFilNam, yS)
+                        self._writeReferenceResults(oldRefFulFilNam, y_sim)
             else:
                 self._reporter.writeWarning("Output file of " + data['ScriptFile'] + " is excluded from result test.")
 
@@ -1451,7 +1478,7 @@ Modelica.Utilities.Streams.print("{\"testCase\" : [", "%s");
                     # Add checkModel(...) in pedantic mode
                     if self._modelicaCmd == 'dymola':
                         # Delete command log, modelName.simulation.log and dslog.txt
-                        runFil.write("Modelica.Utilities.Files.remove(\"%s.simulator.log\");\n" % values["modelName"])
+                        runFil.write("Modelica.Utilities.Files.remove(\"%s.translation.log\");\n" % values["modelName"])
                         runFil.write("Modelica.Utilities.Files.remove(\"dslog.txt\");\n")
                         runFil.write("clearlog();\n")
                         runFil.write("Advanced.PedanticModelica = true;\n")
@@ -1469,7 +1496,7 @@ Modelica.Utilities.Streams.print("{\"testCase\" : [", "%s");
                         template = r"""
 rCheck = {checkCommand};
 rScript=RunScript("Resources/Scripts/Dymola/{scriptDir}/{scriptFile}");
-savelog("{modelName}.simulator.log");
+savelog("{modelName}.translation.log");
 if Modelica.Utilities.Files.exist("dslog.txt") then
   Modelica.Utilities.Files.move("dslog.txt", "{modelName}.dslog.log");
 end if;
@@ -1503,8 +1530,8 @@ else
   Modelica.Utilities.Streams.print("dslog.txt was not generated.", "{modelName}.log");
   iSuc=0;
 end if;
-if Modelica.Utilities.Files.exist("{modelName}.simulator.log") then
-  lines=Modelica.Utilities.Streams.readFile("{modelName}.simulator.log");
+if Modelica.Utilities.Files.exist("{modelName}.translation.log") then
+  lines=Modelica.Utilities.Streams.readFile("{modelName}.translation.log");
   iJac=sum(Modelica.Utilities.Strings.count(lines, "Number of numerical Jacobians: 0"));
   lJac=sum(Modelica.Utilities.Strings.count(lines, "Number of numerical Jacobians:"));
   iCon=sum(Modelica.Utilities.Strings.count(lines, "Warning: The following connector variables are not used in the model"));
@@ -1513,7 +1540,7 @@ if Modelica.Utilities.Files.exist("{modelName}.simulator.log") then
   iCom=sum(Modelica.Utilities.Strings.count(lines, "but they must be compatible"));
   iIni=sum(Modelica.Utilities.Strings.count(lines, "Dymola has selected default initial condition"));
 else
-  Modelica.Utilities.Streams.print("dslog.txt was not generated.", "{modelName}.simulator.log");
+  Modelica.Utilities.Streams.print("dslog.txt was not generated.", "{modelName}.translation.log");
   iJac=0;
   lJac=0;
   iCon=0;
@@ -1714,7 +1741,7 @@ getErrorString();
             # Concatenate simulator output files into one file
             logFil = open(self._simulator_log_file, 'w')
             for d in self._temDir:
-                for temLogFilNam in glob.glob( os.path.join(d, self.getLibraryName(), '*.simulator.log') ):
+                for temLogFilNam in glob.glob( os.path.join(d, self.getLibraryName(), '*.translation.log') ):
                     if os.path.exists(temLogFilNam):
                         fil=open(temLogFilNam,'r')
                         data=fil.read()
