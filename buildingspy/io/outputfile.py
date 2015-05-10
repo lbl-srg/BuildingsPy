@@ -31,10 +31,14 @@ def get_model_statistics(log_file, simulator):
           after the symbolic manipulation.
         - ``numerical Jacobian``: The number of numerical Jacobians.
     """
+    import os
     import re
 
     if simulator != "dymola":
         raise ValueError('Argument "simulator" needs to be set to "dymola".')
+
+    if not os.path.isfile(log_file):
+        raise IOError("File {} does not exist".format(log_file))
 
     with open(log_file) as fil:
         lines = fil.readlines();
