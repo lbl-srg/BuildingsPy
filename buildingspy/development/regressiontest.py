@@ -726,12 +726,7 @@ class Tester:
 
         # Get the working directory that contains the ".log" file
         fulFilNam=os.path.join(data['ResultDirectory'], self.getLibraryName(), data['TranslationLogFile'])
-        try:
-            return of.get_model_statistics(fulFilNam, "dymola")
-        except Exception as e:
-            errors.append("Error when reading %s \n" + e.strerror % fulFilNam)
-            return None
-
+        return of.get_model_statistics(fulFilNam, "dymola")
 
 
     def areResultsEqual(self, tOld, yOld, tNew, yNew, varNam, filNam):
@@ -1242,6 +1237,12 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
             show a warning message containing the file name and path.
             If there is no ``.mat`` file of the reference points in the library home folder,
             ask the user whether it should be generated.
+            
+            This function return 1 if reading reference results or reading the translation
+            statistics failed. In this case, the calling method should not attempt to do
+            further processing. The function returns 0 if there were no problems. In
+            case of wrong simulation results, this function also returns 0, as this is
+            not considered an error in executing this function.
         '''
 
         #Check if the directory "self._libHome\\Resources\\ReferenceResults\\Dymola" exists, if not create it.
@@ -1257,6 +1258,7 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
                                             data['ScriptDirectory'], data['ScriptFile'])
                 mosFulFilNam = mosFulFilNam.replace(os.sep, '_')
                 refFilNam=os.path.splitext(mosFulFilNam)[0] + ".txt"
+                
 
                 try:
                     # extract reference points from the ".mat" file corresponding to "filNam"
@@ -1270,6 +1272,9 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
                         self._reporter.writeWarning(entry)
                     for entry in errors:
                         self._reporter.writeError(entry)
+                        # If there were errors when getting the results or translation statistics,
+                        # then return
+                        return 1
                 except UnicodeDecodeError as e:
                     em = "UnicodeDecodeError({0}): {1}".format(e.errno, e.strerror)
                     em += "Output file of " + data['ScriptFile'] + " is excluded from unit tests.\n"
@@ -1303,8 +1308,7 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
                         self._writeReferenceResults(oldRefFulFilNam, y_sim, y_tra)
             else:
                 self._reporter.writeWarning("Output file of " + data['ScriptFile'] + " is excluded from result test.")
-
-        return ans
+        return 0
 
     def _checkSimulationError(self, errorFile):
         ''' Check whether the simulation had any errors, and
@@ -1313,8 +1317,15 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
         import json
 
         # Read the json file with the statistics
+        if not os.path.isfile(self._statistics_log):
+            raise IOError("Statistics file {} does not exist.".format(self._statistics_log))
+        
         fil = open(self._statistics_log, "r")
-        stat = json.load(fil)['testCase']
+        try:
+            stat = json.load(fil)['testCase']
+        except ValueError as e:
+            raise ValueError("Failed to parse {}.\n{}".format(self._statistics_log, str(e)))
+            
 
         # Error counters
         iChe = 0
@@ -1887,7 +1898,9 @@ getErrorString();
             ans = "-"
 
         if self._modelicaCmd == 'dymola':
-            ans = self._checkReferencePoints(ans)
+            retVal = self._checkReferencePoints(ans)
+            if retVal != 0:
+                return 4
 
         # Delete temporary directories
         if self._deleteTemporaryDirectories:
