@@ -482,6 +482,26 @@ class Tester:
         '''
         import re
 
+        def _get_attribute_value(line, keyword, dat):
+            ''' Get the value of an attribute in the `.mos` file.
+
+                :param line: The line that contains the keyword and the value.
+                :param keyword: The keyword
+                :param dat: The data dictionary to which dat[keyword] = value will be written.
+
+            '''
+            pos = lin.find(keyword)
+            if pos > -1:
+                posEq = line.find('=', pos)
+                posComma = line.find(',', pos)
+                posBracket = line.find(')', pos)
+                posEnd = min(posComma,posBracket)
+                if posEnd < 0:
+                    posEnd = max(posComma,posBracket)
+                dat[keyword] = line[posEq+1:posEnd]
+            return
+
+
         for root, _, files in os.walk(self._rootPackage):
             pos=root.find('.svn')
             # skip .svn folders
@@ -495,7 +515,8 @@ class Tester:
                         dat['ScriptDirectory'] = root[\
                             len(os.path.join(self._libHome, 'Resources', 'Scripts', 'Dymola'))+1:]
                         dat['ScriptFile'] = mosFil
-                        dat['mustSimulate'] = False
+                        dat['mustSimulate']  = False
+                        dat['mustExportFMU'] = False
 
                         # open the mos file and read its content.
                         # Path and name of mos file without 'Resources/Scripts/Dymola'
@@ -520,69 +541,88 @@ class Tester:
                                         dat['mustSimulate'] = True
                                         dat['modelName'] = modNam
                                 # parse startTime and stopTime, if any
-                                for attr in ["startTime", "stopTime"]:
-                                    pos = lin.find(attr)
-                                    if pos > -1:
-                                        # attribute found.  Get the value.
-                                        posEq = lin.find('=', pos)
-                                        posComma = lin.find(',', pos)
-                                        posBracket = lin.find(')', pos)
-                                        posEnd = min(posComma,posBracket)
-                                        if posEnd < 0:
-                                            posEnd = max(posComma,posBracket)
-                                        valueString = lin[posEq+1:posEnd]
-                                        dat[attr] = valueString
+                                if dat['mustSimulate']:
+                                    for attr in ["startTime", "stopTime"]:
+                                        _get_attribute_value(lin, attr, dat)
 
-                        plotVars = []
-                        iLin=0
-                        for lin in Lines:
-                            iLin=iLin+1
-                            if 'y={' in lin:
-                                try:
-                                    var=re.search('{.*?}', lin).group()
-                                except AttributeError:
-                                    s =  "%s, line %s, could not be parsed.\n" % (mosFil, iLin)
-                                    s +=  "The problem occurred at the line below:\n"
-                                    s +=  "%s\n" % lin
-                                    s += "Make sure that each assignment of the plot command is on one line.\n"
-                                    s += "Regression tests failed with error.\n"
+                                # Check if this model need to be translated as an FMU.
+                                pos = lin.find("translateModelFMU")
+                                if pos > -1:
+                                    dat['mustExportFMU'] = True
+                                if dat['mustExportFMU']:
+                                    for attr in ["modelToOpen", "modelName"]:
+                                        _get_attribute_value(lin, attr, dat)
+
+
+                            # We are finished iterating over all lines of the .mos
+                            # For FMU export, if modelName="", then Dymola uses the
+                            # Modelica class name, with "." replaced by "_".
+                            # If the Modelica class name consists of "_", then they
+                            # are replaced by "_0".
+                            # Hence, we update dat['modelName'] if needed.
+                            if dat['mustExportFMU']:
+                                # Strip quotes from modelName and modelToOpen
+                                dat['FMUName'] = dat['modelName'].strip('"')
+                                dat['modelToOpen'] = dat['modelToOpen'].strip('"')
+
+                                # Update the name of the FMU if modelName is "" in .mos file.
+                                if len(dat["FMUName"]) == 0:
+                                    dat['FMUName'] = dat['modelToOpen'].replace("_", "_0").replace(".", "_")
+                                dat['FMUName'] = dat['FMUName'] + ".fmu"
+
+                            # Plot variables are only used for those models that need to be simulated.
+                            if dat['mustSimulate']:
+                                plotVars = []
+                                iLin=0
+                                for lin in Lines:
+                                    iLin=iLin+1
+                                    if 'y={' in lin:
+                                        try:
+                                            var=re.search('{.*?}', lin).group()
+                                        except AttributeError:
+                                            s =  "%s, line %s, could not be parsed.\n" % (mosFil, iLin)
+                                            s +=  "The problem occurred at the line below:\n"
+                                            s +=  "%s\n" % lin
+                                            s += "Make sure that each assignment of the plot command is on one line.\n"
+                                            s += "Regression tests failed with error.\n"
+                                            self._reporter.writeError(s)
+                                            raise
+                                        var=var.strip('{}"')
+                                        y = var.split('","')
+                                        # Replace a[1,1] by a[1, 1], which is required for the
+                                        # Reader to be able to read the result.
+                                        for i in range(len(y)):
+                                            y[i] = y[i].replace(",", ", ")
+                                        plotVars.append(y)
+                                if len(plotVars) == 0:
+                                    s =  "%s does not contain any plot command.\n" % mosFil
+                                    s += "You need to add a plot command to include its\n"
+                                    s += "results in the regression tests.\n"
                                     self._reporter.writeError(s)
-                                    raise
-                                var=var.strip('{}"')
-                                y = var.split('","')
-                                # Replace a[1,1] by a[1, 1], which is required for the
-                                # Reader to be able to read the result.
-                                for i in range(len(y)):
-                                    y[i] = y[i].replace(",", ", ")
-                                plotVars.append(y)
-                        if len(plotVars) == 0:
-                            s =  "%s does not contain any plot command.\n" % mosFil
-                            s += "You need to add a plot command to include its\n"
-                            s += "results in the regression tests.\n"
-                            self._reporter.writeError(s)
 
-                        dat['ResultVariables'] = plotVars
+                                dat['ResultVariables'] = plotVars
 
-                        # search for the result file
-                        for lin in Lines:
-                            if 'resultFile=\"' in lin:
-                                matFil = re.search('(?<=resultFile=\")[a-zA-Z0-9_\.]+', lin).group()
-                                # Add the .mat extension as this is not included in the resultFile entry.
-                                matFil =  matFil + '.mat'
-                                break
-                        # Some *.mos file only contain plot commands, but no simulation.
-                        # Hence, if 'resultFile=' could not be found, try to get the file that
-                        # is used for plotting.
-                        if len(matFil) == 0:
-                            for lin in Lines:
-                                if 'filename=\"' in lin:
-                                    # Note that the filename entry already has the .mat extension.
-                                    matFil = re.search('(?<=filename=\")[a-zA-Z0-9_\.]+', lin).group()
-                                    break
-                        if len(matFil) == 0:
-                            raise  ValueError('Did not find *.mat file in ' + mosFil)
+                                # search for the result file
+                                for lin in Lines:
+                                    if 'resultFile=\"' in lin:
+                                        matFil = re.search('(?<=resultFile=\")[a-zA-Z0-9_\.]+', lin).group()
+                                        # Add the .mat extension as this is not included in the resultFile entry.
+                                        matFil =  matFil + '.mat'
+                                        break
+                                # Some *.mos file only contain plot commands, but no simulation.
+                                # Hence, if 'resultFile=' could not be found, try to get the file that
+                                # is used for plotting.
+                                if len(matFil) == 0:
+                                    for lin in Lines:
+                                        if 'filename=\"' in lin:
+                                            # Note that the filename entry already has the .mat extension.
+                                            matFil = re.search('(?<=filename=\")[a-zA-Z0-9_\.]+', lin).group()
+                                            break
+                                if len(matFil) == 0:
+                                    raise  ValueError('Did not find *.mat file in ' + mosFil)
 
-                        dat['ResultFile'] = matFil
+                                dat['ResultFile'] = matFil
+
                         self._data.append(dat)
         # Make sure we found at least one unit test
         if len(self._data) == 0:
@@ -593,27 +633,38 @@ class Tester:
         return
 
     def _checkDataDictionary(self):
-        ''' Check if the data used to run the regression tests do not have duplicate ``*.mat`` files.
+        ''' Check if the data used to run the regression tests do not have duplicate ``*.fmu`` files
+            and ``*.mat`` names.
 
-            Since Dymola writes all ``*.mat`` files to the current working directory,
-            duplicate ``*.mat`` file names would cause a simulation to overwrite the results
-            of a previous simulation. This would make it impossible to compare the results
-            to previously obtained results.
+            Since Dymola writes all ``*.fmu`` and ``*.mat`` files to the current working directory,
+            duplicate file names would cause a translation or simulation to overwrite the files
+            of a previous test. This would make it impossible to check the FMU export
+            and to compare the results to previously obtained results.
 
-            If there are duplicate ``*.mat`` file names used, then this method throws
+            If there are duplicate ``.fmu`` and ``*.mat`` file names used, then this method raises
             a ``ValueError`` exception.
 
         '''
-        s = set()
+        s_fmu = set()
+        s_mat = set()
         errMes = ""
         for data in self._data:
-            resFil = data['ResultFile']
-            if data['mustSimulate']:
-                if resFil in s:
-                    errMes += "*** Error: Result file %s is generated by more than one script.\n" \
-                        "           You need to make sure that all scripts use unique result file names.\n" % resFil
+            if data.has_key('ResultFile'):
+                resFil = data['ResultFile']
+                if data['mustSimulate']:
+                    if resFil in s_mat:
+                        errMes += "*** Error: Result file %s_mat is generated by more than one script.\n" \
+                            "           You need to make sure that all scripts use unique result file names.\n" % resFil
+                    else:
+                        s_mat.add(resFil)
+        for data in self._data:
+            if data.has_key('FMUName'):
+                fmuFil = data['FMUName']
+                if fmuFil in s_fmu:
+                    errMes += "*** Error: FMU file {} is generated by more than one script.\n" \
+                        "           You need to make sure that all scripts use unique result file names.\n".format(fmuFil)
                 else:
-                    s.add(resFil)
+                    s_fmu.add(fmuFil)
         if len(errMes) > 0:
             raise ValueError(errMes)
 
@@ -1126,8 +1177,9 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
             os.makedirs(refDir)
 
         for data in self._data:
-            # Name of the reference file, which is the same as that matlab file name but with another extension
-            if self._includeFile(data['ScriptFile']):
+            # Name of the reference file, which is the same as that matlab file name but with another extension.
+            # Only check data that need to be simulated. This excludes the FMU export from this test.
+            if self._includeFile(data['ScriptFile']) and data['mustSimulate']:
                 # Convert 'aa/bb.mos' to 'aa_bb.txt'
                 mosFulFilNam = os.path.join(self.getLibraryName(),
                                             data['ScriptDirectory'], data['ScriptFile'])
@@ -1418,11 +1470,11 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
             runFil.write(r"""
 Modelica.Utilities.Streams.print("{\"testCase\" : [", "%s");
 """ % self._statistics_log)
-            # Count the number of experiments that need to be simulated.
+            # Count the number of experiments that need to be simulated or exported as an FMU.
             # This is needed to properly close the json brackets.
             nItem = 0
             for i in range(iPro, nTes, self._nPro):
-                if self._data[i]['mustSimulate']:
+                if self._data[i]['mustSimulate'] or self._data[i]['mustExportFMU']:
                     nItem = nItem + 1
             iItem = 0
             # Write unit tests for this process
@@ -1446,6 +1498,8 @@ Modelica.Utilities.Streams.print("{\"testCase\" : [", "%s");
                               "modelName_underscore":  self._data[i]['modelName'].replace(".", "_"),
                               "statisticsLog": self._statistics_log.replace("\\","/"),
                               "simulatorLog": self._simulator_log_file.replace("\\","/")}
+                    if self._data[i].has_key('FMUName'):
+                        values["FMUName"] = self._data[i]['FMUName']
 
 
                     # Add checkModel(...) in pedantic mode
@@ -1462,7 +1516,6 @@ Modelica.Utilities.Streams.print("{\"testCase\" : [", "%s");
 
                     # Write line for run script
                     if self._modelicaCmd == 'dymola':
-                        # fixme: add model check
                         # Remove dslog.txt, run a simulation, rename dslog.txt, and
                         # scan this log file for errors.
                         # This is needed as RunScript returns true even if the simulation failed.
@@ -1476,9 +1529,18 @@ end if;
 """
                         runFil.write(template.format(**values))
 
-                        if self._include_fmu_test:
+                        # Write code for FMU export
+                        if self._include_fmu_test and self._data[i]["mustExportFMU"]:
                             template = r"""
-rTran=translateModelFMU("{modelName}", false, "", "2", "me", false);
+if Modelica.Utilities.Files.exist("{FMUName}") then
+  Modelica.Utilities.Files.del("{FMUName}");
+end if;
+rFMUExp=RunScript{"Resources/Scripts/Dymola/{scriptDir}/{scriptFile}");
+savelog("{modelName}.simulator.log");
+if Modelica.Utilities.Files.exist("dslog.txt") then
+  Modelica.Utilities.Files.move("dslog.txt", "{modelName}.dslog.log");
+end if;
+
 """
                             runFil.write(template.format(**values))
 
@@ -1533,17 +1595,23 @@ Modelica.Utilities.Streams.print("        \"type incompatibility\"              
 Modelica.Utilities.Streams.print("        \"unspecified initial conditions\"             : " + String(iIni > 0), "{statisticsLog}");
 """
                         runFil.write(template.format(**values))
+
+
+
                         _printEndOfJsonItem(isLastItem and (not self._include_fmu_test),
-                                            not self._include_fmu_test,
+                                            not self._include_fmu_test and not self._data[i]["mustExportFMU"],
                                             runFil,
                                             self._statistics_log);
 
-                        if self._include_fmu_test:
+                        if self._include_fmu_test and self._data[i]["mustExportFMU"]:
                             template = r"""
 Modelica.Utilities.Streams.print("      \"FMUExport\" : {{", "{statisticsLog}");
-Modelica.Utilities.Streams.print("        \"command\" : \"translateModelFMU(\\\"{modelName}\\\", false, \\\"\\\", \\\"2\\\", \\\"me\\\", false);\",", "{statisticsLog}");
-Modelica.Utilities.Streams.print("        \"result\"  : " + String(rTran == "{modelName_underscore}"), "{statisticsLog}");
+Modelica.Utilities.Streams.print("        \"command\" :\"RunScript(\\\"Resources/Scripts/Dymola/{scriptDir}/{scriptFile}\\\");\",", "{statisticsLog}");
+Modelica.Utilities.Streams.print("        \"result\"  : " + String(rFMUExp == "{FMUName}"), "{statisticsLog}");
 """
+                            runFil.write(template.format(**values))
+
+
                             runFil.write(template.format(**values))
                             _printEndOfJsonItem(isLastItem,
                                                 True,
@@ -1566,7 +1634,7 @@ getErrorString();
 
         # For files that do not require a simulation, we need to set the path of the result files.
         for dat in self._data:
-            if not dat['mustSimulate']:
+            if not dat['mustSimulate'] and not dat['mustExportFMU']:
                 matFil = dat['ResultFile']
                 for allDat in self._data:
                     if allDat['mustSimulate']:
