@@ -29,9 +29,10 @@ class Annex60:
         def isValidLibrary(lib_home):
             import buildingspy.development.regressiontest as t
 
-            if not t.Tester().isValidLibrary(lib_home):
-                s = "*** %s is not a valid Modelica library." % lib_home
-                s += "\n    Did not do anything."
+            try:
+                t.Tester().isValidLibrary(lib_home)
+            except ValueError as e:
+                s = "{}\n    Did not do anything.".format(e.message)
                 raise ValueError(s)
 
         isValidLibrary(annex60_dir)
@@ -155,7 +156,8 @@ class Annex60:
         # delete them.
         previouslyCopiedFiles = list()
         if os.path.isfile(copFilPat):
-            roo = self._target_home.split(self._new_library_name)[0]
+            roo = self._target_home.rsplit(self._new_library_name, 1)[0]
+            print "fixme: ****** roo={}".format(roo)
             with open(copFilPat,'r') as fp:
                 files = fp.read().splitlines()
                 for fil in files:
