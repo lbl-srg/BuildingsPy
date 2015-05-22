@@ -1006,7 +1006,7 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
 
     def _check_statistics(self, old_res, y_tra, stage, foundError, newStatistics, mat_file_name):
         ''' Checks the simulation or translation statistics and return
-            `True` if there is a new statistics or if `newStatistics == True`.
+            `True` if there is a new statistics, or a statistics is no longer present, or if `newStatistics == True`.
         '''
         r = newStatistics
         if old_res.has_key('statistics-%s' % stage):
@@ -1015,14 +1015,19 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
             if y_tra.has_key(stage):
                 # Check whether it changed.
                 for key in old_res['statistics-%s' % stage]:
-                    if not self.are_statistics_equal(old_res['statistics-%s' % stage][key], y_tra[stage][key]):
-                        if foundError:
-                            self._reporter.writeWarning("%s: Translation statistics of %s and results changed for %s.\n Old = %s\n New = %s"
-                                                        % (mat_file_name, stage, key, old_res['statistics-%s' % stage][key], y_tra[stage][key]))
-                        else:
-                            self._reporter.writeWarning("%s: Translation statistics of %s changed for %s, but results are unchanged.\n Old = %s\n New = %s"
-                                                        % (mat_file_name, stage, key, old_res['statistics-%s' % stage][key], y_tra[stage][key]))
+                    if y_tra[stage].has_key(key):
+                        if not self.are_statistics_equal(old_res['statistics-%s' % stage][key], y_tra[stage][key]):
+                            if foundError:
+                                self._reporter.writeWarning("%s: Translation statistics for %s and results changed for %s.\n Old = %s\n New = %s"
+                                                            % (mat_file_name, stage, key, old_res['statistics-%s' % stage][key], y_tra[stage][key]))
+                            else:
+                                self._reporter.writeWarning("%s: Translation statistics for %s changed for %s, but results are unchanged.\n Old = %s\n New = %s"
+                                                            % (mat_file_name, stage, key, old_res['statistics-%s' % stage][key], y_tra[stage][key]))
 
+                            r = True
+                    else:
+                        self._reporter.writeWarning("%s: Found translation statistics for %s for %s in old but not in new results.\n Old = %s"
+                                                    % (mat_file_name, stage, key, old_res['statistics-%s' % stage][key]))
                         r = True
             else:
                 # The new results have no such statistics.
