@@ -378,7 +378,7 @@ def write_package_order(directory=".", recursive=False):
     import re
     if recursive:
         s = set()
-        for root, _, files in os.walk(os.path.curdir):
+        for root, _, files in os.walk(directory):
             for fil in files:
                 if fil.endswith(".mo"):
                     # Include the directory
