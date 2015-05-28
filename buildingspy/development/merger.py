@@ -160,6 +160,7 @@ class Annex60:
             with open(copFilPat,'r') as fp:
                 files = fp.read().splitlines()
                 for fil in files:
+                    fil = os.path.normpath(fil.rstrip())
                     if not fil.startswith('#'):
                         absFil = os.path.join(roo, fil)
                         if os.path.isfile(absFil):
