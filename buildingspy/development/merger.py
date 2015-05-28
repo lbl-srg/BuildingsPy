@@ -157,7 +157,6 @@ class Annex60:
         previouslyCopiedFiles = list()
         if os.path.isfile(copFilPat):
             roo = self._target_home.rsplit(self._new_library_name, 1)[0]
-            print "fixme: ****** roo={}".format(roo)
             with open(copFilPat,'r') as fp:
                 files = fp.read().splitlines()
                 for fil in files:
