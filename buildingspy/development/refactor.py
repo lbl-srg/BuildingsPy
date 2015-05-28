@@ -384,6 +384,8 @@ def write_package_order(directory=".", recursive=False):
                     # Include the directory
                     s.add(root)
     #            srcFil=os.path.join(root, fil)
+        if not s:
+            s.add(directory)
         for ele in s:
             write_package_order(directory=ele, recursive=False)
     else:
