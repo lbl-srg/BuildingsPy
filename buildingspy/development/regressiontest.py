@@ -172,8 +172,8 @@ class Tester:
         self._data = []
         self._reporter = rep.Reporter(os.path.join(os.getcwd(), "unitTests.log"))
 
-        # By default, do not include export of FMUs.
-        self._include_fmu_test = False
+        # By default, include export of FMUs.
+        self._include_fmu_test = True
 
         # Variable that contains the figure size in inches.
         # This variable is set after the first plot has been rendered.
@@ -257,16 +257,17 @@ class Tester:
         self._batch = batchMode
 
     def include_fmu_tests(self, fmu_export):
-        ''' Sets a flag that, if ``True``, also tests the export of FMUs.
+        ''' Sets a flag that, if ``False``, does not test the export of FMUs.
 
-        :param fmu_export: Set to ``True`` to test the export of FMUs.
+        :param fmu_export: Set to ``True`` to test the export of FMUs (default), or ``False``
+                           to not test the FMU export.
 
-        To run the unit tests and also test the export of FMUs, type
+        To run the unit tests but do not test the export of FMUs, type
 
         >>> import os
         >>> import buildingspy.development.regressiontest as r
         >>> r = r.Tester()
-        >>> r.include_fmu_tests(True)
+        >>> r.include_fmu_tests(False)
         >>> r.run() # doctest: +SKIP
 
         '''
@@ -1364,7 +1365,9 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
                         # Make dictionary to save the results and the svn information
                         self._writeReferenceResults(oldRefFulFilNam, y_sim, y_tra)
             else:
-                self._reporter.writeWarning("Output file of " + data['ScriptFile'] + " is excluded from result test.")
+                # Tests that export FMUs do not have an output file. Hence, we do not warn about these cases.
+                if not data['mustExportFMU']:
+                    self._reporter.writeWarning("Output file of " + data['ScriptFile'] + " is excluded from result test.")
         return 0
 
     def _checkSimulationError(self, errorFile):
@@ -1514,7 +1517,7 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
         fil = open(mosFilNam, "r+")
         retVal = None
         for lin in fil.readlines():
-            if "simulateModel" in lin:
+            if "simulateModel" in lin or "modelToOpen" in lin:
                 if self._modelicaCmd == 'dymola':
                     retVal = 'checkModel("{}")'.format(getModelName(mosFilNam, lin))
                 elif self._modelicaCmd == 'omc':
@@ -1617,13 +1620,13 @@ Modelica.Utilities.Streams.print("{\"testCase\" : [", "%s");
             # This is needed to properly close the json brackets.
             nItem = 0
             for i in range(iPro, nTes, self._nPro):
-                if self._data[i]['mustSimulate'] or self._data[i]['mustExportFMU']:
+                if self._data[i]['mustSimulate'] or (self._include_fmu_test and self._data[i]['mustExportFMU']):
                     nItem = nItem + 1
             iItem = 0
             # Write unit tests for this process
             for i in range(iPro, nTes, self._nPro):
                 # Check if this mos file should be simulated
-                if self._data[i]['mustSimulate']:
+                if self._data[i]['mustSimulate'] or (self._include_fmu_test and self._data[i]['mustExportFMU']):
                     isLastItem = (iItem == nItem-1)
                     self._data[i]['ResultDirectory'] = self._temDir[iPro]
                     mosFilNam = os.path.join(self.getLibraryName(),
@@ -1631,7 +1634,7 @@ Modelica.Utilities.Streams.print("{\"testCase\" : [", "%s");
                                              self._data[i]['ScriptDirectory'],
                                              self._data[i]['ScriptFile'])
                     absMosFilNam = os.path.join(self._temDir[iPro], mosFilNam)
-
+                    print "*** fixme: absMosFilNam = {}".format(absMosFilNam)
                     values = {"mosWithPath": mosFilNam.replace("\\","/"),
                               "checkCommand": self._getModelCheckCommand(absMosFilNam).replace("\\","/"),
                               "checkCommandString": self._getModelCheckCommand(absMosFilNam).replace('\"', r'\\\"'),
@@ -1678,7 +1681,7 @@ end if;
 if Modelica.Utilities.Files.exist("{FMUName}") then
   Modelica.Utilities.Files.del("{FMUName}");
 end if;
-rFMUExp=RunScript{"Resources/Scripts/Dymola/{scriptDir}/{scriptFile}");
+rFMUExp=RunScript("Resources/Scripts/Dymola/{scriptDir}/{scriptFile}");
 savelog("{modelName}.simulator.log");
 if Modelica.Utilities.Files.exist("dslog.txt") then
   Modelica.Utilities.Files.move("dslog.txt", "{modelName}.dslog.log");
@@ -1746,6 +1749,8 @@ Modelica.Utilities.Streams.print("        \"unspecified initial conditions\"    
                                             runFil,
                                             self._statistics_log);
 
+                        print "*** fixme: _include_fmu_test = {}; self._data[i][\"mustExportFMU\"] = {}, i={}, nItem={}".format(
+                            self._include_fmu_test, self._data[i]["mustExportFMU"], i, nItem)
                         if self._include_fmu_test and self._data[i]["mustExportFMU"]:
                             template = r"""
 Modelica.Utilities.Streams.print("      \"FMUExport\" : {{", "{statisticsLog}");
