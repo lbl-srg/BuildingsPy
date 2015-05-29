@@ -20,7 +20,7 @@ def get_model_statistics(log_file, simulator):
         ``initialization`` and ``simulation``, which contain the statistics
         for the initialization and the simulation problem.
         Note that not all models have an initialization problem, in which case
-        the ``simulation`` dictionary is not present.
+        the ``initialization`` dictionary is not present.
 
         Both dictionaries, if present, have the following keys
         if Dymola reported the corresponding statistic:
@@ -31,10 +31,14 @@ def get_model_statistics(log_file, simulator):
           after the symbolic manipulation.
         - ``numerical Jacobian``: The number of numerical Jacobians.
     """
+    import os
     import re
 
     if simulator != "dymola":
         raise ValueError('Argument "simulator" needs to be set to "dymola".')
+
+    if not os.path.isfile(log_file):
+        raise IOError("File {} does not exist".format(log_file))
 
     with open(log_file) as fil:
         lines = fil.readlines();
@@ -46,6 +50,7 @@ def get_model_statistics(log_file, simulator):
 
         reg = re.compile('\{(.*?)\}')
 
+        CONSTA="Continuous time states:"
         NONLIN="Sizes after manipulation of the nonlinear systems:"
         LIN=   "Sizes after manipulation of the linear systems:"
         NUMJAC="Number of numerical Jacobians"
@@ -70,7 +75,10 @@ def get_model_statistics(log_file, simulator):
                     dicIni['linear'] = m.group(1)
                 else:
                     dicSim['linear'] = m.group(1)
-
+            elif lin.find(CONSTA) > 0:
+                temp = lin.rpartition(":")[2].strip()
+                temp = temp.partition("scalars")[0].strip()
+                dicSim['number of continuous time states'] = temp
             elif lin.find(NUMJAC) > 0:
                 temp = lin.rpartition(":")[2].strip()
                 if initalizationMode:
