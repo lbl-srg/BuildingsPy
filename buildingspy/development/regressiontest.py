@@ -104,7 +104,6 @@ class Tester:
                  functions:  0
        Generated  3  regression tests.
        <BLANKLINE>
-       FMU export was not tested.
        Script that runs unit tests had 0 warnings and 0 errors.
        <BLANKLINE>
        See 'unitTests.log' for details.
