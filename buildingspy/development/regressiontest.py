@@ -487,12 +487,15 @@ class Tester:
 
         def _get_attribute_value(line, keyword, dat):
             ''' Get the value of an attribute in the `.mos` file.
+            
+                This function will remove leading and ending quotes.
 
                 :param line: The line that contains the keyword and the value.
                 :param keyword: The keyword
                 :param dat: The data dictionary to which dat[keyword] = value will be written.
 
             '''
+            
             pos = lin.find(keyword)
             if pos > -1:
                 posEq = line.find('=', pos)
@@ -501,7 +504,8 @@ class Tester:
                 posEnd = min(posComma,posBracket)
                 if posEnd < 0:
                     posEnd = max(posComma,posBracket)
-                dat[keyword] = line[posEq+1:posEnd]
+                entry = line[posEq+1:posEnd]
+                dat[keyword] = re.sub(r'^"|"$', '', entry)
             return
 
 
@@ -556,6 +560,11 @@ class Tester:
                                 if dat['mustExportFMU']:
                                     for attr in ["modelToOpen", "modelName"]:
                                         _get_attribute_value(lin, attr, dat)
+                                    # The .mos script allows modelName="", in which case
+                                    # we set the model name to be the entry of modelToOpen
+                                    if dat.has_key("modelName") and dat["modelName"] == "" or (dat.has_key("modelName")):
+                                        if dat.has_key("modelToOpen"): 
+                                            dat["modelName"] = dat["modelToOpen"] 
 
 
                             # We are finished iterating over all lines of the .mos
@@ -1397,40 +1406,43 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
         iTyp = 0
         iCom = 0
         iIni = 0
-        checkedFMU = False
         # Check for errors
         for ele in stat:
             if ele['check']['result'] is False:
                 iChe = iChe + 1
                 self._reporter.writeError("Model check failed for '%s'." % ele["model"])
-            if ele['simulate']['result'] is False:
+
+            if ele.has_key('simulate') and ele['simulate']['result'] is False:
                 iSim = iSim + 1
                 self._reporter.writeError("Simulation failed for '%s'." % ele["simulate"]["command"])
+            elif ele.has_key('FMUExport') and ele['FMUExport']['result'] is False:
+                iFMU = iFMU + 1
+                self._reporter.writeError("FMU export failed for '%s'." % ele["model"])
             else:
-                # Simulation succeeeded. Check for problems.
-                if ele['simulate']["numerical Jacobians"] > 0:
-                    self._reporter.writeWarning("Numerical Jacobian in '%s'." % ele["simulate"]["command"])
+                # Simulation or FMU export succeeeded. Check for problems.
+                # First, determine whether we had a simulation or an FMU export
+                if ele.has_key('simulate'):
+                    key = 'simulate'
+                else:
+                    key = 'FMUExport'
+                if ele[key]["numerical Jacobians"] > 0:
+                    self._reporter.writeWarning("Numerical Jacobian in '%s'." % ele[key]["command"])
                     iJac = iJac + 1
-                if ele['simulate']["unused connector"] > 0:
-                    self._reporter.writeWarning("Unused connector variables in '%s'." % ele["simulate"]["command"])
+                if ele[key]["unused connector"] > 0:
+                    self._reporter.writeWarning("Unused connector variables in '%s'." % ele[key]["command"])
                     iCon = iCon + 1
-                if ele['simulate']["redundant consistent initial conditions"] > 0:
-                    self._reporter.writeWarning("Redundant consistent initial conditions in '%s'." % ele["simulate"]["command"])
+                if ele[key]["redundant consistent initial conditions"] > 0:
+                    self._reporter.writeWarning("Redundant consistent initial conditions in '%s'." % ele[key]["command"])
                     iRed = iRed + 1
-                if ele['simulate']["type inconsistent definition equations"] > 0:
-                    self._reporter.writeWarning("Type inconsistent definition equations in '%s'." % ele["simulate"]["command"])
+                if ele[key]["type inconsistent definition equations"] > 0:
+                    self._reporter.writeWarning("Type inconsistent definition equations in '%s'." % ele[key]["command"])
                     iTyp = iTyp + 1
-                if ele['simulate']["type incompatibility"] > 0:
-                    self._reporter.writeWarning("Type incompabitibility in '%s'." % ele["simulate"]["command"])
+                if ele[key]["type incompatibility"] > 0:
+                    self._reporter.writeWarning("Type incompabitibility in '%s'." % ele[key]["command"])
                     iCom = iCom + 1
-                if ele['simulate']["unspecified initial conditions"] > 0:
-                    self._reporter.writeWarning("Unspecified initial conditions in '%s'." % ele["simulate"]["command"])
+                if ele[key]["unspecified initial conditions"] > 0:
+                    self._reporter.writeWarning("Unspecified initial conditions in '%s'." % ele[key]["command"])
                     iIni = iIni + 1
-            if ele.has_key('FMUExport'):
-                if ele['FMUExport']['result'] is False:
-                    iFMU = iFMU + 1
-                    self._reporter.writeError("FMU export failed for '%s'." % ele["model"])
-                checkedFMU = True
 
         if iChe > 0:
             print "Number of models that failed check                           :", iChe
@@ -1450,8 +1462,6 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
             print "Number of models with unspecified initial conditions         :", iIni
         if iFMU > 0:
             print "Number of models that failed to export as an FMU             :", iFMU
-        if not checkedFMU:
-            print "FMU export was not tested."
 
         self._reporter.writeOutput("Script that runs unit tests had " + \
                                         str(self._reporter.getNumberOfWarnings()) + \
@@ -1562,15 +1572,54 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
         The commands in the script depend on the executable: 'dymola' or 'omc'
         """
 
+        def _write_translation_checks(runFil, values):
+            template = r"""
+if Modelica.Utilities.Files.exist("{modelName}.translation.log") then
+  lines=Modelica.Utilities.Streams.readFile("{modelName}.translation.log");
+  iJac=sum(Modelica.Utilities.Strings.count(lines, "Number of numerical Jacobians: 0"));
+  lJac=sum(Modelica.Utilities.Strings.count(lines, "Number of numerical Jacobians:"));
+  iCon=sum(Modelica.Utilities.Strings.count(lines, "Warning: The following connector variables are not used in the model"));
+  iRed=sum(Modelica.Utilities.Strings.count(lines, "Redundant consistent initial conditions:"));
+  iTyp=sum(Modelica.Utilities.Strings.count(lines, "Type inconsistent definition equation"));
+  iCom=sum(Modelica.Utilities.Strings.count(lines, "but they must be compatible"));
+  iIni=sum(Modelica.Utilities.Strings.count(lines, "Dymola has selected default initial condition"));
+else
+  Modelica.Utilities.Streams.print("{modelName}.translation.log was not generated.", "{modelName}.log");
+  iJac=0;
+  lJac=0;
+  iCon=0;
+  iRed=0;
+  iTyp=0;
+  iCom=0;
+  iIni=0;
+end if;
+"""
+            runFil.write(template.format(**values))
+
+        def _write_translation_stats(runFil, values):
+            template = r"""
+Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(iJac-lJac) + ",", "{statisticsLog}");
+Modelica.Utilities.Streams.print("        \"unused connector\"  : " + String(iCon) + ",", "{statisticsLog}");
+Modelica.Utilities.Streams.print("        \"redundant consistent initial conditions\"    : " + String(iRed) + ",", "{statisticsLog}");
+Modelica.Utilities.Streams.print("        \"type inconsistent definition equations\"     : " + String(iTyp) + ",", "{statisticsLog}");
+Modelica.Utilities.Streams.print("        \"type incompatibility\"                       : " + String(iCom) + ",", "{statisticsLog}");
+Modelica.Utilities.Streams.print("        \"unspecified initial conditions\"             : " + String(iIni > 0), "{statisticsLog}");
+"""
+            runFil.write(template.format(**values))
+            # Close the bracket for the JSON object
+            runFil.write("""Modelica.Utilities.Streams.print("      }", """ + '"' + values['statisticsLog'] + '"' + ");\n")
+
         def _printEndOfJsonItem(isLastItem, closeElement, fileHandle, logFileName):
             if isLastItem:
                 fileHandle.write("Modelica.Utilities.Streams.print(\"    }\", \"%s\")\n" % logFileName);
-                fileHandle.write("Modelica.Utilities.Streams.print(\"  }\", \"%s\")\n" % logFileName);
-                fileHandle.write("Modelica.Utilities.Streams.print(\"]}\", \"%s\")\n" % logFileName);
+                fileHandle.write("Modelica.Utilities.Streams.print(\"  ]\", \"%s\")\n" % logFileName);
+                fileHandle.write("Modelica.Utilities.Streams.print(\"}\", \"%s\")\n" % logFileName);
             else:
                 if closeElement:
                     fileHandle.write("Modelica.Utilities.Streams.print(\"    }\", \"%s\")\n" % logFileName);
                 fileHandle.write("Modelica.Utilities.Streams.print(\"  },\", \"%s\")\n" % logFileName);
+
+
 
 
 
@@ -1605,8 +1654,6 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
             if self._modelicaCmd == 'dymola':
                 runFil.write("Advanced.TranslationInCommandLog := true;\n")
                 # Set flag to support string parameters, which is required for the weather data file.
-                # fixme: this is for Dymola 2015 if self._include_fmu_test:
-                # fixme: this is for Dymola 2015     runFil.write("Advanced.AllowStringParameters = true;\n")
                 runFil.write("Modelica.Utilities.Files.remove(\"%s\");\n" % self._simulator_log_file)
                 # Store the variable for pedantic mode
                 runFil.write("OriginalAdvancedPedanticModelica = Advanced.PedanticModelica;\n")
@@ -1634,7 +1681,7 @@ Modelica.Utilities.Streams.print("{\"testCase\" : [", "%s");
                                              self._data[i]['ScriptDirectory'],
                                              self._data[i]['ScriptFile'])
                     absMosFilNam = os.path.join(self._temDir[iPro], mosFilNam)
-                    print "*** fixme: absMosFilNam = {}".format(absMosFilNam)
+
                     values = {"mosWithPath": mosFilNam.replace("\\","/"),
                               "checkCommand": self._getModelCheckCommand(absMosFilNam).replace("\\","/"),
                               "checkCommandString": self._getModelCheckCommand(absMosFilNam).replace('\"', r'\\\"'),
@@ -1644,6 +1691,7 @@ Modelica.Utilities.Streams.print("{\"testCase\" : [", "%s");
                               "modelName_underscore":  self._data[i]['modelName'].replace(".", "_"),
                               "statisticsLog": self._statistics_log.replace("\\","/"),
                               "simulatorLog": self._simulator_log_file.replace("\\","/")}
+
                     if self._data[i].has_key('FMUName'):
                         values["FMUName"] = self._data[i]['FMUName']
 
@@ -1660,40 +1708,11 @@ Modelica.Utilities.Streams.print("{\"testCase\" : [", "%s");
                     if self._modelicaCmd == 'omc':
                         runFil.write('getErrorString();\n')
 
-                    # Write line for run script
+                    ########################################################################
+                    # Write line for model check
                     if self._modelicaCmd == 'dymola':
-                        # Remove dslog.txt, run a simulation, rename dslog.txt, and
-                        # scan this log file for errors.
-                        # This is needed as RunScript returns true even if the simulation failed.
                         template = r"""
 rCheck = {checkCommand};
-rScript=RunScript("Resources/Scripts/Dymola/{scriptDir}/{scriptFile}");
-savelog("{modelName}.translation.log");
-if Modelica.Utilities.Files.exist("dslog.txt") then
-  Modelica.Utilities.Files.move("dslog.txt", "{modelName}.dslog.log");
-end if;
-"""
-                        runFil.write(template.format(**values))
-
-                        # Write code for FMU export
-                        if self._include_fmu_test and self._data[i]["mustExportFMU"]:
-                            template = r"""
-if Modelica.Utilities.Files.exist("{FMUName}") then
-  Modelica.Utilities.Files.del("{FMUName}");
-end if;
-rFMUExp=RunScript("Resources/Scripts/Dymola/{scriptDir}/{scriptFile}");
-savelog("{modelName}.simulator.log");
-if Modelica.Utilities.Files.exist("dslog.txt") then
-  Modelica.Utilities.Files.move("dslog.txt", "{modelName}.dslog.log");
-end if;
-
-"""
-                            runFil.write(template.format(**values))
-
-                    #######################################################################################
-                    # Write commands for checking translation and simulation results.
-                    if self._modelicaCmd == 'dymola':
-                        template = r"""
 Modelica.Utilities.Streams.print("    {{ \"file\" :  \"{mosWithPath}\",", "{statisticsLog}");
 Modelica.Utilities.Streams.print("      \"model\" : \"{modelName}\",", "{statisticsLog}");
 Modelica.Utilities.Streams.print("      \"check\" : {{", "{statisticsLog}");
@@ -1703,68 +1722,75 @@ Modelica.Utilities.Streams.print("      }},", "{statisticsLog}");
 """
                         runFil.write(template.format(**values))
 
+                    #######################################################################################
+                    # Write commands for checking translation and simulation results.
+                    if self._modelicaCmd == 'dymola' and self._data[i]["mustSimulate"]:
+                        # Remove dslog.txt, run a simulation, rename dslog.txt, and
+                        # scan this log file for errors.
+                        # This is needed as RunScript returns true even if the simulation failed.
                         template = r"""
+rScript=RunScript("Resources/Scripts/Dymola/{scriptDir}/{scriptFile}");
+savelog("{modelName}.translation.log");
+if Modelica.Utilities.Files.exist("dslog.txt") then
+  Modelica.Utilities.Files.move("dslog.txt", "{modelName}.dslog.log");
+end if;
 if Modelica.Utilities.Files.exist("{modelName}.dslog.log") then
   lines=Modelica.Utilities.Streams.readFile("{modelName}.dslog.log");
   iSuc=sum(Modelica.Utilities.Strings.count(lines, "Integration terminated successfully"));
 else
-  Modelica.Utilities.Streams.print("dslog.txt was not generated.", "{modelName}.log");
+  Modelica.Utilities.Streams.print("{modelName}.dslog.log was not generated.", "{modelName}.log");
   iSuc=0;
 end if;
-if Modelica.Utilities.Files.exist("{modelName}.translation.log") then
-  lines=Modelica.Utilities.Streams.readFile("{modelName}.translation.log");
-  iJac=sum(Modelica.Utilities.Strings.count(lines, "Number of numerical Jacobians: 0"));
-  lJac=sum(Modelica.Utilities.Strings.count(lines, "Number of numerical Jacobians:"));
-  iCon=sum(Modelica.Utilities.Strings.count(lines, "Warning: The following connector variables are not used in the model"));
-  iRed=sum(Modelica.Utilities.Strings.count(lines, "Redundant consistent initial conditions:"));
-  iTyp=sum(Modelica.Utilities.Strings.count(lines, "Type inconsistent definition equation"));
-  iCom=sum(Modelica.Utilities.Strings.count(lines, "but they must be compatible"));
-  iIni=sum(Modelica.Utilities.Strings.count(lines, "Dymola has selected default initial condition"));
-else
-  Modelica.Utilities.Streams.print("dslog.txt was not generated.", "{modelName}.translation.log");
-  iJac=0;
-  lJac=0;
-  iCon=0;
-  iRed=0;
-  iTyp=0;
-  iCom=0;
-  iIni=0;
-end if;
-Modelica.Utilities.Streams.print("      \"simulate\" : {{", "{statisticsLog}");
-Modelica.Utilities.Streams.print("        \"command\" : \"RunScript(\\\"Resources/Scripts/Dymola/{scriptDir}/{scriptFile}\\\");\",", "{statisticsLog}");
-Modelica.Utilities.Streams.print("        \"result\"  : " + String(iSuc > 0) + ",", "{statisticsLog}");
-Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(iJac-lJac) + ",", "{statisticsLog}");
-Modelica.Utilities.Streams.print("        \"unused connector\"  : " + String(iCon) + ",", "{statisticsLog}");
-Modelica.Utilities.Streams.print("        \"redundant consistent initial conditions\"    : " + String(iRed) + ",", "{statisticsLog}");
-Modelica.Utilities.Streams.print("        \"type inconsistent definition equations\"     : " + String(iTyp) + ",", "{statisticsLog}");
-Modelica.Utilities.Streams.print("        \"type incompatibility\"                       : " + String(iCom) + ",", "{statisticsLog}");
-Modelica.Utilities.Streams.print("        \"unspecified initial conditions\"             : " + String(iIni > 0), "{statisticsLog}");
 """
                         runFil.write(template.format(**values))
 
+                        _write_translation_checks(runFil, values)
 
+                        template = r"""
+Modelica.Utilities.Streams.print("      \"simulate\" : {{", "{statisticsLog}");
+Modelica.Utilities.Streams.print("        \"command\" : \"RunScript(\\\"Resources/Scripts/Dymola/{scriptDir}/{scriptFile}\\\");\",", "{statisticsLog}");
+Modelica.Utilities.Streams.print("        \"result\"  : " + String(iSuc > 0) + ",", "{statisticsLog}");
+"""
+                        runFil.write(template.format(**values))
+
+                        _write_translation_stats(runFil, values)
 
                         _printEndOfJsonItem(isLastItem and (not self._include_fmu_test),
                                             not self._include_fmu_test and not self._data[i]["mustExportFMU"],
                                             runFil,
                                             self._statistics_log);
 
-                        print "*** fixme: _include_fmu_test = {}; self._data[i][\"mustExportFMU\"] = {}, i={}, nItem={}".format(
-                            self._include_fmu_test, self._data[i]["mustExportFMU"], i, nItem)
-                        if self._include_fmu_test and self._data[i]["mustExportFMU"]:
-                            template = r"""
+                    #############################################################################################
+                    ## FMU export
+                    if self._modelicaCmd == 'dymola' and self._data[i]["mustExportFMU"] and self._include_fmu_test:
+                        template = r"""
+if Modelica.Utilities.Files.exist("{FMUName}") then
+  Modelica.Utilities.Files.del("{FMUName}");
+end if;
+rFMUExp=RunScript("Resources/Scripts/Dymola/{scriptDir}/{scriptFile}");
+savelog("{modelName}.simulator.log");
+if Modelica.Utilities.Files.exist("dslog.txt") then
+  Modelica.Utilities.Files.move("dslog.txt", "{modelName}.dslog.log");
+end if;
+"""
+                        runFil.write(template.format(**values))
+
+                        _write_translation_checks(runFil, values)
+
+                        template = r"""
 Modelica.Utilities.Streams.print("      \"FMUExport\" : {{", "{statisticsLog}");
 Modelica.Utilities.Streams.print("        \"command\" :\"RunScript(\\\"Resources/Scripts/Dymola/{scriptDir}/{scriptFile}\\\");\",", "{statisticsLog}");
-Modelica.Utilities.Streams.print("        \"result\"  : " + String(rFMUExp == "{FMUName}"), "{statisticsLog}");
+Modelica.Utilities.Streams.print("        \"result\"  : " + String(rFMUExp)  + ",", "{statisticsLog}");
 """
-                            runFil.write(template.format(**values))
+                        runFil.write(template.format(**values))
 
+                        _write_translation_stats(runFil, values)
 
-                            runFil.write(template.format(**values))
-                            _printEndOfJsonItem(isLastItem,
-                                                True,
-                                                runFil,
-                                                self._statistics_log);
+                        _printEndOfJsonItem(isLastItem,
+                                            False,
+                                            runFil,
+                                            self._statistics_log);
+
 
                     elif self._modelicaCmd == 'omc':
                         template("""
@@ -1772,8 +1798,11 @@ runScript("Resources/Scripts/Dymola/{scriptDir}/{scriptFile}");
 getErrorString();
 """)
                         runFil.write(template.format(**values))
-                    else:
-                        print("******" + self._data[i]['ScriptFile'] + " does not require a simulation.")
+                    
+
+                    if self._modelicaCmd == 'dymola' and not (self._data[i]["mustExportFMU"] or self._data[i]["mustSimulate"]):
+                        print("******" + self._data[i]['ScriptFile'] + " neither requires a simulation nor an FMU export.")
+
                     self._removePlotCommands(absMosFilNam)
                     nUniTes = nUniTes + 1
                     iItem = iItem + 1
