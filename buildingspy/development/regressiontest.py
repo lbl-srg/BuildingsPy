@@ -19,7 +19,6 @@ def runSimulation(worDir, cmd):
 
     .. note:: This method is outside the class definition to
               allow parallel computing.
-
     '''
 
     import subprocess
@@ -487,7 +486,7 @@ class Tester:
 
         def _get_attribute_value(line, keyword, dat):
             ''' Get the value of an attribute in the `.mos` file.
-            
+
                 This function will remove leading and ending quotes.
 
                 :param line: The line that contains the keyword and the value.
@@ -495,7 +494,7 @@ class Tester:
                 :param dat: The data dictionary to which dat[keyword] = value will be written.
 
             '''
-            
+
             pos = lin.find(keyword)
             if pos > -1:
                 posEq = line.find('=', pos)
@@ -563,8 +562,8 @@ class Tester:
                                     # The .mos script allows modelName="", in which case
                                     # we set the model name to be the entry of modelToOpen
                                     if dat.has_key("modelName") and dat["modelName"] == "" or (dat.has_key("modelName")):
-                                        if dat.has_key("modelToOpen"): 
-                                            dat["modelName"] = dat["modelToOpen"] 
+                                        if dat.has_key("modelToOpen"):
+                                            dat["modelName"] = dat["modelToOpen"]
 
 
                             # We are finished iterating over all lines of the .mos
@@ -1303,7 +1302,7 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
             show a warning message containing the file name and path.
             If there is no ``.mat`` file of the reference points in the library home folder,
             ask the user whether it should be generated.
-            
+
             This function return 1 if reading reference results or reading the translation
             statistics failed. In this case, the calling method should not attempt to do
             further processing. The function returns 0 if there were no problems. In
@@ -1325,7 +1324,7 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
                                             data['ScriptDirectory'], data['ScriptFile'])
                 mosFulFilNam = mosFulFilNam.replace(os.sep, '_')
                 refFilNam=os.path.splitext(mosFulFilNam)[0] + ".txt"
-                
+
 
                 try:
                     # extract reference points from the ".mat" file corresponding to "filNam"
@@ -1388,13 +1387,13 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
         # Read the json file with the statistics
         if not os.path.isfile(self._statistics_log):
             raise IOError("Statistics file {} does not exist.".format(self._statistics_log))
-        
+
         fil = open(self._statistics_log, "r")
         try:
             stat = json.load(fil)['testCase']
         except ValueError as e:
             raise ValueError("Failed to parse {}.\n{}".format(self._statistics_log, str(e)))
-            
+
 
         # Error counters
         iChe = 0
@@ -1609,19 +1608,13 @@ Modelica.Utilities.Streams.print("        \"unspecified initial conditions\"    
             # Close the bracket for the JSON object
             runFil.write("""Modelica.Utilities.Streams.print("      }", """ + '"' + values['statisticsLog'] + '"' + ");\n")
 
-        def _printEndOfJsonItem(isLastItem, closeElement, fileHandle, logFileName):
+        def _print_end_of_json(isLastItem, fileHandle, logFileName):
             if isLastItem:
                 fileHandle.write("Modelica.Utilities.Streams.print(\"    }\", \"%s\")\n" % logFileName);
                 fileHandle.write("Modelica.Utilities.Streams.print(\"  ]\", \"%s\")\n" % logFileName);
                 fileHandle.write("Modelica.Utilities.Streams.print(\"}\", \"%s\")\n" % logFileName);
             else:
-                if closeElement:
-                    fileHandle.write("Modelica.Utilities.Streams.print(\"    }\", \"%s\")\n" % logFileName);
                 fileHandle.write("Modelica.Utilities.Streams.print(\"  },\", \"%s\")\n" % logFileName);
-
-
-
-
 
         nUniTes = 0
 
@@ -1755,10 +1748,9 @@ Modelica.Utilities.Streams.print("        \"result\"  : " + String(iSuc > 0) + "
 
                         _write_translation_stats(runFil, values)
 
-                        _printEndOfJsonItem(isLastItem and (not self._include_fmu_test),
-                                            not self._include_fmu_test and not self._data[i]["mustExportFMU"],
-                                            runFil,
-                                            self._statistics_log);
+                        _print_end_of_json(isLastItem,
+                                           runFil,
+                                           self._statistics_log);
 
                     #############################################################################################
                     ## FMU export
@@ -1786,10 +1778,9 @@ Modelica.Utilities.Streams.print("        \"result\"  : " + String(rFMUExp)  + "
 
                         _write_translation_stats(runFil, values)
 
-                        _printEndOfJsonItem(isLastItem,
-                                            False,
-                                            runFil,
-                                            self._statistics_log);
+                        _print_end_of_json(isLastItem,
+                                           runFil,
+                                           self._statistics_log);
 
 
                     elif self._modelicaCmd == 'omc':
@@ -1798,7 +1789,7 @@ runScript("Resources/Scripts/Dymola/{scriptDir}/{scriptFile}");
 getErrorString();
 """)
                         runFil.write(template.format(**values))
-                    
+
 
                     if self._modelicaCmd == 'dymola' and not (self._data[i]["mustExportFMU"] or self._data[i]["mustSimulate"]):
                         print("******" + self._data[i]['ScriptFile'] + " neither requires a simulation nor an FMU export.")
