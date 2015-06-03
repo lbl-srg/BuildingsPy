@@ -1418,7 +1418,7 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
                 self._reporter.writeError("Simulation failed for '%s'." % ele["simulate"]["command"])
             elif ele.has_key('FMUExport') and ele['FMUExport']['result'] is False:
                 iFMU = iFMU + 1
-                self._reporter.writeError("FMU export failed for '%s'." % ele["model"]["command"])
+                self._reporter.writeError("FMU export failed for '%s'." % ele["FMUExport"]["command"])
             else:
                 # Simulation or FMU export succeeeded. Check for problems.
                 # First, determine whether we had a simulation or an FMU export
