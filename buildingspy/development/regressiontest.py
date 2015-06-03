@@ -578,7 +578,11 @@ class Tester:
 
                                 # Update the name of the FMU if modelName is "" in .mos file.
                                 if len(dat["FMUName"]) == 0:
-                                    dat['FMUName'] = dat['modelToOpen'].replace("_", "_0").replace(".", "_")
+                                    dat['FMUName'] = dat['modelToOpen']
+                                # Update the FMU name, for example to change
+                                # Buildings.Fluid.FMI.Examples.FMUs.IdealSource_m_flow to
+                                # Buildings_Fluid_FMI_Examples_FMUs_IdealSource_0m_0flow
+                                dat['FMUName'] = dat['FMUName'].replace("_", "_0").replace(".", "_")
                                 dat['FMUName'] = dat['FMUName'] + ".fmu"
 
                             # Plot variables are only used for those models that need to be simulated.
@@ -1563,7 +1567,7 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
             filWri.write(lines[linWri[i]])
         filWri.close()
 
-    def _writeRunscripts(self):
+    def _write_runscripts(self):
         """
         Create the runAll.mos scripts, one per processor (self._nPro)
 
@@ -1583,13 +1587,13 @@ if Modelica.Utilities.Files.exist("{modelName}.translation.log") then
   iIni=sum(Modelica.Utilities.Strings.count(lines, "Dymola has selected default initial condition"));
 else
   Modelica.Utilities.Streams.print("{modelName}.translation.log was not generated.", "{modelName}.log");
-  iJac=0;
-  lJac=0;
-  iCon=0;
-  iRed=0;
-  iTyp=0;
-  iCom=0;
-  iIni=0;
+  iJac= 0;
+  lJac=-1;
+  iCon=-1;
+  iRed=-1;
+  iTyp=-1;
+  iCom=-1;
+  iIni=-1;
 end if;
 """
             runFil.write(template.format(**values))
@@ -1758,10 +1762,17 @@ Modelica.Utilities.Streams.print("        \"result\"  : " + String(iSuc > 0) + "
 if Modelica.Utilities.Files.exist("{FMUName}") then
   Modelica.Utilities.Files.del("{FMUName}");
 end if;
-rFMUExp=RunScript("Resources/Scripts/Dymola/{scriptDir}/{scriptFile}");
-savelog("{modelName}.simulator.log");
+RunScript("Resources/Scripts/Dymola/{scriptDir}/{scriptFile}");
+savelog("{modelName}.translation.log");
 if Modelica.Utilities.Files.exist("dslog.txt") then
   Modelica.Utilities.Files.move("dslog.txt", "{modelName}.dslog.log");
+end if;
+if Modelica.Utilities.Files.exist("{modelName}.dslog.log") then
+  lines=Modelica.Utilities.Streams.readFile("{modelName}.dslog.log");
+  iSuc=sum(Modelica.Utilities.Strings.count(lines, "Created {FMUName}"));
+else
+  Modelica.Utilities.Streams.print("{modelName}.dslog.log was not generated.", "{modelName}.log");
+  iSuc=0;
 end if;
 """
                         runFil.write(template.format(**values))
@@ -1771,7 +1782,7 @@ end if;
                         template = r"""
 Modelica.Utilities.Streams.print("      \"FMUExport\" : {{", "{statisticsLog}");
 Modelica.Utilities.Streams.print("        \"command\" :\"RunScript(\\\"Resources/Scripts/Dymola/{scriptDir}/{scriptFile}\\\");\",", "{statisticsLog}");
-Modelica.Utilities.Streams.print("        \"result\"  : " + String(rFMUExp)  + ",", "{statisticsLog}");
+Modelica.Utilities.Streams.print("        \"result\"  : " + String(iSuc > 0)  + ",", "{statisticsLog}");
 """
                         runFil.write(template.format(**values))
 
@@ -1884,11 +1895,11 @@ getErrorString();
 
         self.setDataDictionary()
 
-        # Remove all data that do not require a simulation
+        # Remove all data that do not require a simulation or an FMU export.
         # Otherwise, some processes may have no simulation to run and then
         # the json output file would have an invalid syntax
         for ele in self._data:
-            if not ele['mustSimulate']:
+            if not (ele['mustSimulate'] or ele['mustExportFMU']):
                 self._data.remove(ele)
 
         # Reset the number of processors to use no more processors than there are
@@ -1931,7 +1942,7 @@ getErrorString();
         # Run simulations
         if not self._useExistingResults:
             self._setTemporaryDirectories()
-        self._writeRunscripts()
+        self._write_runscripts()
         if not self._useExistingResults:
             libNam = self.getLibraryName()
             if self._modelicaCmd == 'dymola':
