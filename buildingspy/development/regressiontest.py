@@ -102,7 +102,7 @@ class Tester:
        Number of models   :  1
                  blocks   :  0
                  functions:  0
-       Generated  3  regression tests.
+       Generated  4  regression tests.
        <BLANKLINE>
        Script that runs unit tests had 0 warnings and 0 errors.
        <BLANKLINE>
