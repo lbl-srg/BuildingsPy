@@ -45,7 +45,7 @@ Version 1.5.0, xxx, 2014 -- Release 1.5
 - Added in buildingspy.development.regressiontest.Tester() the
   new function writeOpenModelicaResultDictionary() that writes
   a result dictionary for the OpenModelica regression tests.
-  
+- Added regression tests for FMU export for Dymola.  
 
 Version 1.4.0, February 28, 2014 -- Release 1.4
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
