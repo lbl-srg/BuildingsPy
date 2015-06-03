@@ -106,7 +106,7 @@ class Tester:
        <BLANKLINE>
        Script that runs unit tests had 0 warnings and 0 errors.
        <BLANKLINE>
-       See 'unitTests.log' for details.
+       See 'simulator.log' for details.
        Unit tests completed successfully.
        <BLANKLINE>
        Execution time = ...
@@ -1413,13 +1413,12 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
             if ele['check']['result'] is False:
                 iChe = iChe + 1
                 self._reporter.writeError("Model check failed for '%s'." % ele["model"])
-
             if ele.has_key('simulate') and ele['simulate']['result'] is False:
                 iSim = iSim + 1
                 self._reporter.writeError("Simulation failed for '%s'." % ele["simulate"]["command"])
             elif ele.has_key('FMUExport') and ele['FMUExport']['result'] is False:
                 iFMU = iFMU + 1
-                self._reporter.writeError("FMU export failed for '%s'." % ele["model"])
+                self._reporter.writeError("FMU export failed for '%s'." % ele["model"]["command"])
             else:
                 # Simulation or FMU export succeeeded. Check for problems.
                 # First, determine whether we had a simulation or an FMU export
@@ -1470,7 +1469,7 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
                                         " warnings and " + \
                                         str(self._reporter.getNumberOfErrors()) + \
                                         " errors.\n")
-        sys.stdout.write("See 'unitTests.log' for details.\n")
+        sys.stdout.write("See '{}' for details.\n".format(self._simulator_log_file))
 
         if self._reporter.getNumberOfErrors() > 0:
             return 1
@@ -2008,7 +2007,7 @@ getErrorString();
         if self._modelicaCmd == 'dymola':
             retVal = self._checkReferencePoints(ans)
             if retVal != 0:
-                return 4
+                retVal = 4
 
         # Delete temporary directories
         if self._deleteTemporaryDirectories:
