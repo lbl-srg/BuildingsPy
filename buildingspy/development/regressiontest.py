@@ -1404,6 +1404,7 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
         iFMU = 0
         iJac = 0
         iCon = 0
+        iPar = 0
         iRed = 0
         iTyp = 0
         iCom = 0
@@ -1432,6 +1433,9 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
                 if ele[key]["unused connector"] > 0:
                     self._reporter.writeWarning("Unused connector variables in '%s'." % ele[key]["command"])
                     iCon = iCon + 1
+                if ele[key]["parameter with start value only"] > 0:
+                    self._reporter.writeWarning("Parameter with start value only in '%s'." % ele[key]["command"])
+                    iPar = iPar + 1
                 if ele[key]["redundant consistent initial conditions"] > 0:
                     self._reporter.writeWarning("Redundant consistent initial conditions in '%s'." % ele[key]["command"])
                     iRed = iRed + 1
@@ -1453,6 +1457,8 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
             print "Number of models with numerical Jacobian                     :", iJac
         if iCon > 0:
             print "Number of models with ununsed connector variables            :", iCon
+        if iPar > 0:
+            print "Number of models with parameters that only have a start value:", iPar
         if iRed > 0:
             print "Number of models with redundant consistent initial conditions:", iRed
         if iTyp > 0:
@@ -1580,6 +1586,7 @@ if Modelica.Utilities.Files.exist("{modelName}.translation.log") then
   iJac=sum(Modelica.Utilities.Strings.count(lines, "Number of numerical Jacobians: 0"));
   lJac=sum(Modelica.Utilities.Strings.count(lines, "Number of numerical Jacobians:"));
   iCon=sum(Modelica.Utilities.Strings.count(lines, "Warning: The following connector variables are not used in the model"));
+  iPar=sum(Modelica.Utilities.Strings.count(lines, "Warning: The following parameters don't have any value, only a start value"));
   iRed=sum(Modelica.Utilities.Strings.count(lines, "Redundant consistent initial conditions:"));
   iTyp=sum(Modelica.Utilities.Strings.count(lines, "Type inconsistent definition equation"));
   iCom=sum(Modelica.Utilities.Strings.count(lines, "but they must be compatible"));
@@ -1589,6 +1596,7 @@ else
   iJac= 0;
   lJac=-1;
   iCon=-1;
+  iPar= 0;
   iRed=-1;
   iTyp=-1;
   iCom=-1;
@@ -1601,6 +1609,7 @@ end if;
             template = r"""
 Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(iJac-lJac) + ",", "{statisticsLog}");
 Modelica.Utilities.Streams.print("        \"unused connector\"  : " + String(iCon) + ",", "{statisticsLog}");
+Modelica.Utilities.Streams.print("        \"parameter with start value only\"  : " + String(iPar) + ",", "{statisticsLog}");
 Modelica.Utilities.Streams.print("        \"redundant consistent initial conditions\"    : " + String(iRed) + ",", "{statisticsLog}");
 Modelica.Utilities.Streams.print("        \"type inconsistent definition equations\"     : " + String(iTyp) + ",", "{statisticsLog}");
 Modelica.Utilities.Streams.print("        \"type incompatibility\"                       : " + String(iCom) + ",", "{statisticsLog}");
@@ -1636,6 +1645,8 @@ Modelica.Utilities.Streams.print("        \"unspecified initial conditions\"    
             if self._modelicaCmd == 'dymola':
                 # Disable parallel computing as this can give slightly different results.
                 runFil.write('Advanced.ParallelizeCode = false;\n')
+#                runFil.write('Advanced.PedanticModelica = true;\n')
+#                print "*** Running unit tests in pedantic mode\n"
                 runFil.write('openModel("package.mo");\n')
             elif self._modelicaCmd == 'omc':
                 runFil.write('loadModel(Modelica, {"3.2"});\n')
