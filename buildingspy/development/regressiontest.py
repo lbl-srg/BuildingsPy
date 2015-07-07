@@ -1769,9 +1769,7 @@ Modelica.Utilities.Streams.print("        \"result\"  : " + String(iSuc > 0) + "
                     ## FMU export
                     if self._modelicaCmd == 'dymola' and self._data[i]["mustExportFMU"] and self._include_fmu_test:
                         template = r"""
-if Modelica.Utilities.Files.exist("{FMUName}") then
-  Modelica.Utilities.Files.del("{FMUName}");
-end if;
+Modelica.Utilities.Files.removeFile("{FMUName}");
 RunScript("Resources/Scripts/Dymola/{scriptDir}/{scriptFile}");
 savelog("{modelName}.translation.log");
 if Modelica.Utilities.Files.exist("dslog.txt") then
