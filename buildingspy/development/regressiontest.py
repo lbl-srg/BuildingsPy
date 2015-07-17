@@ -962,22 +962,26 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
 
         f=open(refFilNam, 'w')
         f.write('last-generated=' + str(date.today()) + '\n')
-        for stage in ['initialization', 'simulation']:
+        for stage in ['initialization', 'simulation', 'fmu-output-dependencies']:
+            print "***** fixme: y_tra.keys() = ", y_tra.keys()
             if y_tra.has_key(stage):
                 f.write('statistics-%s=%s\n' % (stage, y_tra[stage]))
-        # Set, used to avoid that data series that are plotted in two plots are
-        # written twice to the reference data file.
-        s = set()
-        for pai in y_sim:
-            for k, v in pai.items():
-                if k not in s:
-                    s.add(k)
-                    f.write(k + '=')
-                    # Use many digits, otherwise truncation errors occur that can be higher
-                    # than the required accuracy.
-                    formatted = [self.format_float(e) for e in v]
-                    f.write(str(formatted).replace("'", ""))
-                    f.write('\n')
+        # FMU exports do not have simulation results.
+        # Hence, we preclude them if y_sim == None
+        if y_sim is not None:
+            # Set, used to avoid that data series that are plotted in two plots are
+            # written twice to the reference data file.
+            s = set()
+            for pai in y_sim:
+                for k, v in pai.items():
+                    if k not in s:
+                        s.add(k)
+                        f.write(k + '=')
+                        # Use many digits, otherwise truncation errors occur that can be higher
+                        # than the required accuracy.
+                        formatted = [self.format_float(e) for e in v]
+                        f.write(str(formatted).replace("'", ""))
+                        f.write('\n')
         f.close()
 
     def _readReferenceResults(self, refFilNam):
@@ -1298,6 +1302,182 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
         return True
 
 
+    def _get_fmu_dependencies(self, fmu_file_name):
+        '''Extracts input-output_dependencies from an FMU.
+
+        :fmu_file_name: Name of the FMU file.
+
+        Extracts an fmu to a temporary directory, reads its `modelDescription.xml` file,
+        and returns a dictionary with output variable names as keys and lists of the
+        corresponding input variable names to which there is a dependency.
+
+        For example ``dependencies = {'outlet.forward.h': ['inlet.m_flow', 'inlet.forward.h]}``
+        '''
+        import tempfile
+        import zipfile
+        import shutil
+        import xml.etree.ElementTree as ET
+
+        # Unzip the fmu
+        dirNam = tempfile.mkdtemp(prefix='tmp-' + self.getLibraryName() + "-fmi-")
+        zip_file = zipfile.ZipFile(fmu_file_name)
+        zip_file.extract('modelDescription.xml', dirNam)
+        zip_file.close()
+        # Parse its modelDescription.xml file
+        xml_file = os.path.join(dirNam, 'modelDescription.xml')
+        tree = ET.parse(xml_file)
+        shutil.rmtree(dirNam)
+        root = tree.getroot()
+
+        # Create a dict that links the variable number to variable name
+        variable_names = {}
+        variable_counter = 0
+        for model_variables in root.iter('ModelVariables'):
+            this_root = model_variables
+            for child in this_root:
+                variable_counter += 1
+                variable_names[variable_counter] = child.attrib['name']
+
+        # Read dependencies from xml and write to dependency_graph
+        dependencies = {}
+
+        for outputs in root.iter('Outputs'):
+            #this_root = outputs
+            for child in outputs:
+                output_variable = variable_names[int(child.attrib['index'])]
+                dependencies[output_variable] = []
+                for input_var in child.attrib['dependencies'].split(' '):
+                    if input_var.strip() == "":
+                        print "**** fixme: There should not be an empty string"
+                    else:
+                        dependencies[output_variable].append(variable_names[int(input_var)])
+
+        return dependencies
+
+    def _compare_fmu_dependencies(self, new_dependencies, reference_file_name, ans):
+        ''' Compares whether the ``.fmu`` dependencies have been changed.
+            If they are the same, this function does nothing.
+            If they do not exist in the reference results, it askes to generate them.
+            If they differ from the reference results, it askes whether to accept the new ones.
+
+            :param new_dependencies: A dictionary with the new dependencies.
+            :param reference_file_name: Name of the file with reference results.
+            :param ans: A previously entered answer, either ``y``, ``Y``, ``n`` or ``N``.
+            :return: A tuple consisting of a boolean ``updated_reference_data`` and the value of ``ans``.
+
+        '''
+        # Put dependencies in data format needed to write to the reference result file
+        y_tra = dict()
+        y_tra['fmu-output-dependencies'] = new_dependencies
+
+        # Check whether the reference results exist.
+        if not os.path.exists(reference_file_name):
+            print "*** Warning: Reference file %s does not yet exist." % reference_file_name
+            while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
+                print "             Create new file?"
+                ans = raw_input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
+            if ans == "y" or ans == "Y":
+                self._writeReferenceResults(reference_file_name, None, y_tra)
+                self._reporter.writeWarning("*** Warning: Wrote new reference file %s." %
+                                            reference_file_name)
+            else:
+                self._reporter.writeWarning("*** Warning: Did not write new reference file %s." %
+                                            reference_file_name)
+            return [True, ans]
+
+        # The file that may contain the reference results exist.
+        old_dep = self._readReferenceResults(reference_file_name)
+        # Check whether it contains a key 'statistics-fmu-output-dependencies'
+        if old_dep.has_key('statistics-fmu-output-dependencies'):
+            # Compare the statistics
+            print "*** fixme: implement stat comparison"
+            if old_dep['statistics-fmu-output-dependencies'] == new_dependencies:
+                # We found the same dependencies.
+                return [False, ans]
+            else:
+                # Statistics differ.
+                # fixme: This would be nice to show the differences.
+                print "*** Warning: Reference file %s has different FMU statistics." % reference_file_name
+                while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
+                    print "             Rewrite file?"
+                    ans = raw_input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
+                if ans == "y" or ans == "Y":
+                    self._writeReferenceResults(reference_file_name, None, y_tra)
+                    self._reporter.writeWarning("*** Warning: Rewrote reference file %s due to new FMU statistics." %
+                                                reference_file_name)
+                return [True, ans]
+
+        else:
+            # The old file has no statistics. Ask to rewrite it.
+            print "*** Warning: Reference file %s has no FMU statistics." % reference_file_name
+            while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
+                print "             Rewrite file?"
+                ans = raw_input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
+            if ans == "y" or ans == "Y":
+                self._writeReferenceResults(reference_file_name, None, y_tra)
+                self._reporter.writeWarning("*** Warning: Rewrote reference file %s as the old one had no FMU statistics." %
+                                            reference_file_name)
+            return [True, ans]
+
+
+    def _check_fmu_statistics(self, ans):
+        ''' Check the fmu statistics from each regression test and compare it with the previously
+            saved statistics stored in the library home folder.
+            If the statistics differs,
+            show a warning message containing the file name and path.
+            If there is no statistics stored in the reference results in the library home folder,
+            ask the user whether it should be generated.
+
+            This function returns 1 if the statistics differ, or if the ``.fmu`` file
+            is not found. The function returns 0 if there were no problems.
+        '''
+        retVal = 0
+        #Check if the directory "self._libHome\\Resources\\ReferenceResults\\Dymola" exists, if not create it.
+        refDir=os.path.join(self._libHome, 'Resources', 'ReferenceResults', 'Dymola')
+        if not os.path.exists(refDir):
+            os.makedirs(refDir)
+
+        for data in self._data:
+            # Name of the reference file, which is the same as that matlab file name but with another extension.
+            # Only check data for FMU exort.
+            if self._includeFile(data['ScriptFile']) and data['mustExportFMU']:
+                # Convert 'aa/bb.mos' to 'aa_bb.txt'
+                mosFulFilNam = os.path.join(self.getLibraryName(),
+                                            data['ScriptDirectory'], data['ScriptFile'])
+                mosFulFilNam = mosFulFilNam.replace(os.sep, '_')
+                refFilNam=os.path.splitext(mosFulFilNam)[0] + ".txt"
+
+                try:
+                    # extract reference points from the ".mat" file corresponding to "filNam"
+                    warnings = []
+                    errors = []
+                    # Get the new dependency
+                    dep_new=self._get_fmu_dependencies(os.path.join(data['ResultDirectory'],
+                                                                    self.getLibraryName(),
+                                                                    data['FMUName']))
+                    # Compare it with the stored results, and update the stored results if
+                    # needed and requested by the user.
+                    [updated_reference_data, ans] = self._compare_fmu_dependencies(dep_new,
+                                                         os.path.join(refDir, refFilNam),
+                                                         ans)
+                    # Reset answer, unless it is set to Y or N
+                    if not (ans == "Y" or ans == "N"):
+                        ans = "-"
+                    if updated_reference_data:
+                        retVal = 1
+
+                except UnicodeDecodeError as e:
+                    em = "UnicodeDecodeError({0}): {1}".format(e.errno, e.strerror)
+                    em += "Output file of " + data['ScriptFile'] + " is excluded from unit tests.\n"
+                    em += "The model appears to contain a non-asci character\n"
+                    em += "in the comment of a variable, parameter or constant.\n"
+                    em += "Check " + data['ScriptFile'] + " and the classes it instanciates.\n"
+                    self._reporter.writeError(em)
+        return retVal
+
+
+
+
     def _checkReferencePoints(self, ans):
         ''' Check reference points from each regression test and compare it with the previously
             saved reference points of the same test stored in the library home folder.
@@ -1312,7 +1492,6 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
             case of wrong simulation results, this function also returns 0, as this is
             not considered an error in executing this function.
         '''
-
         #Check if the directory "self._libHome\\Resources\\ReferenceResults\\Dymola" exists, if not create it.
         refDir=os.path.join(self._libHome, 'Resources', 'ReferenceResults', 'Dymola')
         if not os.path.exists(refDir):
@@ -2014,8 +2193,14 @@ getErrorString();
             ans = "-"
 
         if self._modelicaCmd == 'dymola':
-            retVal = self._checkReferencePoints(ans)
+            retVal = self._check_fmu_statistics(ans)
             if retVal != 0:
+                retVal = 4
+
+
+        if self._modelicaCmd == 'dymola':
+            r = self._checkReferencePoints(ans)
+            if r != 0:
                 retVal = 4
 
         # Delete temporary directories
