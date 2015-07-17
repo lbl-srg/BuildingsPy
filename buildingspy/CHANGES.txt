@@ -48,6 +48,9 @@ Version 1.5.0, xxx, 2014 -- Release 1.5
 - Added regression tests for FMU export for Dymola.  
 - In regression tests, added a check for parameters that only have
   a start value assigned.
+- In buildingspy.development.regressiontest, added functionality
+  to save Output, InitialUnknown and Derivatives dependency on
+  inputs to the reference results.
 
 Version 1.4.0, February 28, 2014 -- Release 1.4
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -637,7 +637,6 @@ class Tester:
                                     raise  ValueError('Did not find *.mat file in ' + mosFil)
 
                                 dat['ResultFile'] = matFil
-
                         self._data.append(dat)
         # Make sure we found at least one unit test
         if len(self._data) == 0:
@@ -958,14 +957,14 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
         This method writes the results in the form ``key=value``, with one line per entry.
         '''
         from datetime import date
-
+        import json
 
         f=open(refFilNam, 'w')
         f.write('last-generated=' + str(date.today()) + '\n')
-        for stage in ['initialization', 'simulation', 'fmu-output-dependencies']:
-            print "***** fixme: y_tra.keys() = ", y_tra.keys()
+        for stage in ['initialization', 'simulation', 'fmu-dependencies']:
             if y_tra.has_key(stage):
-                f.write('statistics-%s=%s\n' % (stage, y_tra[stage]))
+#                f.write('statistics-%s=\n%s\n' % (stage, _pretty_print(y_tra[stage])))
+                f.write('statistics-%s=\n%s\n' % (stage, json.dumps(y_tra[stage], indent=2)))
         # FMU exports do not have simulation results.
         # Hence, we preclude them if y_sim == None
         if y_sim is not None:
@@ -996,8 +995,8 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
         where the value is a dictionary. Otherwise, this key is not present.
 
         '''
-        import ast
         import numpy
+        import ast
 
         d = dict()
         f=open(refFilNam,'r')
@@ -1013,36 +1012,36 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
                 iSta=iSta+1
 
         r = dict()
-        for i in range(iSta, len(lines)):
-            lin = lines[i].strip('\n')
-
+        iLin = iSta
+        while iLin < len(lines):
+            lin = lines[iLin].strip('\n')
             try:
                 (key, value) = lin.split("=")
-                # If the key starts with "statistics-", then
-                # skip this line. Because Modelica variables cannot
-                # contain the character "-", there is no risk of a
-                # name clash.
-                # This test is done for compatibility to allow in the future
-                # to add simulation statistics, while still using
-                # this version of BuildingsPy to process these
-                # new reference results.
+                # Check if this is a statistics-* entry.
                 if key.startswith("statistics-"):
                     # Call ast.literal_eval as value is a string that needs to be
                     # converted to a dictionary.
+
+                    # The json string was pretty printed over several lines.
+                    # Add to value the next line, unless it contains "-" or it does not exist.
+                    value = value.strip()
+                    while (iLin < len(lines)-1 and lines[iLin+1].find('=') == -1):
+                        value = value + lines[iLin+1].strip('\n').strip()
+                        iLin += 1
                     d[key] = ast.literal_eval(value)
-                    continue
-                s = (value[value.find('[')+1: value.rfind(']')]).strip()
-                numAsStr=s.split(',')
+                else:
+                    s = (value[value.find('[')+1: value.rfind(']')]).strip()
+                    numAsStr=s.split(',')
+                    val = []
+                    for num in numAsStr:
+                        # We need to use numpy.float64 here for the comparison to work
+                        val.append(numpy.float64(num))
+                    r[key] = val
             except ValueError as detail:
                 s =  "%s could not be parsed.\n" % refFilNam
                 self._reporter.writeError(s)
                 raise TypeError(detail)
-
-            val = []
-            for num in numAsStr:
-                # We need to use numpy.float64 here for the comparison to work
-                val.append(numpy.float64(num))
-            r[key] = val
+            iLin += 1
         d['results'] = r
 
         return d
@@ -1311,7 +1310,24 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
         and returns a dictionary with output variable names as keys and lists of the
         corresponding input variable names to which there is a dependency.
 
-        For example ``dependencies = {'outlet.forward.h': ['inlet.m_flow', 'inlet.forward.h]}``
+        For example, the return value may be
+
+        .. code-block::
+
+           {'Derivatives': {},
+            'InitialUnknowns': {'inlet.backward.T': ['outlet.backward.T'],
+                     'inlet.backward.X_w': ['outlet.backward.X_w'],
+                     'outlet.forward.T': ['inlet.forward.T'],
+                     'outlet.forward.X_w': ['inlet.forward.X_w'],
+                     'outlet.m_flow': ['inlet.m_flow'],
+                     'outlet.p': ['inlet.p']},
+            'Outputs': {'inlet.backward.T': ['outlet.backward.T'],
+             'inlet.backward.X_w': ['outlet.backward.X_w'],
+             'outlet.forward.T': ['inlet.forward.T'],
+             'outlet.forward.X_w': ['inlet.forward.X_w'],
+             'outlet.m_flow': ['inlet.m_flow'],
+             'outlet.p': ['inlet.p']}}
+
         '''
         import tempfile
         import zipfile
@@ -1341,43 +1357,46 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
         # Read dependencies from xml and write to dependency_graph
         dependencies = {}
 
-        for outputs in root.iter('Outputs'):
-            #this_root = outputs
-            for child in outputs:
-                output_variable = variable_names[int(child.attrib['index'])]
-                dependencies[output_variable] = []
-                for input_var in child.attrib['dependencies'].split(' '):
-                    if input_var.strip() == "":
-                        print "**** fixme: There should not be an empty string"
-                    else:
-                        dependencies[output_variable].append(variable_names[int(input_var)])
-
+        # Get all dependencies of the FMU and store them in a hierarchical dictionary
+        for typ in ['InitialUnknowns', 'Outputs', 'Derivatives']:
+            dependencies[typ] = {}
+            for children in root.iter(typ):
+                #this_root = outputs
+                for child in children:
+                    variable = variable_names[int(child.attrib['index'])]
+                    dependencies[typ][variable] = []
+                    for ind_var in child.attrib['dependencies'].split(' '):
+                        if ind_var.strip() != "": # If variables depend on nothing, there will be an empty string
+                            dependencies[typ][variable].append(variable_names[int(ind_var)])
         return dependencies
 
-    def _compare_fmu_dependencies(self, new_dependencies, reference_file_name, ans):
+    def _compare_and_rewrite_fmu_dependencies(self, new_dependencies, reference_file_path, reference_file_name, ans):
         ''' Compares whether the ``.fmu`` dependencies have been changed.
             If they are the same, this function does nothing.
             If they do not exist in the reference results, it askes to generate them.
             If they differ from the reference results, it askes whether to accept the new ones.
 
             :param new_dependencies: A dictionary with the new dependencies.
+            :param reference_file_path: Path to the file with reference results.
             :param reference_file_name: Name of the file with reference results.
             :param ans: A previously entered answer, either ``y``, ``Y``, ``n`` or ``N``.
             :return: A tuple consisting of a boolean ``updated_reference_data`` and the value of ``ans``.
 
         '''
+        # Absolute path to the reference file
+        abs_ref_fil_nam = os.path.join(reference_file_path, reference_file_name)
         # Put dependencies in data format needed to write to the reference result file
         y_tra = dict()
-        y_tra['fmu-output-dependencies'] = new_dependencies
+        y_tra['fmu-dependencies'] = new_dependencies
 
         # Check whether the reference results exist.
-        if not os.path.exists(reference_file_name):
+        if not os.path.exists(abs_ref_fil_nam):
             print "*** Warning: Reference file %s does not yet exist." % reference_file_name
             while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
                 print "             Create new file?"
                 ans = raw_input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
             if ans == "y" or ans == "Y":
-                self._writeReferenceResults(reference_file_name, None, y_tra)
+                self._writeReferenceResults(abs_ref_fil_nam, None, y_tra)
                 self._reporter.writeWarning("*** Warning: Wrote new reference file %s." %
                                             reference_file_name)
             else:
@@ -1386,26 +1405,25 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
             return [True, ans]
 
         # The file that may contain the reference results exist.
-        old_dep = self._readReferenceResults(reference_file_name)
-        # Check whether it contains a key 'statistics-fmu-output-dependencies'
-        if old_dep.has_key('statistics-fmu-output-dependencies'):
-            # Compare the statistics
-            print "*** fixme: implement stat comparison"
-            if old_dep['statistics-fmu-output-dependencies'] == new_dependencies:
-                # We found the same dependencies.
-                return [False, ans]
-            else:
-                # Statistics differ.
-                # fixme: This would be nice to show the differences.
-                print "*** Warning: Reference file %s has different FMU statistics." % reference_file_name
+        old_dep = self._readReferenceResults(abs_ref_fil_nam)
+        # Check whether it contains a key 'statistics-fmu-dependencies'
+        if old_dep.has_key('statistics-fmu-dependencies'):
+            # Compare the statistics for each section
+            found_differences = False
+            for typ in ['InitialUnknowns', 'Outputs', 'Derivatives']:
+                if old_dep['statistics-fmu-dependencies'][typ] != new_dependencies[typ]:
+                    print "*** Warning: Reference file %s has different FMU statistics for '%s'." % (reference_file_name, typ)
+                    found_differences = True
+            if found_differences:
                 while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
                     print "             Rewrite file?"
                     ans = raw_input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
                 if ans == "y" or ans == "Y":
-                    self._writeReferenceResults(reference_file_name, None, y_tra)
+                    self._writeReferenceResults(abs_ref_fil_nam, None, y_tra)
                     self._reporter.writeWarning("*** Warning: Rewrote reference file %s due to new FMU statistics." %
                                                 reference_file_name)
-                return [True, ans]
+            return [found_differences, ans]
+
 
         else:
             # The old file has no statistics. Ask to rewrite it.
@@ -1414,7 +1432,7 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
                 print "             Rewrite file?"
                 ans = raw_input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
             if ans == "y" or ans == "Y":
-                self._writeReferenceResults(reference_file_name, None, y_tra)
+                self._writeReferenceResults(abs_ref_fil_nam, None, y_tra)
                 self._reporter.writeWarning("*** Warning: Rewrote reference file %s as the old one had no FMU statistics." %
                                             reference_file_name)
             return [True, ans]
@@ -1457,8 +1475,9 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
                                                                     data['FMUName']))
                     # Compare it with the stored results, and update the stored results if
                     # needed and requested by the user.
-                    [updated_reference_data, ans] = self._compare_fmu_dependencies(dep_new,
-                                                         os.path.join(refDir, refFilNam),
+                    [updated_reference_data, ans] = self._compare_and_rewrite_fmu_dependencies(dep_new,
+                                                         refDir,
+                                                         refFilNam,
                                                          ans)
                     # Reset answer, unless it is set to Y or N
                     if not (ans == "Y" or ans == "N"):
