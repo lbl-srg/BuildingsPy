@@ -17,7 +17,7 @@ def get_dependencies(fmu_file_name):
 
     .. code-block:: modelica
 
-       block FMUDemonstration "Block to demonstrate the FMU export"
+       block IntegratorGain "Block to demonstrate the FMU export"
          parameter Real k = -1 "Gain";
          Modelica.Blocks.Interfaces.RealInput u "Input";
          Modelica.Blocks.Interfaces.RealOutput y1 
@@ -29,14 +29,14 @@ def get_dependencies(fmu_file_name):
          der(x) = u;
          y1 = x;
          y2 = k*u;
-       end FMUDemonstration;
+       end IntegratorGain;
 
     The output will be as follows:
 
        >>> import os
        >>> import json
        >>> import buildingspy.fmi as f
-       >>> fmu_file_name=os.path.join("buildingspy", "tests", "fmi", "MyModelicaLibrary_FMUDemonstration.fmu")
+       >>> fmu_name=os.path.join("buildingspy", "tests", "fmi", "IntegratorGain.fmu")
        >>> d=f.get_dependencies(fmu_file_name)
        >>> print(json.dumps(d, indent=2))
        {

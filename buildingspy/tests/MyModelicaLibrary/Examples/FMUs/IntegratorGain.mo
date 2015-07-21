@@ -1,5 +1,5 @@
-within MyModelicaLibrary;
-block FMUDemonstration "Block to demonstrate the FMU export"
+within MyModelicaLibrary.Examples.FMUs;
+block IntegratorGain "Block to demonstrate the FMU export"
   extends Modelica.Blocks.Interfaces.BlockIcon;
 
   parameter Real k = -1 "Gain";
@@ -20,5 +20,7 @@ Documentation(info="<html>
 Block that is used to demonstrate the FMU export
 and its dependency analysis.
 </p>
-</html>"));
-end FMUDemonstration;
+</html>"),
+  __Dymola_Commands(file="Resources/Scripts/Dymola/Examples/FMUs/IntegratorGain.mos"
+        "Export FMU"));
+end IntegratorGain;
