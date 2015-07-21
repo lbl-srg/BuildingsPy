@@ -1400,12 +1400,9 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
                 refFilNam=os.path.splitext(mosFulFilNam)[0] + ".txt"
 
                 try:
-                    # extract reference points from the ".mat" file corresponding to "filNam"
-                    warnings = []
-                    errors = []
                     # Get the new dependency
                     fmu_fil=os.path.join(data['ResultDirectory'], self.getLibraryName(), data['FMUName'])
-                    dep_new=fmi._get_dependencies(fmu_fil)
+                    dep_new=fmi.get_dependencies(fmu_fil)
                     # Compare it with the stored results, and update the stored results if
                     # needed and requested by the user.
                     [updated_reference_data, ans] = self._compare_and_rewrite_fmu_dependencies(dep_new,
