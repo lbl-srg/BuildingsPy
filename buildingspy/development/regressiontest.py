@@ -99,10 +99,10 @@ class Tester:
        >>> rt.setLibraryRoot(myMoLib)
        >>> rt.run() # doctest: +ELLIPSIS
        Using  ...  of ... processors to run unit tests.
-       Number of models   :  1
+       Number of models   :  2
                  blocks   :  0
                  functions:  0
-       Generated  4  regression tests.
+       Generated  5  regression tests.
        <BLANKLINE>
        Script that runs unit tests had 0 warnings and 0 errors.
        <BLANKLINE>
@@ -637,7 +637,6 @@ class Tester:
                                     raise  ValueError('Did not find *.mat file in ' + mosFil)
 
                                 dat['ResultFile'] = matFil
-
                         self._data.append(dat)
         # Make sure we found at least one unit test
         if len(self._data) == 0:
@@ -958,26 +957,30 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
         This method writes the results in the form ``key=value``, with one line per entry.
         '''
         from datetime import date
-
+        import json
 
         f=open(refFilNam, 'w')
         f.write('last-generated=' + str(date.today()) + '\n')
-        for stage in ['initialization', 'simulation']:
+        for stage in ['initialization', 'simulation', 'fmu-dependencies']:
             if y_tra.has_key(stage):
-                f.write('statistics-%s=%s\n' % (stage, y_tra[stage]))
-        # Set, used to avoid that data series that are plotted in two plots are
-        # written twice to the reference data file.
-        s = set()
-        for pai in y_sim:
-            for k, v in pai.items():
-                if k not in s:
-                    s.add(k)
-                    f.write(k + '=')
-                    # Use many digits, otherwise truncation errors occur that can be higher
-                    # than the required accuracy.
-                    formatted = [self.format_float(e) for e in v]
-                    f.write(str(formatted).replace("'", ""))
-                    f.write('\n')
+#                f.write('statistics-%s=\n%s\n' % (stage, _pretty_print(y_tra[stage])))
+                f.write('statistics-%s=\n%s\n' % (stage, json.dumps(y_tra[stage], indent=2)))
+        # FMU exports do not have simulation results.
+        # Hence, we preclude them if y_sim == None
+        if y_sim is not None:
+            # Set, used to avoid that data series that are plotted in two plots are
+            # written twice to the reference data file.
+            s = set()
+            for pai in y_sim:
+                for k, v in pai.items():
+                    if k not in s:
+                        s.add(k)
+                        f.write(k + '=')
+                        # Use many digits, otherwise truncation errors occur that can be higher
+                        # than the required accuracy.
+                        formatted = [self.format_float(e) for e in v]
+                        f.write(str(formatted).replace("'", ""))
+                        f.write('\n')
         f.close()
 
     def _readReferenceResults(self, refFilNam):
@@ -992,8 +995,8 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
         where the value is a dictionary. Otherwise, this key is not present.
 
         '''
-        import ast
         import numpy
+        import ast
 
         d = dict()
         f=open(refFilNam,'r')
@@ -1009,36 +1012,36 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
                 iSta=iSta+1
 
         r = dict()
-        for i in range(iSta, len(lines)):
-            lin = lines[i].strip('\n')
-
+        iLin = iSta
+        while iLin < len(lines):
+            lin = lines[iLin].strip('\n')
             try:
                 (key, value) = lin.split("=")
-                # If the key starts with "statistics-", then
-                # skip this line. Because Modelica variables cannot
-                # contain the character "-", there is no risk of a
-                # name clash.
-                # This test is done for compatibility to allow in the future
-                # to add simulation statistics, while still using
-                # this version of BuildingsPy to process these
-                # new reference results.
+                # Check if this is a statistics-* entry.
                 if key.startswith("statistics-"):
                     # Call ast.literal_eval as value is a string that needs to be
                     # converted to a dictionary.
+
+                    # The json string was pretty printed over several lines.
+                    # Add to value the next line, unless it contains "-" or it does not exist.
+                    value = value.strip()
+                    while (iLin < len(lines)-1 and lines[iLin+1].find('=') == -1):
+                        value = value + lines[iLin+1].strip('\n').strip()
+                        iLin += 1
                     d[key] = ast.literal_eval(value)
-                    continue
-                s = (value[value.find('[')+1: value.rfind(']')]).strip()
-                numAsStr=s.split(',')
+                else:
+                    s = (value[value.find('[')+1: value.rfind(']')]).strip()
+                    numAsStr=s.split(',')
+                    val = []
+                    for num in numAsStr:
+                        # We need to use numpy.float64 here for the comparison to work
+                        val.append(numpy.float64(num))
+                    r[key] = val
             except ValueError as detail:
                 s =  "%s could not be parsed.\n" % refFilNam
                 self._reporter.writeError(s)
                 raise TypeError(detail)
-
-            val = []
-            for num in numAsStr:
-                # We need to use numpy.float64 here for the comparison to work
-                val.append(numpy.float64(num))
-            r[key] = val
+            iLin += 1
         d['results'] = r
 
         return d
@@ -1298,6 +1301,132 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
         return True
 
 
+
+    def _compare_and_rewrite_fmu_dependencies(self, new_dependencies, reference_file_path, reference_file_name, ans):
+        ''' Compares whether the ``.fmu`` dependencies have been changed.
+            If they are the same, this function does nothing.
+            If they do not exist in the reference results, it askes to generate them.
+            If they differ from the reference results, it askes whether to accept the new ones.
+
+            :param new_dependencies: A dictionary with the new dependencies.
+            :param reference_file_path: Path to the file with reference results.
+            :param reference_file_name: Name of the file with reference results.
+            :param ans: A previously entered answer, either ``y``, ``Y``, ``n`` or ``N``.
+            :return: A tuple consisting of a boolean ``updated_reference_data`` and the value of ``ans``.
+
+        '''
+        # Absolute path to the reference file
+        abs_ref_fil_nam = os.path.join(reference_file_path, reference_file_name)
+        # Put dependencies in data format needed to write to the reference result file
+        y_tra = dict()
+        y_tra['fmu-dependencies'] = new_dependencies
+
+        # Check whether the reference results exist.
+        if not os.path.exists(abs_ref_fil_nam):
+            print "*** Warning: Reference file %s does not yet exist." % reference_file_name
+            while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
+                print "             Create new file?"
+                ans = raw_input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
+            if ans == "y" or ans == "Y":
+                self._writeReferenceResults(abs_ref_fil_nam, None, y_tra)
+                self._reporter.writeWarning("*** Warning: Wrote new reference file %s." %
+                                            reference_file_name)
+            else:
+                self._reporter.writeWarning("*** Warning: Did not write new reference file %s." %
+                                            reference_file_name)
+            return [True, ans]
+
+        # The file that may contain the reference results exist.
+        old_dep = self._readReferenceResults(abs_ref_fil_nam)
+        # Check whether it contains a key 'statistics-fmu-dependencies'
+        if old_dep.has_key('statistics-fmu-dependencies'):
+            # Compare the statistics for each section
+            found_differences = False
+            for typ in ['InitialUnknowns', 'Outputs', 'Derivatives']:
+                if old_dep['statistics-fmu-dependencies'][typ] != new_dependencies[typ]:
+                    print "*** Warning: Reference file %s has different FMU statistics for '%s'." % (reference_file_name, typ)
+                    found_differences = True
+            if found_differences:
+                while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
+                    print "             Rewrite file?"
+                    ans = raw_input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
+                if ans == "y" or ans == "Y":
+                    self._writeReferenceResults(abs_ref_fil_nam, None, y_tra)
+                    self._reporter.writeWarning("*** Warning: Rewrote reference file %s due to new FMU statistics." %
+                                                reference_file_name)
+            return [found_differences, ans]
+
+
+        else:
+            # The old file has no statistics. Ask to rewrite it.
+            print "*** Warning: Reference file %s has no FMU statistics." % reference_file_name
+            while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
+                print "             Rewrite file?"
+                ans = raw_input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
+            if ans == "y" or ans == "Y":
+                self._writeReferenceResults(abs_ref_fil_nam, None, y_tra)
+                self._reporter.writeWarning("*** Warning: Rewrote reference file %s as the old one had no FMU statistics." %
+                                            reference_file_name)
+            return [True, ans]
+
+
+    def _check_fmu_statistics(self, ans):
+        ''' Check the fmu statistics from each regression test and compare it with the previously
+            saved statistics stored in the library home folder.
+            If the statistics differs,
+            show a warning message containing the file name and path.
+            If there is no statistics stored in the reference results in the library home folder,
+            ask the user whether it should be generated.
+
+            This function returns 1 if the statistics differ, or if the ``.fmu`` file
+            is not found. The function returns 0 if there were no problems.
+        '''
+        import buildingspy.fmi as fmi
+
+        retVal = 0
+        #Check if the directory "self._libHome\\Resources\\ReferenceResults\\Dymola" exists, if not create it.
+        refDir=os.path.join(self._libHome, 'Resources', 'ReferenceResults', 'Dymola')
+        if not os.path.exists(refDir):
+            os.makedirs(refDir)
+
+        for data in self._data:
+            # Name of the reference file, which is the same as that matlab file name but with another extension.
+            # Only check data for FMU exort.
+            if self._includeFile(data['ScriptFile']) and data['mustExportFMU']:
+                # Convert 'aa/bb.mos' to 'aa_bb.txt'
+                mosFulFilNam = os.path.join(self.getLibraryName(),
+                                            data['ScriptDirectory'], data['ScriptFile'])
+                mosFulFilNam = mosFulFilNam.replace(os.sep, '_')
+                refFilNam=os.path.splitext(mosFulFilNam)[0] + ".txt"
+
+                try:
+                    # Get the new dependency
+                    fmu_fil=os.path.join(data['ResultDirectory'], self.getLibraryName(), data['FMUName'])
+                    dep_new=fmi.get_dependencies(fmu_fil)
+                    # Compare it with the stored results, and update the stored results if
+                    # needed and requested by the user.
+                    [updated_reference_data, ans] = self._compare_and_rewrite_fmu_dependencies(dep_new,
+                                                         refDir,
+                                                         refFilNam,
+                                                         ans)
+                    # Reset answer, unless it is set to Y or N
+                    if not (ans == "Y" or ans == "N"):
+                        ans = "-"
+                    if updated_reference_data:
+                        retVal = 1
+
+                except UnicodeDecodeError as e:
+                    em = "UnicodeDecodeError({0}): {1}".format(e.errno, e.strerror)
+                    em += "Output file of " + data['ScriptFile'] + " is excluded from unit tests.\n"
+                    em += "The model appears to contain a non-asci character\n"
+                    em += "in the comment of a variable, parameter or constant.\n"
+                    em += "Check " + data['ScriptFile'] + " and the classes it instanciates.\n"
+                    self._reporter.writeError(em)
+        return retVal
+
+
+
+
     def _checkReferencePoints(self, ans):
         ''' Check reference points from each regression test and compare it with the previously
             saved reference points of the same test stored in the library home folder.
@@ -1312,7 +1441,6 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
             case of wrong simulation results, this function also returns 0, as this is
             not considered an error in executing this function.
         '''
-
         #Check if the directory "self._libHome\\Resources\\ReferenceResults\\Dymola" exists, if not create it.
         refDir=os.path.join(self._libHome, 'Resources', 'ReferenceResults', 'Dymola')
         if not os.path.exists(refDir):
@@ -2014,8 +2142,14 @@ getErrorString();
             ans = "-"
 
         if self._modelicaCmd == 'dymola':
-            retVal = self._checkReferencePoints(ans)
+            retVal = self._check_fmu_statistics(ans)
             if retVal != 0:
+                retVal = 4
+
+
+        if self._modelicaCmd == 'dymola':
+            r = self._checkReferencePoints(ans)
+            if r != 0:
                 retVal = 4
 
         # Delete temporary directories

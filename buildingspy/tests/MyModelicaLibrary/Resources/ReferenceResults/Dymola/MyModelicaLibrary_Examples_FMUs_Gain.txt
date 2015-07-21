@@ -1,0 +1,20 @@
+last-generated=2015-07-21
+statistics-fmu-dependencies=
+{
+  "Outputs": {
+    "y": [
+      "u"
+    ], 
+    "EventCounter": [], 
+    "CPUtime": []
+  }, 
+  "InitialUnknowns": {
+    "y": [
+      "gain.k", 
+      "u"
+    ], 
+    "EventCounter": [], 
+    "CPUtime": []
+  }, 
+  "Derivatives": {}
+}
