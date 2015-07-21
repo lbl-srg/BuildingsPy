@@ -37,7 +37,7 @@ def get_dependencies(fmu_file_name):
        >>> import json
        >>> import buildingspy.fmi as f
        >>> fmu_name=os.path.join("buildingspy", "tests", "fmi", "IntegratorGain.fmu")
-       >>> d=f.get_dependencies(fmu_file_name)
+       >>> d=f.get_dependencies(fmu_name)
        >>> print(json.dumps(d, indent=2))
        {
          "Outputs": {
