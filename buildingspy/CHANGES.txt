@@ -3,6 +3,7 @@ BuildingsPy Changelog
 
 Version 1.5.0, xxx, 2014 -- Release 1.5
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- Added module fmi with a function that outputs fmu dependencies.
 - Added regression tests for OpenModelica.
 - Changed implementation of addParameters(...) to allow
   setting values of parameters that are arrays.

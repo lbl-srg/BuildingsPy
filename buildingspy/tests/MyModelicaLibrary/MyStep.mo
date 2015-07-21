@@ -1,5 +1,4 @@
 within MyModelicaLibrary;
-
 model MyStep
   extends MyModel(redeclare Modelica.Blocks.Sources.Step source(height=1));
 Modelica.Blocks.Interfaces.RealOutput y "Connector of Real output signal"
@@ -12,4 +11,5 @@ equation
   annotation (Diagram(coordinateSystem(preserveAspectRatio=false, extent={{-100,
             -100},{100,100}}), graphics));
 end MyStep;
+
 

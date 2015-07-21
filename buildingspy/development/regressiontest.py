@@ -1301,74 +1301,6 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
         return True
 
 
-    def _get_fmu_dependencies(self, fmu_file_name):
-        '''Extracts input-output_dependencies from an FMU.
-
-        :fmu_file_name: Name of the FMU file.
-
-        Extracts an fmu to a temporary directory, reads its `modelDescription.xml` file,
-        and returns a dictionary with output variable names as keys and lists of the
-        corresponding input variable names to which there is a dependency.
-
-        For example, the return value may be
-
-        .. code-block::
-
-           {'Derivatives': {},
-            'InitialUnknowns': {'inlet.backward.T': ['outlet.backward.T'],
-                     'inlet.backward.X_w': ['outlet.backward.X_w'],
-                     'outlet.forward.T': ['inlet.forward.T'],
-                     'outlet.forward.X_w': ['inlet.forward.X_w'],
-                     'outlet.m_flow': ['inlet.m_flow'],
-                     'outlet.p': ['inlet.p']},
-            'Outputs': {'inlet.backward.T': ['outlet.backward.T'],
-             'inlet.backward.X_w': ['outlet.backward.X_w'],
-             'outlet.forward.T': ['inlet.forward.T'],
-             'outlet.forward.X_w': ['inlet.forward.X_w'],
-             'outlet.m_flow': ['inlet.m_flow'],
-             'outlet.p': ['inlet.p']}}
-
-        '''
-        import tempfile
-        import zipfile
-        import shutil
-        import xml.etree.ElementTree as ET
-
-        # Unzip the fmu
-        dirNam = tempfile.mkdtemp(prefix='tmp-' + self.getLibraryName() + "-fmi-")
-        zip_file = zipfile.ZipFile(fmu_file_name)
-        zip_file.extract('modelDescription.xml', dirNam)
-        zip_file.close()
-        # Parse its modelDescription.xml file
-        xml_file = os.path.join(dirNam, 'modelDescription.xml')
-        tree = ET.parse(xml_file)
-        shutil.rmtree(dirNam)
-        root = tree.getroot()
-
-        # Create a dict that links the variable number to variable name
-        variable_names = {}
-        variable_counter = 0
-        for model_variables in root.iter('ModelVariables'):
-            this_root = model_variables
-            for child in this_root:
-                variable_counter += 1
-                variable_names[variable_counter] = child.attrib['name']
-
-        # Read dependencies from xml and write to dependency_graph
-        dependencies = {}
-
-        # Get all dependencies of the FMU and store them in a hierarchical dictionary
-        for typ in ['InitialUnknowns', 'Outputs', 'Derivatives']:
-            dependencies[typ] = {}
-            for children in root.iter(typ):
-                #this_root = outputs
-                for child in children:
-                    variable = variable_names[int(child.attrib['index'])]
-                    dependencies[typ][variable] = []
-                    for ind_var in child.attrib['dependencies'].split(' '):
-                        if ind_var.strip() != "": # If variables depend on nothing, there will be an empty string
-                            dependencies[typ][variable].append(variable_names[int(ind_var)])
-        return dependencies
 
     def _compare_and_rewrite_fmu_dependencies(self, new_dependencies, reference_file_path, reference_file_name, ans):
         ''' Compares whether the ``.fmu`` dependencies have been changed.
@@ -1449,6 +1381,8 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
             This function returns 1 if the statistics differ, or if the ``.fmu`` file
             is not found. The function returns 0 if there were no problems.
         '''
+        import buildingspy.fmi as fmi
+
         retVal = 0
         #Check if the directory "self._libHome\\Resources\\ReferenceResults\\Dymola" exists, if not create it.
         refDir=os.path.join(self._libHome, 'Resources', 'ReferenceResults', 'Dymola')
@@ -1470,9 +1404,8 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
                     warnings = []
                     errors = []
                     # Get the new dependency
-                    dep_new=self._get_fmu_dependencies(os.path.join(data['ResultDirectory'],
-                                                                    self.getLibraryName(),
-                                                                    data['FMUName']))
+                    fmu_fil=os.path.join(data['ResultDirectory'], self.getLibraryName(), data['FMUName'])
+                    dep_new=fmi._get_dependencies(fmu_fil)
                     # Compare it with the stored results, and update the stored results if
                     # needed and requested by the user.
                     [updated_reference_data, ans] = self._compare_and_rewrite_fmu_dependencies(dep_new,
