@@ -20,6 +20,7 @@ unittest:
 
 doctest:
 	python -m doctest \
+	buildingspy/fmi/*.py \
 	buildingspy/io/*.py \
 	buildingspy/examples/*.py \
 	buildingspy/examples/dymola/*.py \
