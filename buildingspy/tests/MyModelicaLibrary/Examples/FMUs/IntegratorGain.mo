@@ -8,7 +8,7 @@ block IntegratorGain "Block to demonstrate the FMU export"
   Modelica.Blocks.Interfaces.RealOutput y1 "Output that depends on the state";
   Modelica.Blocks.Interfaces.RealOutput y2 "Output that depends on the input";
 
-  Real x(start=0) "State";
+  Real x(start=0, fixed=true) "State";
 
 equation
   der(x) = u;
