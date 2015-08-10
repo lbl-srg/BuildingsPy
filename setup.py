@@ -20,6 +20,7 @@ setup(
     packages = ['buildingspy',
                 'buildingspy/development', 
                 'buildingspy/examples', 
+                'buildingspy/fmi', 
                 'buildingspy/io', 
                 'buildingspy/simulate', 
                 'buildingspy/thirdParty',
