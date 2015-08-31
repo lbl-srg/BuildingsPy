@@ -2538,9 +2538,8 @@ successfully (={:.1%})"\
                 return retcode
 
         except OSError as e:
-            sys.stderr.write("Execution of omc +d=initialization " + mosfile + " failed.\n" +
+            raise OSError("Execution of omc +d=initialization " + mosfile + " failed.\n" +
                              "Working directory is '" + worDir + "'.")
-            raise(e)
         else:
             # process the log file
             print "Logfile created: {}".format(logFilNam)
