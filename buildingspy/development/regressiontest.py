@@ -450,7 +450,6 @@ class Tester:
 
         '''
         # Create the data dictionary.
-        self._data = []
         self.setDataDictionary();
 
         # Directory where files will be stored
@@ -506,6 +505,12 @@ class Tester:
                 dat[keyword] = re.sub(r'^"|"$', '', entry)
             return
 
+        # Check if the data dictionary has already been set, in
+        # which case we return doing nothing.
+        # This is needed because methods append to the dictionary, which
+        # can lead to double entries.
+        if len(self._data) > 0:
+            return
 
         for root, _, files in os.walk(self._rootPackage):
             pos=root.find('.svn')
