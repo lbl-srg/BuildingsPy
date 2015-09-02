@@ -52,6 +52,9 @@ Version 1.5.0, xxx, 2014 -- Release 1.5
 - In buildingspy.development.regressiontest, added functionality
   to save Output, InitialUnknown and Derivatives dependency on
   inputs to the reference results.
+- In buildingspy.development.regressiontest, added option to
+  use pedantic Modelica check.
+
 
 Version 1.4.0, February 28, 2014 -- Release 1.4
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

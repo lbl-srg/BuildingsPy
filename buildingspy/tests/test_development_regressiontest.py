@@ -18,6 +18,7 @@ class Test_regressiontest_Tester(unittest.TestCase):
         myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
         rt.setLibraryRoot(myMoLib)
         rt.include_fmu_tests(True)
+        rt.writeOpenModelicaResultDictionary()
         rt.run()
         # Delete temporary files
         os.remove('unitTests.log')
@@ -116,10 +117,14 @@ class Test_regressiontest_Tester(unittest.TestCase):
 
         myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
         rt.setLibraryRoot(myMoLib)
-
         rt.test_OpenModelica(simulate=True)
 
-
+    def test_setDataDictionary(self):
+        import buildingspy.development.regressiontest as r
+        rt = r.Tester(check_html=False)
+        myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
+        rt.setLibraryRoot(myMoLib)
+        rt.setDataDictionary()
 
 if __name__ == '__main__':
     unittest.main()

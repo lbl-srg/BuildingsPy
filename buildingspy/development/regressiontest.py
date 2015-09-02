@@ -141,6 +141,7 @@ class Tester:
         self._statistics_log = "statistics.json"
         self._nPro = multiprocessing.cpu_count()
         self._batch = False
+        self._pedanticModelica = False
 
         # List of scripts that should be excluded from the regression tests
         #self._excludeMos=['Resources/Scripts/Dymola/Airflow/Multizone/Examples/OneOpenDoor.mos']
@@ -253,6 +254,24 @@ class Tester:
 
         '''
         self._batch = batchMode
+
+    def pedanticModelica(self, pedanticModelica):
+        ''' Set the pedantic Modelica mode flag.
+
+        :param pedanticModelica: Set to ``True`` to run the unit tests in the pedantic Modelica mode.
+
+        By default, regression tests are run in non-pedantic Modelica mode.
+        This however will be changed in the near future.
+
+        >>> import os
+        >>> import buildingspy.development.regressiontest as r
+        >>> r = r.Tester()
+        >>> r.pedanticModelica(True)
+        >>> r.run() # doctest: +SKIP
+
+        '''
+        self._pedanticModelica = pedanticModelica
+
 
     def include_fmu_tests(self, fmu_export):
         ''' Sets a flag that, if ``False``, does not test the export of FMUs.
@@ -433,6 +452,10 @@ class Tester:
             raise ValueError(msg)
 
         self._rootPackage = rooPat
+        # Set data dictionary as it may have been generated earlier for the whole library.
+        self._data = []
+        self.setDataDictionary()
+
 
     def writeOpenModelicaResultDictionary(self):
         ''' Write in ``Resources/Scripts/OpenModelica/compareVars`` files whose
@@ -1403,10 +1426,9 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
                                             data['ScriptDirectory'], data['ScriptFile'])
                 mosFulFilNam = mosFulFilNam.replace(os.sep, '_')
                 refFilNam=os.path.splitext(mosFulFilNam)[0] + ".txt"
-
+                fmu_fil=os.path.join(data['ResultDirectory'], self.getLibraryName(), data['FMUName'])
                 try:
                     # Get the new dependency
-                    fmu_fil=os.path.join(data['ResultDirectory'], self.getLibraryName(), data['FMUName'])
                     dep_new=fmi.get_dependencies(fmu_fil)
                     # Compare it with the stored results, and update the stored results if
                     # needed and requested by the user.
@@ -1421,16 +1443,18 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
                         retVal = 1
 
                 except UnicodeDecodeError as e:
-                    em = "UnicodeDecodeError({0}): {1}".format(e.errno, e.strerror)
+                    em = "UnicodeDecodeError({0}): {1}.\n".format(e.errno, e.strerror)
                     em += "Output file of " + data['ScriptFile'] + " is excluded from unit tests.\n"
                     em += "The model appears to contain a non-asci character\n"
                     em += "in the comment of a variable, parameter or constant.\n"
                     em += "Check " + data['ScriptFile'] + " and the classes it instanciates.\n"
                     self._reporter.writeError(em)
+                except IOError as e:
+                    em = "IOError({0}): {1}.\n".format(e.errno, e.strerror)
+                    em += "Output file of " + data['ScriptFile'] + " is excluded from unit tests because\n"
+                    em += "the file " + fmu_fil + " does not exist\n."
+                    self._reporter.writeError(em)
         return retVal
-
-
-
 
     def _checkReferencePoints(self, ans):
         ''' Check reference points from each regression test and compare it with the previously
@@ -1778,8 +1802,11 @@ Modelica.Utilities.Streams.print("        \"unspecified initial conditions\"    
             if self._modelicaCmd == 'dymola':
                 # Disable parallel computing as this can give slightly different results.
                 runFil.write('Advanced.ParallelizeCode = false;\n')
-#                runFil.write('Advanced.PedanticModelica = true;\n')
-#                print "*** Running unit tests in pedantic mode\n"
+                # Set the pedantic Modelica mode
+                if self._pedanticModelica:
+                    runFil.write('Advanced.PedanticModelica = true;\n')
+                else:
+                    runFil.write('Advanced.PedanticModelica = false;\n')
                 runFil.write('openModel("package.mo");\n')
             elif self._modelicaCmd == 'omc':
                 runFil.write('loadModel(Modelica, {"3.2"});\n')
@@ -1794,8 +1821,6 @@ Modelica.Utilities.Streams.print("        \"unspecified initial conditions\"    
                 runFil.write("Advanced.TranslationInCommandLog := true;\n")
                 # Set flag to support string parameters, which is required for the weather data file.
                 runFil.write("Modelica.Utilities.Files.remove(\"%s\");\n" % self._simulator_log_file)
-                # Store the variable for pedantic mode
-                runFil.write("OriginalAdvancedPedanticModelica = Advanced.PedanticModelica;\n")
 
             runFil.write("Modelica.Utilities.Files.remove(\"%s\");\n" % self._statistics_log)
 
@@ -1835,14 +1860,11 @@ Modelica.Utilities.Streams.print("{\"testCase\" : [", "%s");
                         values["FMUName"] = self._data[i]['FMUName']
 
 
-                    # Add checkModel(...) in pedantic mode
                     if self._modelicaCmd == 'dymola':
                         # Delete command log, modelName.simulation.log and dslog.txt
                         runFil.write("Modelica.Utilities.Files.remove(\"%s.translation.log\");\n" % values["modelName"])
                         runFil.write("Modelica.Utilities.Files.remove(\"dslog.txt\");\n")
                         runFil.write("clearlog();\n")
-                        runFil.write("Advanced.PedanticModelica = true;\n")
-                        runFil.write("Advanced.PedanticModelica = OriginalAdvancedPedanticModelica;\n")
 
                     if self._modelicaCmd == 'omc':
                         runFil.write('getErrorString();\n')
