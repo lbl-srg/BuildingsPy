@@ -1,0 +1,4 @@
+compareVars :=
+  {
+    "myStep.y"
+  };
