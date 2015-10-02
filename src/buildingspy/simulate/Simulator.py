@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 
-class Simulator:
+class Simulator(object):
     """Class to simulate a Modelica model.
 
     :param modelName: The name of the Modelica model.
