@@ -58,7 +58,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         s = Simulator("MyModelicaLibrary.MyModel", "dymola", packagePath=self._packagePath)
         s.addPreProcessingStatement("Advanced.StoreProtectedVariables:= true;")
         s.addPostProcessingStatement("Advanced.StoreProtectedVariables:= false;")
-        s.addModelModifier('redeclare Modelica.Blocks.Sources.Step source(offset=-0.1, height=1.1, startTime=0.5)')
+        s.addModelModifier("redeclare Modelica.Blocks.Sources.Step source(offset=-0.1, height=1.1, startTime=0.5)")
         s.setStartTime(-1)
         s.setStopTime(5)
         s.setTimeOut(600)
@@ -157,6 +157,49 @@ class Test_simulate_Simulator(unittest.TestCase):
         self.assertEqual(p[0], 1.0)
         (_, p) = r.values('p2')
         self.assertEqual(p[0], 0.0)
+        
+    def test_translate_simulate(self):
+        '''
+        Tests the :mod:`buildingspy.simulate.Simulator.translate` and 
+        the :mod:`buildingspy.simulate.Simulator.simulate_translated`
+        method.
+        '''
+        import numpy as np
+
+        from buildingspy.io.outputfile import Reader
+
+        
+        s = Simulator("MyModelicaLibrary.MyModel", "dymola", packagePath=self._packagePath)
+        s.addPreProcessingStatement("Advanced.StoreProtectedVariables:= true;")
+        s.addPostProcessingStatement("Advanced.StoreProtectedVariables:= false;")
+        s.addModelModifier("redeclare Modelica.Blocks.Sources.Step source(offset=-0.1, height=1.1, startTime=0.5)")
+        s.setStartTime(-1)
+        s.setStopTime(5)
+        s.setTimeOut(600)
+        s.setTolerance(1e-4)
+        s.setSolver("dassl")
+        s.setNumberOfIntervals(50)
+        s.setResultFile("myResults")
+        s.exitSimulator(True)
+        s.deleteOutputFiles()
+        s.showGUI(True)
+#        s.printModelAndTime()
+        s.showProgressBar(False)
+        s.translate()
+        s.simulate_translated()
+        # Read the result and test their validity
+        outDir = s.getOutputDirectory()
+        resultFile = os.path.abspath(os.path.join(outDir, "myResults.mat"))
+        r=Reader(resultFile, "dymola")
+        np.testing.assert_allclose(1.0, r.max('source.y'))
+        np.testing.assert_allclose(0.725, r.mean('source.y'))
+        np.testing.assert_allclose(0.725*6, r.integral('source.y'))
+        np.testing.assert_allclose(-0.1, r.min('source.y'))
+        # Delete output files
+        s.deleteOutputFiles()
+        s.deleteLogFiles()
+        # clean up translate temporary dir
+        s._deleteTemporaryDirectory(s._translateDir_)
         
 if __name__ == '__main__':
     unittest.main()
