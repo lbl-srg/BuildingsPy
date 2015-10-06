@@ -7,16 +7,16 @@ class Simulator(object):
     :param modelName: The name of the Modelica model.
     :param simulator: The simulation engine. Currently, the only supported value is ``dymola``.
     :param outputDirectory: An optional output directory.
-    :param packagePath: An optional path where the Modelica package.mo file is located. 
+    :param packagePath: An optional path where the Modelica package.mo file is located.
 
     If the parameter ``outputDirectory`` is specified, then the
     output files and log files will be moved to this directory
     when the simulation is completed.
     Outputs from the python functions will be written to ``outputDirectory/BuildingsPy.log``.
-    
+
     If the parameter ``packagePath`` is specified, the Simulator will copy this directory
     and all its subdirectories to a temporary directory when running the simulations.
-    
+
     .. note:: Up to version 1.4, the environmental variable ``MODELICAPATH``
               has been used as the default value. This has been changed as
               ``MODELICAPATH`` can have multiple entries in which case it is not
@@ -35,16 +35,16 @@ class Simulator(object):
 
         self.modelName = modelName
         self._outputDir_ = outputDirectory
-        
+
         self._translateDir_ = None
-        
+
         # Check if the package Path parameter is correct
         self._packagePath = None
         if packagePath == None:
             self.setPackagePath(os.path.abspath('.'))
         else:
             self.setPackagePath(packagePath)
-                    
+
         ## This call is needed so that the reporter can write to the working directory
         self._createDirectory(outputDirectory)
         self._preProcessing_ = list()
@@ -67,15 +67,15 @@ class Simulator(object):
 
     def setPackagePath(self, packagePath):
         ''' Set the path specified by ``packagePath``.
-        
+
         :param packagePath: The path where the Modelica package to be loaded is located.
-        
-        It first checks whether the path exists and whether it is a directory. 
+
+        It first checks whether the path exists and whether it is a directory.
         If both conditions are satisfied, the path is set.
         Otherwise, a ``ValueError`` is raised.
         '''
         import os
-        
+
         # Check whether the package Path parameter is correct
         if os.path.exists(packagePath) == False:
             msg = "Argument packagePath=%s does not exist." % packagePath
@@ -95,7 +95,7 @@ class Simulator(object):
 
         # All the checks have been successfully passed
         self._packagePath = packagePath
-                    
+
 
     def _createDirectory(self, directoryName):
         ''' Creates the directory *directoryName*
@@ -195,7 +195,7 @@ class Simulator(object):
 
         '''
         return self._outputDir_
-    
+
     def setOutputDirectory(self, outputDirectory):
         '''Sets the name of the output directory.
 
@@ -204,7 +204,7 @@ class Simulator(object):
         '''
         self._outputDir_ = outputDirectory
         return self._outputDir_
-    
+
     def getPackagePath(self):
         '''Returns the path of the directory containing the Modelica package.
 
@@ -212,7 +212,7 @@ class Simulator(object):
 
         '''
         return self._packagePath
-        
+
     def addModelModifier(self, modelModifier):
         '''Adds a model modifier.
 
@@ -371,7 +371,7 @@ class Simulator(object):
         # and the package redeclarations
         dec = self._declare_parameters()
         dec.extend(self._modelModifiers_)
-        
+
         mi = '"{mn}({dec})"'.format(mn=self.modelName, dec=','.join(dec))
 
         try:
@@ -421,10 +421,10 @@ class Simulator(object):
             self._reporter.writeError("Simulation failed in '" + worDir + "'\n"
                                        + "   You need to delete the directory manually.")
             raise
-    
+
     def translate(self):
         '''Translates the model. Usually followed by the command simulate_translated().
-        
+
         This method
           1. Deletes dymola output files
           2. Copies the current directory, or the directory specified by the ``packagePath``
@@ -464,7 +464,7 @@ class Simulator(object):
         # and the package redeclarations
         dec = self._declare_parameters()
         dec.extend(self._modelModifiers_)
-        
+
         mi = '"{mn}({dec})"'.format(mn=self.modelName, dec=','.join(dec))
 
         try:
@@ -483,7 +483,7 @@ class Simulator(object):
 
             fil.write('modelInstance=' + mi + ';\n')
             fil.write('translateModel(modelInstance);\n')
-            
+
             # Post-processing commands
             for posPro in self._postProcessing_:
                 fil.write(posPro + '\n')
@@ -503,7 +503,7 @@ class Simulator(object):
             self._reporter.writeError("Translation failed in '" + worDir + "'\n"
                                        + "   You need to delete the directory manually.")
             raise
-    
+
     def simulate_translated(self):
         '''Simulates a translated model or a copy of it, which is especially
         useful for a large amount of simulations of the same model. This method is usually called
@@ -521,14 +521,14 @@ class Simulator(object):
         This method requires that the directory that contains the executable *dymola*
         is on the system PATH variable. If it is not found, the function returns with
         an error message.
-        
+
         Usage: Type
            >>> from buildingspy.simulate.Simulator import Simulator
            >>> s=Simulator("myPackage.myModel", "dymola", packagePath="buildingspy/tests/MyModelicaLibrary")
            >>> s.translate()
            >>> s.simulate_translated()
            >>> s._deleteTemporaryDirectory(s._translateDir_) # clean up translate temporary dir
-        
+
         '''
         import sys
         import os
@@ -582,7 +582,7 @@ class Simulator(object):
                           str(self._simulator_.get('numberOfIntervals')))
             fil.write(');\n')
             fil.write('simulate();\n')
-            
+
             # re-name result file
             from sys import platform as _platform
             if _platform == "linux" or _platform == "linux2":
@@ -594,7 +594,7 @@ class Simulator(object):
             elif _platform == "win32": #NOTE not tested
                 # Windows
                 fil.write('system("ren dsres.mat '+self._simulator_.get('resultFile')+'.mat");\n')
-            
+
             # Post-processing commands
             for posPro in self._postProcessing_:
                 fil.write(posPro + '\n')
@@ -616,7 +616,7 @@ class Simulator(object):
             self._reporter.writeError("Simulation failed in '" + worDir + "'\n"
                                        + "   You need to delete the directory manually.")
             raise
-        
+
     def deleteOutputFiles(self):
         ''' Deletes the output files of the simulator.
         '''
@@ -843,7 +843,7 @@ class Simulator(object):
         proBar += "|"
         print proBar, int(fractionComplete*100), "%\r",
         sys.stdout.flush()
-    
+
     def _declare_parameters(self):
         ''' Declare list of parameters
         '''
@@ -863,13 +863,13 @@ class Simulator(object):
             except TypeError:
                 return repr(arg)
         dec = list()
-        
+
         for k, v in self._parameters_.items():
             # Dymola requires vectors of parameters to be set in the format
-            # p = {1, 2, 3} rather than in the format of python arrays, which 
+            # p = {1, 2, 3} rather than in the format of python arrays, which
             # is p = [1, 2, 3].
             # Hence, we convert the value of the parameter if required.
             s = to_modelica(v)
             dec.append('{param}={value}'.format(param=k, value=s))
-        
+
         return dec

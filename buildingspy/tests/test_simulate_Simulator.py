@@ -8,44 +8,44 @@ class Test_simulate_Simulator(unittest.TestCase):
        This class contains the unit tests for
        :mod:`buildingspy.simulate.Simulator`.
     """
-        
+
     def setUp(self):
         '''
         This method creates a variable that points to an existing folder
         that contains a Modelica package.
         '''
         self._packagePath = os.path.abspath(os.path.join("buildingspy", "tests", "MyModelicaLibrary"))
-         
+
     def test_Constructor(self):
         '''
         Tests the :mod:`buildingspy.simulate.Simulator`
         constructor.
         '''
-        self.assertRaises(ValueError, Simulator, 
+        self.assertRaises(ValueError, Simulator,
                           "myModelicaLibrary.myModel", "notSupported", packagePath=self._packagePath)
-        
+
         # Check that this path does not exists
-        self.assertRaises(ValueError, Simulator, 
+        self.assertRaises(ValueError, Simulator,
                           "myModelicaLibrary.myModel", "notSupported", "ThisIsAWrongPath")
-        
+
         # Check that this path does not contain a package.mo file
         path = os.path.abspath(os.path.join("buildingspy", "tests"))
-        self.assertRaises(ValueError, Simulator, 
+        self.assertRaises(ValueError, Simulator,
                           "myModelicaLibrary.myModel", "notSupported", path)
-        
+
     def test_setPackagePath(self):
         '''
         Tests the ``setPackagePath'' method.
         '''
         s = Simulator("MyModelicaLibrary.MyModel", "dymola", packagePath=self._packagePath)
-        
+
         # Try to load an existing path.
         p=os.path.abspath(os.path.join("buildingspy", "tests", "MyModelicaLibrary"))
         s.setPackagePath(p)
 
         # Try to load a not existing path.
         self.assertRaises(ValueError, s.setPackagePath, "ThisIsAWrongPath")
-        
+
     def test_addMethods(self):
         '''
         Tests the various add methods.
@@ -54,7 +54,7 @@ class Test_simulate_Simulator(unittest.TestCase):
 
         from buildingspy.io.outputfile import Reader
 
-        
+
         s = Simulator("MyModelicaLibrary.MyModel", "dymola", packagePath=self._packagePath)
         s.addPreProcessingStatement("Advanced.StoreProtectedVariables:= true;")
         s.addPostProcessingStatement("Advanced.StoreProtectedVariables:= false;")
@@ -157,10 +157,10 @@ class Test_simulate_Simulator(unittest.TestCase):
         self.assertEqual(p[0], 1.0)
         (_, p) = r.values('p2')
         self.assertEqual(p[0], 0.0)
-        
+
     def test_translate_simulate(self):
         '''
-        Tests the :mod:`buildingspy.simulate.Simulator.translate` and 
+        Tests the :mod:`buildingspy.simulate.Simulator.translate` and
         the :mod:`buildingspy.simulate.Simulator.simulate_translated`
         method.
         '''
@@ -168,7 +168,7 @@ class Test_simulate_Simulator(unittest.TestCase):
 
         from buildingspy.io.outputfile import Reader
 
-        
+
         s = Simulator("MyModelicaLibrary.MyModel", "dymola", packagePath=self._packagePath)
         s.addPreProcessingStatement("Advanced.StoreProtectedVariables:= true;")
         s.addPostProcessingStatement("Advanced.StoreProtectedVariables:= false;")
@@ -200,7 +200,6 @@ class Test_simulate_Simulator(unittest.TestCase):
         s.deleteLogFiles()
         # clean up translate temporary dir
         s._deleteTemporaryDirectory(s._translateDir_)
-        
+
 if __name__ == '__main__':
     unittest.main()
-
