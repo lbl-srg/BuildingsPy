@@ -182,8 +182,6 @@ class Test_simulate_Simulator(unittest.TestCase):
         s.setResultFile("myResults")
         s.exitSimulator(True)
         s.deleteOutputFiles()
-        s.showGUI(True)
-#        s.printModelAndTime()
         s.showProgressBar(False)
         s.translate()
         s.simulate_translated()
