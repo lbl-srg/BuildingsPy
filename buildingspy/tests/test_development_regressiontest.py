@@ -12,6 +12,33 @@ class Test_regressiontest_Tester(unittest.TestCase):
        :mod:`buildingspy.regressiontest.Tester`.
     """
 
+    def test_get_plot_variables(self):
+        import buildingspy.development.regressiontest as r
+
+        self.assertIsNone(r.Tester.get_plot_variables("abc"), "Expected None return value")
+        self.assertIsNone(r.Tester.get_plot_variables("y=abc"), "Expected None return value")
+        self.assertIsNone(r.Tester.get_plot_variables("leftTitleType=1, bottomTitleType=1, colors={{0,0,255},"), "Expected None")
+
+        self.assertEqual(["a", "b", "c"], r.Tester.get_plot_variables('y = {"a", "b", "c"}'), "Expected a b c")
+        self.assertEqual(["a", "b", "c"], r.Tester.get_plot_variables('y = {"a","b","c"}'), "Expected a b c")
+        self.assertEqual(["a", "b", "c"], r.Tester.get_plot_variables('y = {" a", "b ", "c"}'), "Expected a b c")
+        self.assertEqual(["a", "b", "c"], r.Tester.get_plot_variables('y = {" a" , "b " , "c"}'), "Expected a b c")
+        self.assertEqual(["a", "b", "c"], r.Tester.get_plot_variables('y = {"a","b","c"}'), "Expected a b c")
+        self.assertEqual(["a"], r.Tester.get_plot_variables('y = {"a"}'), "Expected a")
+        self.assertEqual(["a"], r.Tester.get_plot_variables('y = { "a"}'), "Expected a")
+        self.assertEqual(["a"], r.Tester.get_plot_variables('y = { "a" }'), "Expected a")
+        self.assertEqual(["a"], r.Tester.get_plot_variables('y ={ "a" }'), "Expected a")
+        self.assertEqual(["a"], r.Tester.get_plot_variables('y={ "a" }'), "Expected a")
+
+        self.assertEqual(["a"], r.Tester.get_plot_variables('abc, y = {"a"}'), "Expected a")
+        self.assertEqual(["a"], r.Tester.get_plot_variables('x= {"x"}, y = {"a"}, z = {"s"}'), "Expected a")
+        self.assertEqual(["x_incStrict[1]", "x_incStrict[2]"],\
+                          r.Tester.get_plot_variables('y={"x_incStrict[1]", "x_incStrict[2]"},'),\
+                         "Expect other result")
+        self.assertEqual(["const1[1].y", "const2[1, 1].y"], \
+                         r.Tester.get_plot_variables(' y={"const1[1].y", "const2[1, 1].y"} '))
+
+
     def test_regressiontest(self):
         import buildingspy.development.regressiontest as r
         rt = r.Tester(check_html=False)

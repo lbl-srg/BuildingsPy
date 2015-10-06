@@ -54,7 +54,10 @@ Version 1.5.0, xxx, 2014 -- Release 1.5
   inputs to the reference results.
 - In buildingspy.development.regressiontest, added option to
   use pedantic Modelica check.
-
+- Improved regression tests so that the list of plot variables
+  no longer needed to be on a single line. This was done
+  as later versions of Dymola do not write line breaks when
+  exporting the .mos script.
 
 Version 1.4.0, February 28, 2014 -- Release 1.4
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

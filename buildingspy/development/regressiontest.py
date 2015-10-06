@@ -498,6 +498,55 @@ class Tester:
                     with open(filNam, 'w') as fil:
                         fil.write(filCon)
 
+    @staticmethod
+    def get_plot_variables(line):
+        ''' For a string of the form `*y={aa,bb,cc}*`, optionally with whitespace characters,
+        return the list `[aa, bb, cc]`.
+        If the string does not contain `y = ...`, return `None`.
+
+        A usage may be as follows. Note that the second call returns `None` as
+        it has a different format.
+
+          >>> import buildingspy.development.regressiontest as r
+          >>> r.Tester.get_plot_variables('y = {"a", "b", "c"}')
+          ['a', 'b', 'c']
+          >>> r.Tester.get_plot_variables('... x}, y = {"a", "b", "c"}, z = {...')
+          ['a', 'b', 'c']
+          >>> r.Tester.get_plot_variables("y=abc") is None
+          True
+
+        '''
+        import re
+        import shlex
+
+        # This evaluates for example
+        #   re.search("y.*=.*{.*}", "aay = {aa, bb, cc}aa").group()
+        #   'y = {aa, bb, cc}'
+        var=re.search("y\s*=\s*{.*}", line)
+        if var is None:
+            return None
+        s = var.group()
+        s=re.search('{.*?}', s).group()
+        s=s.strip('{}')
+        # Use the lexer module as simply splitting by "," won't work because arrays have
+        # commas in the form "a[1, 1]", "a[1, 2]"
+        lexer = shlex.shlex(s)
+        lexer.quotes = '"'
+        lexer.whitespace = ", \t" # Skip commas, otherwise they are also returned as a token
+        y = list(lexer)
+
+        for i in range(len(y)):
+            # Remove quotes as we deal with a string already
+            y[i] = y[i].replace('"', '')
+            # Strip whitespace characters
+            y[i] = y[i].strip()
+            # Replace a[1,1] by a[1, 1], which is required for the
+            # Reader to be able to read the result.
+            # Also, replace multiple white spaces with a single white space as
+            # reading .mat is picky. For example, it refused to read a[1,1] or a[1,  1]
+            y[i] = re.sub(',\W*', ', ', y[i])
+        return y
+
 
     def setDataDictionary(self):
         ''' Build the data structures that are needed to parse the output files.
@@ -619,24 +668,19 @@ class Tester:
                                 iLin=0
                                 for lin in Lines:
                                     iLin=iLin+1
-                                    if 'y={' in lin:
-                                        try:
-                                            var=re.search('{.*?}', lin).group()
-                                        except AttributeError:
-                                            s =  "%s, line %s, could not be parsed.\n" % (mosFil, iLin)
-                                            s +=  "The problem occurred at the line below:\n"
-                                            s +=  "%s\n" % lin
-                                            s += "Make sure that each assignment of the plot command is on one line.\n"
-                                            s += "Regression tests failed with error.\n"
-                                            self._reporter.writeError(s)
-                                            raise
-                                        var=var.strip('{}"')
-                                        y = var.split('","')
-                                        # Replace a[1,1] by a[1, 1], which is required for the
-                                        # Reader to be able to read the result.
-                                        for i in range(len(y)):
-                                            y[i] = y[i].replace(",", ", ")
-                                        plotVars.append(y)
+                                    try:
+                                        y = self.get_plot_variables(lin)
+                                        if y is not None:
+                                            plotVars.append(y)
+                                    except AttributeError:
+                                        s =  "%s, line %s, could not be parsed.\n" % (mosFil, iLin)
+                                        s +=  "The problem occurred at the line below:\n"
+                                        s +=  "%s\n" % lin
+                                        s += "Make sure that each assignment of the plot command is on one line.\n"
+                                        s += "Regression tests failed with error.\n"
+                                        self._reporter.writeError(s)
+                                        raise
+
                                 if len(plotVars) == 0:
                                     s =  "%s does not contain any plot command.\n" % mosFil
                                     s += "You need to add a plot command to include its\n"
