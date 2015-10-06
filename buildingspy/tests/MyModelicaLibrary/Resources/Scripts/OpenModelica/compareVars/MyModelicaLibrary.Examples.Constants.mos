@@ -1,5 +1,0 @@
-compareVars :=
-  {
-    "const1[1].y",
-    "const2[1, 1].y"
-  };
