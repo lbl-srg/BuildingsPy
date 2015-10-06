@@ -22,6 +22,7 @@ def main():
     '''
     # Build list of cases to run
     li = []
+
     # First model
     model = 'Modelica.Mechanics.MultiBody.Examples.Systems.RobotR3.fullRobot'
     import os
@@ -32,7 +33,8 @@ def main():
     s.showGUI(False)
     s.translate()
     li.append(s)
-    # second model
+
+    # Second model
     import copy
     s2 = copy.deepcopy(s)
     s2.setOutputDirectory('case2')
