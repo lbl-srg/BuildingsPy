@@ -553,7 +553,7 @@ class Simulator(object):
         dirNam=ds[len(ds)-1]
         worDir = os.path.join(tempfile.mkdtemp(prefix='tmp-simulator-' + getpass.getuser() + '-'), dirNam)
         # Copy translate directory
-        shutil.copytree(self._translateDir_, worDir)
+        shutil.move(self._translateDir_, worDir)
 
         # Construct the model instance with all parameter values
         # (without package redeclarations)
