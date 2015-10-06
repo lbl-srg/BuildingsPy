@@ -7,7 +7,7 @@ class Simulator(object):
     :param modelName: The name of the Modelica model.
     :param simulator: The simulation engine. Currently, the only supported value is ``dymola``.
     :param outputDirectory: An optional output directory.
-    :param packagePath: An optional path where the Modelica package.mo file is located.
+    :param packagePath: An optional path where the Modelica ``package.mo`` file is located.
 
     If the parameter ``outputDirectory`` is specified, then the
     output files and log files will be moved to this directory
