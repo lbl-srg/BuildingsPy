@@ -525,9 +525,16 @@ class Simulator(object):
         Usage: Type
            >>> from buildingspy.simulate.Simulator import Simulator
            >>> s=Simulator("myPackage.myModel", "dymola", packagePath="buildingspy/tests/MyModelicaLibrary")
-           >>> s.translate()
-           >>> s.simulate_translated()
-           >>> s._deleteTemporaryDirectory(s._translateDir_) # clean up translate temporary dir
+           >>> s.translate() # doctest: +ELLIPSIS
+           Starting simulation in '/tmp/tmp-simulator-...
+           <BLANKLINE>
+           *** Standard output stream from simulation:
+           <BLANKLINE>
+           >>> s.simulate_translated() # doctest: +ELLIPSIS
+           Starting simulation in '/tmp/tmp-simulator-...
+           <BLANKLINE>
+           *** Standard output stream from simulation:
+           <BLANKLINE>
 
         '''
         import sys
