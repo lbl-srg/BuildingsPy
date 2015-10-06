@@ -170,8 +170,6 @@ class Test_simulate_Simulator(unittest.TestCase):
 
 
         s = Simulator("MyModelicaLibrary.MyModel", "dymola", packagePath=self._packagePath)
-        s.addPreProcessingStatement("Advanced.StoreProtectedVariables:= true;")
-        s.addPostProcessingStatement("Advanced.StoreProtectedVariables:= false;")
         s.addModelModifier("redeclare Modelica.Blocks.Sources.Step source(offset=-0.1, height=1.1, startTime=0.5)")
         s.setStartTime(-1)
         s.setStopTime(5)
