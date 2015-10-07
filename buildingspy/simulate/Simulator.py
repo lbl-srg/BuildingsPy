@@ -350,8 +350,6 @@ class Simulator(object):
         '''
         import sys
         import os
-        import tempfile
-        import getpass
         import shutil
 
 
@@ -360,10 +358,7 @@ class Simulator(object):
 
         # Get directory name. This ensures for example that if the directory is called xx/Buildings
         # then the simulations will be done in tmp??/Buildings
-        curDir = os.path.abspath(self._packagePath)
-        ds=curDir.split(os.sep)
-        dirNam=ds[len(ds)-1]
-        worDir = os.path.join(tempfile.mkdtemp(prefix='tmp-simulator-' + getpass.getuser() + '-'), dirNam)
+        worDir = self._create_worDir()
         # Copy directory
         shutil.copytree(os.path.abspath(self._packagePath), worDir)
 
@@ -442,8 +437,6 @@ class Simulator(object):
         '''
         import sys
         import os
-        import tempfile
-        import getpass
         import shutil
 
 
@@ -452,10 +445,7 @@ class Simulator(object):
 
         # Get directory name. This ensures for example that if the directory is called xx/Buildings
         # then the simulations will be done in tmp??/Buildings
-        curDir = os.path.abspath(self._packagePath)
-        ds=curDir.split(os.sep)
-        dirNam=ds[len(ds)-1]
-        worDir = os.path.join(tempfile.mkdtemp(prefix='tmp-simulator-' + getpass.getuser() + '-'), dirNam)
+        worDir = self._create_worDir()
         self._translateDir_ = worDir
         # Copy directory
         shutil.copytree(os.path.abspath(self._packagePath), worDir)
@@ -539,8 +529,6 @@ class Simulator(object):
         '''
         import sys
         import os
-        import tempfile
-        import getpass
         import shutil
 
         # Delete dymola output files
@@ -548,10 +536,7 @@ class Simulator(object):
 
         # Get directory name. This ensures for example that if the directory is called xx/Buildings
         # then the simulations will be done in tmp??/Buildings
-        curDir = os.path.abspath(self._packagePath)
-        ds=curDir.split(os.sep)
-        dirNam=ds[len(ds)-1]
-        worDir = os.path.join(tempfile.mkdtemp(prefix='tmp-simulator-' + getpass.getuser() + '-'), dirNam)
+        worDir = self._create_worDir()
         # Copy translate directory
         shutil.copytree(self._translateDir_, worDir)
 
@@ -880,3 +865,16 @@ class Simulator(object):
             dec.append('{param}={value}'.format(param=k, value=s))
 
         return dec
+
+    def _create_worDir(self):
+        ''' Create working directory
+        '''
+        import os
+        import tempfile
+        import getpass
+        curDir = os.path.abspath(self._packagePath)
+        ds=curDir.split(os.sep)
+        dirNam=ds[len(ds)-1]
+        worDir = os.path.join(tempfile.mkdtemp(prefix='tmp-simulator-' + getpass.getuser() + '-'), dirNam)
+        
+        return worDir
