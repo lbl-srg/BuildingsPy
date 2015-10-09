@@ -193,7 +193,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         s.deleteOutputFiles()
         s.deleteLogFiles()
         # clean up translate temporary dir
-        s._deleteTemporaryDirectory(s._translateDir_)
+        s.deleteTranslateDirectory()
 
     def test_translate_simulate_exception(self):
         '''
@@ -205,17 +205,16 @@ class Test_simulate_Simulator(unittest.TestCase):
         '''
         import numpy as np
 
+        from buildingspy.io.reporter import Reporter
         from buildingspy.io.outputfile import Reader
-
+        from buildingspy.io.outputfile import get_errors_and_warnings
 
         s = Simulator("MyModelicaLibrary.Examples.ParameterEvaluation", "dymola", packagePath=self._packagePath)
         s.translate()
+        s.setSolver("dassl")
         s.addParameters({'x': 0.2})
         # The next call must throw an exception.
-        # FIXME: This does not throw any error, it simply simulates the model with
-        #        the old value for the parameter.
-        s.simulate_translated()
-
+        self.assertRaises(AssertionError, s.simulate_translated)
 
 if __name__ == '__main__':
     unittest.main()
