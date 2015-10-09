@@ -178,9 +178,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         s.setSolver("dassl")
         s.setNumberOfIntervals(50)
         s.setResultFile("myResults")
-        s.exitSimulator(True)
         s.deleteOutputFiles()
-        s.showProgressBar(False)
         s.translate()
         s.simulate_translated()
         # Read the result and test their validity
@@ -196,6 +194,28 @@ class Test_simulate_Simulator(unittest.TestCase):
         s.deleteLogFiles()
         # clean up translate temporary dir
         s._deleteTemporaryDirectory(s._translateDir_)
+
+    def test_translate_simulate_exception(self):
+        '''
+        Tests the :mod:`buildingspy.simulate.Simulator.translate` and
+        the :mod:`buildingspy.simulate.Simulator.simulate_translated`
+        method.
+        This tests whether an exception is thrown if
+        one attempts to change a parameter that is fixed after compilation
+        '''
+        import numpy as np
+
+        from buildingspy.io.outputfile import Reader
+
+
+        s = Simulator("MyModelicaLibrary.Examples.ParameterEvaluation", "dymola", packagePath=self._packagePath)
+        s.translate()
+        s.addParameters({'x': 0.2})
+        # The next call must throw an exception.
+        # FIXME: This does not throw any error, it simply simulates the model with
+        #        the old value for the parameter.
+        s.simulate_translated()
+
 
 if __name__ == '__main__':
     unittest.main()
