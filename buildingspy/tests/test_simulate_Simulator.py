@@ -203,11 +203,6 @@ class Test_simulate_Simulator(unittest.TestCase):
         This tests whether an exception is thrown if
         one attempts to change a parameter that is fixed after compilation
         '''
-        import numpy as np
-
-        from buildingspy.io.reporter import Reporter
-        from buildingspy.io.outputfile import Reader
-        from buildingspy.io.outputfile import get_errors_and_warnings
 
         s = Simulator("MyModelicaLibrary.Examples.ParameterEvaluation", "dymola", packagePath=self._packagePath)
         s.translate()
