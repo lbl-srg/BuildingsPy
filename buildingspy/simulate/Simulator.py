@@ -706,6 +706,11 @@ class Simulator(object):
                 self._reporter.writeError("Failed to delete '" +
                                            worDir + ": " + e.strerror)
 
+    def deleteTranslateDirectory(self):
+        ''' Deletes the translate directory. Called after simulate_translated
+        '''
+        self._deleteTemporaryDirectory(self._translateDir_)
+
     def _isExecutable(self, program):
         import os
         import platform
