@@ -603,6 +603,7 @@ class Simulator(object):
                                  worDir)
             self._copyResultFiles(worDir)
             self._deleteTemporaryDirectory(worDir)
+            self._check_model_parametrization()
         except: # Catch all possible exceptions
             sys.exc_info()[1]
             self._reporter.writeError("Simulation failed in '" + worDir + "'\n"
@@ -883,3 +884,20 @@ class Simulator(object):
         worDir = os.path.join(tempfile.mkdtemp(prefix='tmp-simulator-' + getpass.getuser() + '-'), dirNam)
         
         return worDir
+
+    def _check_model_parametrization(self):
+        ''' Method that checks if the parameters set by addParameters function
+        for an already translated model are actually overriding the original
+        values at compilation time.
+        '''
+        import os
+        import numpy as np
+        from buildingspy.io.outputfile import Reader
+        
+        res = Reader(os.path.join(self._outputDir_,
+                              self._simulator_['resultFile'])+'.mat',
+                              'dymola')
+        for key, value in self._parameters_.iteritems():
+            (t, y) = res.values(key)
+            msg = "Parameter " + key + " cannot be re-set after model translation."
+            np.testing.assert_allclose(y[0], value, err_msg=msg)
