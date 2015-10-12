@@ -37,6 +37,7 @@ class Simulator(object):
         self._outputDir_ = outputDirectory
 
         self._translateDir_ = None
+        self._simulateDir_ = None
 
         # Check if the package Path parameter is correct
         self._packagePath = None
@@ -359,6 +360,7 @@ class Simulator(object):
         # Get directory name. This ensures for example that if the directory is called xx/Buildings
         # then the simulations will be done in tmp??/Buildings
         worDir = self._create_worDir()
+        self._simulateDir_ = worDir
         # Copy directory
         shutil.copytree(os.path.abspath(self._packagePath), worDir)
 
@@ -409,6 +411,7 @@ class Simulator(object):
             self._runSimulation(runScriptName,
                                  self._simulator_.get('timeout'),
                                  worDir)
+            self._check_simulation_errors(worDir)
             self._copyResultFiles(worDir)
             self._deleteTemporaryDirectory(worDir)
         except: # Catch all possible exceptions
@@ -537,6 +540,7 @@ class Simulator(object):
         # Get directory name. This ensures for example that if the directory is called xx/Buildings
         # then the simulations will be done in tmp??/Buildings
         worDir = self._create_worDir()
+        self._simulateDir_ = worDir
         # Copy translate directory
         shutil.copytree(self._translateDir_, worDir)
 
@@ -601,6 +605,7 @@ class Simulator(object):
             self._runSimulation(runScriptName,
                                  self._simulator_.get('timeout'),
                                  worDir)
+            self._check_simulation_errors(worDir)
             self._copyResultFiles(worDir)
             self._deleteTemporaryDirectory(worDir)
             self._check_model_parametrization()
@@ -623,7 +628,8 @@ class Simulator(object):
         ''' Deletes the log files of the Python simulator, e.g. the
             files ``BuildingsPy.log``, ``run.mos`` and ``simulator.log``.
         '''
-        filLis=['BuildingsPy.log', 'run.mos', 'simulator.log']
+        filLis=['BuildingsPy.log', 'run.mos', 'run_simulate.mos',
+                'run_translate.mos', 'simulator.log', 'translator.log']
         self._deleteFiles(filLis)
 
     def _deleteFiles(self, fileList):
@@ -711,6 +717,11 @@ class Simulator(object):
         ''' Deletes the translate directory. Called after simulate_translated
         '''
         self._deleteTemporaryDirectory(self._translateDir_)
+
+    def deleteSimulateDirectory(self):
+        ''' Deletes the simulate directory. Can be called when simulation failed.
+        '''
+        self._deleteTemporaryDirectory(self._simulateDir_)
 
     def _isExecutable(self, program):
         import os
@@ -899,5 +910,24 @@ class Simulator(object):
                               'dymola')
         for key, value in self._parameters_.iteritems():
             (t, y) = res.values(key)
-            msg = "Parameter " + key + " cannot be re-set after model translation."
-            np.testing.assert_allclose(y[0], value, err_msg=msg)
+            del t
+            try:
+                np.testing.assert_allclose(y[0], value)
+            except AssertionError:
+                msg = "Parameter " + key + " cannot be re-set after model translation."
+                self._reporter.writeError(msg)
+                raise IOError
+
+    def _check_simulation_errors(self, worDir):
+        ''' Method that checks if errors occured during simulation.
+        '''
+        import os
+        from buildingspy.io.outputfile import get_errors_and_warnings
+        path_to_logfile = os.path.join(worDir, 'simulator.log')
+        ret = get_errors_and_warnings(path_to_logfile, 'dymola')
+        if not ret["errors"]:
+            pass
+        else:
+            for li in ret["errors"]:
+                self._reporter.writeError(li)
+            raise IOError
