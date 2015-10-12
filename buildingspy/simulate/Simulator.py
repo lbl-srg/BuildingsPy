@@ -905,18 +905,27 @@ class Simulator(object):
         import numpy as np
         from buildingspy.io.outputfile import Reader
         
-        res = Reader(os.path.join(self._outputDir_,
+        def _compare(actual_res, desired_key, desired_value):
+            (t, y) = actual_res.values(desired_key)
+            del t
+            try:
+                np.testing.assert_allclose(y[0], desired_value)
+            except AssertionError:
+                msg = "Parameter " + desired_key + " cannot be re-set after model translation."
+                self._reporter.writeError(msg)
+                raise IOError
+        
+        actual_res = Reader(os.path.join(self._outputDir_,
                               self._simulator_['resultFile'])+'.mat',
                               'dymola')
         for key, value in self._parameters_.iteritems():
-            (t, y) = res.values(key)
-            del t
-            try:
-                np.testing.assert_allclose(y[0], value)
-            except AssertionError:
-                msg = "Parameter " + key + " cannot be re-set after model translation."
-                self._reporter.writeError(msg)
-                raise IOError
+            if isinstance(value, list): # lists
+                for index, val in enumerate(value):
+                    key_string = key + '['+ str(index+1) + ']'
+                    _compare(actual_res, key_string, val)
+            else: # int, floats
+                key_string = key 
+                _compare(actual_res, key_string, value)
 
     def _check_simulation_errors(self, worDir):
         ''' Method that checks if errors occured during simulation.
