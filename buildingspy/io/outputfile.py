@@ -2,7 +2,7 @@
 from buildingspy.thirdParty.dymat.DyMat import DyMatFile
 
 def get_model_statistics(log_file, simulator):
-    """ Open the simulation file *log_file* and return a dictionary
+    """ Open the simulation file ``log_file`` and return a dictionary
         with the model statistics.
 
         :log_file: The name of the log file.
@@ -96,7 +96,7 @@ def get_model_statistics(log_file, simulator):
         return ret
     
 def get_errors_and_warnings(log_file, simulator):
-    """ Open the simulation file *log_file* and return a dictionary
+    """ Open the simulation file ``log_file`` and return a dictionary
         with the model warnings and errors.
 
         :log_file: The name of the log file.
@@ -145,7 +145,7 @@ def get_errors_and_warnings(log_file, simulator):
         return ret
     
 class Reader:
-    """Open the file *fileName* and parse its content.
+    """Open the file ``fileName`` and parse its content.
 
     :param fileName: The name of the file.
     :param simulator: The file format. Currently, the only supported
@@ -172,7 +172,7 @@ class Reader:
            for which ``pattern``, as a regular expression, produces a match.
            If ``pattern`` is unspecified, all variable names are returned.
 
-           This method searches the variable names using the **search** function
+           This method searches the variable names using the ``search`` function
            from `Python's re module <https://docs.python.org/2/library/re.html>`_.
 
            See also https://docs.python.org/2/howto/regex.html#regex-howto.
