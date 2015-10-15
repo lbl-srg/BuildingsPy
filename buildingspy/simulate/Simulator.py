@@ -37,6 +37,7 @@ class Simulator(object):
         self._outputDir_ = outputDirectory
 
         self._translateDir_ = None
+        self._simulateDir_ = None
 
         # Check if the package Path parameter is correct
         self._packagePath = None
@@ -350,8 +351,6 @@ class Simulator(object):
         '''
         import sys
         import os
-        import tempfile
-        import getpass
         import shutil
 
 
@@ -360,10 +359,8 @@ class Simulator(object):
 
         # Get directory name. This ensures for example that if the directory is called xx/Buildings
         # then the simulations will be done in tmp??/Buildings
-        curDir = os.path.abspath(self._packagePath)
-        ds=curDir.split(os.sep)
-        dirNam=ds[len(ds)-1]
-        worDir = os.path.join(tempfile.mkdtemp(prefix='tmp-simulator-' + getpass.getuser() + '-'), dirNam)
+        worDir = self._create_worDir()
+        self._simulateDir_ = worDir
         # Copy directory
         shutil.copytree(os.path.abspath(self._packagePath), worDir)
 
@@ -414,6 +411,7 @@ class Simulator(object):
             self._runSimulation(runScriptName,
                                  self._simulator_.get('timeout'),
                                  worDir)
+            self._check_simulation_errors(worDir)
             self._copyResultFiles(worDir)
             self._deleteTemporaryDirectory(worDir)
         except: # Catch all possible exceptions
@@ -442,8 +440,6 @@ class Simulator(object):
         '''
         import sys
         import os
-        import tempfile
-        import getpass
         import shutil
 
 
@@ -452,10 +448,7 @@ class Simulator(object):
 
         # Get directory name. This ensures for example that if the directory is called xx/Buildings
         # then the simulations will be done in tmp??/Buildings
-        curDir = os.path.abspath(self._packagePath)
-        ds=curDir.split(os.sep)
-        dirNam=ds[len(ds)-1]
-        worDir = os.path.join(tempfile.mkdtemp(prefix='tmp-simulator-' + getpass.getuser() + '-'), dirNam)
+        worDir = self._create_worDir()
         self._translateDir_ = worDir
         # Copy directory
         shutil.copytree(os.path.abspath(self._packagePath), worDir)
@@ -539,8 +532,6 @@ class Simulator(object):
         '''
         import sys
         import os
-        import tempfile
-        import getpass
         import shutil
 
         # Delete dymola output files
@@ -548,12 +539,10 @@ class Simulator(object):
 
         # Get directory name. This ensures for example that if the directory is called xx/Buildings
         # then the simulations will be done in tmp??/Buildings
-        curDir = os.path.abspath(self._packagePath)
-        ds=curDir.split(os.sep)
-        dirNam=ds[len(ds)-1]
-        worDir = os.path.join(tempfile.mkdtemp(prefix='tmp-simulator-' + getpass.getuser() + '-'), dirNam)
+        worDir = self._create_worDir()
+        self._simulateDir_ = worDir
         # Copy translate directory
-        shutil.move(self._translateDir_, worDir)
+        shutil.copytree(self._translateDir_, worDir)
 
         # Construct the model instance with all parameter values
         # (without package redeclarations)
@@ -616,8 +605,10 @@ class Simulator(object):
             self._runSimulation(runScriptName,
                                  self._simulator_.get('timeout'),
                                  worDir)
+            self._check_simulation_errors(worDir)
             self._copyResultFiles(worDir)
             self._deleteTemporaryDirectory(worDir)
+            self._check_model_parametrization()
         except: # Catch all possible exceptions
             sys.exc_info()[1]
             self._reporter.writeError("Simulation failed in '" + worDir + "'\n"
@@ -637,7 +628,8 @@ class Simulator(object):
         ''' Deletes the log files of the Python simulator, e.g. the
             files ``BuildingsPy.log``, ``run.mos`` and ``simulator.log``.
         '''
-        filLis=['BuildingsPy.log', 'run.mos', 'simulator.log']
+        filLis=['BuildingsPy.log', 'run.mos', 'run_simulate.mos',
+                'run_translate.mos', 'simulator.log', 'translator.log']
         self._deleteFiles(filLis)
 
     def _deleteFiles(self, fileList):
@@ -720,6 +712,16 @@ class Simulator(object):
             except IOError as e:
                 self._reporter.writeError("Failed to delete '" +
                                            worDir + ": " + e.strerror)
+
+    def deleteTranslateDirectory(self):
+        ''' Deletes the translate directory. Called after simulate_translated
+        '''
+        self._deleteTemporaryDirectory(self._translateDir_)
+
+    def deleteSimulateDirectory(self):
+        ''' Deletes the simulate directory. Can be called when simulation failed.
+        '''
+        self._deleteTemporaryDirectory(self._simulateDir_)
 
     def _isExecutable(self, program):
         import os
@@ -880,3 +882,61 @@ class Simulator(object):
             dec.append('{param}={value}'.format(param=k, value=s))
 
         return dec
+
+    def _create_worDir(self):
+        ''' Create working directory
+        '''
+        import os
+        import tempfile
+        import getpass
+        curDir = os.path.abspath(self._packagePath)
+        ds=curDir.split(os.sep)
+        dirNam=ds[len(ds)-1]
+        worDir = os.path.join(tempfile.mkdtemp(prefix='tmp-simulator-' + getpass.getuser() + '-'), dirNam)
+        
+        return worDir
+
+    def _check_model_parametrization(self):
+        ''' Method that checks if the parameters set by addParameters function
+        for an already translated model are actually overriding the original
+        values at compilation time.
+        '''
+        import os
+        import numpy as np
+        from buildingspy.io.outputfile import Reader
+        
+        def _compare(actual_res, desired_key, desired_value):
+            (t, y) = actual_res.values(desired_key)
+            del t
+            try:
+                np.testing.assert_allclose(y[0], desired_value)
+            except AssertionError:
+                msg = "Parameter " + desired_key + " cannot be re-set after model translation."
+                self._reporter.writeError(msg)
+                raise IOError
+        
+        actual_res = Reader(os.path.join(self._outputDir_,
+                              self._simulator_['resultFile'])+'.mat',
+                              'dymola')
+        for key, value in self._parameters_.iteritems():
+            if isinstance(value, list): # lists
+                for index, val in enumerate(value):
+                    key_string = key + '['+ str(index+1) + ']'
+                    _compare(actual_res, key_string, val)
+            else: # int, floats
+                key_string = key 
+                _compare(actual_res, key_string, value)
+
+    def _check_simulation_errors(self, worDir):
+        ''' Method that checks if errors occured during simulation.
+        '''
+        import os
+        from buildingspy.io.outputfile import get_errors_and_warnings
+        path_to_logfile = os.path.join(worDir, 'simulator.log')
+        ret = get_errors_and_warnings(path_to_logfile, 'dymola')
+        if not ret["errors"]:
+            pass
+        else:
+            for li in ret["errors"]:
+                self._reporter.writeError(li)
+            raise IOError

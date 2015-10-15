@@ -45,7 +45,7 @@ def main():
     po = Pool()
     po.map(simulateCase, li)
     # clean up
-    s2._deleteTemporaryDirectory(s._translateDir_)
+    s2.deleteTranslateDirectory()
 
 # Main function
 if __name__ == '__main__':

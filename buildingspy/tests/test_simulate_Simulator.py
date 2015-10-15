@@ -67,7 +67,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         s.setNumberOfIntervals(50)
         s.setResultFile("myResults")
         s.exitSimulator(True)
-        s.deleteOutputFiles()
+        #s.deleteOutputFiles()
         s.showGUI(False)
 #        s.printModelAndTime()
         s.showProgressBar(False)
@@ -132,6 +132,9 @@ class Test_simulate_Simulator(unittest.TestCase):
         np.testing.assert_allclose(3.2, r.max('const2[3, 2].y'))
 
         np.testing.assert_allclose(0, r.max('const3.y'))
+        # Delete output files
+        s.deleteOutputFiles()
+        s.deleteLogFiles()
 
     def test_setBooleanParameterValues(self):
         '''
@@ -157,6 +160,9 @@ class Test_simulate_Simulator(unittest.TestCase):
         self.assertEqual(p[0], 1.0)
         (_, p) = r.values('p2')
         self.assertEqual(p[0], 0.0)
+        # Delete output files
+        s.deleteOutputFiles()
+        s.deleteLogFiles()
 
     def test_translate_simulate(self):
         '''
@@ -178,7 +184,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         s.setSolver("dassl")
         s.setNumberOfIntervals(50)
         s.setResultFile("myResults")
-        s.deleteOutputFiles()
+        #s.deleteOutputFiles()
         s.translate()
         s.simulate_translated()
         # Read the result and test their validity
@@ -193,9 +199,9 @@ class Test_simulate_Simulator(unittest.TestCase):
         s.deleteOutputFiles()
         s.deleteLogFiles()
         # clean up translate temporary dir
-        s._deleteTemporaryDirectory(s._translateDir_)
+        s.deleteTranslateDirectory()
 
-    def test_translate_simulate_exception(self):
+    def test_translate_simulate_exception_parameter(self):
         '''
         Tests the :mod:`buildingspy.simulate.Simulator.translate` and
         the :mod:`buildingspy.simulate.Simulator.simulate_translated`
@@ -203,19 +209,42 @@ class Test_simulate_Simulator(unittest.TestCase):
         This tests whether an exception is thrown if
         one attempts to change a parameter that is fixed after compilation
         '''
-        import numpy as np
-
-        from buildingspy.io.outputfile import Reader
-
 
         s = Simulator("MyModelicaLibrary.Examples.ParameterEvaluation", "dymola", packagePath=self._packagePath)
         s.translate()
+        s.setSolver("dassl")
         s.addParameters({'x': 0.2})
         # The next call must throw an exception.
-        # FIXME: This does not throw any error, it simply simulates the model with
-        #        the old value for the parameter.
-        s.simulate_translated()
+        self.assertRaises(IOError, s.simulate_translated)
+        # clean up translate temporary dir
+        s.deleteTranslateDirectory()
+        # Delete output files
+        s.deleteOutputFiles()
+        s.deleteLogFiles()
+        # This is called to clean up after an exception in simulate_translated().
+        s.deleteSimulateDirectory()
+        
+    def test_translate_simulate_exception_error(self):
+        '''
+        Tests the :mod:`buildingspy.simulate.Simulator.translate` and
+        the :mod:`buildingspy.simulate.Simulator.simulate_translated`
+        method.
+        This tests whether an exception is thrown if
+        the simulation settings are not appropriate.
+        '''
 
+        s = Simulator("MyModelicaLibrary.Examples.ParameterEvaluation", "dymola", packagePath=self._packagePath)
+        s.translate()
+        s.setSolver("radau")
+        # The next call must throw an exception.
+        self.assertRaises(IOError, s.simulate_translated)
+        # clean up translate temporary dir
+        s.deleteTranslateDirectory()
+        # Delete output files
+        s.deleteOutputFiles()
+        s.deleteLogFiles()
+        # This is called to clean up after an exception in simulate_translated().
+        s.deleteSimulateDirectory()
 
 if __name__ == '__main__':
     unittest.main()
