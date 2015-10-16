@@ -24,11 +24,10 @@ def main():
     li = []
 
     # First model
-    model = 'Modelica.Mechanics.MultiBody.Examples.Systems.RobotR3.fullRobot'
-    import os
-    packagePath = os.path.join(os.environ['MODELICAPATH'],'Modelica 3.2.1')
-    s = si.Simulator(model, 'dymola', 'case1', packagePath)
-    s.addParameters({'startAngle1': -60})
+    model = 'Buildings.Controls.Continuous.Examples.PIDHysteresis'
+    s = si.Simulator(model, 'dymola')
+    s.setOutputDirectory('case1')
+    s.addParameters({'con.eOn': 0.1})
     s.setSolver('dassl')
     s.showGUI(False)
     s.translate()
@@ -38,7 +37,7 @@ def main():
     import copy
     s2 = copy.deepcopy(s)
     s2.setOutputDirectory('case2')
-    s2.addParameters({'startAngle1': 0})
+    s2.addParameters({'con.eOn': 1})
     li.append(s2)
 
     # Run all cases in parallel
