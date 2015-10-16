@@ -517,7 +517,9 @@ class Simulator(object):
 
         Usage: Type
            >>> from buildingspy.simulate.Simulator import Simulator
-           >>> s=Simulator("myPackage.myModel", "dymola", packagePath="buildingspy/tests/MyModelicaLibrary")
+           >>> s=Simulator("MyModelicaLibrary.myModel", "dymola", packagePath="buildingspy/tests/MyModelicaLibrary")
+           >>> s.addModelModifier("redeclare Modelica.Blocks.Sources.Step source(offset=-0.1, height=1.1, startTime=0.5)")
+           >>> s.setSolver('dassl')
            >>> s.translate() # doctest: +ELLIPSIS
            Starting simulation in '/tmp/tmp-simulator-...
            <BLANKLINE>
@@ -528,6 +530,7 @@ class Simulator(object):
            <BLANKLINE>
            *** Standard output stream from simulation:
            <BLANKLINE>
+           >>> s.deleteTranslateDirectory()
 
         '''
         import sys
