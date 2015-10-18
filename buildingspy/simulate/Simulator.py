@@ -361,10 +361,10 @@ OutputCPUtime:=true;
             # Create string for numberOfIntervals
             intervals=""
             if self._simulator_.has_key('numberOfIntervals'):
-                intervals=", numberOfIntervals={0}\n".format(
+                intervals=", numberOfIntervals={0}".format(
                     self._simulator_.get('numberOfIntervals'))
             s += """
-simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, method="{method}", tolerance={tolerance}, resultFile="{result_file}{others}");
+simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, method="{method}", tolerance={tolerance}, resultFile="{result_file}"{others});
 """.format(start_time=self._simulator_.get('t0'),
            stop_time=self._simulator_.get('t1'),
            method=self._simulator_.get('solver'),
