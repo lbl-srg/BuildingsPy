@@ -185,6 +185,8 @@ class Test_simulate_Simulator(unittest.TestCase):
         s.setNumberOfIntervals(50)
         s.setResultFile("myResults")
         #s.deleteOutputFiles()
+        s.showGUI(True)
+        s.exitSimulator(False)
         s.translate()
         s.simulate_translated()
         # Read the result and test their validity
