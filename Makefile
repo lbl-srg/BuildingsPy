@@ -15,8 +15,10 @@ pep8:
 
 unittest:
 	python -m unittest discover buildingspy/tests
-#	python buildingspy/tests/test_simulate_Simulator.py
-#	python buildingspy/tests/test_io_postprocess.py
+	@echo Running example files
+	python buildingspy/examples/dymola/runSimulation.py
+	python buildingspy/examples/dymola/runSimulationTranslated.py
+	python buildingspy/examples/dymola/plotResult.py
 
 doctest:
 	python -m doctest \
@@ -25,7 +27,7 @@ doctest:
 	buildingspy/examples/*.py \
 	buildingspy/examples/dymola/*.py \
 	buildingspy/simulate/*.py \
-        buildingspy/development/*.py
+	buildingspy/development/*.py
 	@rm -f plot.pdf plot.png roomTemperatures.png dymola.log
 
 dist:	clean doctest unittest doc 
