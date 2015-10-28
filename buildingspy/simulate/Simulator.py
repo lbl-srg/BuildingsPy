@@ -713,12 +713,16 @@ Simulates a translated model or a copy of it, which is especially
 
     def _deleteTemporaryDirectory(self, worDir):
         ''' Deletes the working directory.
+            If this function is invoked with `worDir=None`, then it immediately returns.
 
         :param srcDir: The name of the working directory.
 
         '''
         import shutil
         import os
+
+        if worDir is None:
+            return
 
         # Walk one level up, since we appended the name of the current directory to the name of the working directory
         dirNam=os.path.split(worDir)[0]
