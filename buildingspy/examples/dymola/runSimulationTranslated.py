@@ -27,18 +27,18 @@ def main():
 
     # First model
     model = 'Buildings.Controls.Continuous.Examples.PIDHysteresis'
-    s = si.Simulator(model, 'dymola')
-    s.setOutputDirectory('case1')
-    s.addParameters({'con.eOn': 0.1})
-    s.setSolver('dassl')
-    s.showGUI(False)
+    s1 = si.Simulator(model, 'dymola')
+    s1.setOutputDirectory('case1')
+    s1.addParameters({'con.eOn': 0.1})
+    s1.setSolver('dassl')
+    s1.showGUI(False)
     # Translate the model
-    s.translate()
+    s1.translate()
     # Add the model to the list of models to be simulated
-    li.append(s)
+    li.append(s1)
 
     # Second model
-    s2 = copy.deepcopy(s)
+    s2 = copy.deepcopy(s1)
     s2.setOutputDirectory('case2')
     s2.addParameters({'con.eOn': 1})
     li.append(s2)
@@ -46,7 +46,9 @@ def main():
     # Run both models in parallel
     po = Pool()
     po.map(simulateTranslatedModel, li)
-    # clean up
+    # Clean up
+    s1.deleteSimulateDirectory()
+    s2.deleteSimulateDirectory()
     s2.deleteTranslateDirectory()
 
 # Main function
