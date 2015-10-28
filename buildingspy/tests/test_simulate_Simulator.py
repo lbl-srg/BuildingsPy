@@ -40,7 +40,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         s = Simulator("MyModelicaLibrary.MyModel", "dymola", packagePath=self._packagePath)
 
         # Try to load an existing path.
-        p=os.path.abspath(os.path.join("buildingspy", "tests", "MyModelicaLibrary"))
+        p = os.path.abspath(os.path.join("buildingspy", "tests", "MyModelicaLibrary"))
         s.setPackagePath(p)
 
         # Try to load a not existing path.
@@ -75,7 +75,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         # Read the result and test their validity
         outDir = s.getOutputDirectory()
         resultFile = os.path.abspath(os.path.join(outDir, "myResults.mat"))
-        r=Reader(resultFile, "dymola")
+        r = Reader(resultFile, "dymola")
         np.testing.assert_allclose(1.0, r.max('source.y'))
         np.testing.assert_allclose(0.725, r.mean('source.y'))
         np.testing.assert_allclose(0.725*6, r.integral('source.y'))
@@ -119,7 +119,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         s.addParameters({'const3.k' : 0})
         s.simulate()
 
-        r=Reader(resultFile, "dymola")
+        r = Reader(resultFile, "dymola")
 
         np.testing.assert_allclose(2, r.max('const1[1].y'))
         np.testing.assert_allclose(3, r.max('const1[2].y'))
@@ -154,7 +154,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         s.addParameters({'p2' : False})
         s.simulate()
 
-        r=Reader(resultFile, "dymola")
+        r = Reader(resultFile, "dymola")
 
         (_, p) = r.values('p1')
         self.assertEqual(p[0], 1.0)
@@ -189,7 +189,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         # Read the result and test their validity
         outDir = s.getOutputDirectory()
         resultFile = os.path.abspath(os.path.join(outDir, "myResults.mat"))
-        r=Reader(resultFile, "dymola")
+        r = Reader(resultFile, "dymola")
         np.testing.assert_allclose(1.0, r.max('source.y'))
         np.testing.assert_allclose(-0.1, r.min('source.y'))
         np.testing.assert_allclose(0.725, r.mean('source.y'))
@@ -204,13 +204,15 @@ class Test_simulate_Simulator(unittest.TestCase):
         s.simulate_translated()
         outDir = s.getOutputDirectory()
         resultFile = os.path.abspath(os.path.join(outDir, "myResults.mat"))
-        r=Reader(resultFile, "dymola")
+        r = Reader(resultFile, "dymola")
         np.testing.assert_allclose(2.0, r.max('source.y'))
         np.testing.assert_allclose(-0.1, r.min('source.y'))
         np.testing.assert_allclose(1.25, r.mean('source.y'))
         np.testing.assert_allclose(7*1.25, r.integral('source.y'))
 
         # clean up translate temporary dir
+        s.deleteOutputFiles()
+        s.deleteLogFiles()
         s.deleteTranslateDirectory()
 
 
@@ -236,7 +238,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         s.deleteLogFiles()
         # This is called to clean up after an exception in simulate_translated().
         s.deleteSimulateDirectory()
-        
+
     def test_translate_simulate_exception_error(self):
         '''
         Tests the :mod:`buildingspy.simulate.Simulator.translate` and
