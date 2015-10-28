@@ -335,7 +335,7 @@ class Simulator(object):
     def _get_dymola_commands(self, working_directory, log_file, model_name, translate_only=False):
         ''' Returns a string that contains all the commands required
             to run or translate the model.
-        
+
         :param working_directory: The working directory for the simulation or translation.
         :param log_file: The name of the log file that will be written by Dymola.
         :param translate_only: Set to ```True``` to only translate the model without a simulation.
@@ -448,7 +448,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
             raise
 
     def translate(self):
-        '''Translates the model. Usually followed by the command simulate_translated().
+        '''Translates the model. Usually followed by the command :func:`simulate_translated`.
 
         This method
           1. Deletes dymola output files
@@ -501,23 +501,16 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
 
             # Run translation
             self._runSimulation(runScriptName,
-                                 self._simulator_.get('timeout'),
-                                 worDir)
+                                self._simulator_.get('timeout'),
+                                worDir)
         except: # Catch all possible exceptions
-            sys.exc_info()[1]
             self._reporter.writeError("Translation failed in '" + worDir + "'\n"
                                        + "   You need to delete the directory manually.")
             raise
 
     def simulate_translated(self):
         '''
-*** fixme *** ************************************************
-Check whether this really does not another translation because
-simulateModel translates the model unless the model has been translated
-in this dymola session.
-**************************************************************
-
-Simulates a translated model or a copy of it, which is especially
+        Simulates a translated model or a copy of it, which is especially
         useful for a large amount of simulations of the same model. This method is usually called
         after the translate() command.
 
@@ -916,7 +909,7 @@ Simulates a translated model or a copy of it, which is especially
         ds=curDir.split(os.sep)
         dirNam=ds[len(ds)-1]
         worDir = os.path.join(tempfile.mkdtemp(prefix='tmp-simulator-' + getpass.getuser() + '-'), dirNam)
-        
+
         return worDir
 
     def _check_model_parametrization(self):
@@ -927,7 +920,7 @@ Simulates a translated model or a copy of it, which is especially
         import os
         import numpy as np
         from buildingspy.io.outputfile import Reader
-        
+
         def _compare(actual_res, desired_key, desired_value):
             (t, y) = actual_res.values(desired_key)
             del t
@@ -937,7 +930,7 @@ Simulates a translated model or a copy of it, which is especially
                 msg = "Parameter " + desired_key + " cannot be re-set after model translation."
                 self._reporter.writeError(msg)
                 raise IOError
-        
+
         actual_res = Reader(os.path.join(self._outputDir_,
                               self._simulator_['resultFile'])+'.mat',
                               'dymola')
@@ -947,7 +940,7 @@ Simulates a translated model or a copy of it, which is especially
                     key_string = key + '['+ str(index+1) + ']'
                     _compare(actual_res, key_string, val)
             else: # int, floats
-                key_string = key 
+                key_string = key
                 _compare(actual_res, key_string, value)
 
     def _check_simulation_errors(self, worDir):
