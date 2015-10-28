@@ -61,7 +61,7 @@ class Simulator(object):
         self.setTimeOut(-1)
         self._MODELICA_EXE='dymola'
         self._reporter = reporter.Reporter(fileName=logFilNam)
-        self._showProgressBar = True
+        self._showProgressBar = False
         self._showGUI = False
         self._exitSimulator = True
 
@@ -528,16 +528,8 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
            >>> s = Simulator("MyModelicaLibrary.MyModel", "dymola", packagePath="buildingspy/tests/MyModelicaLibrary")
            >>> s.addModelModifier("redeclare Modelica.Blocks.Sources.Step source(offset=-0.1, height=1.1, startTime=0.5)")
            >>> s.setSolver("dassl")
-           >>> s.translate() # doctest: +ELLIPSIS
-           Starting simulation in '/tmp/tmp-simulator-...
-           <BLANKLINE>
-           *** Standard output stream from simulation:
-           <BLANKLINE>
-           >>> s.simulate_translated() # doctest: +ELLIPSIS
-           Starting simulation in '/tmp/tmp-simulator-...
-           <BLANKLINE>
-           *** Standard output stream from simulation:
-           <BLANKLINE>
+           >>> s.translate()
+           >>> s.simulate_translated()
            >>> s.deleteTranslateDirectory()
 
         '''
@@ -624,7 +616,6 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
             self._deleteTemporaryDirectory(worDir)
             self._check_model_parametrization()
         except: # Catch all possible exceptions
-            sys.exc_info()[1]
             self._reporter.writeError("Simulation failed in '" + worDir + "'\n"
                                        + "   You need to delete the directory manually.")
             raise
@@ -763,7 +754,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         return False
 
     def _runSimulation(self, mosFile, timeout, directory):
-        '''Runs the simulation.
+        '''Runs a model translation or simulation.
 
         :param mosFile: The Modelica *mos* file name, including extension
         :param timeout: Time out in seconds
@@ -790,9 +781,9 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         # Run command
         try:
             staTim = datetime.datetime.now()
-            self._reporter.writeOutput("Starting simulation in '" +
-                                        directory + "' at " +
-                                        str(staTim))
+#            self._reporter.writeOutput("Starting simulation in '" +
+#                                        directory + "' at " +
+#                                        str(staTim))
             pro = subprocess.Popen(args=cmd,
                                    stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE,
@@ -808,7 +799,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
                         # First, terminate the process. Then, if it is still
                         # running, kill the process
 
-                        if killedProcess == False:
+                        if self._showProgressBar and not killedProcess:
                             killedProcess=True
                             # This output needed because of the progress bar
                             sys.stdout.write("\n")
@@ -827,12 +818,16 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
             else:
                 pro.wait()
             # This output is needed because of the progress bar
-            if not killedProcess:
+            if self._showProgressBar and not killedProcess:
                 sys.stdout.write("\n")
 
             if not killedProcess:
-                self._reporter.writeOutput("*** Standard output stream from simulation:\n" + pro.stdout.read())
-                self._reporter.writeError("Standard error stream from simulation:\n" + pro.stderr.read())
+                std_out = pro.stdout.read()
+                if len(std_out) > 0:
+                    self._reporter.writeOutput("*** Standard output stream from simulation:\n" + std_out)
+                std_err = pro.stderr.read()
+                if len(std_err) > 0:
+                    self._reporter.writeError("*** Standard error stream from simulation:\n" + std_err)
             else:
                 self._reporter.writeError("Killed process as it computed longer than " +
                              str(timeout) + " seconds.")
