@@ -21,6 +21,8 @@ def main():
     ''' Main method that configures and runs all simulations
     '''
     import copy
+    import shutil
+
     from multiprocessing import Pool
     # Build list of cases to run
     li = []
@@ -47,9 +49,10 @@ def main():
     po = Pool()
     po.map(simulateTranslatedModel, li)
     # Clean up
-    s1.deleteSimulateDirectory()
-    s2.deleteSimulateDirectory()
-    s2.deleteTranslateDirectory()
+    # Clean up
+    shutil.rmtree('case1')
+    shutil.rmtree('case2')
+    s1.deleteTranslateDirectory()
 
 # Main function
 if __name__ == '__main__':
