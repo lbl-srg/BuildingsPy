@@ -174,7 +174,6 @@ class Test_simulate_Simulator(unittest.TestCase):
 
         from buildingspy.io.outputfile import Reader
 
-
         s = Simulator("MyModelicaLibrary.MyModel", "dymola", packagePath=self._packagePath)
         s.addModelModifier("redeclare Modelica.Blocks.Sources.Step source(offset=-0.1, height=1.1, startTime=0.5)")
         s.setStartTime(-1)
@@ -184,24 +183,36 @@ class Test_simulate_Simulator(unittest.TestCase):
         s.setSolver("dassl")
         s.setNumberOfIntervals(50)
         s.setResultFile("myResults")
-        #s.deleteOutputFiles()
-        s.showGUI(True)
-        s.exitSimulator(False)
         s.translate()
         s.simulate_translated()
+
         # Read the result and test their validity
         outDir = s.getOutputDirectory()
         resultFile = os.path.abspath(os.path.join(outDir, "myResults.mat"))
         r=Reader(resultFile, "dymola")
         np.testing.assert_allclose(1.0, r.max('source.y'))
+        np.testing.assert_allclose(-0.1, r.min('source.y'))
         np.testing.assert_allclose(0.725, r.mean('source.y'))
         np.testing.assert_allclose(0.725*6, r.integral('source.y'))
-        np.testing.assert_allclose(-0.1, r.min('source.y'))
         # Delete output files
         s.deleteOutputFiles()
         s.deleteLogFiles()
+
+        # Make another simulation, but now the start time is at -2, and the height is 2.1
+        s.setStartTime(-2)
+        s.addParameters({'source.height': 2.1})
+        s.simulate_translated()
+        outDir = s.getOutputDirectory()
+        resultFile = os.path.abspath(os.path.join(outDir, "myResults.mat"))
+        r=Reader(resultFile, "dymola")
+        np.testing.assert_allclose(2.0, r.max('source.y'))
+        np.testing.assert_allclose(-0.1, r.min('source.y'))
+        np.testing.assert_allclose(1.25, r.mean('source.y'))
+        np.testing.assert_allclose(7*1.25, r.integral('source.y'))
+
         # clean up translate temporary dir
         s.deleteTranslateDirectory()
+
 
     def test_translate_simulate_exception_parameter(self):
         '''
