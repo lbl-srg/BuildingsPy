@@ -372,13 +372,13 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
            result_file=self._simulator_.get('resultFile'),
            others=intervals)
 
-            # Post-processing commands
-            for posPro in self._postProcessing_:
-                s += posPro + '\n'
+        # Post-processing commands
+        for posPro in self._postProcessing_:
+            s += posPro + '\n'
 
-            s += """savelog("{0}");\n""".format(log_file)
-            if self._exitSimulator:
-                s += "Modelica.Utilities.System.exit();\n"
+        s += """savelog("{0}");\n""".format(log_file)
+        if self._exitSimulator:
+            s += "Modelica.Utilities.System.exit();\n"
         return s
 
     def simulate(self):
