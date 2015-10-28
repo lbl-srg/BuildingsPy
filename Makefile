@@ -15,10 +15,6 @@ pep8:
 
 unittest:
 	python -m unittest discover buildingspy/tests
-	@echo Running example files
-	python buildingspy/examples/dymola/runSimulation.py
-	python buildingspy/examples/dymola/runSimulationTranslated.py
-	python buildingspy/examples/dymola/plotResult.py
 
 doctest:
 	python -m doctest \
