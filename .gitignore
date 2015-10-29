@@ -33,17 +33,3 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
-/BuildingsPy.log
-/openmdao_log.txt
-/package.order
-/plot.pdf
-/plot.png
-/roomTemperatures.png
-/run_simulate.mos
-/run_translate.mos
-/simulator.log
-/translator.log
-/BooleanParameters.mat
-/Constants.mat
-/dslog.txt
-/ParameterEvaluation.mat
