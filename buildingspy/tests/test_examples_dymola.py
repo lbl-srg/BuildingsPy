@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import unittest
+from test.test_support import EnvironmentVarGuard
 
 class Test_example_dymola_runSimulation(unittest.TestCase):
     """
@@ -7,6 +8,15 @@ class Test_example_dymola_runSimulation(unittest.TestCase):
        :mod:`buildingspy.examples`.
     """
 
+    def setUp(self):
+        ''' Ensure that environment variables that are needed to run
+            the tests are set
+        '''
+        self.env = EnvironmentVarGuard()
+        # Set MODELICALIBRARY which is required to run
+        # runSimulationTranslated.py
+        self.env.setdefault("MODELICALIBRARY", "/usr/local/Modelica/Library")
+        
     def test_runSimulation(self):
         '''
         Tests the :mod:`buildingspy/examples/dymola/runSimulation`
