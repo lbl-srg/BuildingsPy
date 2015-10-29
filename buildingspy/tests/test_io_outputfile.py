@@ -16,6 +16,8 @@ class Test_io_Reader(unittest.TestCase):
         Tests the :mod:`buildingspy.io.Reader.get_simulation_statistics`
         function.
         '''
+        import os
+
         # Name of temporary file
         staFil = "test_stat_file.txt"
         # Write a file that contains the simulation statistics as reported by Dymola
@@ -83,6 +85,8 @@ Translated Model
         self.assertEqual(stats['simulation']['numerical Jacobians'],
                          "0",
                          "Parsing numerical Jacobian for simulation problem failed")
+
+        os.remove(staFil)
 
 if __name__ == '__main__':
     unittest.main()

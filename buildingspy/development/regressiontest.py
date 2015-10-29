@@ -2531,7 +2531,7 @@ successfully (={:.1%})"\
              <BLANKLINE>
              <BLANKLINE>
              ######################################################################
-             Tested 3 models:
+             Tested 4 models:
                * 0 compiled successfully (=0.0%)
              <BLANKLINE>
              Successfully checked models:
@@ -2539,6 +2539,7 @@ successfully (={:.1%})"\
                * BuildingsPy.buildingspy.tests.MyModelicaLibrary.Examples.BooleanParameters
                * BuildingsPy.buildingspy.tests.MyModelicaLibrary.Examples.Constants
                * BuildingsPy.buildingspy.tests.MyModelicaLibrary.Examples.MyStep
+               * BuildingsPy.buildingspy.tests.MyModelicaLibrary.Examples.ParameterEvaluation
              <BLANKLINE>
              More detailed information is stored in self._omstats
              ######################################################################

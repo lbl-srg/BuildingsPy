@@ -2,7 +2,7 @@
 from buildingspy.thirdParty.dymat.DyMat import DyMatFile
 
 def get_model_statistics(log_file, simulator):
-    """ Open the simulation file *log_file* and return a dictionary
+    """ Open the simulation file ``log_file`` and return a dictionary
         with the model statistics.
 
         :log_file: The name of the log file.
@@ -94,9 +94,58 @@ def get_model_statistics(log_file, simulator):
             ret["initialization"]=dicIni
         ret["simulation"]=dicSim
         return ret
+    
+def get_errors_and_warnings(log_file, simulator):
+    """ Open the simulation file ``log_file`` and return a dictionary
+        with the model warnings and errors.
 
+        :log_file: The name of the log file.
+        :simulator: The file format. Currently, the only supported
+                    value is ``dymola``.
+
+        With Dymola, a log file with the simulation statistics can
+        be written using syntax such as
+
+        >>> simulateModel(...);                        #doctest: +SKIP
+        >>> savelog("simulator.log");                  #doctest: +SKIP
+        
+        This function returns a dictionary. The top level keys are
+        ``warnings`` and ``errors``, which contain list of warning and 
+        error messages.
+    """
+    
+    import os
+
+    if simulator != "dymola":
+        raise ValueError('Argument "simulator" needs to be set to "dymola".')
+
+    if not os.path.isfile(log_file):
+        raise IOError("File {} does not exist".format(log_file))
+
+    with open(log_file) as fil:
+        lines = fil.readlines();
+        # Instantiate lists that are used for the return value
+        
+        ret = {}
+        listWarn = []
+        listErr = []
+    
+        WARN="Warning:"
+        ERR="... Error message from dymosim"
+        
+        for index, lin in enumerate(lines):
+            if lin.find(WARN) >= 0:
+                temp = lin.rpartition(":")[2].strip()
+                listWarn.append(temp)
+            elif lin.find(ERR) >= 0:
+                listErr.append(lines[index+1].strip())
+                
+        ret["warnings"]=listWarn   
+        ret["errors"]=listErr  
+        return ret
+    
 class Reader:
-    """Open the file *fileName* and parse its content.
+    """Open the file ``fileName`` and parse its content.
 
     :param fileName: The name of the file.
     :param simulator: The file format. Currently, the only supported
@@ -123,7 +172,7 @@ class Reader:
            for which ``pattern``, as a regular expression, produces a match.
            If ``pattern`` is unspecified, all variable names are returned.
 
-           This method searches the variable names using the **search** function
+           This method searches the variable names using the ``search`` function
            from `Python's re module <https://docs.python.org/2/library/re.html>`_.
 
            See also https://docs.python.org/2/howto/regex.html#regex-howto.

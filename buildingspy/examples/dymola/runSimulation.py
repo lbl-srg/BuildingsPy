@@ -20,6 +20,7 @@ def simulateCase(s):
 def main():
     ''' Main method that configures and runs all simulations
     '''
+    import shutil
     # Build list of cases to run
     li = []
     # First model
@@ -35,6 +36,10 @@ def main():
     # Run all cases in parallel
     po = Pool()
     po.map(simulateCase, li)
+
+    # Clean up
+    shutil.rmtree('case1')
+    shutil.rmtree('case2')
 
 # Main function
 if __name__ == '__main__':
