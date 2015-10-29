@@ -582,20 +582,14 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
             fil.write(');\n')
             fil.write('simulate();\n')
 
-            # re-name result file
-            from sys import platform as _platform
-# fixme ##################
-# The code below should use the move function from the Modelica standard library
-# Then it works on any platform
-            if _platform == "linux" or _platform == "linux2":
-                # linux
-                fil.write('system("mv dsres.mat '+self._simulator_.get('resultFile')+'.mat");\n')
-            elif _platform == "darwin": #NOTE not tested.
-                # OS X
-                fil.write('system("mv dsres.mat '+self._simulator_.get('resultFile')+'.mat");\n')
-            elif _platform == "win32": #NOTE not tested
-                # Windows
-                fil.write('system("ren dsres.mat '+self._simulator_.get('resultFile')+'.mat");\n')
+            # Rename result file if it exists
+            com = """
+if Modelica.Utilities.Files.exist("dsres.mat") then
+Modelica.Utilities.Files.move("dsres.mat", "{}");
+end if;
+""".format(self._simulator_.get('resultFile') + ".mat")
+
+            fil.write(com)
 
             # Post-processing commands
             for posPro in self._postProcessing_:
