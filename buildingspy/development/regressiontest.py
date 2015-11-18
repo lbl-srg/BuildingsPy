@@ -9,7 +9,6 @@ from __future__ import division
 import sys
 import os
 
-
 def runSimulation(worDir, cmd):
     ''' Run the simulation.
 
@@ -115,11 +114,14 @@ class Tester:
     prior to :func:`run`.
 
     '''
+
+
     def __init__(self, check_html=True, executable="dymola", cleanup=True):
         ''' Constructor.
         '''
         import multiprocessing
         import buildingspy.io.reporter as rep
+        import buildingspy.development.error_dictionary as e
 
         # --------------------------
         # Class variables
@@ -179,6 +181,16 @@ class Tester:
         # If a user resizes the plot, then the next plot will be displayed with
         # the same size.
         self._figSize = None
+
+        # Dictionary with error messages, error counter and messages written to the user
+        self._error_dict = e.ErrorDictionary()
+
+    def _initialize_error_dict(self):
+        """ Initialize the error dictionary.
+
+        """
+        import buildingspy.development.error_dictionary as e
+        self._error_dict = e.ErrorDictionary()
 
     def setLibraryRoot(self, rootDir):
         ''' Set the root directory of the library.
@@ -1603,13 +1615,6 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
         iChe = 0
         iSim = 0
         iFMU = 0
-        iJac = 0
-        iCon = 0
-        iPar = 0
-        iRed = 0
-        iTyp = 0
-        iCom = 0
-        iIni = 0
         # Check for errors
         for ele in stat:
             if ele['check']['result'] is False:
@@ -1621,55 +1626,31 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
             elif ele.has_key('FMUExport') and ele['FMUExport']['result'] is False:
                 iFMU = iFMU + 1
                 self._reporter.writeError("FMU export failed for '%s'." % ele["FMUExport"]["command"])
+
+            # Check for problems.
+            # First, determine whether we had a simulation or an FMU export
+            if ele.has_key('simulate'):
+                key = 'simulate'
             else:
-                # Simulation or FMU export succeeeded. Check for problems.
-                # First, determine whether we had a simulation or an FMU export
-                if ele.has_key('simulate'):
-                    key = 'simulate'
-                else:
-                    key = 'FMUExport'
-                if ele[key]["numerical Jacobians"] > 0:
-                    self._reporter.writeWarning("Numerical Jacobian in '%s'." % ele[key]["command"])
-                    iJac = iJac + 1
-                if ele[key]["unused connector"] > 0:
-                    self._reporter.writeWarning("Unused connector variables in '%s'." % ele[key]["command"])
-                    iCon = iCon + 1
-                if ele[key]["parameter with start value only"] > 0:
-                    self._reporter.writeWarning("Parameter with start value only in '%s'." % ele[key]["command"])
-                    iPar = iPar + 1
-                if ele[key]["redundant consistent initial conditions"] > 0:
-                    self._reporter.writeWarning("Redundant consistent initial conditions in '%s'." % ele[key]["command"])
-                    iRed = iRed + 1
-                if ele[key]["type inconsistent definition equations"] > 0:
-                    self._reporter.writeWarning("Type inconsistent definition equations in '%s'." % ele[key]["command"])
-                    iTyp = iTyp + 1
-                if ele[key]["type incompatibility"] > 0:
-                    self._reporter.writeWarning("Type incompabitibility in '%s'." % ele[key]["command"])
-                    iCom = iCom + 1
-                if ele[key]["unspecified initial conditions"] > 0:
-                    self._reporter.writeWarning("Unspecified initial conditions in '%s'." % ele[key]["command"])
-                    iIni = iIni + 1
+                key = 'FMUExport'
+
+            for k, v in self._error_dict.get_dictionary().iteritems():
+                if ele[key][k] > 0:
+                    self._reporter.writeWarning(v["model_message"].format(ele[key]["command"]))
+                    self._error_dict.increment_counter(k)
 
         if iChe > 0:
             print "Number of models that failed check                           :", iChe
         if iSim > 0:
             print "Number of models that failed to simulate                     :", iSim
-        if iJac > 0:
-            print "Number of models with numerical Jacobian                     :", iJac
-        if iCon > 0:
-            print "Number of models with ununsed connector variables            :", iCon
-        if iPar > 0:
-            print "Number of models with parameters that only have a start value:", iPar
-        if iRed > 0:
-            print "Number of models with redundant consistent initial conditions:", iRed
-        if iTyp > 0:
-            print "Number of models with type inconsistent definition equations :", iTyp
-        if iCom > 0:
-            print "Number of models with incompatible types                     :", iCom
-        if iIni > 0:
-            print "Number of models with unspecified initial conditions         :", iIni
         if iFMU > 0:
             print "Number of models that failed to export as an FMU             :", iFMU
+
+        # Write summary messages
+        for _, v in self._error_dict.get_dictionary().iteritems():
+            counter = v['counter']
+            if counter > 0:
+                print v['summary_message'].format(counter)
 
         self._reporter.writeOutput("Script that runs unit tests had " + \
                                         str(self._reporter.getNumberOfWarnings()) + \
@@ -1784,39 +1765,47 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
             template = r"""
 if Modelica.Utilities.Files.exist("{modelName}.translation.log") then
   lines=Modelica.Utilities.Streams.readFile("{modelName}.translation.log");
+  // Count the zero numerical Jacobians separately
   iJac=sum(Modelica.Utilities.Strings.count(lines, "Number of numerical Jacobians: 0"));
-  lJac=sum(Modelica.Utilities.Strings.count(lines, "Number of numerical Jacobians:"));
-  iCon=sum(Modelica.Utilities.Strings.count(lines, "Warning: The following connector variables are not used in the model"));
-  iPar=sum(Modelica.Utilities.Strings.count(lines, "Warning: The following parameters don't have any value, only a start value"));
-  iRed=sum(Modelica.Utilities.Strings.count(lines, "Redundant consistent initial conditions:"));
-  iTyp=sum(Modelica.Utilities.Strings.count(lines, "Type inconsistent definition equation"));
-  iCom=sum(Modelica.Utilities.Strings.count(lines, "but they must be compatible"));
-  iIni=sum(Modelica.Utilities.Strings.count(lines, "Dymola has selected default initial condition"));
+"""
+            runFil.write(template.format(**values))
+            for _, v in self._error_dict.get_dictionary().iteritems():
+                template = r"""  {}=sum(Modelica.Utilities.Strings.count(lines, "{}"));
+"""
+                runFil.write(template.format(v["buildingspy_var"], v["tool_message"]))
+
+            template = r"""
 else
   Modelica.Utilities.Streams.print("{modelName}.translation.log was not generated.", "{modelName}.log");
   iJac= 0;
-  lJac=-1;
-  iCon=-1;
-  iPar= 0;
-  iRed=-1;
-  iTyp=-1;
-  iCom=-1;
-  iIni=-1;
-end if;
+"""
+            runFil.write(template.format(**values))
+            for _, v in self._error_dict.get_dictionary().iteritems():
+                template = r"""  {}=-1;
+"""
+                runFil.write(template.format(v["buildingspy_var"]))
+
+            template = r"""end if;
+"""
+            runFil.write(template)
+
+
+        def _write_translation_stats(runFil, values):
+
+            for k, v in self._error_dict.get_dictionary().iteritems():
+                if k != "numerical Jacobians":
+                    template = r"""
+Modelica.Utilities.Streams.print("        \"{}\"  : " + String({}) + ",", "{}");"""
+                    runFil.write(template.format(k, v["buildingspy_var"], values['statisticsLog']))
+
+            # Write the numerical Jacobians separately as this requires subtraction of two counters.
+            # As this is the last entry, there also is no terminating comma.
+            template = r"""
+Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(lJac-iJac), "{statisticsLog}");
 """
             runFil.write(template.format(**values))
 
-        def _write_translation_stats(runFil, values):
-            template = r"""
-Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(iJac-lJac) + ",", "{statisticsLog}");
-Modelica.Utilities.Streams.print("        \"unused connector\"  : " + String(iCon) + ",", "{statisticsLog}");
-Modelica.Utilities.Streams.print("        \"parameter with start value only\"  : " + String(iPar) + ",", "{statisticsLog}");
-Modelica.Utilities.Streams.print("        \"redundant consistent initial conditions\"    : " + String(iRed) + ",", "{statisticsLog}");
-Modelica.Utilities.Streams.print("        \"type inconsistent definition equations\"     : " + String(iTyp) + ",", "{statisticsLog}");
-Modelica.Utilities.Streams.print("        \"type incompatibility\"                       : " + String(iCom) + ",", "{statisticsLog}");
-Modelica.Utilities.Streams.print("        \"unspecified initial conditions\"             : " + String(iIni > 0), "{statisticsLog}");
-"""
-            runFil.write(template.format(**values))
+
             # Close the bracket for the JSON object
             runFil.write("""Modelica.Utilities.Streams.print("      }", """ + '"' + values['statisticsLog'] + '"' + ");\n")
 
@@ -2132,6 +2121,10 @@ getErrorString();
             print "*** Exit with error. Did not do anything."
             return 2
 
+        # Initialize data structure to check results
+        self._initialize_error_dict()
+
+        # Print number of processors
         print "Using ", self._nPro, " of ", multiprocessing.cpu_count(), " processors to run unit tests."
         # Count number of classes
         self.printNumberOfClasses()
