@@ -29,3 +29,10 @@ Merging Annex60 library
 .. automodule:: buildingspy.development.merger
 .. autoclass:: buildingspy.development.merger.Annex60
    :members:
+
+Error dictionary
+----------------
+
+.. automodule:: buildingspy.development.error_dictionary
+.. autoclass:: buildingspy.development.error_dictionary.ErrorDictionary
+   :members:
