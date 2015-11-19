@@ -46,7 +46,7 @@ Version 1.5.0, xxx, 2014 -- Release 1.5
 - Added in buildingspy.development.regressiontest.Tester() the
   new function writeOpenModelicaResultDictionary() that writes
   a result dictionary for the OpenModelica regression tests.
-- Added regression tests for FMU export for Dymola.  
+- Added regression tests for FMU export for Dymola.
 - In regression tests, added a check for parameters that only have
   a start value assigned.
 - In buildingspy.development.regressiontest, added functionality
@@ -60,7 +60,11 @@ Version 1.5.0, xxx, 2014 -- Release 1.5
   exporting the .mos script.
 - Added option to simulate a Modelica model without recompilation.
 - In buildingspy.development.regressiontest, added test for
-  differentiation of if-expressions, and for invalid connect statements.
+  differentiation of if-expressions,
+  invalid connect statements,
+  redeclaration of non-replaceable classes,
+  failure to interpret experiment annotation, and
+  file not found.
 
 Version 1.4.0, February 28, 2014 -- Release 1.4
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

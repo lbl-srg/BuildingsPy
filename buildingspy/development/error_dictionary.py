@@ -87,6 +87,31 @@ class ErrorDictionary:
              'model_message'   : "Differentiated if-expression under assumption it is smooth in '{}'.\n",
              'summary_message' : "Number of models with differentiated if-expression           : {}\n"}
 
+        self._error_dict["redeclare non-replaceable"] = \
+            {'tool_message'    : "Warning: Redeclaration of non-replaceable requires type equivalence",
+             'counter'         : 0,
+             'buildingspy_var' : "iRedNon",
+             'model_message'   : "Redeclaration of non-replaceable class in '{}'.\n",
+             'summary_message' : "Number of models with redeclaration of non-replaceable class : {}\n"}
+
+        self._error_dict["experiment annotation"] = \
+            {'tool_message'    : "Warning: Failed to interpret experiment annotation",
+             'counter'         : 0,
+             'buildingspy_var' : "iExpAnn",
+             'model_message'   : "Failed to interpret experiment annotation in '{}'.\n",
+             'summary_message' : "Number of models with wrong experiment annotation            : {}\n"}
+
+        # This is a  test for
+        #  Warning: Command 'Simulate and plot' in model 'Buildings.Airflow.Multizone.BaseClasses.Examples.WindPressureLowRise',
+        #  specified file modelica://Buildings/.../windPressureLowRise.mos which was not found.
+        self._error_dict["file not found"] = \
+            {'tool_message'    : "which was not found",
+             'counter'         : 0,
+             'buildingspy_var' : "iFilNotFou",
+             'model_message'   : "File not found in '{}'.\n",
+             'summary_message' : "Number of models with file not found                         : {}\n"}
+
+
     def get_dictionary(self):
         """ Return the dictionary with all error data
         """
