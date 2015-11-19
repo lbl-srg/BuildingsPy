@@ -1765,29 +1765,21 @@ len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
             template = r"""
 if Modelica.Utilities.Files.exist("{modelName}.translation.log") then
   lines=Modelica.Utilities.Streams.readFile("{modelName}.translation.log");
-  // Count the zero numerical Jacobians separately
-  iJac=sum(Modelica.Utilities.Strings.count(lines, "Number of numerical Jacobians: 0"));
+else
+  Modelica.Utilities.Streams.print("{modelName}.translation.log was not generated.", "{modelName}.log");
+  lines=String();
+end if;
+
+// Count the zero numerical Jacobians separately
+iJac=sum(Modelica.Utilities.Strings.count(lines, "Number of numerical Jacobians: 0"));
 """
             runFil.write(template.format(**values))
+
+            # Do the other tests
             for _, v in self._error_dict.get_dictionary().iteritems():
                 template = r"""  {}=sum(Modelica.Utilities.Strings.count(lines, "{}"));
 """
                 runFil.write(template.format(v["buildingspy_var"], v["tool_message"]))
-
-            template = r"""
-else
-  Modelica.Utilities.Streams.print("{modelName}.translation.log was not generated.", "{modelName}.log");
-  iJac= 0;
-"""
-            runFil.write(template.format(**values))
-            for _, v in self._error_dict.get_dictionary().iteritems():
-                template = r"""  {}=-1;
-"""
-                runFil.write(template.format(v["buildingspy_var"]))
-
-            template = r"""end if;
-"""
-            runFil.write(template)
 
 
         def _write_translation_stats(runFil, values):
