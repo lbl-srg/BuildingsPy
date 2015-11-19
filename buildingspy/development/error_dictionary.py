@@ -33,7 +33,7 @@ class ErrorDictionary:
              'counter'         : 0,
              'buildingspy_var' : "iUnuCon",
              'model_message'   : "Unused connector variables in '{}'.\n",
-             'summary_message' : "Number of models with ununsed connector variables            : {}\n"}
+             'summary_message' : "Number of models with unused connector variables             : {}\n"}
 
         self._error_dict["parameter with start value only"] = \
             {'tool_message'    : "Warning: The following parameters don't have any value, only a start value",
@@ -60,7 +60,7 @@ class ErrorDictionary:
             {'tool_message'    : "but they must be compatible",
              'counter'         : 0,
              'buildingspy_var' : "iTypInc",
-             'model_message'   : "Type incompabitibility in '{}'.\n",
+             'model_message'   : "Type incompatibility in '{}'.\n",
              'summary_message' : "Number of models with incompatible types                     : {}\n"}
 
         self._error_dict["unspecified initial conditions"] = \
