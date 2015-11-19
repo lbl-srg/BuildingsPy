@@ -59,12 +59,14 @@ Version 1.5.0, xxx, 2014 -- Release 1.5
   as later versions of Dymola do not write line breaks when
   exporting the .mos script.
 - Added option to simulate a Modelica model without recompilation.
-- In buildingspy.development.regressiontest, added test for
+- In buildingspy.development.regressiontest, added tests for
   differentiation of if-expressions,
   invalid connect statements,
   redeclaration of non-replaceable classes,
-  failure to interpret experiment annotation, and
-  file not found.
+  failure to interpret experiment annotation,
+  file not found, and
+  missing .mos script.
+
 
 Version 1.4.0, February 28, 2014 -- Release 1.4
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
