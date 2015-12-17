@@ -101,7 +101,7 @@ Modelica package. Expected file '%s'."
 				# search for opening tag
                 idxO = lines[i].find("<html>")			
                 if idxO > -1:
-					# search for closing tag
+					# search for closing tag on same line as opening tag
 					idxC = lines[i].find("</html>")
 					if idxC > -1:					
 						body += lines[i][idxO+6:idxC] + '\n'			
@@ -120,8 +120,7 @@ Modelica package. Expected file '%s'."
                     body += lines[i][0:idxC] + '\n'
                     isTagClosed = True
                     body += "<h4>Revisions</h4>\n"
-                    # Next, we need to check whether the line that contains </html> also
-                    # contains <html>.
+                    # search for opening tag on same line as closing tag
                     idxO = lines[i].find("<html>")
                     if idxO > -1:
                         body += lines[i][idxO+6:] + '\n'
