@@ -98,25 +98,25 @@ Modelica package. Expected file '%s'."
         body = ""
         for i in range(nLin):
             if isTagClosed:
-				# search for opening tag
-                idxO = lines[i].find("<html>")			
+                # search for opening tag
+                idxO = lines[i].find("<html>")
                 if idxO > -1:
-					# search for closing tag on same line as opening tag
-					idxC = lines[i].find("</html>")
-					if idxC > -1:					
-						body += lines[i][idxO+6:idxC] + '\n'			
-						isTagClosed = True
-					else:
-						body += lines[i][idxO+6:] + '\n'			
-						isTagClosed = False
+                    # search for closing tag on same line as opening tag
+                    idxC = lines[i].find("</html>")
+                    if idxC > -1:
+                        body += lines[i][idxO+6:idxC] + '\n'
+                        isTagClosed = True
+                    else:
+                        body += lines[i][idxO+6:] + '\n'
+                        isTagClosed = False
             else:
-				# search for closing tag
+                # search for closing tag
                 idxC = lines[i].find("</html>")
                 if idxC == -1:
-					# closing tag not found, copy full line
+                    # closing tag not found, copy full line
                     body += lines[i] + '\n'
                 else:
-					# found closing tag, copy beginning of line only
+                    # found closing tag, copy beginning of line only
                     body += lines[i][0:idxC] + '\n'
                     isTagClosed = True
                     body += "<h4>Revisions</h4>\n"
