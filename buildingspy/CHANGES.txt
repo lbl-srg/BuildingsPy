@@ -66,6 +66,7 @@ Version 1.5.0, xxx, 2014 -- Release 1.5
   failure to interpret experiment annotation,
   file not found, and
   missing .mos script.
+- Corrected html check if the html is on a single line.
 
 
 Version 1.4.0, February 28, 2014 -- Release 1.4
