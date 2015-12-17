@@ -136,7 +136,12 @@ class Tester:
         self._libHome = os.path.abspath(".")
         self._rootPackage = os.path.join(self._libHome, 'Resources', 'Scripts', 'Dymola')
 
-        self._modelicaCmd = executable
+        # Set the executable
+        if executable == 'dymola' or executable == 'omc':
+            self._modelicaCmd = executable
+        else:
+            raise ValueError(
+                "Value of 'executable' of constructor 'Tester' must be 'dymola' or 'omc'. Received '{}'.".format(executable))
         # File to which the console output of the simulator is written to
         self._simulator_log_file = "simulator.log"
         # File to which statistics is written to
