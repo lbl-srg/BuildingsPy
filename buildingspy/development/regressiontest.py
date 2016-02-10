@@ -166,6 +166,9 @@ class Tester:
         # Flag to use existing results instead of running a simulation
         self._useExistingResults = False
 
+        # Write result dictionary that is used by OpenModelica's regression testing
+        self.writeOpenModelicaResultDictionary()
+
         '''
         List of dicts, each dict with all meta-information about a single model to be tested.
         keys equal to the ``*.mos`` file name, and values
@@ -490,6 +493,7 @@ class Tester:
 
         '''
         # Create the data dictionary.
+        self._data = []
         self.setDataDictionary();
 
         # Directory where files will be stored
