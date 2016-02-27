@@ -224,13 +224,31 @@ class Test_simulate_Simulator(unittest.TestCase):
         This tests whether an exception is thrown if
         one attempts to change a parameter that is fixed after compilation
         '''
+        import numpy as np
+        from buildingspy.io.outputfile import Reader
 
         s = Simulator("MyModelicaLibrary.Examples.ParameterEvaluation", "dymola", packagePath=self._packagePath)
         s.translate()
         s.setSolver("dassl")
-        s.addParameters({'x': 0.2})
-        # The next call must throw an exception.
-        self.assertRaises(IOError, s.simulate_translated)
+        desired_value = 0.2
+        s.addParameters({'x': desired_value})
+        # Simulate the model with new parameter and check in the output file
+        # whether the parameter is really set.
+        # Dymola 2016 FD01 sets it correctly, but Dymola 2016 does not.
+        try:
+            s.simulate_translated()
+            # No exception. Check results
+            actual_res = Reader(os.path.join(".",
+                                             'ParameterEvaluation.mat'),
+                                             'dymola')
+            (_, y) = actual_res.values('x')
+            (_, n) = actual_res.values('n')
+            np.testing.assert_allclose(y[0], desired_value)
+            np.testing.assert_allclose(n[0], 5)
+        except IOError as e:
+            # An IOError was raised. Make sure it is raised by simulate_translated
+            print "Caught IOError with message '{}'".format(e)
+            self.assertRaises(IOError, s.simulate_translated)
         # clean up translate temporary dir
         s.deleteTranslateDirectory()
         # Delete output files
