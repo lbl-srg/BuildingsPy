@@ -167,7 +167,7 @@ class Tester:
         self._useExistingResults = False
 
         # Write result dictionary that is used by OpenModelica's regression testing
-        self.writeOpenModelicaResultDictionary()
+#        self.writeOpenModelicaResultDictionary()
 
         '''
         List of dicts, each dict with all meta-information about a single model to be tested.
