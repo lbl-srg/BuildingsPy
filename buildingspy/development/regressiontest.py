@@ -1923,18 +1923,30 @@ Modelica.Utilities.Streams.print("      }},", "{statisticsLog}");
                         # Remove dslog.txt, run a simulation, rename dslog.txt, and
                         # scan this log file for errors.
                         # This is needed as RunScript returns true even if the simulation failed.
+                        # We read to dslog file line by line as very long files can lead to
+                        # Out of memory for strings
+                        # It could due to too large matrices, infinite recursion, or uninitialized variables.
+                        # You can increase the size of 'Stringbuffer' in dymola/source/matrixop.h.
+                        # The stack of functions is:
+                        # Modelica.Utilities.Streams.readFile
                         template = r"""
 rScript=RunScript("Resources/Scripts/Dymola/{scriptDir}/{scriptFile}");
 savelog("{modelName}.translation.log");
 if Modelica.Utilities.Files.exist("dslog.txt") then
   Modelica.Utilities.Files.move("dslog.txt", "{modelName}.dslog.log");
 end if;
+iSuc=0;
 if Modelica.Utilities.Files.exist("{modelName}.dslog.log") then
-  lines=Modelica.Utilities.Streams.readFile("{modelName}.dslog.log");
-  iSuc=sum(Modelica.Utilities.Strings.count(lines, "Integration terminated successfully"));
+  iLin=1;
+  endOfFile=false;
+  while (not endOfFile) loop
+    (line, endOfFile)=Modelica.Utilities.Streams.readLine("{modelName}.dslog.log", iLin);
+    iLin=iLin+1;
+    iSuc=iSuc+Modelica.Utilities.Strings.count(line, "Integration terminated successfully");
+  end while;
+  Modelica.Utilities.Streams.close("{modelName}.dslog.log");
 else
   Modelica.Utilities.Streams.print("{modelName}.dslog.log was not generated.", "{modelName}.log");
-  iSuc=0;
 end if;
 """
                         runFil.write(template.format(**values))
@@ -1964,12 +1976,18 @@ savelog("{modelName}.translation.log");
 if Modelica.Utilities.Files.exist("dslog.txt") then
   Modelica.Utilities.Files.move("dslog.txt", "{modelName}.dslog.log");
 end if;
+iSuc=0;
 if Modelica.Utilities.Files.exist("{modelName}.dslog.log") then
-  lines=Modelica.Utilities.Streams.readFile("{modelName}.dslog.log");
-  iSuc=sum(Modelica.Utilities.Strings.count(lines, "Created {FMUName}"));
+  iLin=1;
+  endOfFile=false;
+  while (not endOfFile) loop
+    (line, endOfFile)=Modelica.Utilities.Streams.readLine("{modelName}.dslog.log", iLin);
+    iLin=iLin+1;
+    iSuc=iSuc+Modelica.Utilities.Strings.count(line, "Created {FMUName}");
+  end while;
+  Modelica.Utilities.Streams.close("{modelName}.dslog.log");
 else
   Modelica.Utilities.Streams.print("{modelName}.dslog.log was not generated.", "{modelName}.log");
-  iSuc=0;
 end if;
 """
                         runFil.write(template.format(**values))

@@ -67,6 +67,11 @@ Version 1.5.0, xxx, 2014 -- Release 1.5
   file not found, and
   missing .mos script.
 - Corrected html check if the html is on a single line.
+- In buildingspy.development.regressiontest, changed reading of
+  dslog.txt to be line by line as opposed to the whole file at once.
+  The reason is that reading the whole file can give an "out of memory for strings"
+  error for very long files as the size of Stringbuffer in
+  dymola/source/matrixop.h is not dynamically allocated.
 
 
 Version 1.4.0, February 28, 2014 -- Release 1.4
