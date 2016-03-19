@@ -39,7 +39,7 @@ def runSimulation(worDir, cmd):
         else:
             return 0
     except OSError as e:
-        sys.stderr.write("Execution of '" + cmd + " runAll.mos /nowindow' failed.\n" +
+        sys.stderr.write("Execution of '" + " ".join(map(str, cmd)) + " failed.\n" +
                          "Working directory is '" + worDir + "'.")
         raise(e)
     except KeyboardInterrupt as e:
@@ -244,6 +244,7 @@ class Tester:
         self._temDir = dirs
         self.deleteTemporaryDirectories(False)
         self._useExistingResults = True
+        self._showGUI = False;
 
     def setNumberOfThreads(self, number):
         ''' Set the number of parallel threads that are used to run the regression tests.
@@ -254,6 +255,14 @@ class Tester:
         processors of the computer.
         '''
         self._nPro = number
+
+    def showGUI(self, show=True):
+        ''' Call this function to show the GUI of the simulator.
+
+        By default, the simulator runs without GUI
+        '''
+        self._showGUI = show;
+        return
 
     def batchMode(self, batchMode):
         ''' Set the batch mode flag.
@@ -2165,7 +2174,10 @@ getErrorString();
         if not self._useExistingResults:
             libNam = self.getLibraryName()
             if self._modelicaCmd == 'dymola':
-                cmd    = [self.getModelicaCommand(), "runAll.mos", "/nowindow"]
+                if self._showGUI:
+                    cmd = [self.getModelicaCommand(), "runAll.mos"]
+                else:
+                    cmd = [self.getModelicaCommand(), "runAll.mos", "/nowindow"]
             elif self._modelicaCmd == 'omc':
                 cmd    = [self.getModelicaCommand(), "runAll.mos"]
             if self._nPro > 1:
