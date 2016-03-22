@@ -193,6 +193,9 @@ class Tester:
         # Dictionary with error messages, error counter and messages written to the user
         self._error_dict = e.ErrorDictionary()
 
+        # By default, do not show the GUI of the simulator
+        self._showGUI = False
+
     def _initialize_error_dict(self):
         """ Initialize the error dictionary.
 
@@ -244,7 +247,7 @@ class Tester:
         self._temDir = dirs
         self.deleteTemporaryDirectories(False)
         self._useExistingResults = True
-        self._showGUI = False;
+
 
     def setNumberOfThreads(self, number):
         ''' Set the number of parallel threads that are used to run the regression tests.
