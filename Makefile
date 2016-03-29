@@ -38,10 +38,6 @@ dist:	clean doctest unittest doc
 	@echo "Source distribution is in directory dist"
 	@echo "To post to server, run postBuildingsPyToWeb.sh"
 
-upload:
-	@# Make sure README.rst are consistent
-	cmp -s README.rst buildingspy/README.rst
-
 
 upload-test:
 	@# Make sure README.rst are consistent
