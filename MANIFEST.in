@@ -1,3 +1,4 @@
+include buildingspy/license.txt
 recursive-include buildingspy/thirdParty *
 recursive-include buildingspy *.txt *.rst *.mo
 recursive-include doc *

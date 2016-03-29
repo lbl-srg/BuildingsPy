@@ -16,7 +16,7 @@ setup(
     license = "3-clause BSD",
     keywords = "modelica dymola openmodelica mat",
     url = "http://simulationresearch.lbl.gov/modelica/",
-    install_requires = ["pytidylib", "gitpython"],
+# Uncommented as these don't work with pip install    install_requires = ["pytidylib", "gitpython"],
     packages = ['buildingspy',
                 'buildingspy/development', 
                 'buildingspy/examples', 
