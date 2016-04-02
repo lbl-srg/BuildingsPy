@@ -46,6 +46,13 @@ class Test_simulate_Simulator(unittest.TestCase):
         # Try to load a not existing path.
         self.assertRaises(ValueError, s.setPackagePath, "ThisIsAWrongPath")
 
+    def test_wrong_package_path_simulation(self):
+        '''
+        Tests reporting the exception if a simulation fails.
+        '''
+        self.failUnlessRaises(ValueError, \
+                              Simulator, "MyModelicaLibrary.MyModel" "dymola", "THIS IS NOT A VALID PACKAGE PATH")
+
     def test_addMethods(self):
         '''
         Tests the various add methods.

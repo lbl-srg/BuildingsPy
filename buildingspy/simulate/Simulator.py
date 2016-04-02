@@ -440,12 +440,10 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
             self._check_simulation_errors(worDir)
             self._copyResultFiles(worDir)
             self._deleteTemporaryDirectory(worDir)
-        except: # Catch all possible exceptions
-            value = sys.exc_info()[1]
-            self._reporter.writeError("Simulation failed in '" + worDir + "'\n"
-                                       + "   Exception message: " + value + "\n"
-                                       + "   You need to delete the directory manually.")
-            raise
+        except Exception as e: # Catch all possible exceptions
+            em = "Simulation failed in '{worDir}'\n   Exception: {exc}.\n   You need to delete the directory manually.\n".format(
+                worDir=worDir, exc=str(e))
+            self._reporter.writeError(em)
 
     def translate(self):
         '''Translates the model. Usually followed by the command :func:`simulate_translated`.
