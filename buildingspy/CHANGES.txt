@@ -3,7 +3,8 @@ BuildingsPy Changelog
 
 Version 1.5.1, xxxx -- Release 1.5
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-- xxx
+- Corrected TypeError during parsing of an exception that led to a wrong
+  error message.
 
 
 Version 1.5.0, March 29, 2016 -- Release 1.5
