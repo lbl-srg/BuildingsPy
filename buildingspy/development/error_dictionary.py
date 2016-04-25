@@ -111,6 +111,13 @@ class ErrorDictionary:
              'model_message'   : "File not found in '{}'.\n",
              'summary_message' : "Number of models with file not found                         : {}\n"}
 
+        self._error_dict["stateGraphRoot missing"] = \
+            {'tool_message'    : "A \\\"stateGraphRoot\\\" component was automatically introduced.",
+             'counter'         : 0,
+             'buildingspy_var' : "iStaGraRooMis",
+             'model_message'   : "\"inner Modelica.StateGraph.StateGraphRoot\" is missing in '{}'.\n",
+             'summary_message' : "Number of models with missing StateGraphRoot                 : {}\n"}
+
 
     def get_dictionary(self):
         """ Return the dictionary with all error data
