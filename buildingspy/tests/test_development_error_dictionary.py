@@ -10,9 +10,9 @@ class Test_development_error_dictionary(unittest.TestCase):
     def test_keys(self):
         import buildingspy.development.error_dictionary as e
         err_dic = e.ErrorDictionary()
-        k = err_dic.keys()
+        k = sorted(err_dic.keys())
 
-        k_expected = ['differentiated if',
+        k_expected = sorted(['differentiated if',
                       'experiment annotation',
                       'file not found',
                       'invalid connect',
@@ -23,7 +23,8 @@ class Test_development_error_dictionary(unittest.TestCase):
                       'type incompatibility',
                       'type inconsistent definition equations',
                       'unspecified initial conditions',
-                      'unused connector']
+                      'unused connector',
+                      'stateGraphRoot missing'])
 
         self.assertEqual(len(k), len(k_expected), "Wrong number of keys.")
         for i in range(len(k)):
@@ -32,8 +33,8 @@ class Test_development_error_dictionary(unittest.TestCase):
     def test_tool_messages(self):
         import buildingspy.development.error_dictionary as e
         err_dic = e.ErrorDictionary()
-        k = err_dic.tool_messages()
-        k_expected = ['Differentiating (if',
+        k = sorted(err_dic.tool_messages())
+        k_expected = sorted(['Differentiating (if',
                       'Warning: Failed to interpret experiment annotation',
                       'which was not found',
                       'The model contained invalid connect statements.',
@@ -44,7 +45,8 @@ class Test_development_error_dictionary(unittest.TestCase):
                       'but they must be compatible',
                       'Type inconsistent definition equation',
                       'Dymola has selected default initial condition',
-                      'Warning: The following connector variables are not used in the model']
+                      'Warning: The following connector variables are not used in the model',
+                      "A \\\"stateGraphRoot\\\" component was automatically introduced."])
 
         self.assertEqual(len(k), len(k_expected), "Wrong number of tool messages.")
         for i in range(len(k)):
