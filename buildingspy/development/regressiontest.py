@@ -912,14 +912,14 @@ class Tester:
         import numpy as np
         from buildingspy.io.postprocess import Plotter
 
-        def getTimeGrid(t):
+        def getTimeGrid(t, nPoi = self._nPoi):
             if len(t) == 2:
-                return self._getTimeGrid(t[0], t[-1], self._nPoi)
-            elif len(t) == self._nPoi:
+                return self._getTimeGrid(t[0], t[-1], nPoi)
+            elif len(t) == nPoi:
                 return t
             else:
                 s = "The new time grid has %d points, but it must have 2 or %d points.\n\
-            Stop processing %s\n" % (len(tNew), self._nPoi, filNam)
+            Stop processing %s\n" % (len(tNew), nPoi, filNam)
                 raise ValueError(s)
 
         if (abs(tOld[-1]-tNew[-1]) > 1E-5):
@@ -953,18 +953,19 @@ Skipping error checking for this variable.""" % (filNam, varNam, len(yOld), len(
             # whereas others only contain the first and last time stamp.
             # Hence, we make sure to have the right time grid before we
             # call the interpolation.
-            tGriOld = getTimeGrid(tOld)
-            tGriNew = getTimeGrid(tNew)
+            tGriOld = getTimeGrid(tOld, len(yNew))
+            tGriNew = getTimeGrid(tNew, min(len(yNew), self._nPoi))
             try:
                 yInt = Plotter.interpolate(tGriOld, tGriNew, yNew)
-            except IndexError:
-                raise IndexError(
-"""Data series have different length:
+            except (IndexError, ValueError):
+                em = """Data series have different length:
 File=%s,
 variable=%s,
 len(tGriOld) = %d,
 len(tGriNew) = %d,
-len(yNew)    = %d""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew)))
+len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
+                self._reporter.writeError(em)
+                raise ValueError(em)
         else:
             yInt = [yNew[0], yNew[0]]
 
