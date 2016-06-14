@@ -122,7 +122,7 @@ class Simulator(object):
     def addPreProcessingStatement(self, command):
         '''Adds a pre-processing statement to the simulation script.
 
-        :param statement: A script statement.
+        :param command: A script statement.
 
         Usage: Type
            >>> from buildingspy.simulate.Simulator import Simulator
