@@ -412,7 +412,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         worDir = self._create_worDir()
         self._simulateDir_ = worDir
         # Copy directory
-        shutil.copytree(os.path.abspath(self._packagePath), worDir)
+        shutil.copytree(os.path.abspath(self._packagePath), worDir,ignore = shutil.ignore_patterns('*.svn', '*.git'))
 
         # Construct the model instance with all parameter values
         # and the package redeclarations
