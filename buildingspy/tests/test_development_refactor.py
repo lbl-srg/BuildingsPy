@@ -6,19 +6,19 @@ class Test_development_refactor(unittest.TestCase):
        This class contains the unit tests for
        :mod:`buildingspy.development.refactor.Refactor`.
     """
-    
+
     def test_sort_package_order(self):
         import random
         import buildingspy.development.refactor as r
         __MOD=0
         __REC=1
         __PAC=2
-        
-        o  = [[__PAC, "UsersGuide"], 
+
+        o  = [[__PAC, "UsersGuide"],
               [__MOD, "a"],
-              [__MOD, "y"], 
+              [__MOD, "y"],
               [__REC, "a_data"],
-              [__PAC, "B"], 
+              [__PAC, "B"],
               [__PAC, "Z"],
               [__PAC, "Data"],
               [__PAC, "Types"],
@@ -27,7 +27,7 @@ class Test_development_refactor(unittest.TestCase):
               [__PAC, "Experimental"],
               [__PAC, "Interfaces"],
               [__PAC, "BaseClasses"],
-              [__PAC, "Internal"], 
+              [__PAC, "Internal"],
               [__PAC, "Obsolete"]]
 
         random.seed(1)
@@ -40,7 +40,20 @@ class Test_development_refactor(unittest.TestCase):
             self.assertEqual(o, s, "Sorting failed with i=%d." % i)
         # Reset the random number generator.
         random.seed()
-        
+
+    def test_write_package_order(self):
+        import os
+        import buildingspy.development.refactor as r
+
+        package_path = os.path.abspath(os.path.join("buildingspy", "tests", "MyModelicaLibrary"))
+
+        pac_lis = list()
+        # The digit 3 is the enumeration for package, e.g, __PAC in refactor
+        correct = [[3, "Reset"]]
+
+        pac_lis = r._get_package_list_for_file(package_path, "package.mo")
+        self.assertEqual(pac_lis, correct, "Parsing package.order failed.")
+
+
 if __name__ == '__main__':
     unittest.main()
-

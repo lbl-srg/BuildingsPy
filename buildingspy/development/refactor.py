@@ -5,7 +5,7 @@
 # MWetter@lbl.gov                            2014-11-23
 #######################################################
 '''
-  This module provides functions to 
+  This module provides functions to
 
   * create Modelica packages and autopopulate for example the
     `package.mo` and `package.order` files
@@ -55,8 +55,8 @@ def _sort_package_order(package_order):
 
     # Some items can be files or they can be in an own directory
     # such as UsersGuilde/package.mo
-    s = moveItemToFront([__MOD, "Tutorial"], s)            
-    s = moveItemToFront([__PAC, "Tutorial"], s)    
+    s = moveItemToFront([__MOD, "Tutorial"], s)
+    s = moveItemToFront([__PAC, "Tutorial"], s)
     s = moveItemToFront([__MOD, "UsersGuide"], s)
     s = moveItemToFront([__PAC, "UsersGuide"], s)
     s = moveItemToEnd([__PAC, "Data"], s)
@@ -164,7 +164,7 @@ This package contains base classes that are used to construct the models in
 end BaseClasses;
 ''' % (parentPackage, parentPackage, parentPackage, parentPackage)
                 f.write(s)
-                f.close()                
+                f.close()
             else:
                 f = open(os.path.join(fd, "package.mo"), "w")
                 s = '''
@@ -233,7 +233,7 @@ def get_modelica_file_name(source):
 
 def replace_text_in_file(file_name, old, new, isRegExp=False):
     ''' Replace `old` with `new` in file `file_name`.
-    
+
         If `isRegExp==True`, then old must be a regular expression, and
         `re.sub(old, new, ...)` is called where `...` is each line of the file.
     '''
@@ -394,38 +394,7 @@ def write_package_order(directory=".", recursive=False):
         pacLis = list()
         for f in files:
             if os.path.isfile(os.path.join(directory, f)):
-                if f.endswith(".mo") and (not f == 'package.mo'):
-                    # Check the first two lines for "record class_name" as
-                    # records should be listed after all the models.
-                    class_name = f[:-3]
-                    recordString = "record %s" % class_name
-                    fil = open(os.path.join(directory, f), 'r')
-                    typ=__MOD
-                    for _ in range(2):
-                        if recordString in fil.readline():
-                            typ = __REC
-                            break;
-                    fil.close()
-
-                    pacLis.append([typ, class_name])
-                if f == 'package.mo':
-                    # Some package.mo files contain a UsersGuide.
-                    # Add this to the list if needed.
-                    with open(os.path.join(directory, f), 'r') as fil:
-                        for line in fil:
-                            if "package UsersGuide" in line:
-                                pacLis.append([__MOD, "UsersGuide"])
-                                break
-                    # Some package.mo files contain constants for the whole package.
-                    # The need to be added to the package.order as well.
-                    with open(os.path.join(directory, f), 'r') as fil:
-                        lines = fil.read()
-                        # Constants can be 'constant Real n = ..." or "constant someClass n(..."
-                        con=re.findall(r";\s*constant\s+[a-zA-Z0-9_\.]+\s+(\w+)\s*[=\(]", lines, re.MULTILINE);
-#                        con=re.search(r"constant\s+\w+\s+(\w+)\s*=", lines, re.MULTILINE);
-                        for ele in con:
-                            # Found a constant whose name is in con.group(1)
-                            pacLis.append([__CON, ele])
+                pacLis = pacLis + _get_package_list_for_file(directory, f)
 
             # Add directories.
             if os.path.isdir(os.path.join(directory, f)):
@@ -445,6 +414,66 @@ def write_package_order(directory=".", recursive=False):
         for p in pacLis:
             filPac.write(p[1] + "\n")
         filPac.close()
+
+
+def _get_package_list_for_file(directory, file_name):
+    ''' Gets the package list for the file `directory/file_name`
+    '''
+    import os;
+    import re;
+
+    pacLis = list()
+
+    if file_name == 'package.mo':
+        # Some package.mo files contain a UsersGuide.
+        # Add this to the list if needed.
+        with open(os.path.join(directory, file_name), 'r') as fil:
+            for line in fil:
+                if "package UsersGuide" in line:
+                    pacLis.append([__MOD, "UsersGuide"])
+                    break
+        # Some package.mo files contain constants for the whole package.
+        # They need to be added to the package.order as well.
+        with open(os.path.join(directory, file_name), 'r') as fil:
+            lines = fil.read()
+            # Constants can be 'constant Real n = ..." or "constant someClass n(..."
+            con=re.findall(r";\s*constant\s+[a-zA-Z0-9_\.]+\s+(\w+)\s*[=\(]", lines, re.MULTILINE);
+#                        con=re.search(r"constant\s+\w+\s+(\w+)\s*=", lines, re.MULTILINE);
+            for ele in con:
+                # Found a constant whose name is in con.group(1)
+                pacLis.append([__CON, ele])
+
+            # Some packages contain types, such as
+            # type Reset = enumeration(
+            #      Disabled   "Disabled",
+            #      Parameter   "Use parameter value",
+            #      Input   "Use input signal")
+            #      "Options for integrator reset"
+            #      annotation (
+            #      preferedView="info",
+            #      Documentation(info="<html>...");
+            con=re.findall(r"type\s*(?P<name>\w*)\s*=\s*enumeration", lines, re.MULTILINE)
+
+            for ele in con:
+            # Found a constant whose name is in con.group(1)
+                pacLis.append([__CON, ele])
+
+    elif file_name.endswith(".mo"):
+        # Check the first two lines for "record class_name" as
+        # records should be listed after all the models.
+        class_name = file_name[:-3]
+        recordString = "record %s" % class_name
+        fil = open(os.path.join(directory, file_name), 'r')
+        typ=__MOD
+        for _ in range(2):
+            if recordString in fil.readline():
+                typ = __REC
+                break;
+        fil.close()
+
+        pacLis.append([typ, class_name])
+
+    return pacLis
 
 
 def move_class(source, target):
@@ -494,24 +523,24 @@ def move_class(source, target):
     # Update the files
     pool=Pool()
     pool.map(_updateFile, fileList)
-    
+
 def _updateFile(arg):
     ''' Update all `.mo`, `package.order` and reference result file
-        
+
         The argument `arg` is a list where the first item is
         the relative file name (e.g., `./Buildings/package.mo`),
         the second element is the class name of the source and
         the third element is the class name of the target.
-        
+
         This function has been implemented as doing the text replace is time
         consuming and hence this is done in parallel.
-        
+
         :param arg: A list with the arguments.
     '''
 
     def _getShortName(fileName, className):
         import re
-            
+
         pos=re.search(r'\w', fileName).start()
         splFil=fileName[pos:].split(os.path.sep)
         splCla=className.split(".")
@@ -529,13 +558,13 @@ def _updateFile(arg):
                     print("****** fixme: %s, %s, %s" % (fileName, className, shortSource))
                 break
         return shortSource
-    
+
 
     root  =arg[0]
     fil   =arg[1]
     source=arg[2]
     target=arg[3]
-    
+
     srcFil=os.path.join(root, fil)
     # Loop over all
     # - .mo
@@ -546,7 +575,7 @@ def _updateFile(arg):
         # or when instantiating the class.
         # For now, this requires a full class name.
         replace_text_in_file(srcFil, source, target)
-        
+
         # For example, in Buildings/Fluid/Sources/xx.mo, the model Buildings.Fluid.Sensors.yy
         # may be instanciated as Sensors.yy.
         # Hence, we search for the common packages, remove them from the
@@ -556,15 +585,15 @@ def _updateFile(arg):
         # remain short instance names.
         shortSource=_getShortName(srcFil, source)
         shortTarget=_getShortName(srcFil, target)
-        # If shortSource is only one class (e.g., "xx" and not "xx.yy", 
+        # If shortSource is only one class (e.g., "xx" and not "xx.yy",
         # then this is also used in constructs such as "model xx" and "end xx;"
         # Hence, we only replace it if it is proceeded only by empty characters, and nothing else.
-        if "." in shortSource:  
+        if "." in shortSource:
             replace_text_in_file(srcFil, shortSource, shortTarget, isRegExp=False)
         else:
             regExp = "(?!\w)" + shortTarget
             replace_text_in_file(srcFil, regExp, shortTarget, isRegExp=True)
-                
+
         # Replace the hyperlinks, without the top-level library name.
         # This updates for example the RunScript command that points to
         # "....Dymola/Fluid/..."
