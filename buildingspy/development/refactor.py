@@ -21,10 +21,10 @@ __all__ = ["create_modelica_package", "move_class", "write_package_order"]
 # Constants that are used to properly order models prior to packages in
 # the package.order file.
 # First, models are listed, then records, then packages and at the end constants.
-__MOD=0
-__REC=1
-__PAC=2
-__CON=3
+__MOD = 0
+__REC = 1
+__PAC = 2
+__CON = 3
 
 
 def _sort_package_order(package_order):
@@ -204,10 +204,16 @@ def _git_move(source, target):
         raise ValueError("Failed to move file '%s' as it does not exist." %
                         os.path.abspath(os.path.join(os.path.curdir, source)))
 
+    # Throw an error if target is an existing file.
+    if os.path.isfile(target):
+        raise ValueError("Failed to move '{}' to target '{}' as target already exists.".format( \
+                        os.path.abspath(os.path.join(os.path.curdir, source)), \
+                        os.path.abspath(os.path.join(os.path.curdir, target))))
+
     # If the destination directory does not exist, create it.
     targetDir = os.path.dirname(target)
     ext       = os.path.splitext(target)[1]
-    if not os.path.exists( targetDir ):
+    if not os.path.exists(targetDir):
         # Directory does not exist.
         if ext == ".mo":
             # It is a Modelica package.
@@ -239,19 +245,18 @@ def replace_text_in_file(file_name, old, new, isRegExp=False):
     '''
     import re
     # Read source file, store the lines and update the content of the lines
-    f_sou = open(file_name, 'r')
-    lines = list()
-    for _, lin in enumerate(f_sou):
-        if isRegExp == True:
-            lin = re.sub(old, new, lin)
-        else:
-            lin = lin.replace(old, new)
-        lines.append(lin)
-    f_sou.close
+    with open(file_name, 'r') as f_sou:
+        lines = list()
+        for _, lin in enumerate(f_sou):
+            if isRegExp == True:
+                lin = re.sub(old, new, lin)
+            else:
+                lin = lin.replace(old, new)
+            lines.append(lin)
+
     # Write the lines to the new file
-    f_des = open(file_name, 'w')
-    f_des.writelines(lines)
-    f_des.close()
+    with open(file_name, 'w') as f_des:
+        f_des.writelines(lines)
 
 
 def _move_mo_file(source, target):
@@ -271,8 +276,8 @@ def _move_mo_file(source, target):
     sd = lambda s: "within " + s[:s.rfind('.')] + ";"
     replace_text_in_file(targetFile, sd(source), sd(target))
     # Update the class name
-    replace_text_in_file(targetFile,
-                              " " + source[source.rfind('.')+1:],
+    replace_text_in_file(targetFile, \
+                              " " + source[source.rfind('.')+1:], \
                               " " + target[target.rfind('.')+1:])
 
 def _move_mos_file(source, target):
@@ -299,8 +304,8 @@ def _move_mos_file(source, target):
     else:
         sourceFile = get_modelica_file_name(source)
         targetFile = get_modelica_file_name(target)
-        targetMosFile = sourceMosFile.replace(os.path.join(*sourceFile.split("/")[2:]),
-                                              os.path.join(*targetFile.split("/")[2:]))
+        targetMosFile = sourceMosFile.replace(os.path.join(*sourceFile.split("/")[1:]),
+                                              os.path.join(*targetFile.split("/")[1:]))
 
     if os.path.isfile(sourceMosFile):
         # Remove the top-level package name from source and target, then
@@ -375,7 +380,6 @@ def write_package_order(directory=".", recursive=False):
         >>> r.write_package_order(".") #doctest: +ELLIPSIS
 
     '''
-    import re
     if recursive:
         s = set()
         for root, _, files in os.walk(directory):
@@ -419,7 +423,6 @@ def write_package_order(directory=".", recursive=False):
 def _get_package_list_for_file(directory, file_name):
     ''' Gets the package list for the file `directory/file_name`
     '''
-    import os;
     import re;
 
     pacLis = list()
@@ -475,13 +478,69 @@ def _get_package_list_for_file(directory, file_name):
 
     return pacLis
 
+def _move_class_directory(source, target):
+    ''' Move the directory `source`, which has a file `source/package.mo`,
+    to the `target` name.
+
+    Both arguments need to be package names
+    such as `Buildings.Fluid.Sensors`, which are in corresponding
+    directories, e.g., in `Buildings/Fluid/Sensors`.
+
+    :param source: Package name of the source.
+    :param target: Package name of the target.
+    '''
+    import glob
+
+    source_dir = source.replace(".", os.path.sep)
+    target_dir = target.replace(".", os.path.sep)
+
+    # Create the target directory if it does not yet exist
+    if not os.path.isdir(target_dir):
+        os.mkdir(target_dir)
+
+    # Copy the package.mo file if it does not exist in the target
+    if not os.path.exists(os.path.join(target_dir, "package.mo")):
+        _git_move(os.path.join(source_dir, "package.mo"),
+                  os.path.join(target_dir, "package.mo"))
+
+        # The targetFile may have `within Buildings.Fluid;`
+        # Update this if needed.
+        sd = lambda s: "within " + s[:s.rfind('.')] + ";"
+        replace_text_in_file(os.path.join(target_dir, "package.mo"), sd(source), sd(target))
+        # Update the class name
+        replace_text_in_file(os.path.join(target_dir, "package.mo"),
+                              " " + source[source.rfind('.')+1:],
+                              " " + target[target.rfind('.')+1:])
+        # Rename references to this package
+        _update_all_references(source, target)
+
+    # Delete the package.order file, as it will be recreated
+    if os.path.exists(os.path.join(source_dir, "package.order")):
+        os.remove(os.path.join(source_dir, "package.order"))
+
+    # In Buildings, all classes are in their own .mo file. Hence,
+    # we iterate through these files, and also delete the package.order file
+    # Iterate through files
+    mo_files = glob.glob(os.path.join(source_dir, "*.mo"))
+    for fil in mo_files:
+        move_class(source + "." + fil[len(source_dir)+1:-3], \
+                   target + "." + fil[len(source_dir)+1:-3])
+    # Iterate through directories
+    dirs = [f for f in os.listdir(source_dir) if not os.path.isfile(os.path.join(".", f))]
+    for di in dirs:
+        src = ".".join([source, di])
+        tar = ".".join([target, di])
+        move_class(src, tar)
+
 
 def move_class(source, target):
     ''' Move the class from the `source`
     to the `target` name.
 
     Both arguments need to be Modelica class names
-    such as `Buildings.Fluid.Sensors.TemperatureTwoPort`.
+    such as `Buildings.Fluid.Sensors.TemperatureTwoPort`,
+    or a directory with a top-level `package.mo` file, such as
+    `Buildings/Fluid`, that contains a file `Buildings/Fluid/package.mo`.
 
     :param source: Class name of the source.
     :param target: Class name of the target.
@@ -493,7 +552,11 @@ def move_class(source, target):
         >>>              "Buildings.Fluid.Movers.Flow_dp") #doctest: +SKIP
 
     '''
-    from multiprocessing import Pool
+    ##############################################################
+    # Check if it is a directory with a package.mo file
+    if os.path.isdir(source.replace(".", os.path.sep)):
+        _move_class_directory(source, target)
+        return
     ##############################################################
     # Move .mo file
     _move_mo_file(source, target)
@@ -511,6 +574,16 @@ def move_class(source, target):
     # then these also need to be renamed
     _move_image_files(source, target)
 
+    _update_all_references(source, target)
+
+def _update_all_references(source, target):
+    ''' Updates all references in `.mo` and `.mos` files.
+
+    :param source: Class name of the source.
+    :param target: Class name of the target.
+    '''
+#    from multiprocessing import Pool
+
     # Update all references in the mo and mos files
     fileList=list()
     for root, _, files in os.walk(os.path.curdir):
@@ -521,8 +594,11 @@ def move_class(source, target):
         for fil in files:
             fileList.append([root, fil, source, target])
     # Update the files
-    pool=Pool()
-    pool.map(_updateFile, fileList)
+#    pool=Pool(processes=4)
+#    pool.map(_updateFile, fileList)  # This can fail with OSError: [Errno 24] Too many open files
+                                      # when moving large packages
+    for ele in fileList:
+        _updateFile(ele)
 
 def _updateFile(arg):
     ''' Update all `.mo`, `package.order` and reference result file
@@ -554,11 +630,8 @@ def _updateFile(arg):
                     shortSource += splCla[j] + "."
                 # Remove last dot
                 shortSource = shortSource[:-1]
-                if shortSource == " Validation.ControlledFlowMachineDynamic":
-                    print("****** fixme: %s, %s, %s" % (fileName, className, shortSource))
                 break
         return shortSource
-
 
     root  =arg[0]
     fil   =arg[1]
@@ -576,8 +649,14 @@ def _updateFile(arg):
         # For now, this requires a full class name.
         replace_text_in_file(srcFil, source, target)
 
+        # Replace links to images such as
+        # ref=\"modelica://Buildings/Resources/Images/Fluid/Movers/UsersGuide/2013-IBPSA-Wetter.pdf
+        src_link = 'modelica://{}/Resources/Images/{}'.format( source.split(".")[0], "/".join(source.split('.')[1:]) )
+        tar_link = 'modelica://{}/Resources/Images/{}'.format( target.split(".")[0], "/".join(target.split('.')[1:]) )
+        replace_text_in_file(srcFil, src_link, tar_link)
+
         # For example, in Buildings/Fluid/Sources/xx.mo, the model Buildings.Fluid.Sensors.yy
-        # may be instanciated as Sensors.yy.
+        # may be instantiated as Sensors.yy.
         # Hence, we search for the common packages, remove them from the
         # source name, call this shortSource, and replace this short name
         # with the new name.
@@ -585,6 +664,9 @@ def _updateFile(arg):
         # remain short instance names.
         shortSource=_getShortName(srcFil, source)
         shortTarget=_getShortName(srcFil, target)
+        if shortSource == None or shortTarget == None:
+            return
+
         # If shortSource is only one class (e.g., "xx" and not "xx.yy",
         # then this is also used in constructs such as "model xx" and "end xx;"
         # Hence, we only replace it if it is proceeded only by empty characters, and nothing else.

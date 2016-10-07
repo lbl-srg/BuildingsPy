@@ -3,6 +3,8 @@ BuildingsPy Changelog
 
 Version 1.5.1, xxxx -- Release 1.5
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- Updated buildingspy.development.refactor.move_class()
+  to allow moving whole packages.
 - Updated buildingspy.development.refactor.write_package_order()
   so that also types that are enumerations are added to the package.order file.
 - Corrected TypeError during parsing of an exception that led to a wrong
