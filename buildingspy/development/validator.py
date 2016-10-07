@@ -11,7 +11,6 @@ class Validator:
     ''' Class that validates ``.mo`` files for the correct html syntax.
     '''
     def __init__(self):
-        import os
 
         # --------------------------
         # Class variables
