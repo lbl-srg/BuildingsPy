@@ -360,7 +360,7 @@ OutputCPUtime:=true;
         else:
             # Create string for numberOfIntervals
             intervals=""
-            if self._simulator_.has_key('numberOfIntervals'):
+            if 'numberOfIntervals' in self._simulator_:
                 intervals=", numberOfIntervals={0}".format(
                     self._simulator_.get('numberOfIntervals'))
             s += """
@@ -574,7 +574,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
                           ', tolerance=' + str(self._simulator_.get('eps')) + \
                           ', resultFile="' + str(self._simulator_.get('resultFile')
                                                  + '"'))
-            if self._simulator_.has_key('numberOfIntervals'):
+            if 'numberOfIntervals' in self._simulator_:
                 fil.write(', numberOfIntervals=' +
                           str(self._simulator_.get('numberOfIntervals')))
             fil.write(');\n')
@@ -767,8 +767,8 @@ end if;
 
         # Check if executable is on the path
         if not self._isExecutable(cmd[0]):
-            print "Error: Did not find executable '", cmd[0], "'."
-            print "       Make sure it is on the PATH variable of your operating system."
+            print("Error: Did not find executable '", cmd[0], "'.")
+            print("       Make sure it is on the PATH variable of your operating system.")
             exit(3)
         # Run command
         try:
@@ -825,7 +825,7 @@ end if;
                              str(timeout) + " seconds.")
 
         except OSError as e:
-            print "Execution of ", cmd, " failed:", e
+            print("Execution of ", cmd, " failed:", e)
 
     def showProgressBar(self, show=True):
         ''' Enables or disables the progress bar.
@@ -853,7 +853,7 @@ end if;
             else:
                 proBar += " "
         proBar += "|"
-        print proBar, int(fractionComplete*100), "%\r",
+        print(proBar, int(fractionComplete*100), "%\r",)
         sys.stdout.flush()
 
     def _declare_parameters(self):
