@@ -54,6 +54,11 @@ class Test_development_refactor(unittest.TestCase):
         pac_lis = r._get_package_list_for_file(package_path, "package.mo")
         self.assertEqual(pac_lis, correct, "Parsing package.order failed.")
 
+    def test_get_modelica_file_name(self):
+        import os
+        import buildingspy.development.refactor as r
+        self.assertEqual( r.get_modelica_file_name("Buildings.Rooms.MixedAir"), \
+                os.path.join("Buildings", "Rooms", "MixedAir.mo") )
 
 if __name__ == '__main__':
     unittest.main()

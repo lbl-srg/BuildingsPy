@@ -204,9 +204,13 @@ def _git_move(source, target):
         raise ValueError("Failed to move file '%s' as it does not exist." %
                         os.path.abspath(os.path.join(os.path.curdir, source)))
 
-    # Throw an error if target is an existing file.
+    # Throw an error if target is an existing file, except if it is the package.mo file
     if os.path.isfile(target):
-        raise ValueError("Failed to move '{}' to target '{}' as target already exists.".format( \
+        if target.endswith("package.mo"):
+            print("*** Warning: Did not move {}.".format(target))
+            return
+        else:
+            raise ValueError("Failed to move '{}' to target '{}' as target already exists.".format( \
                         os.path.abspath(os.path.join(os.path.curdir, source)), \
                         os.path.abspath(os.path.join(os.path.curdir, target))))
 
@@ -521,12 +525,12 @@ def _move_class_directory(source, target):
     # In Buildings, all classes are in their own .mo file. Hence,
     # we iterate through these files, and also delete the package.order file
     # Iterate through files
-    mo_files = glob.glob(os.path.join(source_dir, "*.mo"))
+    mo_files = [f for f in glob.glob(os.path.join(source_dir, "*.mo")) if not f.endswith("package.mo")]
     for fil in mo_files:
         move_class(source + "." + fil[len(source_dir)+1:-3], \
                    target + "." + fil[len(source_dir)+1:-3])
     # Iterate through directories
-    dirs = [f for f in os.listdir(source_dir) if not os.path.isfile(os.path.join(".", f))]
+    dirs = [f for f in os.listdir(source_dir) if os.path.isdir(os.path.join(source_dir, f))]
     for di in dirs:
         src = ".".join([source, di])
         tar = ".".join([target, di])
