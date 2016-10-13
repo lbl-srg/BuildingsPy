@@ -20,18 +20,18 @@ class Test_development_merger_Annex60(unittest.TestCase):
         # Hence, we keep track of the first call to avoid multiple temporary directories.      
         if self.__class__.needs_initial:    
             self._repDir = tempfile.mkdtemp(prefix="tmp-BuildingsPy" +  "-testing-")
-            print "**************************", self._repDir
+            print("**************************", self._repDir)
             
             self.__class__.needs_initial = False
             self.__class__.repDir = self._repDir
             
             # Clone the libraries
-            print "Cloning Buildings repository. This may take a while."
-            print "Dir is ", self._repDir
+            print("Cloning Buildings repository. This may take a while.")
+            print("Dir is ", self._repDir)
             Repo.clone_from("https://github.com/lbl-srg/modelica-buildings", os.path.join(self._repDir, "modelica-buildings"))
-            print "Cloning Annex 60 repository. This may take a while."        
+            print("Cloning Annex 60 repository. This may take a while.")        
             Repo.clone_from("https://github.com/iea-annex60/modelica-annex60", os.path.join(self._repDir, "modelica-annex60"))
-            print "Finished cloning."
+            print("Finished cloning.")
             
         else:
             self._repDir = self.__class__.repDir

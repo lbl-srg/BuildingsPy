@@ -254,7 +254,7 @@ class Test_simulate_Simulator(unittest.TestCase):
             np.testing.assert_allclose(n[0], 5)
         except IOError as e:
             # An IOError was raised. Make sure it is raised by simulate_translated
-            print "Caught IOError with message '{}'".format(e)
+            print(("Caught IOError with message '{}'".format(e)))
             self.assertRaises(IOError, s.simulate_translated)
         # clean up translate temporary dir
         s.deleteTranslateDirectory()

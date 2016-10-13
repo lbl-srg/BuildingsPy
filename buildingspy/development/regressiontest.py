@@ -34,7 +34,7 @@ def runSimulation(worDir, cmd):
 
         logFil.close()
         if retcode != 0:
-            print "Child was terminated by signal", retcode
+            print("Child was terminated by signal", retcode)
             return retcode
         else:
             return 0
@@ -450,7 +450,7 @@ class Tester:
             if (self._excludeMos.count(fileName) == 0):
                 return True
             else:
-                print "*** Warning: Excluded file ", fileName, " from the regression tests."
+                print("*** Warning: Excluded file ", fileName, " from the regression tests.")
                 return False
         else:
             False
@@ -1262,12 +1262,12 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                 # Check if the first and last time stamp are equal
                 tolTim = 1E-3 # Tolerance for time
                 if (abs(t_ref[0] - t_sim[0]) > tolTim) or abs(t_ref[-1] - t_sim[-1]) > tolTim:
-                    print "*** Warning: Different simulation time interval in ", refFilNam, " and ", matFilNam
-                    print "             Old reference points are for " , t_ref[0], ' <= t <= ', t_ref[len(t_ref)-1]
-                    print "             New reference points are for " , t_sim[0], ' <= t <= ', t_sim[len(t_sim)-1]
+                    print("*** Warning: Different simulation time interval in ", refFilNam, " and ", matFilNam)
+                    print("             Old reference points are for " , t_ref[0], ' <= t <= ', t_ref[len(t_ref)-1])
+                    print("             New reference points are for " , t_sim[0], ' <= t <= ', t_sim[len(t_sim)-1])
                     foundError = True
                     while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
-                        print "             Accept new results and update reference file in library?"
+                        print("             Accept new results and update reference file in library?")
                         ans = raw_input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
                     if ans == "y" or ans == "Y":
                         # Write results to reference file
@@ -1315,8 +1315,8 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         # or if the script is run in batch mode, then don't plot the results.
         # If we found an error, plot the results, and ask the user to accept or reject the new values.
         if (foundError or newStatistics) and (not self._batch) and (not ans == "N") and (not ans == "Y"):
-            print "             For %s," % refFilNam
-            print "             accept new file and update reference files? (Close plot window to continue.)"
+            print("             For %s," % refFilNam)
+            print("             accept new file and update reference files? (Close plot window to continue.)")
             nPlo = len(y_sim)
             iPlo = 0
             plt.clf()
@@ -1429,9 +1429,9 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
 
         # Check whether the reference results exist.
         if not os.path.exists(abs_ref_fil_nam):
-            print "*** Warning: Reference file %s does not yet exist." % reference_file_name
+            print("*** Warning: Reference file %s does not yet exist." % reference_file_name)
             while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
-                print "             Create new file?"
+                print("             Create new file?")
                 ans = raw_input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
             if ans == "y" or ans == "Y":
                 self._writeReferenceResults(abs_ref_fil_nam, None, y_tra)
@@ -1450,11 +1450,11 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             found_differences = False
             for typ in ['InitialUnknowns', 'Outputs', 'Derivatives']:
                 if old_dep['statistics-fmu-dependencies'][typ] != new_dependencies[typ]:
-                    print "*** Warning: Reference file %s has different FMU statistics for '%s'." % (reference_file_name, typ)
+                    print("*** Warning: Reference file %s has different FMU statistics for '%s'." % (reference_file_name, typ))
                     found_differences = True
             if found_differences:
                 while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
-                    print "             Rewrite file?"
+                    print("             Rewrite file?")
                     ans = raw_input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
                 if ans == "y" or ans == "Y":
                     self._writeReferenceResults(abs_ref_fil_nam, None, y_tra)
@@ -1465,9 +1465,9 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
 
         else:
             # The old file has no statistics. Ask to rewrite it.
-            print "*** Warning: Reference file %s has no FMU statistics." % reference_file_name
+            print("*** Warning: Reference file %s has no FMU statistics." % reference_file_name)
             while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
-                print "             Rewrite file?"
+                print("             Rewrite file?")
                 ans = raw_input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
             if ans == "y" or ans == "Y":
                 self._writeReferenceResults(abs_ref_fil_nam, None, y_tra)
@@ -1601,9 +1601,9 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                             data['ResultFile'], oldRefFulFilNam, y_sim, y_tra, refFilNam, ans)
                     else:
                         # Reference file does not exist
-                        print "*** Warning: Reference file ", refFilNam, " does not yet exist."
+                        print("*** Warning: Reference file ", refFilNam, " does not yet exist.")
                         while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
-                            print "             Create new file?"
+                            print("             Create new file?")
                             ans = raw_input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
                         if ans == "y" or ans == "Y":
                             updateReferenceData = True
@@ -1662,17 +1662,17 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                     self._error_dict.increment_counter(k)
 
         if iChe > 0:
-            print "Number of models that failed check                           :", iChe
+            print("Number of models that failed check                           :", iChe)
         if iSim > 0:
-            print "Number of models that failed to simulate                     :", iSim
+            print("Number of models that failed to simulate                     :", iSim)
         if iFMU > 0:
-            print "Number of models that failed to export as an FMU             :", iFMU
+            print("Number of models that failed to export as an FMU             :", iFMU)
 
         # Write summary messages
         for _, v in self._error_dict.get_dictionary().iteritems():
             counter = v['counter']
             if counter > 0:
-                print v['summary_message'].format(counter)
+                print(v['summary_message'].format(counter))
 
         self._reporter.writeOutput("Script that runs unit tests had " + \
                                         str(self._reporter.getNumberOfWarnings()) + \
@@ -1711,9 +1711,9 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                         iMod = self._checkKey("model", filFulNam, iMod)
                         iBlo = self._checkKey("block", filFulNam, iBlo)
                         iFun = self._checkKey("function", filFulNam, iFun)
-        print "Number of models   : ", str(iMod)
-        print "          blocks   : ", str(iBlo)
-        print "          functions: ", str(iFun)
+        print("Number of models   : ", str(iMod))
+        print("          blocks   : ", str(iBlo))
+        print("          functions: ", str(iFun))
 
     def _getModelCheckCommand(self, mosFilNam):
         ''' Return lines that conduct a model check in pedantic mode.
@@ -2030,7 +2030,7 @@ getErrorString();
 
 
                     if self._modelicaCmd == 'dymola' and not (self._data[i]["mustExportFMU"] or self._data[i]["mustSimulate"]):
-                        print("******" + self._data[i]['ScriptFile'] + " neither requires a simulation nor an FMU export.")
+                        print(("******" + self._data[i]['ScriptFile'] + " neither requires a simulation nor an FMU export."))
 
                     self._removePlotCommands(absMosFilNam)
                     nUniTes = nUniTes + 1
@@ -2049,7 +2049,7 @@ getErrorString();
                             dat['ResultDirectory']=allDat['ResultDirectory']
                             break
 
-        print "Generated ", nUniTes, " regression tests.\n"
+        print("Generated ", nUniTes, " regression tests.\n")
 
     def deleteTemporaryDirectories(self, delete):
         ''' Flag, if set to ``False``, then the temporary directories will not be deleted
@@ -2072,7 +2072,7 @@ getErrorString();
         # Make temporary directory, copy library into the directory and
         # write run scripts to directory
         for iPro in range(self._nPro):
-            #print "Calling parallel loop for iPro=", iPro, " self._nPro=", self._nPro
+            #print("Calling parallel loop for iPro=", iPro, " self._nPro=", self._nPro)
             dirNam = tempfile.mkdtemp(prefix='tmp-' + self.getLibraryName() + '-'+ str(iPro) +  "-")
             self._temDir.append(dirNam)
             # Directory that contains the library as a sub directory
@@ -2142,22 +2142,22 @@ getErrorString();
         # Check if executable is on the path
         if not self._useExistingResults:
             if not self.isExecutable(self._modelicaCmd):
-                print "Error: Did not find executable '", self._modelicaCmd, "'."
+                print("Error: Did not find executable '", self._modelicaCmd, "'.")
                 return 3
 
         # Check current working directory
         if not self.isValidLibrary(self._libHome):
-            print "*** %s is not a valid Modelica library." % self._libHome
-            print "*** The current directory is ", os.getcwd()
-            print "*** Expected directory ", os.path.abspath(os.path.join(self._libHome, "Resources", "Scripts"))
-            print "*** Exit with error. Did not do anything."
+            print("*** %s is not a valid Modelica library." % self._libHome)
+            print("*** The current directory is ", os.getcwd())
+            print("*** Expected directory ", os.path.abspath(os.path.join(self._libHome, "Resources", "Scripts")))
+            print("*** Exit with error. Did not do anything.")
             return 2
 
         # Initialize data structure to check results
         self._initialize_error_dict()
 
         # Print number of processors
-        print "Using ", self._nPro, " of ", multiprocessing.cpu_count(), " processors to run unit tests."
+        print("Using ", self._nPro, " of ", multiprocessing.cpu_count(), " processors to run unit tests.")
         # Count number of classes
         self.printNumberOfClasses()
 
@@ -2265,13 +2265,13 @@ getErrorString();
 
         # Print list of files that may be excluded from unit tests
         if len(self._excludeMos) > 0:
-            print "*** Warning: The following files may be excluded from the regression tests:\n"
+            print("*** Warning: The following files may be excluded from the regression tests:\n")
             for fil in self._excludeMos:
-                print "            ", fil
+                print("            ", fil)
 
         # Print time
         elapsedTime = time.time()-startTime
-        print "Execution time = %.3f s" % elapsedTime
+        print("Execution time = %.3f s" % elapsedTime)
 
         # Delete statistics file
         os.remove(self._statistics_log)
@@ -2467,34 +2467,34 @@ getErrorString();
         nbr_load = len(count_load(self._jmstats))
         nbr_sim = len(count_sim(self._jmstats))
 
-        print '\n'
-        print 70*'#'
-        print "Tested {} models:\n  * {} compiled \
+        print('\n')
+        print(70*'#')
+        print("Tested {} models:\n  * {} compiled \
 successfully (={:.1%})"\
               .format(nbr_tot,
-                      nbr_cmpl, float(nbr_cmpl)/float(nbr_tot))
+                      nbr_cmpl, float(nbr_cmpl)/float(nbr_tot)))
         if load:
-            print "  * {} loaded successfully (={:.1%})".format(nbr_load, float(nbr_load)/float(nbr_tot))
+            print("  * {} loaded successfully (={:.1%})".format(nbr_load, float(nbr_load)/float(nbr_tot)))
 
         if simulate:
-            print "  * {} simulated successfully (={:.1%})".format(nbr_sim, float(nbr_sim)/float(nbr_tot))
+            print("  * {} simulated successfully (={:.1%})".format(nbr_sim, float(nbr_sim)/float(nbr_tot)))
 
-        print "\nFailed compilation for the following models:"
+        print("\nFailed compilation for the following models:")
         for p in list_failed_cmpl(self._jmstats):
-            print "  * {}".format(p.split(os.sep)[-1].split('.mo')[0])
+            print("  * {}".format(p.split(os.sep)[-1].split('.mo')[0]))
 
         if load:
-            print "\nFailed loading for the following models:"
+            print("\nFailed loading for the following models:")
             for p in list_failed_load(self._jmstats):
-                print "  * {}".format(p.split(os.sep)[-1].split('.mo')[0])
+                print("  * {}".format(p.split(os.sep)[-1].split('.mo')[0]))
 
         if simulate:
-            print "\nFailed simulation for the following models:"
+            print("\nFailed simulation for the following models:")
             for p in list_failed_sim(self._jmstats):
-                print "  * {}".format(p.split(os.sep)[-1].split('.mo')[0])
+                print("  * {}".format(p.split(os.sep)[-1].split('.mo')[0]))
 
-        print "\nMore detailed information is stored in self._jmstats"
-        print 70*'#'
+        print("\nMore detailed information is stored in self._jmstats")
+        print(70*'#')
 
     def _writeOMRunScript(self, worDir, models, cmpl, simulate):
         """
@@ -2634,7 +2634,7 @@ successfully (={:.1%})"\
                                            cwd=worDir).wait()
 
             if retcode != 0:
-                print "Child was terminated by signal", retcode
+                print("Child was terminated by signal", retcode)
                 return retcode
 
         except OSError as e:
@@ -2642,8 +2642,8 @@ successfully (={:.1%})"\
                              "Working directory is '" + worDir + "'.")
         else:
             # process the log file
-            print "Logfile created: {}".format(logFilNam)
-            print "Starting analysis of logfile"
+            print("Logfile created: {}".format(logFilNam))
+            print("Starting analysis of logfile")
             f = open(logFilNam, 'r')
             self._omstats = f.readlines()
             f.close()
@@ -2706,28 +2706,28 @@ successfully (={:.1%})"\
             for m in models_sim_ok:
                 models_sim_nok.remove(m)
 
-        print '\n'
-        print 70*'#'
-        print "Tested {} models:\n  * {} compiled successfully (={:.1%})"\
+        print('\n')
+        print(70*'#')
+        print("Tested {} models:\n  * {} compiled successfully (={:.1%})"\
           .format(check_ok+check_nok,
-                  check_ok, float(check_ok)/float(check_ok+check_nok))
+                  check_ok, float(check_ok)/float(check_ok+check_nok)))
         if simulate:
-            print "  * {} simulated successfully (={:.1%})".format(sim_ok, float(sim_ok)/float(sim_ok+sim_nok))
+            print("  * {} simulated successfully (={:.1%})".format(sim_ok, float(sim_ok)/float(sim_ok+sim_nok)))
 
-        print "\nSuccessfully checked models:"
+        print("\nSuccessfully checked models:")
         for m in models_check_ok:
-            print "  * {}".format(m)
-        print "Failed model checks:"
+            print("  * {}".format(m))
+        print("Failed model checks:")
         for m in models_check_nok:
-            print "  * {}".format(m)
+            print("  * {}".format(m))
 
         if simulate:
-            print "\nSuccessfully simulated models:"
+            print("\nSuccessfully simulated models:")
             for m in models_sim_ok:
-                print "  * {}".format(m)
-            print "Failed model simulations:"
+                print("  * {}".format(m))
+            print("Failed model simulations:")
             for m in models_sim_nok:
-                print "  * {}".format(m)
+                print("  * {}".format(m))
 
-        print "\nMore detailed information is stored in self._omstats"
-        print 70*'#'
+        print("\nMore detailed information is stored in self._omstats")
+        print(70*'#')
