@@ -87,7 +87,7 @@ class Annex60:
         f_sou = open(source_file, 'r')
         lines = list()
         for _, lin in enumerate(f_sou):
-            for ori, new in rep.iteritems():
+            for ori, new in rep.items():
                 lin = string.replace(lin, ori, new)
             lines.append(lin)
         f_sou.close

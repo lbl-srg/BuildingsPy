@@ -876,7 +876,7 @@ end if;
                 return repr(arg)
         dec = list()
 
-        for k, v in self._parameters_.items():
+        for k, v in list(self._parameters_.items()):
             # Dymola requires vectors of parameters to be set in the format
             # p = {1, 2, 3} rather than in the format of python arrays, which
             # is p = [1, 2, 3].
@@ -921,7 +921,7 @@ end if;
         actual_res = Reader(os.path.join(self._outputDir_,
                               self._simulator_['resultFile'])+'.mat',
                               'dymola')
-        for key, value in self._parameters_.iteritems():
+        for key, value in list(self._parameters_.items()):
             if isinstance(value, list): # lists
                 for index, val in enumerate(value):
                     key_string = key + '['+ str(index+1) + ']'
