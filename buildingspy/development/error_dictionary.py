@@ -49,6 +49,13 @@ class ErrorDictionary:
              'model_message'   : "Redundant consistent initial conditions in '{}'.\n",
              'summary_message' : "Number of models with redundant consistent initial conditions: {}\n"}
 
+        self._error_dict["redundant connection"] = \
+            {'tool_message'    : "Redundant connection",
+             'counter'         : 0,
+             'buildingspy_var' : "iRedConSta",
+             'model_message'   : "Redundant connections in '{}'.\n",
+             'summary_message' : "Number of models with redundant connections                  : {}\n"}
+
         self._error_dict["type inconsistent definition equations"] = \
             {'tool_message'    : "Type inconsistent definition equation",
              'counter'         : 0,
