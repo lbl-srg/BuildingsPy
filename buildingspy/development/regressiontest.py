@@ -1711,9 +1711,9 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                         iMod = self._checkKey("model", filFulNam, iMod)
                         iBlo = self._checkKey("block", filFulNam, iBlo)
                         iFun = self._checkKey("function", filFulNam, iFun)
-        print("Number of models   : {}".format(str(iMod)))
-        print("          blocks   : {}".format(str(iBlo)))
-        print("          functions: {}".format(str(iFun)))
+        print("Number of models   : {!s}".format(iMod))
+        print("          blocks   : {!s}".format(iBlo))
+        print("          functions: {!s}".format(iFun))
 
     def _getModelCheckCommand(self, mosFilNam):
         ''' Return lines that conduct a model check in pedantic mode.
@@ -2030,7 +2030,7 @@ getErrorString();
 
 
                     if self._modelicaCmd == 'dymola' and not (self._data[i]["mustExportFMU"] or self._data[i]["mustSimulate"]):
-                        print(("****** {} neither requires a simulation nor an FMU export.".format(self._data[i]['ScriptFile'])))
+                        print("****** {} neither requires a simulation nor an FMU export.".format(self._data[i]['ScriptFile']))
 
                     self._removePlotCommands(absMosFilNam)
                     nUniTes = nUniTes + 1
@@ -2634,7 +2634,7 @@ successfully (={:.1%})"\
                                            cwd=worDir).wait()
 
             if retcode != 0:
-                print("Child was terminated by signal", retcode)
+                print("Child was terminated by signal {}".format(retcode))
                 return retcode
 
         except OSError as e:
