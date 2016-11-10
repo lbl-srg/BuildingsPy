@@ -84,9 +84,7 @@ class Annex60:
             rep.update({"Modelica.Thermal.HeatTransfer.Sources.PrescribedTemperature":
                         "Buildings.HeatTransfer.Sources.PrescribedTemperature",
                         "Modelica.Thermal.HeatTransfer.Sources.FixedTemperature":
-                        "Buildings.HeatTransfer.Sources.FixedTemperature",
-                        "Modelica.Thermal.HeatTransfer.Sources.PrescribedHeatFlow":
-                        "Buildings.HeatTransfer.Sources.PrescribedHeatFlow"})
+                        "Buildings.HeatTransfer.Sources.FixedTemperature"})
 
         # Read source file, store the lines and update the content of the lines
         f_sou = open(source_file, 'r')
