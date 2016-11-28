@@ -1344,8 +1344,9 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                         # Test to make sure that this variable has been found in the old results
                         if noOldResults.count(varNam) == 0:
                             if self._isParameter(y_ref[varNam]):
+                                # for parameters, don't just draw a dot, as these are hard to see as they are on the box
                                 plt.plot([min(t_ref), max(t_ref)], y_ref[varNam],
-                                         color[iPai] + '.', label='Old ' + varNam)
+                                         color[iPai] + 'x', markersize=10, label='Old ' + varNam)
                             else:
                                 plt.plot(self._getTimeGrid(t_ref[0], t_ref[-1], len(y_ref[varNam])),
                                          y_ref[varNam],
