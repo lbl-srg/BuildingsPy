@@ -77,8 +77,9 @@ Modelica package. Expected file '%s'."
 
         '''
         from tidylib import tidy_document
+        from io import open
         # Open file.
-        f = open(moFile, "r")
+        f = open(moFile, mode="r", encoding="utf-8")
         lines = f.readlines()
         f.close()
         # Document header
@@ -142,7 +143,7 @@ Modelica package. Expected file '%s'."
         # Write html file.
         if self._writeHTML:
             htmlName = "%s%s" % (moFile[0:-2], "html")
-            f = open(htmlName, "w")
+            f = open(htmlName, mode="w", encoding="utf-8")
             f.write(document)
             f.close()
         return (document, errors)
