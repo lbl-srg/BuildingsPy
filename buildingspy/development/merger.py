@@ -5,7 +5,6 @@
 #
 # MWetter@lbl.gov                            2014-04-15
 #######################################################
-from docutils.nodes import Root
 class Annex60:
     ''' Class that merges a Modelica library with the `Annex60` library.
 
@@ -71,8 +70,6 @@ class Annex60:
         :param source_file: Name of the file to be copied.
         :param destination_file: Name of the new file.
         """
-        import os
-        import re
         import string
 
         rep = {self._src_library_name:
@@ -148,7 +145,6 @@ class Annex60:
         """
         import os
         import shutil
-        import re
 
         import buildingspy.development.refactor as r
 

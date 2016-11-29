@@ -399,7 +399,6 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         an error message.
 
         '''
-        import sys
         import os
         import shutil
 
@@ -463,7 +462,6 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         an error message.
 
         '''
-        import sys
         import os
         import shutil
 
@@ -531,7 +529,6 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
            >>> s.deleteTranslateDirectory()
 
         '''
-        import sys
         import os
         import shutil
 
