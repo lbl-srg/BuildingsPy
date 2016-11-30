@@ -6,6 +6,7 @@
 # MWetter@lbl.gov                            2011-02-23
 #######################################################
 from __future__ import division
+from __future__ import unicode_literals
 import sys
 import os
 from io import open

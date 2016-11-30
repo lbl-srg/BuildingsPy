@@ -5,7 +5,8 @@
 #
 # MWetter@lbl.gov                            2013-05-31
 #######################################################
-
+from __future__ import unicode_literals
+from io import open
 
 class Validator:
     ''' Class that validates ``.mo`` files for the correct html syntax.
@@ -77,7 +78,6 @@ Modelica package. Expected file '%s'."
 
         '''
         from tidylib import tidy_document
-        from io import open
         # Open file.
         f = open(moFile, mode="r", encoding="utf-8")
         lines = f.readlines()
