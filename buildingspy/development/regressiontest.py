@@ -5,7 +5,10 @@
 #
 # MWetter@lbl.gov                            2011-02-23
 #######################################################
+from __future__ import absolute_import
 from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
 import sys
 import os
 from io import open
@@ -542,9 +545,9 @@ class Tester:
 
           >>> import buildingspy.development.regressiontest as r
           >>> r.Tester.get_plot_variables('y = {"a", "b", "c"}')
-          ['a', 'b', 'c']
+          [u'a', u'b', u'c']
           >>> r.Tester.get_plot_variables('... x}, y = {"a", "b", "c"}, z = {...')
-          ['a', 'b', 'c']
+          [u'a', u'b', u'c']
           >>> r.Tester.get_plot_variables("y=abc") is None
           True
 

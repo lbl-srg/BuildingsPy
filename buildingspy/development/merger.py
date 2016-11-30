@@ -5,6 +5,13 @@
 #
 # MWetter@lbl.gov                            2014-04-15
 #######################################################
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+import os
+from io import open
+
 class Annex60:
     ''' Class that merges a Modelica library with the `Annex60` library.
 
@@ -22,7 +29,6 @@ class Annex60:
         :param annex60_dir: Directory where the `Annex60` library is located.
         :param dest_dir: Directory where the library to be updated is located.
         '''
-        import os
 
         # Check arguments
         def isValidLibrary(lib_home):
@@ -70,8 +76,6 @@ class Annex60:
         :param source_file: Name of the file to be copied.
         :param destination_file: Name of the new file.
         """
-        import os
-        from io import open
         import re
         import string
 
@@ -146,10 +150,7 @@ class Annex60:
                 >>> mer.merge()                            # doctest: +SKIP
 
         """
-        import os
-        from io import open
         import shutil
-
         import buildingspy.development.refactor as r
 
         # path where a list of all copied files is saved
