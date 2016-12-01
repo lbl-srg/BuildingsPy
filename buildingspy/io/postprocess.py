@@ -42,7 +42,7 @@ class Plotter:
             raise ValueError('NaN in time values of data.')
         if ((np.isnan(y)).any()):
             raise ValueError('NaN in function values of data.')
-        if len(t) <> len(y):
+        if len(t) != len(y):
             raise ValueError('len(t) = %d but len(y) = %d, they must be equal.' % (len(t), len(y)))
         # Numpy needs t to be strictly increasing, but Dymola may have the same time stamps
         # more than once.

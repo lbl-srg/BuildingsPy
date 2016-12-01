@@ -14,6 +14,7 @@
   * rewrite the `package.order` file.
 
 '''
+from __future__ import print_function
 import os
 
 __all__ = ["create_modelica_package", "move_class", "write_package_order"]

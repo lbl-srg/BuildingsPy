@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 import unittest
 
 class Test_development_merger_Annex60(unittest.TestCase):
