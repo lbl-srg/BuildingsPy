@@ -6,7 +6,6 @@ from __future__ import division
 from builtins import str
 from builtins import range
 from builtins import object
-from past.utils import old_div
 class Simulator(object):
     """Class to simulate a Modelica model.
 
@@ -807,7 +806,7 @@ end if;
                             pro.kill()
                     else:
                         if self._showProgressBar:
-                            fractionComplete = old_div(float(elapsedTime),float(timeout))
+                            fractionComplete = float(elapsedTime)/float(timeout)
                             self._printProgressBar(fractionComplete)
 
             else:

@@ -2,7 +2,6 @@
 from __future__ import division
 from builtins import range
 from builtins import object
-from past.utils import old_div
 from buildingspy.thirdParty.dymat.DyMat import DyMatFile
 
 def get_model_statistics(log_file, simulator):
@@ -278,7 +277,7 @@ class Reader(object):
            -21.589191160164773
         '''
         t=self.values(varName)[0]
-        r = old_div(self.integral(varName),(max(t)-min(t)))
+        r = self.integral(varName)/(max(t)-min(t))
         return r
 
     def min(self, varName):
