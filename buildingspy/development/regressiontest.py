@@ -7,6 +7,14 @@
 #######################################################
 from __future__ import division
 from __future__ import print_function
+from future import standard_library
+standard_library.install_aliases()
+from builtins import zip
+from builtins import map
+from builtins import str
+from builtins import input
+from builtins import range
+from builtins import object
 import sys
 import os
 
@@ -48,7 +56,7 @@ def runSimulation(worDir, cmd):
         sys.stderr.write("Users stopped simulation in %s.\n" % worDir)
 
 
-class Tester:
+class Tester(object):
     ''' Class that runs all regression tests using Dymola.
 
     Initiate with the following optional arguments:
@@ -1047,7 +1055,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         retVal = "%.20f" % value
         # Cut trailing zeros to avoid output such as 1.0000000
         i = len(retVal)-1;
-        for pos in xrange(i, 0, -1):
+        for pos in range(i, 0, -1):
             if retVal[pos] != '0':
                 i = pos+1
                 break
@@ -1079,7 +1087,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             # written twice to the reference data file.
             s = set()
             for pai in y_sim:
-                for k, v in pai.items():
+                for k, v in list(pai.items()):
                     if k not in s:
                         s.add(k)
                         f.write(k + '=')
@@ -1171,7 +1179,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             sys.stdout.write("             for %s\n" % refFilNam)
             sys.stdout.write("             Accept new results?\n")
             while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
-                ans = raw_input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
+                ans = input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
             if ans == "y" or ans == "Y":
                 # update the flag
                 updateReferenceData = True
@@ -1269,7 +1277,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                     foundError = True
                     while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
                         print("             Accept new results and update reference file in library?")
-                        ans = raw_input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
+                        ans = input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
                     if ans == "y" or ans == "Y":
                         # Write results to reference file
                         updateReferenceData = True
@@ -1277,7 +1285,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
 
             # The time interval is the same for the stored and the current data.
             # Check the accuracy of the simulation.
-            for varNam in pai.keys(): # Iterate over the variable names that are to be plotted together
+            for varNam in list(pai.keys()): # Iterate over the variable names that are to be plotted together
                 if varNam != 'time':
                     if varNam in y_ref:
                         # Check results
@@ -1329,7 +1337,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                 color=['k', 'r', 'b', 'g', 'c', 'm']
                 iPai = -1
                 t_sim = pai['time']
-                for varNam in pai.keys():
+                for varNam in list(pai.keys()):
                     iPai += 1
                     if iPai > len(color)-1:
                         iPai = 0
@@ -1377,7 +1385,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             self._figSize=gcf.get_size_inches()
 
             while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
-                ans = raw_input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
+                ans = input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
             if ans == "y" or ans == "Y":
                 # update the flag
                 updateReferenceData = True
@@ -1434,7 +1442,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             print("*** Warning: Reference file {} does not yet exist.".format(reference_file_name))
             while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
                 print("             Create new file?")
-                ans = raw_input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
+                ans = input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
             if ans == "y" or ans == "Y":
                 self._writeReferenceResults(abs_ref_fil_nam, None, y_tra)
                 self._reporter.writeWarning("*** Warning: Wrote new reference file %s." %
@@ -1457,7 +1465,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             if found_differences:
                 while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
                     print("             Rewrite file?")
-                    ans = raw_input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
+                    ans = input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
                 if ans == "y" or ans == "Y":
                     self._writeReferenceResults(abs_ref_fil_nam, None, y_tra)
                     self._reporter.writeWarning("*** Warning: Rewrote reference file %s due to new FMU statistics." %
@@ -1470,7 +1478,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             print("*** Warning: Reference file {} has no FMU statistics.".format(reference_file_name))
             while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
                 print("             Rewrite file?")
-                ans = raw_input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
+                ans = input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
             if ans == "y" or ans == "Y":
                 self._writeReferenceResults(abs_ref_fil_nam, None, y_tra)
                 self._reporter.writeWarning("*** Warning: Rewrote reference file %s as the old one had no FMU statistics." %
@@ -1606,7 +1614,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                         print("*** Warning: Reference file {} does not yet exist.".format(refFilNam))
                         while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
                             print("             Create new file?")
-                            ans = raw_input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
+                            ans = input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
                         if ans == "y" or ans == "Y":
                             updateReferenceData = True
                     if updateReferenceData:    # If the reference data of any variable was updated
@@ -1658,7 +1666,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             else:
                 key = 'FMUExport'
 
-            for k, v in self._error_dict.get_dictionary().iteritems():
+            for k, v in self._error_dict.get_dictionary().items():
                 if ele[key][k] > 0:
                     self._reporter.writeWarning(v["model_message"].format(ele[key]["command"]))
                     self._error_dict.increment_counter(k)
@@ -1671,7 +1679,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             print("Number of models that failed to export as an FMU             : {}".format(iFMU))
 
         # Write summary messages
-        for _, v in self._error_dict.get_dictionary().iteritems():
+        for _, v in self._error_dict.get_dictionary().items():
             counter = v['counter']
             if counter > 0:
                 print(v['summary_message'].format(counter))
@@ -1800,7 +1808,7 @@ iJac=sum(Modelica.Utilities.Strings.count(lines, "Number of numerical Jacobians:
             runFil.write(template.format(**values))
 
             # Do the other tests
-            for _, v in self._error_dict.get_dictionary().iteritems():
+            for _, v in self._error_dict.get_dictionary().items():
                 template = r"""  {}=sum(Modelica.Utilities.Strings.count(lines, "{}"));
 """
                 runFil.write(template.format(v["buildingspy_var"], v["tool_message"]))
@@ -1808,7 +1816,7 @@ iJac=sum(Modelica.Utilities.Strings.count(lines, "Number of numerical Jacobians:
 
         def _write_translation_stats(runFil, values):
 
-            for k, v in self._error_dict.get_dictionary().iteritems():
+            for k, v in self._error_dict.get_dictionary().items():
                 if k != "numerical Jacobians":
                     template = r"""
 Modelica.Utilities.Streams.print("        \"{}\"  : " + String({}) + ",", "{}");"""
@@ -2190,7 +2198,7 @@ getErrorString();
                 po = multiprocessing.Pool(self._nPro)
                 po.map(functools.partial(runSimulation,
                                          cmd=cmd),
-                       map(lambda x: os.path.join(x, libNam), self._temDir))
+                       [os.path.join(x, libNam) for x in self._temDir])
             else:
                 runSimulation(os.path.join(self._temDir[0], libNam), cmd)
 
@@ -2355,7 +2363,7 @@ getErrorString();
         import shutil
         import sys
 
-        from cStringIO import StringIO
+        from io import StringIO
 
         if number < 0:
             number = 1e15
@@ -2452,16 +2460,16 @@ getErrorString();
         :param simulate: Set to ``True`` to cause the model to be simulated.
         """
 
-        count_cmpl = lambda x: [True for _, v in x.items()
+        count_cmpl = lambda x: [True for _, v in list(x.items())
                                 if v['compilation_ok']]
-        list_failed_cmpl = lambda x: [k for k, v in x.items()
+        list_failed_cmpl = lambda x: [k for k, v in list(x.items())
                                       if not v['compilation_ok']]
-        count_load = lambda x: [True for _, v in x.items() if v['load_ok']]
-        list_failed_load = lambda x: [k for k, v in x.items()
+        count_load = lambda x: [True for _, v in list(x.items()) if v['load_ok']]
+        list_failed_load = lambda x: [k for k, v in list(x.items())
                                       if not v['load_ok']]
 
-        count_sim = lambda x: [True for _, v in x.items() if v['sim_ok']]
-        list_failed_sim = lambda x: [k for k, v in x.items()
+        count_sim = lambda x: [True for _, v in list(x.items()) if v['sim_ok']]
+        list_failed_sim = lambda x: [k for k, v in list(x.items())
                                       if not v['sim_ok']]
 
         nbr_tot = len(self._jmstats)

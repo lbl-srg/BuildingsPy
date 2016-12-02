@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from builtins import range
 import unittest
 
 class Test_development_error_dictionary(unittest.TestCase):

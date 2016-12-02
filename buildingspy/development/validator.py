@@ -7,7 +7,9 @@
 #######################################################
 
 
-class Validator:
+from builtins import range
+from builtins import object
+class Validator(object):
     ''' Class that validates ``.mo`` files for the correct html syntax.
     '''
     def __init__(self):

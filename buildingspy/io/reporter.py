@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
 
-class Reporter:
+from builtins import object
+class Reporter(object):
     ''' Class that is used to report errors.
     '''
 

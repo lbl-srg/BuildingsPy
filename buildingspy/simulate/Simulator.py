@@ -2,6 +2,11 @@
 
 
 from __future__ import print_function
+from __future__ import division
+from builtins import str
+from builtins import range
+from builtins import object
+from past.utils import old_div
 class Simulator(object):
     """Class to simulate a Modelica model.
 
@@ -188,7 +193,7 @@ class Simulator(object):
            >>> s.getParameters()
            [('valve.m_flow_nominal', 0.1), ('PID.k', 1.0)]
         '''
-        return self._parameters_.items()
+        return list(self._parameters_.items())
 
     def getOutputDirectory(self):
         '''Returns the name of the output directory.
@@ -802,7 +807,7 @@ end if;
                             pro.kill()
                     else:
                         if self._showProgressBar:
-                            fractionComplete = float(elapsedTime)/float(timeout)
+                            fractionComplete = old_div(float(elapsedTime),float(timeout))
                             self._printProgressBar(fractionComplete)
 
             else:
@@ -874,7 +879,7 @@ end if;
                 return repr(arg)
         dec = list()
 
-        for k, v in self._parameters_.items():
+        for k, v in list(self._parameters_.items()):
             # Dymola requires vectors of parameters to be set in the format
             # p = {1, 2, 3} rather than in the format of python arrays, which
             # is p = [1, 2, 3].
@@ -919,7 +924,7 @@ end if;
         actual_res = Reader(os.path.join(self._outputDir_,
                               self._simulator_['resultFile'])+'.mat',
                               'dymola')
-        for key, value in self._parameters_.iteritems():
+        for key, value in self._parameters_.items():
             if isinstance(value, list): # lists
                 for index, val in enumerate(value):
                     key_string = key + '['+ str(index+1) + ']'

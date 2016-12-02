@@ -1,7 +1,12 @@
 #!/usr/bin/env python
 
 
-class Plotter:
+from __future__ import division
+from builtins import str
+from builtins import range
+from builtins import object
+from past.utils import old_div
+class Plotter(object):
     """
        This class contains static methods that can be used to create plots.
        For an example of a simple plot, see also the example
@@ -49,7 +54,7 @@ class Plotter:
         # If the last points are for the same time stamp, we remove them from the interpolation
         iMax = len(t)-1
         maxT=max(t)
-        dT = (maxT-min(t))/float(iMax)
+        dT = old_div((maxT-min(t)),float(iMax))
         while t[iMax] <= t[iMax-1]:
             iMax = iMax-1
 
@@ -200,7 +205,7 @@ class Plotter:
         # Make equidistant grid for the whole simulation period, such as 0, 1, ... 47
         # for two days
         tMax=max(t)
-        tGrid=np.linspace(0, tMax-increment, num=round(tMax/increment))
+        tGrid=np.linspace(0, tMax-increment, num=round(old_div(tMax,increment)))
 
         # Interpolate to hourly time stamps
         yGrid=Plotter.interpolate(tGrid, t, y)
@@ -212,7 +217,7 @@ class Plotter:
 
         tMaxPlot = nIncrement
         yStacked=np.reshape(yPer, (-1, tMaxPlot))
-        plt.boxplot(yStacked, positions=range(tMaxPlot),
+        plt.boxplot(yStacked, positions=list(range(tMaxPlot)),
                     notch=notch,
                     sym=sym, vert=vert, whis=whis,
                     widths=widths,

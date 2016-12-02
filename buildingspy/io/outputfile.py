@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+from __future__ import division
+from builtins import range
+from builtins import object
+from past.utils import old_div
 from buildingspy.thirdParty.dymat.DyMat import DyMatFile
 
 def get_model_statistics(log_file, simulator):
@@ -144,7 +148,7 @@ def get_errors_and_warnings(log_file, simulator):
         ret["errors"]=listErr  
         return ret
     
-class Reader:
+class Reader(object):
     """Open the file ``fileName`` and parse its content.
 
     :param fileName: The name of the file.
@@ -274,7 +278,7 @@ class Reader:
            -21.589191160164773
         '''
         t=self.values(varName)[0]
-        r = self.integral(varName)/(max(t)-min(t))
+        r = old_div(self.integral(varName),(max(t)-min(t)))
         return r
 
     def min(self, varName):

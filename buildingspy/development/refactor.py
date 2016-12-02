@@ -15,6 +15,7 @@
 
 '''
 from __future__ import print_function
+from builtins import range
 import os
 
 __all__ = ["create_modelica_package", "move_class", "write_package_order"]

@@ -7,7 +7,8 @@
 # MWetter@lbl.gov                            2015-11-17
 #######################################################
 
-class ErrorDictionary:
+from builtins import object
+class ErrorDictionary(object):
     ''' Class that contains data fields needed for the
         error checking of the regression tests.
 
@@ -147,7 +148,7 @@ class ErrorDictionary:
         """ Return a copy of the tool messages as a list.
         """
         ret = list()
-        keys = self.keys()
+        keys = list(self.keys())
         for key in keys:
             ret.append(self._error_dict[key]['tool_message'])
         return ret
