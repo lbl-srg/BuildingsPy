@@ -3,6 +3,8 @@ BuildingsPy Changelog
 
 Version 1.5.1, xxxx -- Release 1.5
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- In simulate.Simulator, changed quotes of string arguments for
+  Modelica parameters.
 - In development.regressiontest, added check for redundant connections.
 - Updated buildingspy.development.refactor.move_class()
   to allow moving whole packages.

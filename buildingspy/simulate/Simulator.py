@@ -866,7 +866,7 @@ end if;
             """
             # Check for strings and booleans
             if isinstance(arg, str):
-                return repr(arg)
+                return '\\"' + arg + '\\"'
             elif isinstance(arg, bool):
                 if arg is True:
                     return 'true'
