@@ -3,7 +3,10 @@ python:
   - "2.7"
   - "3.5"
 # command to install dependencies
+before_install:
+  - sudo apt-get python-scipy
+- pip install scipy
 install:
-  - pip install --only-binary=numpy,scipy numpy scipy future pytidylib gitpython
+  - pip install future pytidylib gitpython
 # command to run tests
 script: make doctest
