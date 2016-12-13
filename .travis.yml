@@ -7,6 +7,6 @@ before_install:
   - sudo apt-get python-scipy
 - pip install scipy
 install:
-  - pip install future pytidylib gitpython
+  - pip install future gitpython pytidylib
 # command to run tests
 script: make doctest
