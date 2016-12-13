@@ -16,5 +16,8 @@ install:
   - pip install .
 # command to run tests
 script: 
-#- make doctest
+# - make doctest
+  - python buildingspy/tests/test_development_error_dictionary.py
+  - python buildingspy/tests/test_development_regressiontest.py
   - python buildingspy/tests/test_development_Validator.py
+  - python buildingspy/tests/test_io_postprocess.py
