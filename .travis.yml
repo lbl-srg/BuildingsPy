@@ -5,6 +5,10 @@ python:
 notifications:
   email: false
 # command to install dependencies
+addons:
+  apt:
+    packages:
+    - tidy
 install:
   - pip install --upgrade pip setuptools wheel
   - pip install --only-binary=numpy,scipy,matplotlib numpy scipy matplotlib
