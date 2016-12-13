@@ -5,15 +5,9 @@ python:
 notifications:
   email: false
 # command to install dependencies
-addons:
-  apt:
-    packages:
-    - python-scipy
-    - tidy
-    - libblas-dev
-    - liblapack-dev
-    - gfortran
 install:
-  - pip install scipy future gitpython pytidylib
+  - pip install --upgrade pip setuptools wheel
+  - pip install --only-binary=numpy,scipy numpy scipy
+  - pip install future gitpython pytidylib
 # command to run tests
 script: make doctest
