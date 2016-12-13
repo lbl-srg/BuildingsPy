@@ -11,6 +11,6 @@ addons:
     - python-scipy
     - tidy
 install:
-  - pip install scipy future gitpython pytidylib
+  - pip install future gitpython pytidylib
 # command to run tests
 script: make doctest
