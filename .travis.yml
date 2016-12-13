@@ -10,4 +10,6 @@ install:
   - pip install --only-binary=numpy,scipy,matplotlib numpy scipy matplotlib
   - pip install future gitpython pytidylib
 # command to run tests
-script: make doctest
+script: 
+#- make doctest
+  - python buildingspy/tests/test_development_Validator.py
