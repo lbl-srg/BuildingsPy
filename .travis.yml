@@ -2,13 +2,14 @@ language: python
 python:
   - "2.7"
   - "3.5"
+notifications:
+  email: false
 # command to install dependencies
 addons:
   apt:
     packages:
     - python-scipy
     - tidy
-- graphviz
 install:
   - pip install future gitpython pytidylib
 # command to run tests
