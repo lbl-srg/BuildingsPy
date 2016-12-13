@@ -1,0 +1,28 @@
+language: python
+python:
+  - "2.7"
+  - "3.5"
+notifications:
+  email: false
+# command to install dependencies
+addons:
+  apt:
+    packages:
+    - tidy
+install:
+  - pip install --upgrade pip setuptools wheel
+  - pip install --only-binary=numpy,scipy,matplotlib numpy scipy matplotlib
+  - pip install future gitpython pytidylib
+  - pip install .
+# command to run tests
+script: 
+# - make doctest
+  - python buildingspy/tests/test_development_error_dictionary.py
+# - python buildingspy/tests/test_development_merger.py
+  - python buildingspy/tests/test_development_refactor.py
+# - python buildingspy/tests/test_development_regressiontest.py
+  - python buildingspy/tests/test_development_Validator.py
+# - python buildingspy/tests/test_examples_dymola.py
+  - python buildingspy/tests/test_io_outputfile.py
+  - python buildingspy/tests/test_io_postprocess.py
+# - python buildingspy/tests/test_simulate_Simulator.py
