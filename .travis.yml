@@ -4,6 +4,6 @@ python:
   - "3.5"
 # command to install dependencies
 install:
-  - pip install future pytidylib gitpython
+  - pip install future scipy pytidylib gitpython
 # command to run tests
 script: make doctest
