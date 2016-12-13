@@ -4,7 +4,6 @@ python:
   - "3.5"
 # command to install dependencies
 before_install:
-  - sudo apt-get -qq update
   - sudo apt-get install -y python-scipy tidy
 install:
   - pip install future gitpython pytidylib
