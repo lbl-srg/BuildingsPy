@@ -5,7 +5,7 @@ python:
 # command to install dependencies
 before_install:
   - sudo apt-get python-scipy
-- pip install scipy
+  - pip install scipy
 install:
   - pip install future gitpython pytidylib
 # command to run tests
