@@ -3,8 +3,12 @@ python:
   - "2.7"
   - "3.5"
 # command to install dependencies
-before_install:
-  - sudo apt-get install -y python-scipy tidy
+addons:
+  apt:
+    packages:
+    - python-scipy
+    - tidy
+- graphviz
 install:
   - pip install future gitpython pytidylib
 # command to run tests
