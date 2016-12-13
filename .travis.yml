@@ -10,7 +10,10 @@ addons:
     packages:
     - python-scipy
     - tidy
+    - libblas-dev
+    - liblapack-dev
+    - gfortran
 install:
-  - pip install future gitpython pytidylib
+  - pip install scipy future gitpython pytidylib
 # command to run tests
 script: make doctest
