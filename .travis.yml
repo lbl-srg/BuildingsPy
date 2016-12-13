@@ -3,6 +3,9 @@ python:
   - "2.7"
   - "3.5"
 # command to install dependencies
+before_install:
+  - - sudo apt-get build-dep python-scipy
+  - pip install scipy
 install:
   - pip install --user numpy scipy matplotlib ipython jupyter pandas sympy nose
   - pip install future gitpython pytidylib
