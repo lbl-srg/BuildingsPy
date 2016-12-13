@@ -18,7 +18,7 @@ install:
 script: 
 # - make doctest
   - python buildingspy/tests/test_development_error_dictionary.py
-  - python buildingspy/tests/test_development_merger.py
+# - python buildingspy/tests/test_development_merger.py
   - python buildingspy/tests/test_development_refactor.py
 # - python buildingspy/tests/test_development_regressiontest.py
   - python buildingspy/tests/test_development_Validator.py
