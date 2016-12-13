@@ -9,6 +9,7 @@ install:
   - pip install --upgrade pip setuptools wheel
   - pip install --only-binary=numpy,scipy,matplotlib numpy scipy matplotlib
   - pip install future gitpython pytidylib
+  - pip install .
 # command to run tests
 script: 
 #- make doctest
