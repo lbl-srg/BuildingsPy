@@ -7,7 +7,13 @@
 # MWetter@lbl.gov                            2015-11-17
 #######################################################
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+#from __future__ import unicode_literals
+
 from builtins import object
+
 class ErrorDictionary(object):
     ''' Class that contains data fields needed for the
         error checking of the regression tests.

@@ -5,7 +5,14 @@
 #
 # MWetter@lbl.gov                            2014-04-15
 #######################################################
+
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+#from __future__ import unicode_literals
+
 from builtins import object
+
 class Annex60(object):
     ''' Class that merges a Modelica library with the `Annex60` library.
 

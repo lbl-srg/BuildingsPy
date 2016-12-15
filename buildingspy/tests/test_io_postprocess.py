@@ -1,6 +1,13 @@
 #!/usr/bin/env python
+
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+#from __future__ import unicode_literals
+
 from builtins import map
 from builtins import range
+
 import unittest
 from buildingspy.io.postprocess import Plotter
 import numpy.testing
