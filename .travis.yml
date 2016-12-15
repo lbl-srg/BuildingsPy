@@ -2,6 +2,8 @@ language: python
 python:
   - "2.7"
   - "3.5"
+env:
+  - MPLBACKEND=agg
 notifications:
   email: false
 # command to install dependencies
@@ -20,7 +22,7 @@ script:
   - python -m doctest buildingspy/development/merger.py
   - python -m doctest buildingspy/development/refactor.py
 # - python -m doctest buildingspy/development/regressiontest.py
-  - python -m doctest buildingspy/development/validator.py
+  - python -m doctest -v buildingspy/development/validator.py
   - python -m doctest buildingspy/io/postprocess.py
 #
 # run selected unittests
