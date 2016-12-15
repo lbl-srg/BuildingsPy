@@ -2,9 +2,12 @@ language: python
 python:
   - "2.7"
   - "3.5"
+env:
+  - MPLBACKEND=agg
 notifications:
   email: false
-# command to install dependencies
+#
+# commands to install dependencies and the script itself
 addons:
   apt:
     packages:
@@ -14,9 +17,17 @@ install:
   - pip install --only-binary=numpy,scipy,matplotlib numpy scipy matplotlib
   - pip install future gitpython pytidylib
   - pip install .
-# command to run tests
+#
+# commands to run the tests
 script: 
-# - make doctest
+# run selected doctests
+  - python -m doctest buildingspy/development/merger.py
+  - python -m doctest buildingspy/development/refactor.py
+# - python -m doctest buildingspy/development/regressiontest.py
+  - python -m doctest buildingspy/development/validator.py
+  - python -m doctest buildingspy/io/postprocess.py
+#
+# run selected unittests
   - python buildingspy/tests/test_development_error_dictionary.py
 # - python buildingspy/tests/test_development_merger.py
   - python buildingspy/tests/test_development_refactor.py
