@@ -1,7 +1,13 @@
 #!/usr/bin/env python
+
+from __future__ import absolute_import
 from __future__ import division
+from __future__ import print_function
+#from __future__ import unicode_literals
+
 from builtins import range
 from builtins import object
+
 from buildingspy.thirdParty.dymat.DyMat import DyMatFile
 
 def get_model_statistics(log_file, simulator):
