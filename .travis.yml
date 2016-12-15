@@ -16,7 +16,14 @@ install:
   - pip install .
 # command to run tests
 script: 
-# - make doctest
+# run selected doctests
+  - python -m doctest buildingspy/development/merger.py
+  - python -m doctest buildingspy/development/refactor.py
+# - python -m doctest buildingspy/development/regressiontest.py
+  - python -m doctest buildingspy/development/validator.py
+  - python -m doctest buildingspy/io/postprocess.py
+#
+# run selected unittests
   - python buildingspy/tests/test_development_error_dictionary.py
 # - python buildingspy/tests/test_development_merger.py
   - python buildingspy/tests/test_development_refactor.py
