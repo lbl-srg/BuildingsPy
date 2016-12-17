@@ -16,9 +16,9 @@ def recursive_glob(rootdir='.', suffix=''):
                  and ("ConvertBuildings_from" not in filename)) ]
 
 
-mos_files = recursive_glob('../Annex60/Resources/Scripts/Dymola', '.mos')
+mos_files = recursive_glob('../Buildings/Resources/Scripts/Dymola', '.mos')
 
-mo_files = recursive_glob('../Annex60/', '.mo')
+mo_files = recursive_glob('../Buildings/', '.mo')
 
 # number of modified models
 N_modify_mos = 0
@@ -160,9 +160,10 @@ def fixParameters (name):
             pModel    = re.compile('simulateModel\("([^\(|^"]+)[\S]*"')
             mModel    = pModel.match(line)
             modelName = mModel.group(1)
-#             if ""+name+"="+name+"" in line.replace(" ", ""):
-#                 value = ""+name+""
-            if ""+name+"="+"" in line.replace(" ", ""):
+            if ""+name+"="+name+"" in line.replace(" ", ""):
+                 value = ""+name+""
+                 #mosToFixed.append(mos_file)
+            elif ""+name+"="+"" in line.replace(" ", ""):
                 # Old version, does not work with 86400*900
                 # pTime    = re.compile(r"[\d\S\s.,]*(stopTime=)([\d]*[.]*[\d]*[e]*[+|-]*[\d]*)")
                 pTime    = re.compile(r"[\d\S\s.,]*("+name+"=)([\d]*[.]*[\d]*[eE]*[+|-]*[\d]*[*]*[\d]*[.]*[\d]*[eE]*[+|-]*[\d]*)")
