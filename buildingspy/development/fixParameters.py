@@ -8,6 +8,7 @@
 
 import os
 import re
+import webbrowser
 
 def recursive_glob(rootdir='.', suffix=''):
     return [os.path.join(rootdir, filename) for rootdir, dirnames, 
@@ -121,31 +122,48 @@ def replace_resultfile(content, name, value, foundStop):
             return foundStop, content
 
 def replace_tolerance_intervals(content, name, value, mos_file):
-    if (""+name+"="+"" == "tolerance=" and float(value) > 1e-6):
+    if ("" + name + "=" + "" == "tolerance=" and float(value) > 1e-6):
         foundStop = False
-	#tolerance="1e-6"
-	consPar="1e-6"
-	foundStop, content = replace_content(content, name, value, consPar, foundStop)
-	value="1e-6"
-	#print "\t================================="
-	#rewrite = raw_input("\n\tARE YOU SURE TO REWRITE THE MOS (N/y)?")
-	#rewrite = raw_input("\n\tARE YOU SURE TO REWRITE THE MOS (N/y)?")
-	#rewrite = 'y'
-	#if rewrite == 'y':
-	write_file(mos_file, content)    
-    if (""+name+"="+"" == "numberOfIntervals=" and (float(value) != 0 and float(value) < 500)):
-	foundStop = False
-	#tolerance="1e-6"
-	consPar="500"
-	foundStop, content = replace_content(content, name, value, consPar, foundStop)
-	value="500"
-	#print "\t================================="
-	#rewrite = raw_input("\n\tARE YOU SURE TO REWRITE THE MOS (N/y)?")
-	#rewrite = raw_input("\n\tARE YOU SURE TO REWRITE THE MOS (N/y)?")
-	#rewrite = 'y'
-	#if rewrite == 'y':
-	write_file(mos_file, content)    
+        # tolerance="1e-6"
+        consPar = "1e-6"
+        foundStop, content = replace_content(content, name, value, consPar, foundStop)
+        value = "1e-6"
+        # print "\t================================="
+        # rewrite = raw_input("\n\tARE YOU SURE TO REWRITE THE MOS (N/y)?")
+        # rewrite = raw_input("\n\tARE YOU SURE TO REWRITE THE MOS (N/y)?")
+        # rewrite = 'y'
+        # if rewrite == 'y':
+        write_file(mos_file, content)    
+    if ("" + name + "=" + "" == "numberOfIntervals=" and (float(value) != 0 and float(value) < 500)):
+        foundStop = False
+        # tolerance="1e-6"
+        consPar = "500"
+        foundStop, content = replace_content(content, name, value, consPar, foundStop)
+        value = "500"
+        # print "\t================================="
+        # rewrite = raw_input("\n\tARE YOU SURE TO REWRITE THE MOS (N/y)?")
+        # rewrite = raw_input("\n\tARE YOU SURE TO REWRITE THE MOS (N/y)?")
+        # rewrite = 'y'
+        # if rewrite == 'y':
+        write_file(mos_file, content)    
 
+
+def rewrite_file (mos_file):
+    #print "\t================================="
+    rewrite = raw_input("\n\tFound mos_file: " + str(mos_file) 
+                +" with invalid entries (e.g. startTime=startTime, stopTime=stopTime)."
+                +" Do you want to correct them now (Y/N)?" 
+                + "Make sure that these variables are not used in the createPlot() command.")
+    #print
+    rewrite = 'y'
+    if rewrite == 'y':
+        mosToFixed.append(mos_file)
+        webbrowser.open(mos_file)
+        print "Please re-run the conversion script."
+        exit()
+    if rewrite == 'N':
+        print "Please correct the mos file" + str(mos_file) + " before proceeding."
+        exit() 
 
 # Number of .mos files
 N_mos_files = len(mos_files)
@@ -192,8 +210,9 @@ def fixParameters (name):
             mModel    = pModel.match(line)
             modelName = mModel.group(1)
             if ""+name+"="+name+"" in line.replace(" ", ""):
-                 value = ""+name+""
-                 mosToFixed.append(mos_file)
+                value = ""+name+""
+                #print "\t================================="
+                rewrite_file(mos_file)
             if ""+name+"="+"" in line.replace(" ", ""):
                 # Old version, does not work with 86400*900
                 # pTime    = re.compile(r"[\d\S\s.,]*(stopTime=)([\d]*[.]*[\d]*[e]*[+|-]*[\d]*)")
@@ -217,9 +236,10 @@ def fixParameters (name):
                         value = mTime.group(2)
                         replace_tolerance_intervals(content, name, value, mos_file)  
                         #startTime = startTime[:-1]
-                    #if ""+name+"="+name+"" in line.replace(" ", ""):
-                    #    value = ""+name+""
-                            
+                    if ""+name+"="+name+"" in line.replace(" ", ""):
+                        value = ""+name+""
+                        #print "\t================================="
+                        rewrite_file(mos_file)
                 if found == False:
                     if (name=="startTime"):
                         #print "\t"+ name + " not found, defined the default startTime=0.0"
@@ -248,7 +268,7 @@ def fixParameters (name):
                     #if rewrite == 'y':
                     write_file(mos_file, content) 
                     
-		            #print "\tNew mos script is available!"
+                    #print "\tNew mos script is available!"
                     N_modify_mos += 1    
     
             #print "\t" + name + ": " +str(value)
@@ -400,8 +420,20 @@ def fixParameters (name):
     
 if __name__ == "__main__":
 
+    # First run 
     for i in ["stopTime", "tolerance", "startTime", "numberOfIntervals"]:
     #for i in ["stopTime"]:
+        fixParameters(i)
+        print "Fixing ***"  + str(i) + "*** in the Modelica files."
+        print "\n* Number of mos files = "+str(len(mos_files))
+        print "\n* Number of modified mo = "+str(N_modify_models) 
+        print "\n* Number of modified mos = "+str(N_modify_mos)
+        print "\n* Number of mos scripts with problems = "+str(N_mos_problems)
+        print "\n"
+    
+    # Second run
+    for i in ["stopTime", "tolerance", "startTime", "numberOfIntervals"]:
+        #for i in ["stopTime"]:
         fixParameters(i)
         print "Fixing ***"  + str(i) + "*** in the Modelica files."
         print "\n* Number of mos files = "+str(len(mos_files))
