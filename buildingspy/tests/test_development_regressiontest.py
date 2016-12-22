@@ -1,7 +1,14 @@
 #!/usr/bin/env python
+
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+#from __future__ import unicode_literals
+
+from builtins import range
+
 import unittest
 import os
-
 
 # To run this test, navigate to the BuildingsPy folder, then type
 # python buildingspy/tests/test_development_regressiontest.py

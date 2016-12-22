@@ -14,7 +14,13 @@
   * rewrite the `package.order` file.
 
 '''
+from __future__ import absolute_import
+from __future__ import division
 from __future__ import print_function
+#from __future__ import unicode_literals
+
+from builtins import range
+
 import os
 
 __all__ = ["create_modelica_package", "move_class", "write_package_order"]

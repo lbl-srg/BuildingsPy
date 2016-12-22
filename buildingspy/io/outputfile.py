@@ -1,4 +1,13 @@
 #!/usr/bin/env python
+
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+#from __future__ import unicode_literals
+
+from builtins import range
+from builtins import object
+
 from buildingspy.thirdParty.dymat.DyMat import DyMatFile
 
 def get_model_statistics(log_file, simulator):
@@ -144,7 +153,7 @@ def get_errors_and_warnings(log_file, simulator):
         ret["errors"]=listErr  
         return ret
     
-class Reader:
+class Reader(object):
     """Open the file ``fileName`` and parse its content.
 
     :param fileName: The name of the file.

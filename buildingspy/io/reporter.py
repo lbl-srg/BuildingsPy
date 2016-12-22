@@ -1,7 +1,13 @@
 #!/usr/bin/env python
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+#from __future__ import unicode_literals
 
-class Reporter:
+from builtins import object
+
+class Reporter(object):
     ''' Class that is used to report errors.
     '''
 

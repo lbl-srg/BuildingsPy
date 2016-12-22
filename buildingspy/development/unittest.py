@@ -5,8 +5,13 @@
 #
 # MWetter@lbl.gov                            2011-02-23
 #######################################################
-import buildingspy.development.regressiontest
 
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+#from __future__ import unicode_literals
+
+import buildingspy.development.regressiontest
 
 class Tester(buildingspy.development.regressiontest.Tester):
     ''' Class that runs all regression tests using Dymola.

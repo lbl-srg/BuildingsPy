@@ -1,4 +1,13 @@
 #!/usr/bin/env python
+
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+#from __future__ import unicode_literals
+
+from builtins import map
+from builtins import range
+
 import unittest
 from buildingspy.io.postprocess import Plotter
 import numpy.testing
@@ -14,17 +23,17 @@ class Test_io_Plotter(unittest.TestCase):
         Tests the :mod:`buildingspy.io.Plotter.interpolate`
         function.
         '''
-        t10 = range(10)
-        t100 = range(100)
+        t10 = list(range(10))
+        t100 = list(range(100))
         f = lambda x: 10+2*x
-        y10  = map(f, t10)
-        y100 = map(f, t100)
+        y10  = list(map(f, t10))
+        y100 = list(map(f, t100))
         y10Int = Plotter.interpolate(t10, t100, y100)
         numpy.testing.assert_allclose(y10, y10Int)
         # Add one more element to t100. This emulates an event
         # at t=10, in which case dymola adds two points
         t100.append(10)
-        y100=map(f, sorted(t100))
+        y100=list(map(f, sorted(t100)))
         y10Int = Plotter.interpolate(t10, sorted(t100), y100)
         numpy.testing.assert_allclose(y10, y10Int)
 
@@ -44,7 +53,7 @@ class Test_io_Plotter(unittest.TestCase):
         (tP, yP) = Plotter.convertToPeriodic(10, t, y)
         # Test whether the time vector is periodic
         for i in range(10):
-            numpy.testing.assert_allclose(tP[i*10:(i+1)*10], range(10))
+            numpy.testing.assert_allclose(tP[i*10:(i+1)*10], list(range(10)))
         # Test whether y remains unchanged
         numpy.testing.assert_allclose(y, yP)
         # Should raise an exception of t[0] != 0

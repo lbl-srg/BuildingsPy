@@ -5,7 +5,15 @@
 #
 # MWetter@lbl.gov                            2014-04-15
 #######################################################
-class Annex60:
+
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+#from __future__ import unicode_literals
+
+from builtins import object
+
+class Annex60(object):
     ''' Class that merges a Modelica library with the `Annex60` library.
 
         Both libraries need to have the same package structure.
@@ -87,7 +95,7 @@ class Annex60:
         f_sou = open(source_file, 'r')
         lines = list()
         for _, lin in enumerate(f_sou):
-            for ori, new in rep.iteritems():
+            for ori, new in rep.items():
                 lin = string.replace(lin, ori, new)
             lines.append(lin)
         f_sou.close

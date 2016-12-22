@@ -1,3 +1,12 @@
+#!/usr/bin/env python
+
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+#from __future__ import unicode_literals
+
+from builtins import range
+
 def main():
     ''' Main method that plots the results
     '''
@@ -26,7 +35,7 @@ def main():
     ax.plot(time2/3600, T2-273.15, 'b', label='$T_2$')
     ax.set_xlabel('time [h]')
     ax.set_ylabel('temperature [$^\circ$C]')
-    ax.set_xticks(range(25))
+    ax.set_xticks(list(range(25)))
     ax.set_xlim([0, 24])
     ax.legend()
     ax.grid(True)
@@ -36,7 +45,7 @@ def main():
     ax.plot(time2/3600, y2, 'b', label='$y_2$')
     ax.set_xlabel('time [h]')
     ax.set_ylabel('y [-]')
-    ax.set_xticks(range(25))
+    ax.set_xticks(list(range(25)))
     ax.set_xlim([0, 24])
     ax.legend()
     ax.grid(True)
