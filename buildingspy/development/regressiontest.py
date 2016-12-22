@@ -1970,7 +1970,7 @@ if Modelica.Utilities.Files.exist("{modelName}.dslog.log") then
   while (not endOfFile) loop
     (_line, endOfFile)=Modelica.Utilities.Streams.readLine("{modelName}.dslog.log", iLin);
     iLin=iLin+1;
-    iSuc=iSuc+Modelica.Utilities.Strings.count(line, "Integration terminated successfully");
+    iSuc=iSuc+Modelica.Utilities.Strings.count(_line, "Integration terminated successfully");
   end while;
   Modelica.Utilities.Streams.close("{modelName}.dslog.log");
 else
@@ -2011,7 +2011,7 @@ if Modelica.Utilities.Files.exist("{modelName}.dslog.log") then
   while (not endOfFile) loop
     (_line, endOfFile)=Modelica.Utilities.Streams.readLine("{modelName}.dslog.log", iLin);
     iLin=iLin+1;
-    iSuc=iSuc+Modelica.Utilities.Strings.count(line, "Created {FMUName}");
+    iSuc=iSuc+Modelica.Utilities.Strings.count(_line, "Created {FMUName}");
   end while;
   Modelica.Utilities.Streams.close("{modelName}.dslog.log");
 else
