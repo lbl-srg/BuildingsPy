@@ -132,6 +132,13 @@ class ErrorDictionary(object):
              'model_message'   : "\"inner Modelica.StateGraph.StateGraphRoot\" is missing in '{}'.\n",
              'summary_message' : "Number of models with missing StateGraphRoot                 : {}\n"}
 
+        self._error_dict["dynamic state selection"] = \
+            {'tool_message'    : "Dynamically selected continuous time states",
+             'counter'         : 0,
+             'buildingspy_var' : "iDynSelSta",
+             'model_message'   : "Dynamically selected continuous time states in '{}'.\n",
+             'summary_message' : "Number of models with dynamically selected continuous states : {}\n"}
+
 
     def get_dictionary(self):
         """ Return the dictionary with all error data
