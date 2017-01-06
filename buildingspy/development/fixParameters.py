@@ -54,7 +54,7 @@ def defect_mo_files(foundMos):
             if "tolerance=1" in l.lower():
                 found = True
                 break
-        i += 1
+            i += 1
         if found == False:
             moToFixed.append(newMofile)
         f.close()
