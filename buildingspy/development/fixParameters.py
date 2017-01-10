@@ -184,7 +184,7 @@ def replace_tolerance_intervals(content, name, value, mos_file):
 
 def rewrite_file (mos_file):
     #print("\t=================================")
-    print("ERROR: Found mos_file: {} with invalid entries such startTime=startTime or stopTime=startTime + stopTime.".format(str(mos_file)) )
+    print("ERROR: Found mos_file: {!s} with invalid entries such startTime=startTime or stopTime=startTime + stopTime.".format(mos_file)) 
     print("Please correct the mos file  and re-run the conversion script.")
     print("Make sure that these variables are also not used in the createPlot() command of the mos file.")
     exit()
@@ -200,7 +200,7 @@ def rewrite_file (mos_file):
 #         print("Please re-run the conversion script.")
 #         exit()
 #     if rewrite == 'N':
-#         print("Please correct the mos file {} before proceeding.".format(str(mos_file)))
+#         print("Please correct the mos file {!s} before proceeding.".format(mos_file))
 #         exit() 
 
 # Number of .mos files
@@ -221,7 +221,7 @@ def fixParameters (name):
     j = 1
     for mos_file in mos_files:
         os.system("clear")
-        #print("{}: {}".format(str(j),str(mos_file))
+        #print("{!s}: {!s}".format(j, mos_file))
         j += 1
         
         f = open(mos_file,"r")
@@ -236,7 +236,7 @@ def fixParameters (name):
                 found = True
             i += 1
         
-        #print("\n\tContains: {}".format(str(line))
+        #print("\n\tContains: {!s}".format(line))
         
         # The format is simulateModel("MODEL.PATH.NAME", xxx***, stopTime=#####.###, ***);
         
@@ -325,7 +325,7 @@ def fixParameters (name):
                 modelPath = modelName.replace(".", "/")
                 modelPath = "../"+modelPath+".mo"
             
-                #print("\n\tThe model is here: {}".format(str(modelPath)))
+                #print("\n\tThe model is here: {!s}".format(modelPath))
                 fm = open(modelPath,"r")
                 
                 modelContent = fm.readlines()
@@ -411,8 +411,8 @@ def fixParameters (name):
                                         pTime    = re.compile(r"[\d\S\s.,]*("+"StartTime"+"=)([\d]*[.]*[\d]*[eE]*[+|-]*[\d]*[*]*[\d]*[.]*[\d]*[eE]*[+|-]*[\d]*)")
                                         mTime    = pTime.match(line)
                                         val = mTime.group(2)
-                                        print(" This is the val {}".format(str (val)))
-                                        print(" This is the value {}".format(str (value)))
+                                        print(" This is the val {!s}".format(val))
+                                        print(" This is the value {!s}".format((value)))
                                         newLine = line.replace("StartTime="+"" + str(val), ""+capitalize_first(name)+"="+""+str(value))
                                         #print("\t REPLACE")
                                         #print("\t{}".format(line  ))
@@ -459,37 +459,37 @@ def fixParameters (name):
 if __name__ == "__main__":
         
     for k in range(N_Runs):
-        print("This is the {} run.".format(str(k + 1)))
+        print("This is the {!s} run.".format(k + 1))
         # First run 
         for i in ["stopTime", "tolerance", "startTime", "numberOfIntervals"]:
         # for i in ["stopTime"]:
             fixParameters(i)
-            print("Fixing ***{}*** in the Modelica files.".format(str(i)))
-            print("\n* Number of mos files = {}".format(str(len(mos_files))))
-            print("\n* Number of modified mo = {}".format(str(N_modify_models)))
-            print("\n* Number of modified mos = {}".format(str(N_modify_mos)))
-            print("\n* Number of mos scripts with defect_mos = {}".format(str(N_mos_defect)))
+            print("Fixing ***{!s}*** in the Modelica files.".format(i))
+            print("\n* Number of mos files = {!s}".format(len(mos_files)))
+            print("\n* Number of modified mo = {!s}".format(N_modify_models))
+            print("\n* Number of modified mos = {!s}".format(N_modify_mos))
+            print("\n* Number of mos scripts with defect_mos = {!s}".format(N_mos_defect))
             print("\n")
   
     print("*********DIAGNOSTICS***********")
     print("\n")
     n_files_tol_mos, n_files_fmus = number_occurences (mos_files, "mos")
 
-    print("Number of mos files found {}".format(str(len(mos_files))))
-    print(".mos files found with **tolerance** {}".format(str(n_files_tol_mos)))
-    print(".mos files found with **translateModelFMU** {}".format(str(n_files_fmus)))
-    print("Number of mos files expected with **tolerance** {}".format(str(len(mos_files) - n_files_fmus)))
-    print(".mos files with stopTime=stopTime {}".format(str(mosToFixed)))
-    print("Number of .mos files with stopTime=stopTime {}".format(str(mosToFixed)))
+    print("Number of mos files found {!s}".format(len(mos_files)))
+    print(".mos files found with **tolerance** {!s}".format(n_files_tol_mos))
+    print(".mos files found with **translateModelFMU** {!s}".format(n_files_fmus))
+    print("Number of mos files expected with **tolerance** {!s}".format(len(mos_files) - n_files_fmus))
+    print(".mos files with stopTime=stopTime {!s}".format(mosToFixed))
+    print("Number of .mos files with stopTime=stopTime {!s}".format(mosToFixed))
 
     n_files_tol_mo, n_files_fmus = number_occurences (mo_files, "mo")
     defect_mo = defect_mo_files(mosCorrect)
 
-    print(".mo files with **tolerance** {}".format(str(n_files_tol_mo)))
-    print(".mo files with missing **tolerances** {}".format(str(defect_mo)))
-    print("Number of .mo files with missing **tolerances** {}".format(str(len(defect_mo))))
+    print(".mo files with **tolerance** {!s}".format(n_files_tol_mo))
+    print(".mo files with missing **tolerances** {!s}".format(defect_mo))
+    print("Number of .mo files with missing **tolerances** {!s}".format(len(defect_mo)))
 
-    print("Number of .mo files with missing **experiment** annotation: {}".format(str(defect_mos)))
-    print("Number of .mo files with missing **experiment** annotation: {}".format(str(len(defect_mos))))
+    print("Number of .mo files with missing **experiment** annotation: {!s}".format(defect_mos))
+    print("Number of .mo files with missing **experiment** annotation: {!s}".format(len(defect_mos)))
 
     assert n_files_tol_mos - n_files_tol_mo == 0, "The number of .mo files with **tolerance** does not match the number of .mos scripts."
