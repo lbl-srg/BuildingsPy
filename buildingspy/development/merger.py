@@ -47,7 +47,7 @@ class Annex60(object):
 
         # --------------------------
         # Class variables
-        self._src_library_name = "Annex60"
+        self._src_library_name = os.path.basename(annex60_dir)
         self._annex60_home=annex60_dir
         self._target_home=dest_dir
         # Library name, such as Buildings
