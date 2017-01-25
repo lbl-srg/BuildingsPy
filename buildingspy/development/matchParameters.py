@@ -1,10 +1,13 @@
+#!/usr/bin/env python
+###########################################################################################
 # Python script for making sure that the simulation settings specified in the mos files
 # are the same as the ones used in the Experiment Annotation of the corresponding Modelica model.
-# The reason is because Dymola ignores the settings defined in the Experiment Annocation
-# when running the unit test
-# The .mos scripts are in the folder ../Buildings/Resources/Scripts/Dymola/...
-# look at every .mos script and identify the name of the model that is simulated in the
-# .mos file (typically these are examples)
+# The reason is because Dymola ignores the parameters defined in the Experiment Annotation
+# when running the simulateModel() command of the unit test
+#
+#
+# TSNouidui@lbl.gov                            2017-01-24
+##########################################################################################
 #
 
 import os
