@@ -268,17 +268,13 @@ def wrong_parameter (mos_file, name, value):
      
     if ("" + name + "=" + "" == "tolerance="):
         #print("\t=================================")
-        print("ERROR: Found mos_file: {!s} \
-               with a tolerance={!s} which is bigger than the maximum \
-               tolerance of 1e-6.".format(mos_file, value))
+        print("ERROR: Found mos_file: {!s} with a tolerance={!s} which is bigger than the maximum tolerance of 1e-6.".format(mos_file, value))
         print("The tolerance must be smaller or equal 1e-6 for JModelica.")
         print("Please correct the mos file  and re-run the conversion script.")
         exit()
     if ("" + name + "=" + "" == "numberOfIntervals="):
         #print("\t=================================")
-        print("ERROR: Found mos_file: {!s} \
-               with a numberOfIntervals={!s} which is bigger than 0 and \
-               smaller than the minimum of 500.""".format(mos_file, value))
+        print("ERROR: Found mos_file: {!s} with a numberOfIntervals={!s} which is bigger than 0 and smaller than the minimum of 500.""".format(mos_file, value))
         print("The numberOfIntervals must be bigger or equal than 500 for JModelica.")
         print("Please correct the mos file  and re-run the conversion script.")
         exit()
