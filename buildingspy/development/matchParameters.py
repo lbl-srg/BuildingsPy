@@ -1,13 +1,15 @@
 #!/usr/bin/env python
-###########################################################################################
-# Python script for making sure that the simulation settings specified in the mos files
-# are the same as the ones used in the Experiment Annotation of the corresponding Modelica model.
-# The reason is because Dymola ignores the parameters defined in the Experiment Annotation
-# when running the simulateModel() command of the unit test
-#
+###########################################################
+# Python script for making sure that the simulation 
+# settings specified in the mos files are the same 
+# as the ones used in the Experiment Annotation 
+# of the corresponding Modelica model.The reason is 
+# because Dymola ignores the parameters defined in 
+# the Experiment Annotation when running the simulateModel() 
+# command of the unit test
 #
 # TSNouidui@lbl.gov                            2017-01-24
-##########################################################################################
+###########################################################
 #
 
 from __future__ import absolute_import
