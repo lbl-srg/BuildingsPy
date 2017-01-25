@@ -635,5 +635,4 @@ def main():
 # 
 #     print "Number of .mo files with missing **experiment** annotation" + str(defect_mos)
 #     print "Number of .mo files with missing **experiment** annotation: " + str(len(defect_mos))
-
-    assert n_files_tol_mos - n_files_tol_mo == 0, "The number of .mo files with **tolerance** does not match the number of .mos scripts."
+#     assert n_files_tol_mos - n_files_tol_mo == 0, "The number of .mo files with **tolerance** does not match the number of .mos scripts."
