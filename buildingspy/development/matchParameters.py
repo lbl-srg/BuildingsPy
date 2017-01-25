@@ -1,10 +1,11 @@
-# Python script for managing the stopTime value between the .mos scripts and the annotation
-#
+# Python script for making sure that the simulation settings specified in the mos files
+# are the same as the ones used in the Experiment Annotation of the corresponding Modelica model.
+# The reason is because Dymola ignores the settings defined in the Experiment Annocation
+# when running the unit test
 # The .mos scripts are in the folder ../Buildings/Resources/Scripts/Dymola/...
 # look at every .mos script and identify the name of the model that is simulated in the
 # .mos file (typically these are examples)
 #
-# Once you know the model name,
 
 from __future__ import absolute_import
 from __future__ import division
@@ -13,7 +14,6 @@ from __future__ import print_function
 
 import os
 import re
-import webbrowser
 
 def recursive_glob(rootdir='.', suffix=''):
     return [os.path.join(rootdir, filename) for rootdir, dirnames, 
@@ -22,9 +22,15 @@ def recursive_glob(rootdir='.', suffix=''):
                  and ("ConvertBuildings_from" not in filename)) ]
 
 
-mos_files = recursive_glob('../Buildings/Resources/Scripts/Dymola', '.mos')
 
-mo_files = recursive_glob('../Buildings/', '.mo')
+# Get the path to the library
+libHome = os.path.abspath(".")
+
+# Ge the path to the mos files
+rootPackage = os.path.join(libHome, 'Resources', 'Scripts', 'Dymola')
+
+mos_files = recursive_glob(rootPackage, '.mos')
+mo_files = recursive_glob(libHome, '.mo')
 
 # number of modified models
 N_modify_mos = 0
@@ -41,11 +47,20 @@ mosToFixed=[]
 # mo files to fix
 moToFixed=[]
 
+# number of times script must run
 N_Runs = 2
 
+# number of valid mos files.
 mosCorrect=[]
 
 def defect_mo_files(foundMos):
+    """ 
+    Return a list of .mo files which do not have a Tolerance
+    in the experiment Annotation.
+
+    :param foundMos: List of mos files.
+
+     """
     
     for k in foundMos:
         newMofile = k.replace("/Resources/Scripts/Dymola", "")
@@ -66,10 +81,23 @@ def defect_mo_files(foundMos):
     return moToFixed
 
 def capitalize_first(name):
+    """ 
+    Capitalize the first letter of the given word.
+
+    :param name: Word to be capitalized.
+
+     """
     lst = [word[0].upper() + word[1:] for word in name.split()]
     return " ".join(lst)
 
 def write_file(mos_file, content):
+    """ 
+    Write new mos file.
+
+    :param mos_file: mos file name.
+    :param content: mos file content.
+
+     """
     
     # Delete the old file
     # print( "\tDeleting the old mos script...")
@@ -85,6 +113,13 @@ def write_file(mos_file, content):
     fm.close()
     
 def number_occurences(filPat, ext):
+    """ 
+    Count number of occurences of Tolerance=1.
+
+    :param filPat: file path.
+    :param ext: file extension.
+
+     """
     
     n_files_tol = 0
     n_files_fmus = 0
@@ -103,7 +138,7 @@ def number_occurences(filPat, ext):
                 found = True
                 n_files_tol += 1
                 if (ext=="mos"):
-                  mosCorrect.append(itr)
+                    mosCorrect.append(itr)
                 break
             if (ext=="mos"):
                 if ("translateModelFMU" in l):
@@ -113,6 +148,17 @@ def number_occurences(filPat, ext):
     return n_files_tol, n_files_fmus
 
 def replace_content(content, name, value, para, foundStop):
+    """ 
+    Replace content to a file.
+
+    :param content: file content.
+    :param name: variable name.
+    :param value: variable value.
+    :param para: parameter value.
+    :param foundStop: Flag to stop.
+
+     """
+
     # Delete the old file
     i=0
     while i < len(content):
@@ -128,6 +174,15 @@ def replace_content(content, name, value, para, foundStop):
     
 
 def replace_stoptime(content, name, value, foundStop):
+    """ 
+    Replace stopTime in file.
+
+    :param content: file content.
+    :param name: variable name.
+    :param value: variable value.
+    :param foundStop: Flag to stop.
+
+     """
     # Delete the old file
     i=0
     while i < len(content):
@@ -142,6 +197,15 @@ def replace_stoptime(content, name, value, foundStop):
             return foundStop, content
 
 def replace_resultfile(content, name, value, foundStop):
+    """ 
+    Replace resultFile in file.
+
+    :param content: file content.
+    :param name: variable name.
+    :param value: variable value.
+    :param foundStop: Flag to stop.
+
+     """
     # Delete the old file
     i=0
     while i < len(content):
@@ -156,37 +220,76 @@ def replace_resultfile(content, name, value, foundStop):
             return foundStop, content
 
 def replace_tolerance_intervals(content, name, value, mos_file):
+    """ 
+    Replace tolerance and numberOfIntervals in file.
+
+    :param content: file content.
+    :param name: variable name.
+    :param value: variable value.
+    :param mos_file: mos file.
+
+     """
     if ("" + name + "=" + "" == "tolerance=" and float(value) > 1e-6):
-        foundStop = False
-        # tolerance="1e-6"
-        consPar = "1e-6"
-        foundStop, content = replace_content(content, name, value, consPar, foundStop)
-        value = "1e-6"
-        # print("\t=================================")
-        # rewrite = raw_input("\n\tARE YOU SURE TO REWRITE THE MOS (N/y)?")
-        # rewrite = raw_input("\n\tARE YOU SURE TO REWRITE THE MOS (N/y)?")
-        # rewrite = 'y'
-        # if rewrite == 'y':
-        write_file(mos_file, content)    
+        wrong_parameter (mos_file, name, value)
+#         foundStop = False
+#         # tolerance="1e-6"
+#         consPar = "1e-6"
+#         foundStop, content = replace_content(content, name, value, consPar, foundStop)
+#         value = "1e-6"
+#         # print "\t================================="
+#         # rewrite = raw_input("\n\tARE YOU SURE TO REWRITE THE MOS (N/y)?")
+#         # rewrite = raw_input("\n\tARE YOU SURE TO REWRITE THE MOS (N/y)?")
+#         # rewrite = 'y'
+#         # if rewrite == 'y':
+#         write_file(mos_file, content)    
     if ("" + name + "=" + "" == "numberOfIntervals=" and (float(value) != 0 and float(value) < 500)):
-        foundStop = False
-        # tolerance="1e-6"
-        consPar = "500"
-        foundStop, content = replace_content(content, name, value, consPar, foundStop)
-        value = "500"
-        # print("\t=================================")
-        # rewrite = raw_input("\n\tARE YOU SURE TO REWRITE THE MOS (N/y)?")
-        # rewrite = raw_input("\n\tARE YOU SURE TO REWRITE THE MOS (N/y)?")
-        # rewrite = 'y'
-        # if rewrite == 'y':
-        write_file(mos_file, content)    
+        wrong_parameter (mos_file, name, value)
+#         foundStop = False
+#         # tolerance="1e-6"
+#         consPar = "500"
+#         foundStop, content = replace_content(content, name, value, consPar, foundStop)
+#         value = "500"
+#         # print "\t================================="
+#         # rewrite = raw_input("\n\tARE YOU SURE TO REWRITE THE MOS (N/y)?")
+#         # rewrite = raw_input("\n\tARE YOU SURE TO REWRITE THE MOS (N/y)?")
+#         # rewrite = 'y'
+#         # if rewrite == 'y':
+#         write_file(mos_file, content)    
 
 
-def rewrite_file (mos_file):
-    #print("\t=================================")
-    print("ERROR: Found mos_file: {!s} with invalid entries such startTime=startTime or stopTime=startTime + stopTime.".format(mos_file)) 
-    print("Please correct the mos file  and re-run the conversion script.")
-    print("Make sure that these variables are also not used in the createPlot() command of the mos file.")
+def wrong_parameter (mos_file, name, value):
+    """ 
+    Stop if invalid parameter is found.
+
+    :param mos_file: mos file.
+    :param name: parameter name.
+
+     """
+     
+    if ("" + name + "=" + "" == "tolerance="):
+        #print "\t================================="
+        print "ERROR: Found mos_file: " + str(mos_file) + \
+        " with a tolerance=" + str(value) + " which is bigger than the maximum tolerance of 1e-6." 
+        print "The tolerance must be smaller or equal 1e-6 for JModelica."
+        print "Please correct the mos file  and re-run the conversion script."
+        exit()
+    if ("" + name + "=" + "" == "numberOfIntervals="):
+        #print "\t================================="
+        print "ERROR: Found mos_file: " + str(mos_file) + \
+        " with a numberOfIntervals=" + str(value) + " which is bigger than 0 and " +\
+        " smaller than the minimum of 500." 
+        print "The numberOfIntervals must be bigger or equal than 500 for JModelica."
+        print "Please correct the mos file  and re-run the conversion script."
+        exit()
+
+
+def wrong_literal (mos_file):
+    """ 
+    Stop if wrong invalid literal is detected.
+
+    :param mos_file: mos file.
+
+     """
     exit()
 #     rewrite = raw_input("\n\tFound mos_file: " + str(mos_file) 
 #                 +" with invalid entries (e.g. startTime=startTime, stopTime=stopTime)."
@@ -207,6 +310,12 @@ def rewrite_file (mos_file):
 N_mos_files = len(mos_files)
 defect_mos=[]
 def fixParameters (name):
+    """ 
+    Fix parameter settings.
+
+    :param name: mos file.
+
+     """
 
     global N_modify_models
     global N_modify_mos
@@ -250,7 +359,7 @@ def fixParameters (name):
             if ""+name+"="+name+"" in line.replace(" ", ""):
                 value = ""+name+""
                 #print("\t=================================")
-                rewrite_file(mos_file)
+                wrong_literal(mos_file)
             if ""+name+"="+"" in line.replace(" ", ""):
                 # Old version, does not work with 86400*900
                 # pTime    = re.compile(r"[\d\S\s.,]*(stopTime=)([\d]*[.]*[\d]*[e]*[+|-]*[\d]*)")
@@ -277,7 +386,7 @@ def fixParameters (name):
                     if ""+name+"="+name+"" in line.replace(" ", ""):
                         value = ""+name+""
                         #print("\t=================================")
-                        rewrite_file(mos_file)
+                        wrong_literal(mos_file)
                 if found == False:
                     if (name=="startTime"):
                         #print("\t"+ name + " not found, defined the default startTime=0.0")
@@ -455,24 +564,21 @@ def fixParameters (name):
         
     #raw_input("\n\tContinue?")
     
-    
-if __name__ == "__main__":
-        
+def main():
     for k in range(N_Runs):
         print("This is the {!s} run.".format(k + 1))
-        # First run 
-        for i in ["stopTime", "tolerance", "startTime", "numberOfIntervals"]:
-        # for i in ["stopTime"]:
-            fixParameters(i)
-            print("Fixing ***{!s}*** in the Modelica files.".format(i))
-            print("\n* Number of mos files = {!s}".format(len(mos_files)))
-            print("\n* Number of modified mo = {!s}".format(N_modify_models))
-            print("\n* Number of modified mos = {!s}".format(N_modify_mos))
-            print("\n* Number of mos scripts with defect_mos = {!s}".format(N_mos_defect))
-            print("\n")
+    # First run 
+    for i in ["stopTime", "tolerance", "startTime", "numberOfIntervals"]:
+    # for i in ["stopTime"]:
+        fixParameters(i)
+        print "Fixing ***" + str(i) + "*** in the Modelica files."
+        print "\n* Number of mos files = " + str(len(mos_files))
+        print "\n* Number of modified mo = " + str(N_modify_models) 
+        print "\n* Number of modified mos = " + str(N_modify_mos)
+        print "\n* Number of mos scripts with defect_mos = " + str(N_mos_defect)
+        print "\n"
   
     print("*********DIAGNOSTICS***********")
-    print("\n")
     n_files_tol_mos, n_files_fmus = number_occurences (mos_files, "mos")
 
     print("Number of mos files found {!s}".format(len(mos_files)))
@@ -491,5 +597,41 @@ if __name__ == "__main__":
 
     print("Number of .mo files with missing **experiment** annotation: {!s}".format(defect_mos))
     print("Number of .mo files with missing **experiment** annotation: {!s}".format(len(defect_mos)))
+
+    assert n_files_tol_mos - n_files_tol_mo == 0, "The number of .mo files with **tolerance** does not match the number of .mos scripts."   
+# if __name__ == "__main__":
+#         
+#     for k in range(N_Runs):
+#         print "This is the " + str(k + 1) + " run."
+#         # First run 
+#         for i in ["stopTime", "tolerance", "startTime", "numberOfIntervals"]:
+#         # for i in ["stopTime"]:
+#             fixParameters(i)
+#             print "Fixing ***" + str(i) + "*** in the Modelica files."
+#             print "\n* Number of mos files = " + str(len(mos_files))
+#             print "\n* Number of modified mo = " + str(N_modify_models) 
+#             print "\n* Number of modified mos = " + str(N_modify_mos)
+#             print "\n* Number of mos scripts with defect_mos = " + str(N_mos_defect)
+#             print "\n"
+#   
+#     print "*********DIAGNOSTICS***********"  
+#     n_files_tol_mos, n_files_fmus = number_occurences (mos_files, "mos")
+# 
+#     print "Number of mos files found " + str (len(mos_files))
+#     print ".mos files found with **tolerance** " + str (n_files_tol_mos)
+#     print ".mos files found with **translateModelFMU** " + str (n_files_fmus)
+#     print "Number of mos files expected with **tolerance** " + str (len(mos_files) - n_files_fmus)
+#     print ".mos files with stopTime=stopTime " + str (mosToFixed)
+#     print "Number of .mos files with stopTime=stopTime " + str(mosToFixed)
+# 
+#     n_files_tol_mo, n_files_fmus = number_occurences (mo_files, "mo")
+#     defect_mo = defect_mo_files(mosCorrect)
+# 
+#     print ".mo files with **tolerance** " + str (n_files_tol_mo)
+#     print ".mo files with missing **tolerances** " + str (defect_mo)
+#     print "Number of .mo files with missing **tolerances** " + str (len(defect_mo))
+# 
+#     print "Number of .mo files with missing **experiment** annotation" + str(defect_mos)
+#     print "Number of .mo files with missing **experiment** annotation: " + str(len(defect_mos))
 
     assert n_files_tol_mos - n_files_tol_mo == 0, "The number of .mo files with **tolerance** does not match the number of .mos scripts."
