@@ -236,7 +236,7 @@ def replace_tolerance_intervals(content, name, value, mos_file):
 #         consPar = "1e-6"
 #         foundStop, content = replace_content(content, name, value, consPar, foundStop)
 #         value = "1e-6"
-#         # print "\t================================="
+#         # print("\t=================================")
 #         # rewrite = raw_input("\n\tARE YOU SURE TO REWRITE THE MOS (N/y)?")
 #         # rewrite = raw_input("\n\tARE YOU SURE TO REWRITE THE MOS (N/y)?")
 #         # rewrite = 'y'
@@ -249,7 +249,7 @@ def replace_tolerance_intervals(content, name, value, mos_file):
 #         consPar = "500"
 #         foundStop, content = replace_content(content, name, value, consPar, foundStop)
 #         value = "500"
-#         # print "\t================================="
+#         # print("\t=================================")
 #         # rewrite = raw_input("\n\tARE YOU SURE TO REWRITE THE MOS (N/y)?")
 #         # rewrite = raw_input("\n\tARE YOU SURE TO REWRITE THE MOS (N/y)?")
 #         # rewrite = 'y'
@@ -267,19 +267,20 @@ def wrong_parameter (mos_file, name, value):
      """
      
     if ("" + name + "=" + "" == "tolerance="):
-        #print "\t================================="
-        print "ERROR: Found mos_file: " + str(mos_file) + \
-        " with a tolerance=" + str(value) + " which is bigger than the maximum tolerance of 1e-6." 
-        print "The tolerance must be smaller or equal 1e-6 for JModelica."
-        print "Please correct the mos file  and re-run the conversion script."
+        #print("\t=================================")
+        print("""ERROR: Found mos_file: {!s}
+                 with a tolerance={!s} which is bigger than the maximum 
+                 tolerance of 1e-6.""".format(mos_file, value))
+        print("The tolerance must be smaller or equal 1e-6 for JModelica.")
+        print("Please correct the mos file  and re-run the conversion script.")
         exit()
     if ("" + name + "=" + "" == "numberOfIntervals="):
-        #print "\t================================="
-        print "ERROR: Found mos_file: " + str(mos_file) + \
-        " with a numberOfIntervals=" + str(value) + " which is bigger than 0 and " +\
-        " smaller than the minimum of 500." 
-        print "The numberOfIntervals must be bigger or equal than 500 for JModelica."
-        print "Please correct the mos file  and re-run the conversion script."
+        #print("\t=================================")
+        print("""ERROR: Found mos_file: {!s}
+                 with a numberOfIntervals={!s} which is bigger than 0 and 
+                 smaller than the minimum of 500.""".format(mos_file, value))
+        print("The numberOfIntervals must be bigger or equal than 500 for JModelica.")
+        print("Please correct the mos file  and re-run the conversion script.")
         exit()
 
 
@@ -571,12 +572,12 @@ def main():
     for i in ["stopTime", "tolerance", "startTime", "numberOfIntervals"]:
     # for i in ["stopTime"]:
         fixParameters(i)
-        print "Fixing ***" + str(i) + "*** in the Modelica files."
-        print "\n* Number of mos files = " + str(len(mos_files))
-        print "\n* Number of modified mo = " + str(N_modify_models) 
-        print "\n* Number of modified mos = " + str(N_modify_mos)
-        print "\n* Number of mos scripts with defect_mos = " + str(N_mos_defect)
-        print "\n"
+        print("Fixing ***{}*** in the Modelica files.".format(i))
+        print("\n* Number of mos files = {!s}".format(len(mos_files)))
+        print("\n* Number of modified mo = {!s}".format((N_modify_models)))
+        print("\n* Number of modified mos = {!s}".format((N_modify_mos)))
+        print("\n* Number of mos scripts with defect_mos = {!s}".format(N_mos_defect))
+        print("\n")
   
     print("*********DIAGNOSTICS***********")
     n_files_tol_mos, n_files_fmus = number_occurences (mos_files, "mos")
