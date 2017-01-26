@@ -848,14 +848,14 @@ class Tester(object):
         # Loop over all variables to find maximum length of time grid
         for pai in data['ResultVariables']: # pairs of variables that are plotted together
             for var in pai:
-              time = []
-              (time, val) = r.values(var)
-              if(len(time==2) and nCt < 1):
-                timeGrid=time
-                nCt=nCt+1
-              elif(len(time) > 2):
-                timeGrid=time
-                nCt=nCt+1
+                time = []
+                (time, val) = r.values(var)
+                if(len(time==2) and nCt < 1):
+                    timeGrid=time
+                    nCt=nCt+1
+                elif(len(time) > 2):
+                    timeGrid=time
+                    nCt=nCt+1
         for pai in data['ResultVariables']: # pairs of variables that are plotted together
             dat=dict()
             for var in pai:
@@ -934,15 +934,15 @@ class Tester(object):
         import numpy as np
         from buildingspy.io.postprocess import Plotter
 
-        def getTimeGrid(t, nPoi = self._nPoi):
-            if len(t) == 2:
-                return self._getTimeGrid(t[0], t[-1], nPoi)
-            elif len(t) == nPoi:
-                return t
-            else:
-                s = "The new time grid has %d points, but it must have 2 or %d points.\n\
-            Stop processing %s\n" % (len(tNew), nPoi, filNam)
-                raise ValueError(s)
+#         def getTimeGrid(t, nPoi = self._nPoi):
+#             if len(t) == 2:
+#                 return self._getTimeGrid(t[0], t[-1], nPoi)
+#             elif len(t) == nPoi:
+#                 return t
+#             else:
+#                 s = "The new time grid has %d points, but it must have 2 or %d points.\n\
+#             Stop processing %s\n" % (len(tNew), nPoi, filNam)
+#                 raise ValueError(s)
 
         if (abs(tOld[-1]-tNew[-1]) > 1E-5):
             msg = """The new results and the reference results have a different end time.
@@ -975,19 +975,45 @@ Skipping error checking for this variable.""" % (filNam, varNam, len(yOld), len(
             # whereas others only contain the first and last time stamp.
             # Hence, we make sure to have the right time grid before we
             # call the interpolation.
-            tGriOld = getTimeGrid(tOld, len(yNew))
-            tGriNew = getTimeGrid(tNew, min(len(yNew), self._nPoi))
-            try:
-                yInt = Plotter.interpolate(tGriOld, tGriNew, yNew)
-            except (IndexError, ValueError):
-                em = """Data series have different length:
-File=%s,
-variable=%s,
-len(tGriOld) = %d,
-len(tGriNew) = %d,
-len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
-                self._reporter.writeError(em)
-                raise ValueError(em)
+            
+            #Start Added by TSN
+            import pandas as pd
+            valNew = []
+            for i in range(len(tNew)):
+                valNew.append([tNew[i], yNew[i]])
+            
+            dfNew=pd.DataFrame(valNew, columns=['time', 'value'])
+            
+            valOld = []
+            for i in range(len(tOld)):
+                valNew.append([tOld[i], yOld[i]])
+            
+            dfOld=pd.DataFrame(valOld, columns=['time', 'value'])
+            
+            dfNew, dfOld = dfNew.align(dfOld)
+            
+            dfNew = dfNew.interpolate()
+            dfOld = dfOld.interpolate()
+            
+            tOld = dfOld['time']
+            yOld = dfOld['value']
+            tNew = dfNew['time']
+            yInt = dfNew['value']
+            #End Added by TSN
+            
+#             tGriOld = getTimeGrid(tOld, len(yNew))
+#             tGriNew = getTimeGrid(tNew, min(len(yNew), self._nPoi))
+#             try:
+#                 yInt = Plotter.interpolate(tGriOld, tGriNew, yNew)
+#             except (IndexError, ValueError):
+#                 em = """Data series have different length:
+# File=%s,
+# variable=%s,
+# len(tGriOld) = %d,
+# len(tGriNew) = %d,
+# len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
+#                 self._reporter.writeError(em)
+#                 raise ValueError(em)
         else:
             yInt = [yNew[0], yNew[0]]
 
@@ -1001,24 +1027,24 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         and len(yOld) != len(yInt):
             yInt = np.ones(len(yOld)) * yInt[0]
 
-        # Compute error for the variable with name varNam
-        if len(yOld) != len(yInt):
-            # If yOld has two points, by yInt has more points, then
-            # extrapolate yOld to nPoi
-            t = self._getTimeGrid(tOld[0], tOld[-1], self._nPoi)
-            if len(yOld) == 2 and len(yInt) == self._nPoi:
-                t = self._getTimeGrid(t[0], t[-1], self._nPoi)
-                yOld = Plotter.interpolate(t, tOld, yOld)
-            # If yInt has only two data points, but yOld has more, then interpolate yInt
-            elif len(yInt) == 2 and len(yOld) == self._nPoi:
-                yInt = Plotter.interpolate(t, [tOld[0], tOld[-1]], yInt)
-            else:
-                raise ValueError("""Program error, yOld and yInt have different lengths.
-  Result file : %s
-  Variable    : %s
-  len(yOld)=%d
-  len(yInt)=%d
-  Stop processing.""" % (filNam, varNam, len(yOld), len(yInt)))
+#         # Compute error for the variable with name varNam
+#         if len(yOld) != len(yInt):
+#             # If yOld has two points, by yInt has more points, then
+#             # extrapolate yOld to nPoi
+#             t = self._getTimeGrid(tOld[0], tOld[-1], self._nPoi)
+#             if len(yOld) == 2 and len(yInt) == self._nPoi:
+#                 t = self._getTimeGrid(t[0], t[-1], self._nPoi)
+#                 yOld = Plotter.interpolate(t, tOld, yOld)
+#             # If yInt has only two data points, but yOld has more, then interpolate yInt
+#             elif len(yInt) == 2 and len(yOld) == self._nPoi:
+#                 yInt = Plotter.interpolate(t, [tOld[0], tOld[-1]], yInt)
+#             else:
+#                 raise ValueError("""Program error, yOld and yInt have different lengths.
+#   Result file : %s
+#   Variable    : %s
+#   len(yOld)=%d
+#   len(yInt)=%d
+#   Stop processing.""" % (filNam, varNam, len(yOld), len(yInt)))
 
         errAbs=np.zeros(len(yInt))
         errRel=np.zeros(len(yInt))
@@ -1042,8 +1068,9 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                 if errFun[i] > eMax:
                     eMax = errFun[i]
                     iMax = i
-            tGri = self._getTimeGrid(tOld[0], tOld[-1], self._nPoi)
-            timMaxErr = tGri[iMax]
+            #tGri = self._getTimeGrid(tOld[0], tOld[-1], self._nPoi)
+            #timMaxErr = tGri[iMax]
+            timMaxErr = tOld[iMax]
             warning = filNam + ": " + varNam + " has absolute and relative error = " + \
                 ("%0.3e" % max(errAbs)) + ", " + ("%0.3e" % max(errRel)) + ".\n"
             if self._isParameter(yInt):
