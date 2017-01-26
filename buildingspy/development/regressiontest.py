@@ -977,6 +977,10 @@ Skipping error checking for this variable.""" % (filNam, varNam, len(yOld), len(
             # call the interpolation.
             
             #Start Added by TSN
+            
+            print ("This is tNew and yNew" + str([tNew, yNew]))
+            print ("This is tOld and yOld" + str([tOld, yOld]))
+            
             import pandas as pd
             valNew = []
             for i in range(len(tNew)):
@@ -986,7 +990,7 @@ Skipping error checking for this variable.""" % (filNam, varNam, len(yOld), len(
             
             valOld = []
             for i in range(len(tOld)):
-                valNew.append([tOld[i], yOld[i]])
+                valOld.append([tOld[i], yOld[i]])
             
             dfOld=pd.DataFrame(valOld, columns=['time', 'value'])
             
