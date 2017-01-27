@@ -976,11 +976,7 @@ Skipping error checking for this variable.""" % (filNam, varNam, len(yOld), len(
             # Hence, we make sure to have the right time grid before we
             # call the interpolation.
             
-            #Start Added by TSN
-            
-            print ("This is tNew and yNew" + str([tNew, yNew]))
-            print ("This is tOld and yOld" + str([tOld, yOld]))
-            
+            #Start Added by TSN            
             import pandas as pd
             valNew = []
             for i in range(len(tNew)):
@@ -1089,10 +1085,12 @@ Skipping error checking for this variable.""" % (filNam, varNam, len(yOld), len(
     def _isParameter(self, dataSeries):
         ''' Return `True` if `dataSeries` is from a parameter.
         '''
+        import pandas as pd
         import numpy as np
-        if not (isinstance(dataSeries, np.ndarray) or isinstance(dataSeries, list)):
-            raise TypeError("Program error: dataSeries must be a numpy.ndarr or a list. Received type " \
-                                + str(type(dataSeries)) + ".\n")
+        if not (isinstance(dataSeries, pd.Series) or isinstance(dataSeries, np.ndarray) 
+                                                                or isinstance(dataSeries, list)):
+            raise TypeError("Program error: dataSeries must be a pandas.Series or a numpy.ndarray." + \
+                            " Received type " + str(type(dataSeries)) + ".\n")
         return (len(dataSeries) == 2)
 
     def format_float(self, value):
@@ -1390,7 +1388,8 @@ Skipping error checking for this variable.""" % (filNam, varNam, len(yOld), len(
                             plt.plot([min(t_sim), max(t_sim)], pai[varNam],
                                      color[iPai] + '-', label='New ' + varNam)
                         else:
-                            plt.plot(self._getTimeGrid(t_sim[0], t_sim[-1], len(pai[varNam])),
+                            plt.plot(t_sim,
+                            #plt.plot(self._getTimeGrid(t_sim[0], t_sim[-1], len(pai[varNam])),
                                      pai[varNam],
                                      color[iPai] + '-', label='New ' + varNam)
 
@@ -1401,7 +1400,8 @@ Skipping error checking for this variable.""" % (filNam, varNam, len(yOld), len(
                                 plt.plot([min(t_ref), max(t_ref)], y_ref[varNam],
                                          color[iPai] + 'x', markersize=10, label='Old ' + varNam)
                             else:
-                                plt.plot(self._getTimeGrid(t_ref[0], t_ref[-1], len(y_ref[varNam])),
+                                plt.plot(t_ref,
+                                #plt.plot(self._getTimeGrid(t_ref[0], t_ref[-1], len(y_ref[varNam])),
                                          y_ref[varNam],
                                          color[iPai] + '.', label='Old ' + varNam)
                         # Plot the location of the maximum error
