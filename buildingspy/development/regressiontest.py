@@ -976,30 +976,16 @@ Skipping error checking for this variable.""" % (filNam, varNam, len(yOld), len(
             # Hence, we make sure to have the right time grid before we
             # call the interpolation.
             
-            #Start Added by TSN            
-            import pandas as pd
-            valNew = []
-            for i in range(len(tNew)):
-                valNew.append([tNew[i], yNew[i]])
-            
-            dfNew=pd.DataFrame(valNew, columns=['time', 'value'])
-            
-            valOld = []
-            for i in range(len(tOld)):
-                valOld.append([tOld[i], yOld[i]])
-            
-            dfOld=pd.DataFrame(valOld, columns=['time', 'value'])
-            
-            dfNew, dfOld = dfNew.align(dfOld)
-            
-            dfNew = dfNew.interpolate()
-            dfOld = dfOld.interpolate()
-            
-            tOld = dfOld['time']
-            yOld = dfOld['value']
-            tNew = dfNew['time']
-            yInt = dfNew['value']
-            #End Added by TSN
+            # Added by TSN for JModelica which requires dense outputs           
+            from scipy.interpolate import interp1d
+            if(len(yNew) < len(yOld)):
+                #f2 = interp1d(t1,y1,bounds_error=False)
+                yNew = interp1d(tNew,yNew)(tOld)
+                tNew = tOld
+            else:
+                yOld = interp1d(tOld,yOld)(tNew)
+                tOld = tNew
+            yInt = yNew
             
 #             tGriOld = getTimeGrid(tOld, len(yNew))
 #             tGriNew = getTimeGrid(tNew, min(len(yNew), self._nPoi))
@@ -1085,11 +1071,10 @@ Skipping error checking for this variable.""" % (filNam, varNam, len(yOld), len(
     def _isParameter(self, dataSeries):
         ''' Return `True` if `dataSeries` is from a parameter.
         '''
-        import pandas as pd
+        #import pandas as pd
         import numpy as np
-        if not (isinstance(dataSeries, pd.Series) or isinstance(dataSeries, np.ndarray) 
-                                                                or isinstance(dataSeries, list)):
-            raise TypeError("Program error: dataSeries must be a pandas.Series or a numpy.ndarray." + \
+        if not (isinstance(dataSeries, np.ndarray) or isinstance(dataSeries, list)):
+            raise TypeError("Program error: dataSeries must be a numpy.ndarray or a list." + \
                             " Received type " + str(type(dataSeries)) + ".\n")
         return (len(dataSeries) == 2)
 
