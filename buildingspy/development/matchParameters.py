@@ -58,6 +58,9 @@ N_Runs = 2
 # number of valid mos files.
 mosCorrect=[]
 
+# Known missing tolerance flag
+knownMissingTolerance = False
+
 def defect_mo_files(foundMos):
     """ 
     Return a list of .mo files which do not have a Tolerance
@@ -66,10 +69,16 @@ def defect_mo_files(foundMos):
     :param foundMos: List of mos files.
 
      """
+    # known missing tolerance falg
+    global knownMissingTolerance
+    knownMissingTolerance = False
     
     for k in foundMos:
         newMofile = k.replace("/Resources/Scripts/Dymola", "")
         newMofile = newMofile.replace(".mos", ".mo")
+        # Exclude an mo file with known missing tolerance annotation
+        if 'Fluid/Movers/Validation/PumpCurveDerivatives.mo' in newMofile:
+            knownMissingTolerance = True
         f = open(newMofile, "r")
         content = f.readlines()
         found = False
@@ -600,6 +609,11 @@ def main():
     print("Number of .mo files with missing **experiment** annotation: {!s}".format(defect_mos))
     print("Number of .mo files with missing **experiment** annotation: {!s}".format(len(defect_mos)))
 
+    # Check if we have the mode with known missing experiment
+    # annotation. If such a model is found then the number of mos scripts
+    # will be reduced to avoid the assert to trigger as this is to be expected.
+    if(knownMissingTolerance):
+        n_files_tol_mos-=1
     assert n_files_tol_mos - n_files_tol_mo == 0, "The number of .mo files with **tolerance** does not match the number of .mos scripts."   
 # if __name__ == "__main__":
 #         
