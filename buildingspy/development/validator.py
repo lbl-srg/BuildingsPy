@@ -9,7 +9,8 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
-#from __future__ import unicode_literals
+from __future__ import unicode_literals
+from io import open
 
 from builtins import range
 from builtins import object
@@ -85,7 +86,7 @@ Modelica package. Expected file '%s'."
         '''
         from tidylib import tidy_document
         # Open file.
-        f = open(moFile, "r")
+        f = open(moFile, mode="r")
         lines = f.readlines()
         f.close()
         # Document header
@@ -149,7 +150,7 @@ Modelica package. Expected file '%s'."
         # Write html file.
         if self._writeHTML:
             htmlName = "%s%s" % (moFile[0:-2], "html")
-            f = open(htmlName, "w")
+            f = open(htmlName, mode="w")
             f.write(document)
             f.close()
         return (document, errors)
