@@ -12,6 +12,7 @@ from __future__ import print_function
 #from __future__ import unicode_literals
 
 from builtins import object
+from builtins import str
 
 class Annex60(object):
     ''' Class that merges a Modelica library with the `Annex60` library.
@@ -78,7 +79,6 @@ class Annex60(object):
         :param source_file: Name of the file to be copied.
         :param destination_file: Name of the new file.
         """
-        import string
 
         rep = {self._src_library_name:
                self._new_library_name}
@@ -96,7 +96,7 @@ class Annex60(object):
         lines = list()
         for _, lin in enumerate(f_sou):
             for ori, new in rep.items():
-                lin = string.replace(lin, ori, new)
+                lin = str.replace(lin, ori, new)
             lines.append(lin)
         f_sou.close
         # Write the lines to the new file
