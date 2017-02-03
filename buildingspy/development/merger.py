@@ -13,6 +13,7 @@ from __future__ import unicode_literals
 from io import open
 
 from builtins import object
+from builtins import str
 
 class Annex60(object):
     ''' Class that merges a Modelica library with the `Annex60` library.
@@ -96,7 +97,7 @@ class Annex60(object):
             lines = list()
             for _, lin in enumerate(f_sou):
                 for ori, new in rep.items():
-                    lin = str.replace(str(lin), ori, new)
+                    lin = str.replace(lin, ori, new)
                 lines.append(lin)
         # Write the lines to the new file
         f_des = open(destination_file, mode="w")
