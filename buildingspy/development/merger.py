@@ -39,7 +39,7 @@ class Annex60(object):
             try:
                 t.Tester().isValidLibrary(lib_home)
             except ValueError as e:
-                s = "{!s}\n    Did not do anything.".format(e.message)
+                s = "{!s}\n    Did not do anything.".format(e.args[0])
                 raise ValueError(s)
 
         isValidLibrary(annex60_dir)
