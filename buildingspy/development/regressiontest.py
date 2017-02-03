@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #######################################################
 # Script that runs all regression tests.
 #
@@ -2222,27 +2223,28 @@ getErrorString();
             logFil.close()
 
             # Concatenate simulator statistics into one file
-            logFil = open(self._statistics_log, mode="w")
-            stat = list()
-            for d in self._temDir:
-                temLogFilNam = os.path.join(d, self.getLibraryName(), self._statistics_log)
-                if os.path.exists(temLogFilNam):
-                    temSta=open(temLogFilNam.replace('Temp\tmp','Temp\\tmp'), mode="r")
-                    try:
-                        cas = json.load(temSta)["testCase"]
-                        # Iterate over all test cases of this output file
-                        for ele in cas:
-                            stat.append(ele)
-                    except ValueError as e:
-                        self._reporter.writeError("Decoding '%s' failed: %s" % (temLogFilNam, e.message))
-                        raise
-                    temSta.close()
-                else:
-                    self._reporter.writeError("Log file '" + temLogFilNam + "' does not exist.\n")
-                    retVal = 1
-            # Dump an array of testCase objects
-            json.dump({"testCase": stat}, logFil, indent=4, separators=(',', ': '))
-            logFil.close()
+            with open(self._statistics_log, mode="w", encoding="utf-8") as logFil:
+                stat = list()
+                for d in self._temDir:
+                    temLogFilNam = os.path.join(d, self.getLibraryName(), self._statistics_log)
+                    if os.path.exists(temLogFilNam):
+                        temSta=open(temLogFilNam.replace('Temp\tmp','Temp\\tmp'), mode="r")
+                        try:
+                            cas = json.load(temSta)["testCase"]
+                            # Iterate over all test cases of this output file
+                            for ele in cas:
+                                stat.append(ele)
+                        except ValueError as e:
+                            self._reporter.writeError("Decoding '%s' failed: %s" % (temLogFilNam, e.message))
+                            raise
+                        temSta.close()
+                    else:
+                        self._reporter.writeError("Log file '" + temLogFilNam + "' does not exist.\n")
+                        retVal = 1
+                # Dump an array of testCase objects
+                # dump to a string first using json.dumps instead of json.dump
+                json_string = json.dumps({"testCase": stat}, logFil, indent=4, separators=(',', ': '), ensure_ascii=False)
+                logFil.write(json_string)
 
 
         # check logfile if omc
