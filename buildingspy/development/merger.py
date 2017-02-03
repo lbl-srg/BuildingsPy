@@ -12,7 +12,6 @@ from __future__ import print_function
 #from __future__ import unicode_literals
 
 from builtins import object
-from builtins import str
 
 class Annex60(object):
     ''' Class that merges a Modelica library with the `Annex60` library.
