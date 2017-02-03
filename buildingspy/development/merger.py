@@ -39,7 +39,7 @@ class Annex60(object):
             try:
                 t.Tester().isValidLibrary(lib_home)
             except ValueError as e:
-                s = "{}\n    Did not do anything.".format(e.message)
+                s = "{!s}\n    Did not do anything.".format(e.args[0])
                 raise ValueError(s)
 
         isValidLibrary(annex60_dir)
@@ -78,7 +78,6 @@ class Annex60(object):
         :param source_file: Name of the file to be copied.
         :param destination_file: Name of the new file.
         """
-        import string
 
         rep = {self._src_library_name:
                self._new_library_name}
@@ -92,13 +91,12 @@ class Annex60(object):
                         "Buildings.HeatTransfer.Sources.FixedTemperature"})
 
         # Read source file, store the lines and update the content of the lines
-        f_sou = open(source_file, 'r')
-        lines = list()
-        for _, lin in enumerate(f_sou):
-            for ori, new in rep.items():
-                lin = string.replace(lin, ori, new)
-            lines.append(lin)
-        f_sou.close
+        with open(source_file, 'r') as f_sou:
+            lines = list()
+            for _, lin in enumerate(f_sou):
+                for ori, new in rep.items():
+                    lin = str.replace(lin, ori, new)
+                lines.append(lin)
         # Write the lines to the new file
         f_des = open(destination_file, 'w')
         f_des.writelines(lines)
