@@ -91,7 +91,7 @@ class Annex60(object):
                         "Buildings.HeatTransfer.Sources.FixedTemperature"})
 
         # Read source file, store the lines and update the content of the lines
-        f_sou = open(source_file, 'r')
+        with open(source_file, 'r') as f_sou:
         lines = list()
         for _, lin in enumerate(f_sou):
             for ori, new in rep.items():
