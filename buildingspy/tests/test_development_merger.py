@@ -35,9 +35,9 @@ class Test_development_merger_Annex60(unittest.TestCase):
             # Clone the libraries
             print("Cloning Buildings repository. This may take a while.")
             print("Dir is {}".format(self._repDir))
-            Repo.clone_from("https://github.com/lbl-srg/modelica-buildings", os.path.join(self._repDir, "modelica-buildings"))
+            Repo.clone_from("https://github.com/lbl-srg/modelica-buildings", os.path.join(self._repDir, "modelica-buildings"), depth=5)
             print("Cloning Annex 60 repository. This may take a while.")        
-            Repo.clone_from("https://github.com/iea-annex60/modelica-annex60", os.path.join(self._repDir, "modelica-annex60"))
+            Repo.clone_from("https://github.com/iea-annex60/modelica-annex60", os.path.join(self._repDir, "modelica-annex60"), depth=5)
             print("Finished cloning.")
             
         else:
