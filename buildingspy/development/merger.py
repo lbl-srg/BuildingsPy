@@ -79,7 +79,8 @@ class Annex60(object):
         :param source_file: Name of the file to be copied.
         :param destination_file: Name of the new file.
         """
-
+        import re
+        
         rep = {self._src_library_name:
                self._new_library_name}
         # For the Buildings library, do these additional replacements.
