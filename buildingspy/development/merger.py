@@ -92,12 +92,11 @@ class Annex60(object):
 
         # Read source file, store the lines and update the content of the lines
         with open(source_file, 'r') as f_sou:
-        lines = list()
-        for _, lin in enumerate(f_sou):
-            for ori, new in rep.items():
-                lin = str.replace(lin, ori, new)
-            lines.append(lin)
-        f_sou.close
+            lines = list()
+            for _, lin in enumerate(f_sou):
+                for ori, new in rep.items():
+                    lin = str.replace(lin, ori, new)
+                lines.append(lin)
         # Write the lines to the new file
         f_des = open(destination_file, 'w')
         f_des.writelines(lines)
