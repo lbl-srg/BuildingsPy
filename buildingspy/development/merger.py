@@ -96,7 +96,7 @@ class Annex60(object):
             lines = list()
             for _, lin in enumerate(f_sou):
                 for ori, new in rep.items():
-                    lin = str.replace(str(lin), ori, new)
+                    lin = re.sub(ori, new, lin)
                 lines.append(lin)
         # Write the lines to the new file
         f_des = open(destination_file, mode="w")
