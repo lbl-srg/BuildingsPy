@@ -79,7 +79,6 @@ class Annex60(object):
         :param source_file: Name of the file to be copied.
         :param destination_file: Name of the new file.
         """
-        import re
         
         rep = {self._src_library_name:
                self._new_library_name}
@@ -97,7 +96,7 @@ class Annex60(object):
             lines = list()
             for _, lin in enumerate(f_sou):
                 for ori, new in rep.items():
-                    lin = re.sub(ori, new, lin)
+                    lin = lin.replace(ori, new)
                 lines.append(lin)
         # Write the lines to the new file
         f_des = open(destination_file, mode="w")
