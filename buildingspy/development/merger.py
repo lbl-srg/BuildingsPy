@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #######################################################
 # Script that merges a Modelica library with
 # the Annex60 Modelica library.

@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #######################################################
 # Script with functions to refactor a Modelica library
 #
