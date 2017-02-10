@@ -12,8 +12,6 @@ try:
     basestring
 except NameError:
     basestring = str
-else:
-    basestring = basestring
 
 class Simulator(object):
     """Class to simulate a Modelica model.
