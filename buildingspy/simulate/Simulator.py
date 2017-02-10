@@ -868,7 +868,11 @@ end if;
             """ Convert to Modelica array.
             """
             # Check for strings and booleans
-            if isinstance(arg, str):
+            try:
+              basestring
+            except NameError:
+              basestring = str
+            if isinstance(arg, basestring):
                 return '\\"' + arg + '\\"'
             elif isinstance(arg, bool):
                 if arg is True:
