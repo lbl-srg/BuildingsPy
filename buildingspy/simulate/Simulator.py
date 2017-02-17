@@ -8,6 +8,10 @@ from __future__ import print_function
 from builtins import str
 from builtins import range
 from builtins import object
+try:
+    basestring
+except NameError:
+    basestring = str
 
 class Simulator(object):
     """Class to simulate a Modelica model.
@@ -868,7 +872,7 @@ end if;
             """ Convert to Modelica array.
             """
             # Check for strings and booleans
-            if isinstance(arg, str):
+            if isinstance(arg, basestring):
                 return '\\"' + arg + '\\"'
             elif isinstance(arg, bool):
                 if arg is True:
