@@ -400,7 +400,7 @@ class Tester(object):
 
             If some modules are missing, then an `ImportError` is raised.
         '''
-        requiredModules = ['buildingspy', 'matplotlib', 'numpy', 'scipy']
+        requiredModules = ['buildingspy', 'matplotlib.pyplot', 'numpy', 'scipy.io']
         if self._checkHtml:
             requiredModules.append('tidylib')
         missingModules = []
