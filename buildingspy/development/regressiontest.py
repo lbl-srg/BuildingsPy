@@ -2178,16 +2178,6 @@ getErrorString();
         # Count number of classes
         self.printNumberOfClasses()
 
-        # Validate html
-        if self._checkHtml:
-            val = v.Validator()
-            errMsg = val.validateHTMLInPackage(self._libHome)
-            for i in range(len(errMsg)):
-                if i == 0:
-                    self._reporter.writeError("The following malformed html syntax has been found:\n%s" % errMsg[i])
-                else:
-                    self._reporter.writeError(errMsg[i])
-
         # Run simulations
         if not self._useExistingResults:
             self._setTemporaryDirectories()
