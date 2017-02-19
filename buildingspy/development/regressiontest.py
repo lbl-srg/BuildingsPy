@@ -486,8 +486,9 @@ class Tester(object):
         '''
         import string
 
-        # Issue a warning to inform the user that not all tests are run
-        self._reporter.writeWarning("""Regression tests are only run for '%s'.""" % packageName)
+        # Inform the user that not all tests are run, but don't add to warnings
+        # as this would flag the test to have failed
+        self._reporter.writeOutput("""Regression tests are only run for '%s'.""" % packageName)
         # Remove the top-level package name as the unit test directory does not
         # contain the name of the library.
         pacPat = packageName[string.find(packageName, '.')+1:]
