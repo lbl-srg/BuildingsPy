@@ -3,6 +3,9 @@ BuildingsPy Changelog
 
 Version 1.5.1, xxxx -- Release 1.5
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- In development.regressiontest.setSinglePackage(packageName), added
+  option to provide a comma-separated list to allow checking multiple
+  packages.
 - In simulate.Simulator, changed quotes of string arguments for
   Modelica parameters.
 - In development.regressiontest, added check for redundant connections.

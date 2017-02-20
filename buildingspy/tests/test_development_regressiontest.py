@@ -62,6 +62,49 @@ class Test_regressiontest_Tester(unittest.TestCase):
         # Verify that invalid packages raise a ValueError.
         self.assertRaises(ValueError, rt.setSinglePackage, "this.package.does.not.exist")
 
+    def test_setSinglePackage(self):
+        import buildingspy.development.regressiontest as r
+        rt = r.Tester(check_html=False)
+        myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
+        rt.setLibraryRoot(myMoLib)
+        rt.include_fmu_tests(True)
+        self.assertEqual(0, rt.get_number_of_tests())
+
+    def test_setSinglePackage_1(self):
+        import buildingspy.development.regressiontest as r
+        rt = r.Tester(check_html=False)
+        myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
+        rt.setLibraryRoot(myMoLib)
+        rt.include_fmu_tests(True)
+        rt.setSinglePackage("MyModelicaLibrary.Examples.FMUs")
+        self.assertEqual(2, rt.get_number_of_tests())
+
+    def test_setSinglePackage_2(self):
+        import buildingspy.development.regressiontest as r
+        rt = r.Tester(check_html=False)
+        myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
+        rt.setLibraryRoot(myMoLib)
+        rt.include_fmu_tests(True)
+        rt.setSinglePackage("MyModelicaLibrary.Examples")
+        self.assertEqual(5, rt.get_number_of_tests())
+
+    def test_setSinglePackage_3(self):
+        import buildingspy.development.regressiontest as r
+        rt = r.Tester(check_html=False)
+        myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
+        rt.setLibraryRoot(myMoLib)
+        rt.include_fmu_tests(True)
+        rt.setSinglePackage("MyModelicaLibrary.Examples.FMUs,MyModelicaLibrary.Examples")
+        self.assertEqual(5, rt.get_number_of_tests())
+
+    def test_setSinglePackage_4(self):
+        import buildingspy.development.regressiontest as r
+        rt = r.Tester(check_html=False)
+        myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
+        rt.setLibraryRoot(myMoLib)
+        rt.include_fmu_tests(True)
+        # No new tests should be found as FMUs is a subdirectory of Examples.
+        self.assertRaises(ValueError, rt.setSinglePackage, "MyModelicaLibrary.Examples,MyModelicaLibrary.Examples.FMUs")
 
     def test_runSimulation(self):
         import buildingspy.development.regressiontest as r
