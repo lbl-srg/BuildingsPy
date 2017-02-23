@@ -491,7 +491,6 @@ class Tester(object):
           ``Annex60.Controls.Continous.Examples`` and in ``Annex60.Controls.Continous.Validation``.
 
         '''
-        import string
 
         # Create a list of packages, unless packageName is already a list
         packages = list()
@@ -511,7 +510,8 @@ class Tester(object):
         self._data = []
 
         for pac in packages:
-            pacPat = pac[string.find(pac, '.')+1:]
+            pacSep = pac.find('.')
+            pacPat = pac[pacSep+1:]
             pacPat = pacPat.replace('.', os.sep)
             rooPat = os.path.join(self._libHome, 'Resources', 'Scripts', 'Dymola', pacPat)
             # Verify that the directory indeed exists
