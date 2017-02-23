@@ -1079,14 +1079,12 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         return (len(dataSeries) == 2)
 
     def format_float(self, value):
-        retVal = "%.20f" % value
-        # Cut trailing zeros to avoid output such as 1.0000000
-        i = len(retVal)-1;
-        for pos in range(i, 0, -1):
-            if retVal[pos] != '0':
-                i = pos+1
-                break
-        return retVal[:i]
+        ''' Return the argument in exponential notation, with
+            non-significant zeros removed.
+        '''
+        import re
+        return re.sub( re.compile('\.e'), 'e', \
+          re.sub(re.compile('0*e'), 'e', "{0:.15e}".format(value)))
 
 
     def _writeReferenceResults(self, refFilNam, y_sim, y_tra):
@@ -1120,7 +1118,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                         f.write(k + '=')
                         # Use many digits, otherwise truncation errors occur that can be higher
                         # than the required accuracy.
-                        formatted = [self.format_float(e) for e in v]
+                        formatted = [str(self.format_float(e)) for e in v]
                         f.write(str(formatted).replace("'", ""))
                         f.write('\n')
         f.close()
