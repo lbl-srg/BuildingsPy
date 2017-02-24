@@ -38,34 +38,34 @@ def get_dependencies(fmu_file_name):
        >>> import buildingspy.fmi as f
        >>> fmu_name=os.path.join("buildingspy", "tests", "fmi", "IntegratorGain.fmu")
        >>> d=f.get_dependencies(fmu_name)
-       >>> print(json.dumps(d, indent=2))
+       >>> print(json.dumps(d, indent=2, sort_keys=True))
        {
-         "Outputs": {
-           "y1": [
-             "x"
-           ], 
-           "EventCounter": [], 
-           "y2": [
+         "Derivatives": {
+           "der(x)": [
              "u"
-           ], 
-           "CPUtime": []
+           ]
          }, 
          "InitialUnknowns": {
+           "CPUtime": [], 
+           "EventCounter": [], 
+           "der(x)": [
+             "u"
+           ], 
            "y1": [
              "x"
            ], 
-           "EventCounter": [], 
            "y2": [
              "k", 
              "u"
-           ], 
-           "der(x)": [
-             "u"
-           ], 
-           "CPUtime": []
+           ]
          }, 
-         "Derivatives": {
-           "der(x)": [
+         "Outputs": {
+           "CPUtime": [], 
+           "EventCounter": [], 
+           "y1": [
+             "x"
+           ], 
+           "y2": [
              "u"
            ]
          }
