@@ -1,6 +1,11 @@
 language: python
 python:
   - "2.7"
+  - "3.4"
+  - "3.5"
+  - "3.6"
+env:
+  - MPLBACKEND=agg
 
 notifications:
   email: false
@@ -11,14 +16,9 @@ git:
 services:
   - docker
 
-# Enable system site packages in virtualenv so BuildingsPy sees scipy and matplotlib
-virtualenv:
-  system_site_packages: true
-
 before_install:
   - sudo mv BuildingsPy/buildingspy/tests/MyModelicaLibrary/Resources/Scripts/travis/usr/local/bin/dymola /usr/local/bin/
   - sudo chmod +x /usr/local/bin/dymola
-  - sudo apt-get install -qq python-numpy python-scipy python-matplotlib
   - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
   - docker pull "$DOCKER_USERNAME"/travis_ubuntu-1604_dymola-2017fd01-x86-64
 
