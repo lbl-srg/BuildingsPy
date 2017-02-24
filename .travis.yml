@@ -1,41 +1,27 @@
 language: python
 python:
   - "2.7"
-  - "3.4"
-  - "3.5"
-  - "3.6"
-env:
-  - MPLBACKEND=agg
+
 notifications:
   email: false
-#
-# commands to install dependencies and the script itself
-addons:
-  apt:
-    packages:
-    - tidy
-install:
-  - pip install --upgrade pip setuptools wheel
-  - pip install --only-binary=numpy,scipy,matplotlib numpy scipy matplotlib
-  - pip install future gitpython pytidylib
-  - pip install .
-#
-# commands to run the tests
-script: 
-# run selected doctests
-  - python -m doctest buildingspy/development/merger.py
-  - python -m doctest buildingspy/development/refactor.py
-# - python -m doctest buildingspy/development/regressiontest.py
-  - python -m doctest buildingspy/development/validator.py
-  - python -m doctest buildingspy/io/postprocess.py
-#
-# run selected unittests
-  - python buildingspy/tests/test_development_error_dictionary.py
-  - python buildingspy/tests/test_development_merger.py
-  - python buildingspy/tests/test_development_refactor.py
-# - python buildingspy/tests/test_development_regressiontest.py
-  - python buildingspy/tests/test_development_Validator.py
-# - python buildingspy/tests/test_examples_dymola.py
-  - python buildingspy/tests/test_io_outputfile.py
-  - python buildingspy/tests/test_io_postprocess.py
-# - python buildingspy/tests/test_simulate_Simulator.py
+
+git:
+  depth: 3
+
+services:
+  - docker
+
+# Enable system site packages in virtualenv so BuildingsPy sees scipy and matplotlib
+virtualenv:
+  system_site_packages: true
+
+before_install:
+  - sudo mv BuildingsPy/buildingspy/tests/MyModelicaLibrary/Resources/Scripts/travis/usr/local/bin/dymola /usr/local/bin/
+  - sudo chmod +x /usr/local/bin/dymola
+  - sudo apt-get install -qq python-numpy python-scipy python-matplotlib
+  - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
+  - docker pull "$DOCKER_USERNAME"/travis_ubuntu-1604_dymola-2017fd01-x86-64
+
+# Execute tests
+script:
+  - (cd BuildingsPy && make doctest unittest)
