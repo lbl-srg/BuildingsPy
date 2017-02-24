@@ -11,5 +11,5 @@ docker run \
 	  ${DOCKER_USERNAME}/travis_ubuntu-1604_dymola-2017fd01-x86-64 /bin/bash -c \
 	  "Xvfb :77  -extension RANDR & \
 	  export DISPLAY=:77.0 && \
-	  cd /mnt/shared/Buildings && \
+	  cd /mnt/shared/tests/MyModelicaLibrary && \
 	  dymola runAll.mos /nowindow"
