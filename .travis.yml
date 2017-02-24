@@ -16,12 +16,12 @@ git:
 
 services:
   - docker
-  
+
 addons:
   apt:
     packages:
     - tidy
-    
+
 before_install:
   - sudo mv buildingspy/tests/MyModelicaLibrary/Resources/Scripts/travis/usr/local/bin/dymola /usr/local/bin/
   - sudo chmod +x /usr/local/bin/dymola
