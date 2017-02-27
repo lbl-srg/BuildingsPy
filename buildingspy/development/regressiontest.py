@@ -2579,7 +2579,7 @@ successfully (={:.1%})"\
           1. In a python console or script, cd to the root folder of the library
 
              >>> t = Tester()
-             >>> t.test_OpenModelica() # doctest: +ELLIPSIS, +REPORT_NDIFF
+             >>> t.test_OpenModelica() # doctest: +SKIP
              OpenModelica script ...OMTests.mos created
              Logfile created: ...OMTests.log
              Starting analysis of logfile
