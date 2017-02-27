@@ -20,7 +20,7 @@ def get_dependencies(fmu_file_name):
        block IntegratorGain "Block to demonstrate the FMU export"
          parameter Real k = -1 "Gain";
          Modelica.Blocks.Interfaces.RealInput u "Input";
-         Modelica.Blocks.Interfaces.RealOutput y1 
+         Modelica.Blocks.Interfaces.RealOutput y1
            "Output that depends on the state";
          Modelica.Blocks.Interfaces.RealOutput y2
            "Output that depends on the input";
@@ -38,39 +38,39 @@ def get_dependencies(fmu_file_name):
        >>> import buildingspy.fmi as f
        >>> fmu_name=os.path.join("buildingspy", "tests", "fmi", "IntegratorGain.fmu")
        >>> d=f.get_dependencies(fmu_name)
-       >>> print(json.dumps(d, indent=2, sort_keys=True))
+       >>> print(json.dumps(d, indent=2, sort_keys=True)) # doctest: +NORMALIZE_WHITESPACE
        {
          "Derivatives": {
            "der(x)": [
              "u"
            ]
-         }, 
+         },
          "InitialUnknowns": {
-           "CPUtime": [], 
-           "EventCounter": [], 
+           "CPUtime": [],
+           "EventCounter": [],
            "der(x)": [
              "u"
-           ], 
+           ],
            "y1": [
              "x"
-           ], 
+           ],
            "y2": [
-             "k", 
+             "k",
              "u"
            ]
-         }, 
+         },
          "Outputs": {
-           "CPUtime": [], 
-           "EventCounter": [], 
+           "CPUtime": [],
+           "EventCounter": [],
            "y1": [
              "x"
-           ], 
+           ],
            "y2": [
              "u"
            ]
          }
        }
-       
+
     '''
     import tempfile
     import os
