@@ -1,3 +1,9 @@
+BuildingsPy
+-----------
+
+.. image:: https://travis-ci.org/lbl-srg/BuildingsPy.svg
+    :target: https://travis-ci.org/lbl-srg/BuildingsPy
+
 BuildingsPy is a Python package that can be used to
 
 * run Modelica simulation using Dymola
