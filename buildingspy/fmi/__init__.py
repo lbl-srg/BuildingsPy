@@ -38,7 +38,7 @@ def get_dependencies(fmu_file_name):
        >>> import buildingspy.fmi as f
        >>> fmu_name=os.path.join("buildingspy", "tests", "fmi", "IntegratorGain.fmu")
        >>> d=f.get_dependencies(fmu_name)
-       >>> print(json.dumps(d, indent=2, sort_keys=True)) # doctest: +NORMALIZE_WHITESPACE
+       >>> print(json.dumps(d, indent=2, separators=(',', ': '), sort_keys=True))
        {
          "Derivatives": {
            "der(x)": [
