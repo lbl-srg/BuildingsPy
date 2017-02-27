@@ -189,14 +189,14 @@ class Test_regressiontest_Tester(unittest.TestCase):
         self.assertRaises(ValueError, \
                           rt.setLibraryRoot, "this_is_not_the_root_dir_of_a_library")
 
-##    def test_test_OpenModelica(self):
-##        import buildingspy.development.regressiontest as r
-##        rt = r.Tester(check_html=False)
-##        rt._deleteTemporaryDirectories=False
+    def test_test_OpenModelica(self):
+        import buildingspy.development.regressiontest as r
+        rt = r.Tester(check_html=False)
+        rt._deleteTemporaryDirectories=False
 
-##        myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
-##        rt.setLibraryRoot(myMoLib)
-##        rt.test_OpenModelica(simulate=True)
+        myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
+        rt.setLibraryRoot(myMoLib)
+        rt.test_OpenModelica(simulate=True)
 
     def test_setDataDictionary(self):
         import buildingspy.development.regressiontest as r
