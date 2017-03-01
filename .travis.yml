@@ -24,7 +24,8 @@ addons:
     - sourceline: "deb http://build.openmodelica.org/apt `lsb_release -cs` stable"
       key_url: "http://build.openmodelica.org/apt/openmodelica.asc"
     packages:
-    - openmodelica
+    - omc
+    - omlib-modelica-3.2.?
     - tidy
 
 before_install:
