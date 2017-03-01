@@ -1,3 +1,4 @@
+dist: trusty
 language: python
 python:
   - "2.7"
@@ -41,4 +42,5 @@ install:
 
 # Execute tests
 script:
+  - omc --version
   - make doctest unittest
