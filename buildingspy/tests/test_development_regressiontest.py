@@ -205,6 +205,35 @@ class Test_regressiontest_Tester(unittest.TestCase):
         rt.setLibraryRoot(myMoLib)
         rt.setDataDictionary()
 
+    def test_expand_packages(self):
+        import buildingspy.development.regressiontest as r
+
+        self.assertEqual("A.B",
+           r.Tester.expand_packages("A.B"))
+        self.assertEqual("A.B,A.C",
+           r.Tester.expand_packages("A.{B,C}"))
+        self.assertEqual("A.B.xy,A.B.xy.z",
+           r.Tester.expand_packages("A.B.{xy,xy.z}"))
+
+        # Add spaces
+        self.assertEqual("A.B,A.C",
+           r.Tester.expand_packages("A.{B, C}"))
+        self.assertEqual("A.B,A.C",
+           r.Tester.expand_packages("A.{ B , C }"))
+        self.assertEqual("A.B.xy,A.B.xy.z",
+           r.Tester.expand_packages("A.B.{xy, xy.z}"))
+        self.assertEqual("A.B.xy,A.B.xy.z",
+           r.Tester.expand_packages("A.B.{ xy, xy.z}"))
+        self.assertEqual("A.B.xy,A.B.xy.z",
+           r.Tester.expand_packages("A.B.{ xy , xy.z }"))
+
+        self.assertRaises(ValueError, \
+            r.Tester.expand_packages, "AB{")
+        self.assertRaises(ValueError, \
+            r.Tester.expand_packages, "AB{}")
+        self.assertRaises(ValueError, \
+            r.Tester.expand_packages, "AB}a{")
+
 if __name__ == '__main__':
     unittest.main()
     #selection = unittest.TestSuite()

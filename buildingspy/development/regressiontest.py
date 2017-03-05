@@ -469,7 +469,37 @@ class Tester(object):
                 print("*** Warning: Excluded file {} from the regression tests.".format(fileName))
                 return False
         else:
-            False
+            return False
+
+    @staticmethod
+    def expand_packages(packages):
+        '''
+        Expand the ``packages`` from the form
+        ``A.{B,C}`` and return ``A.B,A.C``
+        :param: packages: A list of packages
+        '''
+        ids = packages.find('{')
+        if ids < 0:
+            # This has no curly bracket notation
+            return packages
+
+        ide = packages.find('}')
+
+        # Make some simple test for checking the string format
+        if ide-1 <= ids:
+            raise ValueError("String '{}' is wrong formatted".format(packages))
+
+        # Get text before the curly brackets
+        pre = packages[0:ids]
+        # Get text inside the curly brackets
+        in_bra = packages[ids+1:ide]
+        entries = in_bra.split(',')
+        # Add the start to the entries
+        pac = []
+        for ele in entries:
+            pac.append("{}{}".format(pre, ele))
+        ret = ",".join(pac)
+        return ret.replace(' ','')
 
     def setSinglePackage(self, packageName):
         '''
@@ -495,7 +525,9 @@ class Tester(object):
         # Create a list of packages, unless packageName is already a list
         packages = list()
         if ',' in packageName:
-            packages = packageName.split(',')
+            # First, split packages in case they are of the form Building.{Examples, Fluid}
+            expanded_packages = self.expand_packages(packageName)
+            packages = expanded_packages.split(',')
         else:
             packages.append(packageName)
         # Inform the user that not all tests are run, but don't add to warnings
