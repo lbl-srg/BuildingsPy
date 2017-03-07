@@ -2196,7 +2196,6 @@ getErrorString();
         # Remove all data that do not require a simulation or an FMU export.
         # Otherwise, some processes may have no simulation to run and then
         # the json output file would have an invalid syntax
-        print(self._data)
         for ele in self._data:
             if not (ele['mustSimulate'] or ele['mustExportFMU']):
                 self._data.remove(ele)
@@ -2228,7 +2227,7 @@ getErrorString();
         self._initialize_error_dict()
 
         # Print number of processors
-        print("Using {} of {} processors to run unit tests.".format(self._nPro, multiprocessing.cpu_count()))
+        print("Using {!s} of {!s} processors to run unit tests.".format(self._nPro, multiprocessing.cpu_count()))
         # Count number of classes
         self.printNumberOfClasses()
 
