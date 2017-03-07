@@ -424,7 +424,7 @@ class Tester(object):
         '''
 
         print("Opening {}".format(fileName)
-        filObj=open(fileName, mode="r")
+        filObj=open(fileName, mode="rt", encoding="utf-8")
         filTex=filObj.readline()
         # Strip white spaces so we can test strpos for zero.
         # This test returns non-zero for partial classes.
