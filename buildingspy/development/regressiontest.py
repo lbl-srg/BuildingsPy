@@ -1768,7 +1768,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         iBlo=0
         iFun=0
         for root, _, files in os.walk(self._libHome):
-            pos=root.find('.svn')
+            pos=root.find('.svn' or '.git')
             # skip .svn folders
             if pos == -1:
                 for filNam in files:
