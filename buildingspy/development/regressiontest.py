@@ -423,22 +423,21 @@ class Tester(object):
             If ``key`` is found, increase the counter.
         '''
 
-        filObj=open(fileName, mode="r")
-        filTex=filObj.readline()
-        # Strip white spaces so we can test strpos for zero.
-        # This test returns non-zero for partial classes.
-        filTex.strip()
-        strpos=filTex.find("within")
-        if strpos == 0:
-            # first line is "within ...
-            # get second line
+        with open(fileName, mode="rt", encoding="utf-8") as filObj:
             filTex=filObj.readline()
+            # Strip white spaces so we can test strpos for zero.
+            # This test returns non-zero for partial classes.
             filTex.strip()
-        strpos=filTex.find(key)
-        if strpos == 0:
-            counter += 1;
-        filObj.close()
-        return counter
+            strpos=filTex.find("within")
+            if strpos == 0:
+                # first line is "within ...
+                # get second line
+                filTex=filObj.readline()
+                filTex.strip()
+            strpos=filTex.find(key)
+            if strpos == 0:
+                counter += 1;
+            return counter
 
 
     def _includeFile(self, fileName):
@@ -1691,11 +1690,11 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         if not os.path.isfile(self._statistics_log):
             raise IOError("Statistics file {} does not exist.".format(self._statistics_log))
 
-        fil = open(self._statistics_log, mode="r")
-        try:
-            stat = json.load(fil)['testCase']
-        except ValueError as e:
-            raise ValueError("Failed to parse {}.\n{}".format(self._statistics_log, str(e)))
+        with open(self._statistics_log, mode="rt", encoding="utf-8") as fil:
+            try:
+                stat = json.load(fil)['testCase']
+            except ValueError as e:
+                raise ValueError("Failed to parse {}.\n{}".format(self._statistics_log, str(e)))
 
 
         # Error counters
@@ -1768,7 +1767,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         iBlo=0
         iFun=0
         for root, _, files in os.walk(self._libHome):
-            pos=root.find('.svn')
+            pos=root.find('.svn' or '.git')
             # skip .svn folders
             if pos == -1:
                 for filNam in files:
@@ -2225,7 +2224,7 @@ getErrorString();
         self._initialize_error_dict()
 
         # Print number of processors
-        print("Using {} of {} processors to run unit tests.".format(self._nPro, multiprocessing.cpu_count()))
+        print("Using {!s} of {!s} processors to run unit tests.".format(self._nPro, multiprocessing.cpu_count()))
         # Count number of classes
         self.printNumberOfClasses()
 
