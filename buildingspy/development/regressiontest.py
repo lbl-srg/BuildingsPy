@@ -2196,6 +2196,7 @@ getErrorString();
         # Remove all data that do not require a simulation or an FMU export.
         # Otherwise, some processes may have no simulation to run and then
         # the json output file would have an invalid syntax
+        print(self._data)
         for ele in self._data:
             if not (ele['mustSimulate'] or ele['mustExportFMU']):
                 self._data.remove(ele)
