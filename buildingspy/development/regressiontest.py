@@ -423,7 +423,6 @@ class Tester(object):
             If ``key`` is found, increase the counter.
         '''
 
-        print("Opening {}".format(fileName)
         with open(fileName, mode="rt", encoding="utf-8") as filObj:
             filTex=filObj.readline()
             # Strip white spaces so we can test strpos for zero.
@@ -1690,8 +1689,6 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         # Read the json file with the statistics
         if not os.path.isfile(self._statistics_log):
             raise IOError("Statistics file {} does not exist.".format(self._statistics_log))
-        else:
-            print("Opening statistics file: {}".format(self._statistics_log))
 
         with open(self._statistics_log, mode="rt", encoding="utf-8") as fil:
             try:
