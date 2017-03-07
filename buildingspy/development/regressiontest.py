@@ -424,22 +424,21 @@ class Tester(object):
         '''
 
         print("Opening {}".format(fileName)
-        filObj=open(fileName, mode="rt", encoding="utf-8")
-        filTex=filObj.readline()
-        # Strip white spaces so we can test strpos for zero.
-        # This test returns non-zero for partial classes.
-        filTex.strip()
-        strpos=filTex.find("within")
-        if strpos == 0:
-            # first line is "within ...
-            # get second line
+        with open(fileName, mode="rt", encoding="utf-8") as filObj:
             filTex=filObj.readline()
+            # Strip white spaces so we can test strpos for zero.
+            # This test returns non-zero for partial classes.
             filTex.strip()
-        strpos=filTex.find(key)
-        if strpos == 0:
-            counter += 1;
-        filObj.close()
-        return counter
+            strpos=filTex.find("within")
+            if strpos == 0:
+                # first line is "within ...
+                # get second line
+                filTex=filObj.readline()
+                filTex.strip()
+            strpos=filTex.find(key)
+            if strpos == 0:
+                counter += 1;
+            return counter
 
 
     def _includeFile(self, fileName):
