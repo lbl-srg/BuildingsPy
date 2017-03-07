@@ -1691,11 +1691,11 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         if not os.path.isfile(self._statistics_log):
             raise IOError("Statistics file {} does not exist.".format(self._statistics_log))
 
-        fil = open(self._statistics_log, mode="r")
-        try:
-            stat = json.load(fil)['testCase']
-        except ValueError as e:
-            raise ValueError("Failed to parse {}.\n{}".format(self._statistics_log, str(e)))
+        with open(self._statistics_log, mode="rt", encoding="utf-8") as fil:
+            try:
+                stat = json.load(fil)['testCase']
+            except ValueError as e:
+                raise ValueError("Failed to parse {}.\n{}".format(self._statistics_log, str(e)))
 
 
         # Error counters
