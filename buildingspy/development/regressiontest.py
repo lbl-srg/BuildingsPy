@@ -423,6 +423,7 @@ class Tester(object):
             If ``key`` is found, increase the counter.
         '''
 
+        print("Opening {}".format(fileName)
         filObj=open(fileName, mode="r")
         filTex=filObj.readline()
         # Strip white spaces so we can test strpos for zero.
