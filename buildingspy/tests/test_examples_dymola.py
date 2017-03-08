@@ -7,7 +7,10 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import unittest
-from test.test_support import EnvironmentVarGuard
+try:
+    from test.test_support import EnvironmentVarGuard
+except ImportError:
+    from test.support import EnvironmentVarGuard
 
 class Test_example_dymola_runSimulation(unittest.TestCase):
     """

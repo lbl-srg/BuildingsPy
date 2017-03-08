@@ -135,25 +135,25 @@ def get_errors_and_warnings(log_file, simulator):
 
     with open(log_file) as fil:
         lines = fil.readlines();
-        # Instantiate lists that are used for the return value
-        
-        ret = {}
-        listWarn = []
-        listErr = []
     
-        WARN="Warning:"
-        ERR="... Error message from dymosim"
-        
-        for index, lin in enumerate(lines):
-            if lin.find(WARN) >= 0:
-                temp = lin.rpartition(":")[2].strip()
-                listWarn.append(temp)
-            elif lin.find(ERR) >= 0:
-                listErr.append(lines[index+1].strip())
-                
-        ret["warnings"]=listWarn   
-        ret["errors"]=listErr  
-        return ret
+    # Instantiate lists that are used for the return value    
+    ret = {}
+    listWarn = []
+    listErr = []
+
+    WARN="Warning:"
+    ERR="... Error message from dymosim"
+    
+    for index, lin in enumerate(lines):
+        if lin.find(WARN) >= 0:
+            temp = lin.rpartition(":")[2].strip()
+            listWarn.append(temp)
+        elif lin.find(ERR) >= 0:
+            listErr.append(lines[index+1].strip())
+            
+    ret["warnings"]=listWarn   
+    ret["errors"]=listErr  
+    return ret
     
 class Reader(object):
     """Open the file ``fileName`` and parse its content.
