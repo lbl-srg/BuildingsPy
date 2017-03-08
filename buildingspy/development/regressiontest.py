@@ -698,9 +698,8 @@ class Tester(object):
 
                     # open the mos file and read its content.
                     # Path and name of mos file without 'Resources/Scripts/Dymola'
-                    fMOS=open(os.path.join(root, mosFil), mode="r")
-                    Lines=fMOS.readlines()
-                    fMOS.close()
+                    with open(os.path.join(root, mosFil), mode="r") as fMOS:
+                        Lines=fMOS.readlines()
 
                     # Remove white spaces
                     for i in range(len(Lines)):
@@ -1800,16 +1799,15 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                 self._reporter.writeError(em)
                 raise ValueError(em)
 
-        fil = open(mosFilNam, mode="r+")
         retVal = None
-        for lin in fil.readlines():
-            if "simulateModel" in lin or "modelToOpen" in lin:
-                if self._modelicaCmd == 'dymola':
-                    retVal = 'checkModel("{}")'.format(getModelName(mosFilNam, lin))
-                elif self._modelicaCmd == 'omc':
-                    retVal = "checkModel({})".format(getModelName(mosFilNam, lin))
-                break;
-        fil.close()
+        with open(mosFilNam, mode="r+") as fil:
+            for lin in fil:
+                if "simulateModel" in lin or "modelToOpen" in lin:
+                    if self._modelicaCmd == 'dymola':
+                        retVal = 'checkModel("{}")'.format(getModelName(mosFilNam, lin))
+                    elif self._modelicaCmd == 'omc':
+                        retVal = "checkModel({})".format(getModelName(mosFilNam, lin))
+                    break;
         return retVal
 
     def _removePlotCommands(self, mosFilNam):
