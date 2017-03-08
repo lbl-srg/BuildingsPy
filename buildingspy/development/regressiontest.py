@@ -39,28 +39,26 @@ def runSimulation(worDir, cmd):
     import subprocess
 
     logFilNam=os.path.join(worDir, 'stdout.log')
-    logFil = open(logFilNam, mode="w")
-    pro = subprocess.Popen(args=cmd,
-                           stdout=logFil,
-                           stderr=logFil,
-                           shell=False,
-                           cwd=worDir)
-    try:
-        retcode = pro.wait()
-
-        logFil.close()
-        if retcode != 0:
-            print("Child was terminated by signal {}".format(retcode))
-            return retcode
-        else:
-            return 0
-    except OSError as e:
-        sys.stderr.write("Execution of '" + " ".join(map(str, cmd)) + " failed.\n" +
-                         "Working directory is '" + worDir + "'.")
-        raise(e)
-    except KeyboardInterrupt as e:
-        pro.kill()
-        sys.stderr.write("Users stopped simulation in %s.\n" % worDir)
+    with open(logFilNam, mode="w") as logFil:
+        pro = subprocess.Popen(args=cmd,
+                               stdout=logFil,
+                               stderr=logFil,
+                               shell=False,
+                               cwd=worDir)
+        try:
+            retcode = pro.wait()
+            if retcode != 0:
+                print("Child was terminated by signal {}".format(retcode))
+                return retcode
+            else:
+                return 0
+        except OSError as e:
+            sys.stderr.write("Execution of '" + " ".join(map(str, cmd)) + " failed.\n" +
+                             "Working directory is '" + worDir + "'.")
+            raise(e)
+        except KeyboardInterrupt as e:
+            pro.kill()
+            sys.stderr.write("Users stopped simulation in %s.\n" % worDir)
 
 
 class Tester(object):
@@ -1130,29 +1128,28 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         from datetime import date
         import json
 
-        f=open(refFilNam, mode="w")
-        f.write('last-generated=' + str(date.today()) + '\n')
-        for stage in ['initialization', 'simulation', 'fmu-dependencies']:
-            if stage in y_tra:
-#                f.write('statistics-%s=\n%s\n' % (stage, _pretty_print(y_tra[stage])))
-                f.write('statistics-%s=\n%s\n' % (stage, json.dumps(y_tra[stage], indent=2)))
-        # FMU exports do not have simulation results.
-        # Hence, we preclude them if y_sim == None
-        if y_sim is not None:
-            # Set, used to avoid that data series that are plotted in two plots are
-            # written twice to the reference data file.
-            s = set()
-            for pai in y_sim:
-                for k, v in list(pai.items()):
-                    if k not in s:
-                        s.add(k)
-                        f.write(k + '=')
-                        # Use many digits, otherwise truncation errors occur that can be higher
-                        # than the required accuracy.
-                        formatted = [str(self.format_float(e)) for e in v]
-                        f.write(str(formatted).replace("'", ""))
-                        f.write('\n')
-        f.close()
+        with open(refFilNam, mode="w") as f:
+            f.write('last-generated=' + str(date.today()) + '\n')
+            for stage in ['initialization', 'simulation', 'fmu-dependencies']:
+                if stage in y_tra:
+    #                f.write('statistics-%s=\n%s\n' % (stage, _pretty_print(y_tra[stage])))
+                    f.write('statistics-%s=\n%s\n' % (stage, json.dumps(y_tra[stage], indent=2)))
+            # FMU exports do not have simulation results.
+            # Hence, we preclude them if y_sim == None
+            if y_sim is not None:
+                # Set, used to avoid that data series that are plotted in two plots are
+                # written twice to the reference data file.
+                s = set()
+                for pai in y_sim:
+                    for k, v in list(pai.items()):
+                        if k not in s:
+                            s.add(k)
+                            f.write(k + '=')
+                            # Use many digits, otherwise truncation errors occur that can be higher
+                            # than the required accuracy.
+                            formatted = [str(self.format_float(e)) for e in v]
+                            f.write(str(formatted).replace("'", ""))
+                            f.write('\n')
 
     def _readReferenceResults(self, refFilNam):
         ''' Read the reference results.
@@ -1170,9 +1167,8 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         import ast
 
         d = dict()
-        f=open(refFilNam, mode="r")
-        lines = f.readlines()
-        f.close()
+        with open(refFilNam, mode="r") as f:
+            lines = f.readlines()
 
         # Compute the number of the first line that contains the results
         iSta=0
@@ -1825,9 +1821,8 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         This allows to work around a bug in Dymola 2012 which can cause an exception
         from the Windows operating system, or which can cause Dymola to hang on Linux.
         '''
-        fil = open(mosFilNam, mode="r+")
-        lines = fil.readlines()
-        fil.close()
+        with open(mosFilNam, mode="r+") as fil:
+            lines = fil.readlines()
         linWri = []
         goToPlotEnd = False
         for i in range(len(lines)):
@@ -1840,10 +1835,9 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                 if (lines[i].count(";") > 0):
                     goToPlotEnd = False
         # Write file
-        filWri = open(mosFilNam, mode="w")
-        for i in range(len(linWri)):
-            filWri.write(lines[linWri[i]])
-        filWri.close()
+        with open(mosFilNam, mode="w") as filWri:
+            for i in range(len(linWri)):
+                filWri.write(lines[linWri[i]])
 
     def _write_runscripts(self):
         """
@@ -2250,18 +2244,17 @@ getErrorString();
                 runSimulation(os.path.join(self._temDir[0], libNam), cmd)
 
             # Concatenate simulator output files into one file
-            logFil = open(self._simulator_log_file, mode="w")
-            for d in self._temDir:
-                for temLogFilNam in glob.glob( os.path.join(d, self.getLibraryName(), '*.translation.log') ):
-                    if os.path.exists(temLogFilNam):
-                        fil=open(temLogFilNam, mode="r")
-                        data=fil.read()
-                        fil.close()
-                        logFil.write(data)
-                    else:
-                        self._reporter.writeError("Log file '" + temLogFilNam + "' does not exist.\n")
-                        retVal = 1
-            logFil.close()
+            with open(self._simulator_log_file, mode="w") as logFil:
+                for d in self._temDir:
+                    for temLogFilNam in glob.glob( os.path.join(d, self.getLibraryName(), '*.translation.log') ):
+                        if os.path.exists(temLogFilNam):
+                            fil=open(temLogFilNam, mode="r")
+                            data=fil.read()
+                            fil.close()
+                            logFil.write(data)
+                        else:
+                            self._reporter.writeError("Log file '" + temLogFilNam + "' does not exist.\n")
+                            retVal = 1
 
             # Concatenate simulator statistics into one file
             with open(self._statistics_log, mode="w", encoding="utf-8") as logFil:
@@ -2702,9 +2695,8 @@ successfully (={:.1%})"\
             # process the log file
             print("Logfile created: {}".format(logFilNam))
             print("Starting analysis of logfile")
-            f = open(logFilNam, mode="r")
-            self._omstats = f.readlines()
-            f.close()
+            with open(logFilNam, mode="r") as f:
+                self._omstats = f.readlines()
             self._analyseOMStats(lines=self._omstats, models=self._ommodels, simulate=simulate)
 
             # Delete temporary directories

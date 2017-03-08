@@ -479,13 +479,12 @@ def _get_package_list_for_file(directory, file_name):
         # records should be listed after all the models.
         class_name = file_name[:-3]
         recordString = "record %s" % class_name
-        fil = open(os.path.join(directory, file_name), mode="r")
-        typ=__MOD
-        for _ in range(2):
-            if recordString in fil.readline():
-                typ = __REC
-                break;
-        fil.close()
+        with open(os.path.join(directory, file_name), mode="r") as fil:
+            typ=__MOD
+            for _ in range(2):
+                if recordString in fil.readline():
+                    typ = __REC
+                    break;
 
         pacLis.append([typ, class_name])
 
