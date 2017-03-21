@@ -81,8 +81,7 @@ class IBPSA(object):
         :param destination_file: Name of the new file.
         """
 
-        rep = {self._src_library_name:
-               self._new_library_name}
+        rep = dict()
         # For the Buildings library, do these additional replacements.
         if self._new_library_name == "Buildings":
             # Update the models that we use from Buildings.HeatTransfer rather
@@ -91,11 +90,18 @@ class IBPSA(object):
                         "Buildings.HeatTransfer.Sources.PrescribedTemperature",
                         "Modelica.Thermal.HeatTransfer.Sources.FixedTemperature":
                         "Buildings.HeatTransfer.Sources.FixedTemperature"})
-
+            # The merge script updates a few names that have IBPSA in it but
+            # that should not be updated. Here, we revert this renaming.
+        rep.update({"{} Conference".format(self._new_library_name):
+                    "IBPSA Conference",
+                    "2013-{}-Wetter.pdf".format(self._new_library_name):
+                    "2013-IBPSA-Wetter.pdf"})
         # Read source file, store the lines and update the content of the lines
         with open(source_file, mode="r") as f_sou:
             lines = list()
             for _, lin in enumerate(f_sou):
+                # First, rename the library.
+                lin = lin.replace(self._src_library_name, self._new_library_name)
                 for ori, new in rep.items():
                     lin = lin.replace(ori, new)
                 lines.append(lin)
