@@ -106,9 +106,8 @@ class IBPSA(object):
                     lin = lin.replace(ori, new)
                 lines.append(lin)
         # Write the lines to the new file
-        f_des = open(destination_file, mode="w")
-        f_des.writelines(lines)
-        f_des.close()
+        with open(destination_file, mode="w") as f_des:
+            f_des.writelines(lines)
 
 
     def merge(self):

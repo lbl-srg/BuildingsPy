@@ -173,7 +173,6 @@ Modelica package. Expected file '%s'."
         # Write html file.
         if self._writeHTML:
             htmlName = "%s%s" % (moFile[0:-2], "html")
-            f = open(htmlName, mode="w")
-            f.write(document)
-            f.close()
+            with open(htmlName, mode="w") as f:
+                f.write(document)
         return (document, errors)
