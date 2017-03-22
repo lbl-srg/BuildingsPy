@@ -1,39 +1,48 @@
+dist: trusty
 language: python
 python:
   - "2.7"
-  - "3.5"
+#  - "3.4"
+#  - "3.5"
+#  - "3.6"
+
+cache: pip
+
 env:
   - MPLBACKEND=agg
+
 notifications:
   email: false
-#
-# commands to install dependencies and the script itself
+
+git:
+  depth: 3
+
+services:
+  - docker
+
 addons:
   apt:
+    sources:
+    - sourceline: "deb http://build.openmodelica.org/apt `lsb_release -cs` stable"
+      key_url: "http://build.openmodelica.org/apt/openmodelica.asc"
     packages:
+    - omc
+    - omlib-modelica-3.2.?
     - tidy
+
+before_install:
+  - sudo mv buildingspy/tests/MyModelicaLibrary/Resources/Scripts/travis/usr/local/bin/dymola /usr/local/bin/
+  - sudo chmod +x /usr/local/bin/dymola
+  - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
+  - docker pull "$DOCKER_USERNAME"/travis_ubuntu-1604_dymola-2017fd01-x86-64
+
 install:
   - pip install --upgrade pip setuptools wheel
   - pip install --only-binary=numpy,scipy,matplotlib numpy scipy matplotlib
   - pip install future gitpython pytidylib
   - pip install .
-#
-# commands to run the tests
-script: 
-# run selected doctests
-  - python -m doctest buildingspy/development/merger.py
-  - python -m doctest buildingspy/development/refactor.py
-# - python -m doctest buildingspy/development/regressiontest.py
-  - python -m doctest buildingspy/development/validator.py
-  - python -m doctest buildingspy/io/postprocess.py
-#
-# run selected unittests
-  - python buildingspy/tests/test_development_error_dictionary.py
-# - python buildingspy/tests/test_development_merger.py
-  - python buildingspy/tests/test_development_refactor.py
-# - python buildingspy/tests/test_development_regressiontest.py
-  - python buildingspy/tests/test_development_Validator.py
-# - python buildingspy/tests/test_examples_dymola.py
-  - python buildingspy/tests/test_io_outputfile.py
-  - python buildingspy/tests/test_io_postprocess.py
-# - python buildingspy/tests/test_simulate_Simulator.py
+
+# Execute tests
+script:
+  - omc --version
+  - make doctest unittest

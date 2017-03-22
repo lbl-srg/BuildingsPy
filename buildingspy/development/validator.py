@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #######################################################
 # Class that validates the .mo file for correct
 # html syntax
@@ -9,7 +10,8 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
-#from __future__ import unicode_literals
+from __future__ import unicode_literals
+from io import open
 
 from builtins import range
 from builtins import object
@@ -73,6 +75,56 @@ Modelica package. Expected file '%s'."
                         errMsg.append("[-- %s ]\n%s" % (moFulNam, err))
         return errMsg
 
+    def _getInfoRevisionsHTML(self, moFile):
+        '''
+        This function returns a list that contain the html code of the
+        info and revision sections. Each element of the list
+        is a string.
+
+        :param moFile: The name of a Modelica source file.
+        :return: list The list of strings of the info and revisions
+                 section.
+        '''
+        # Open file.
+        f = open(moFile, mode="r")
+        lines = f.readlines()
+        f.close()
+
+        nLin = len(lines)
+        isTagClosed = True
+        entries = list()
+
+        for i in range(nLin):
+            if isTagClosed:
+                # search for opening tag
+                idxO = lines[i].find("<html>")
+                if idxO > -1:
+                    # search for closing tag on same line as opening tag
+                    idxC = lines[i].find("</html>")
+                    if idxC > -1:
+                        entries.append(lines[i][idxO+6:idxC])
+                        isTagClosed = True
+                    else:
+                        entries.append(lines[i][idxO+6:])
+                        isTagClosed = False
+            else:
+                # search for closing tag
+                idxC = lines[i].find("</html>")
+                if idxC == -1:
+                    # closing tag not found, copy full line
+                    entries.append(lines[i])
+                else:
+                    # found closing tag, copy beginning of line only
+                    entries.append(lines[i][0:idxC])
+                    isTagClosed = True
+                    entries.append("<h4>Revisions</h4>\n")
+                    # search for opening tag on same line as closing tag
+                    idxO = lines[i].find("<html>")
+                    if idxO > -1:
+                        entries.append(lines[i][idxO+6:])
+                        isTagClosed = False
+        return entries
+
     def _validateHTML(self, moFile):
         '''
         This function validates the file ``moFile`` for correct html syntax.
@@ -84,10 +136,10 @@ Modelica package. Expected file '%s'."
 
         '''
         from tidylib import tidy_document
-        # Open file.
-        f = open(moFile, "r")
-        lines = f.readlines()
-        f.close()
+
+        entries = self._getInfoRevisionsHTML(moFile)
+
+
         # Document header
         header = "<?xml version='1.0' encoding='utf-8'?> \n \
         <!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \n \
@@ -99,41 +151,13 @@ Modelica package. Expected file '%s'."
 </head> \n \
 <body> \n \
 <!-- +++++++++++++++++++++++++++++++++++++ -->\n"
-        nLin = len(lines)
-        isTagClosed = True
-        body = ""
-        for i in range(nLin):
-            if isTagClosed:
-                # search for opening tag
-                idxO = lines[i].find("<html>")
-                if idxO > -1:
-                    # search for closing tag on same line as opening tag
-                    idxC = lines[i].find("</html>")
-                    if idxC > -1:
-                        body += lines[i][idxO+6:idxC] + '\n'
-                        isTagClosed = True
-                    else:
-                        body += lines[i][idxO+6:] + '\n'
-                        isTagClosed = False
-            else:
-                # search for closing tag
-                idxC = lines[i].find("</html>")
-                if idxC == -1:
-                    # closing tag not found, copy full line
-                    body += lines[i] + '\n'
-                else:
-                    # found closing tag, copy beginning of line only
-                    body += lines[i][0:idxC] + '\n'
-                    isTagClosed = True
-                    body += "<h4>Revisions</h4>\n"
-                    # search for opening tag on same line as closing tag
-                    idxO = lines[i].find("<html>")
-                    if idxO > -1:
-                        body += lines[i][idxO+6:] + '\n'
-                        isTagClosed = False
 
+        body = ""
+        for line in entries:
+            body += line + '\n'
         # Replace \" with "
         body = body.replace('\\"', '"')
+
 
         # Document footer
         footer = "<!-- +++++++++++++++++++++++++++++++++++++ -->\n \
@@ -149,7 +173,6 @@ Modelica package. Expected file '%s'."
         # Write html file.
         if self._writeHTML:
             htmlName = "%s%s" % (moFile[0:-2], "html")
-            f = open(htmlName, "w")
-            f.write(document)
-            f.close()
+            with open(htmlName, mode="w") as f:
+                f.write(document)
         return (document, errors)

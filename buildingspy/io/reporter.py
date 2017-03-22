@@ -1,9 +1,11 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
-#from __future__ import unicode_literals
+from __future__ import unicode_literals
+from io import open
 
 from builtins import object
 
@@ -102,9 +104,8 @@ class Reporter(object):
         msg += message + "\n"
         sys.stderr.write(msg)
         if self._logToFile:
-            fil = open(self._logFil, 'a')
-            fil.write(msg)
-            fil.close()
+            with open(self._logFil, 'a') as fil:
+                fil.write(msg)
         return
 
     def writeOutput(self, message):
@@ -118,9 +119,8 @@ class Reporter(object):
 
         msg = message + "\n"
         if self._logToFile:
-            fil = open(self._logFil, 'a')
-            fil.write(msg)
-            fil.close()
+            with open(self._logFil, 'a') as fil:
+                fil.write(msg)
         sys.stdout.write(msg)
         return
 

@@ -1,9 +1,11 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
-#from __future__ import unicode_literals
+from __future__ import unicode_literals
+from io import open
 
 from builtins import range
 
@@ -60,6 +62,49 @@ class Test_regressiontest_Tester(unittest.TestCase):
         # Verify that invalid packages raise a ValueError.
         self.assertRaises(ValueError, rt.setSinglePackage, "this.package.does.not.exist")
 
+    def test_setSinglePackage(self):
+        import buildingspy.development.regressiontest as r
+        rt = r.Tester(check_html=False)
+        myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
+        rt.setLibraryRoot(myMoLib)
+        rt.include_fmu_tests(True)
+        self.assertEqual(0, rt.get_number_of_tests())
+
+    def test_setSinglePackage_1(self):
+        import buildingspy.development.regressiontest as r
+        rt = r.Tester(check_html=False)
+        myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
+        rt.setLibraryRoot(myMoLib)
+        rt.include_fmu_tests(True)
+        rt.setSinglePackage("MyModelicaLibrary.Examples.FMUs")
+        self.assertEqual(2, rt.get_number_of_tests())
+
+    def test_setSinglePackage_2(self):
+        import buildingspy.development.regressiontest as r
+        rt = r.Tester(check_html=False)
+        myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
+        rt.setLibraryRoot(myMoLib)
+        rt.include_fmu_tests(True)
+        rt.setSinglePackage("MyModelicaLibrary.Examples")
+        self.assertEqual(5, rt.get_number_of_tests())
+
+    def test_setSinglePackage_3(self):
+        import buildingspy.development.regressiontest as r
+        rt = r.Tester(check_html=False)
+        myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
+        rt.setLibraryRoot(myMoLib)
+        rt.include_fmu_tests(True)
+        rt.setSinglePackage("MyModelicaLibrary.Examples.FMUs,MyModelicaLibrary.Examples")
+        self.assertEqual(5, rt.get_number_of_tests())
+
+    def test_setSinglePackage_4(self):
+        import buildingspy.development.regressiontest as r
+        rt = r.Tester(check_html=False)
+        myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
+        rt.setLibraryRoot(myMoLib)
+        rt.include_fmu_tests(True)
+        # No new tests should be found as FMUs is a subdirectory of Examples.
+        self.assertRaises(ValueError, rt.setSinglePackage, "MyModelicaLibrary.Examples,MyModelicaLibrary.Examples.FMUs")
 
     def test_runSimulation(self):
         import buildingspy.development.regressiontest as r
@@ -159,6 +204,35 @@ class Test_regressiontest_Tester(unittest.TestCase):
         myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
         rt.setLibraryRoot(myMoLib)
         rt.setDataDictionary()
+
+    def test_expand_packages(self):
+        import buildingspy.development.regressiontest as r
+
+        self.assertEqual("A.B",
+           r.Tester.expand_packages("A.B"))
+        self.assertEqual("A.B,A.C",
+           r.Tester.expand_packages("A.{B,C}"))
+        self.assertEqual("A.B.xy,A.B.xy.z",
+           r.Tester.expand_packages("A.B.{xy,xy.z}"))
+
+        # Add spaces
+        self.assertEqual("A.B,A.C",
+           r.Tester.expand_packages("A.{B, C}"))
+        self.assertEqual("A.B,A.C",
+           r.Tester.expand_packages("A.{ B , C }"))
+        self.assertEqual("A.B.xy,A.B.xy.z",
+           r.Tester.expand_packages("A.B.{xy, xy.z}"))
+        self.assertEqual("A.B.xy,A.B.xy.z",
+           r.Tester.expand_packages("A.B.{ xy, xy.z}"))
+        self.assertEqual("A.B.xy,A.B.xy.z",
+           r.Tester.expand_packages("A.B.{ xy , xy.z }"))
+
+        self.assertRaises(ValueError, \
+            r.Tester.expand_packages, "AB{")
+        self.assertRaises(ValueError, \
+            r.Tester.expand_packages, "AB{}")
+        self.assertRaises(ValueError, \
+            r.Tester.expand_packages, "AB}a{")
 
 if __name__ == '__main__':
     unittest.main()
