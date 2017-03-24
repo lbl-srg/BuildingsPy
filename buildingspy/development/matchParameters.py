@@ -31,6 +31,8 @@ def recursive_glob(rootdir='.', suffix=''):
 # Get the path to the library
 libHome = os.path.abspath(".")
 
+print (libHome)
+
 # Ge the path to the mos files
 rootPackage = os.path.join(libHome, 'Resources', 'Scripts', 'Dymola')
 
@@ -340,7 +342,6 @@ def fixParameters (name):
 
     j = 1
     for mos_file in mos_files:
-        os.system("clear")
         #print("{!s}: {!s}".format(j, mos_file))
         j += 1
         
@@ -531,8 +532,8 @@ def fixParameters (name):
                                         pTime    = re.compile(r"[\d\S\s.,]*("+"StartTime"+"=)([\d]*[.]*[\d]*[eE]*[+|-]*[\d]*[*]*[\d]*[.]*[\d]*[eE]*[+|-]*[\d]*)")
                                         mTime    = pTime.match(line)
                                         val = mTime.group(2)
-                                        print(" This is the val {!s}".format(val))
-                                        print(" This is the value {!s}".format((value)))
+                                        #print(" This is the val {!s}".format(val))
+                                        #print(" This is the value {!s}".format((value)))
                                         newLine = line.replace("StartTime="+"" + str(val), ""+capitalize_first(name)+"="+""+str(value))
                                         #print("\t REPLACE")
                                         #print("\t{}".format(line  ))
@@ -615,38 +616,3 @@ def main():
     if(knownMissingTolerance):
         n_files_tol_mos-=1
     assert n_files_tol_mos - n_files_tol_mo == 0, "The number of .mo files with **tolerance** does not match the number of .mos scripts."   
-# if __name__ == "__main__":
-#         
-#     for k in range(N_Runs):
-#         print "This is the " + str(k + 1) + " run."
-#         # First run 
-#         for i in ["stopTime", "tolerance", "startTime", "numberOfIntervals"]:
-#         # for i in ["stopTime"]:
-#             fixParameters(i)
-#             print "Fixing ***" + str(i) + "*** in the Modelica files."
-#             print "\n* Number of mos files = " + str(len(mos_files))
-#             print "\n* Number of modified mo = " + str(N_modify_models) 
-#             print "\n* Number of modified mos = " + str(N_modify_mos)
-#             print "\n* Number of mos scripts with defect_mos = " + str(N_mos_defect)
-#             print "\n"
-#   
-#     print "*********DIAGNOSTICS***********"  
-#     n_files_tol_mos, n_files_fmus = number_occurences (mos_files, "mos")
-# 
-#     print "Number of mos files found " + str (len(mos_files))
-#     print ".mos files found with **tolerance** " + str (n_files_tol_mos)
-#     print ".mos files found with **translateModelFMU** " + str (n_files_fmus)
-#     print "Number of mos files expected with **tolerance** " + str (len(mos_files) - n_files_fmus)
-#     print ".mos files with stopTime=stopTime " + str (mosToFixed)
-#     print "Number of .mos files with stopTime=stopTime " + str(mosToFixed)
-# 
-#     n_files_tol_mo, n_files_fmus = number_occurences (mo_files, "mo")
-#     defect_mo = defect_mo_files(mosCorrect)
-# 
-#     print ".mo files with **tolerance** " + str (n_files_tol_mo)
-#     print ".mo files with missing **tolerances** " + str (defect_mo)
-#     print "Number of .mo files with missing **tolerances** " + str (len(defect_mo))
-# 
-#     print "Number of .mo files with missing **experiment** annotation" + str(defect_mos)
-#     print "Number of .mo files with missing **experiment** annotation: " + str(len(defect_mos))
-#     assert n_files_tol_mos - n_files_tol_mo == 0, "The number of .mo files with **tolerance** does not match the number of .mos scripts."
