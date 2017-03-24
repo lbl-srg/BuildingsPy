@@ -287,13 +287,13 @@ def wrong_parameter (mos_file, name, value):
         print("ERROR: Found mos_file: {!s} with a tolerance={!s} which is bigger than the maximum tolerance of 1e-6.".format(mos_file, value))
         print("The tolerance must be smaller or equal 1e-6 for JModelica.")
         print("Please correct the mos file  and re-run the conversion script.")
-        exit()
+        exit(1)
     if ("" + name + "=" + "" == "numberOfIntervals="):
         #print("\t=================================")
         print("ERROR: Found mos_file: {!s} with a numberOfIntervals={!s} which is bigger than 0 and smaller than the minimum of 500.""".format(mos_file, value))
         print("The numberOfIntervals must be bigger or equal than 500 for JModelica.")
-        print("Please correct the mos file  and re-run the conversion script.")
-        exit()
+        print("Please correct the mos file and re-run the conversion script.")
+        exit(1)
 
 
 def wrong_literal (mos_file):
@@ -303,7 +303,7 @@ def wrong_literal (mos_file):
     :param mos_file: mos file.
 
      """
-    exit()
+    exit(1)
 #     rewrite = raw_input("\n\tFound mos_file: " + str(mos_file) 
 #                 +" with invalid entries (e.g. startTime=startTime, stopTime=stopTime)."
 #                 +" Do you want to correct them now (Y/N)?" 
@@ -314,10 +314,10 @@ def wrong_literal (mos_file):
 #         mosToFixed.append(mos_file)
 #         webbrowser.open(mos_file)
 #         print("Please re-run the conversion script.")
-#         exit()
+#         exit(1)
 #     if rewrite == 'N':
 #         print("Please correct the mos file {!s} before proceeding.".format(mos_file))
-#         exit() 
+#         exit(1) 
 
 # Number of .mos files
 N_mos_files = len(mos_files)
