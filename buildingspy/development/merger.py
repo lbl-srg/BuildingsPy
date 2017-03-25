@@ -60,6 +60,7 @@ class IBPSA(object):
                                     "Obsolete"])
         self._excluded_files = [os.path.join(ibpsa_dir, "package.mo"), \
                                 os.path.join(ibpsa_dir, "Fluid", "package.mo"), \
+                                os.path.join(ibpsa_dir, "Resources", "Scripts", "travis", "Makefile"), \
                                 os.path.join(ibpsa_dir, "legal.html")]
 
     def set_excluded_packages(self, packages):
