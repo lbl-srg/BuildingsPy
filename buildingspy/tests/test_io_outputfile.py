@@ -65,7 +65,7 @@ Translated Model
     Number of numerical Jacobians: 0
         """
 
-        with open(staFil, mode="w") as fil:
+        with open(staFil, mode="w", encoding="utf-8") as fil:
             fil.write(s)
 
         # Test the function
