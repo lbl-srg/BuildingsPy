@@ -698,7 +698,7 @@ class Tester(object):
 
                     # open the mos file and read its content.
                     # Path and name of mos file without 'Resources/Scripts/Dymola'
-                    with open(os.path.join(root, mosFil), mode="r") as fMOS:
+                    with open(os.path.join(root, mosFil), mode="r", , encoding="utf-8") as fMOS:
                         Lines=fMOS.readlines()
 
                     # Remove white spaces
