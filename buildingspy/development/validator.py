@@ -86,9 +86,8 @@ Modelica package. Expected file '%s'."
                  section.
         '''
         # Open file.
-        f = open(moFile, mode="r")
-        lines = f.readlines()
-        f.close()
+        with open(moFile, mode="r", encoding="utf-8") as f:
+            lines = f.readlines()
 
         nLin = len(lines)
         isTagClosed = True
@@ -173,6 +172,6 @@ Modelica package. Expected file '%s'."
         # Write html file.
         if self._writeHTML:
             htmlName = "%s%s" % (moFile[0:-2], "html")
-            with open(htmlName, mode="w") as f:
+            with open(htmlName, mode="w", encoding="utf-8") as f:
                 f.write(document)
         return (document, errors)
