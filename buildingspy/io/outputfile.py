@@ -49,7 +49,7 @@ def get_model_statistics(log_file, simulator):
         raise ValueError('Argument "simulator" needs to be set to "dymola".')
 
     if not os.path.isfile(log_file):
-        raise IOError("File {} does not exist".format(log_file))
+        raise IOError("File {!s} does not exist".format(log_file))
 
     with open(log_file, mode="r") as fil:
         lines = fil.readlines();
