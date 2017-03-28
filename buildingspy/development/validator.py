@@ -86,7 +86,7 @@ Modelica package. Expected file '%s'."
                  section.
         '''
         # Open file.
-        with open(moFile, mode="r", encoding="utf-8") as f:
+        with open(moFile, mode="r") as f:
             lines = f.readlines()
 
         nLin = len(lines)
