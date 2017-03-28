@@ -51,7 +51,7 @@ def get_model_statistics(log_file, simulator):
     if not os.path.isfile(log_file):
         raise IOError("File {!s} does not exist".format(log_file))
 
-    with open(log_file, mode="r") as fil:
+    with open(log_file, mode="r", encoding="utf-8") as fil:
         lines = fil.readlines();
         # Instantiate a dictionary that is used for the return value
 
@@ -133,7 +133,7 @@ def get_errors_and_warnings(log_file, simulator):
     if not os.path.isfile(log_file):
         raise IOError("File {} does not exist".format(log_file))
 
-    with open(log_file, mode="r") as fil:
+    with open(log_file, mode="r", encoding="utf-8") as fil:
         lines = fil.readlines();
     
     # Instantiate lists that are used for the return value    
