@@ -28,15 +28,18 @@ def export(dm, varList, fileName=None, formatOptions={}):
 
     if not fileName:
         fileName = dm.fileName+'.l.csv'
-    with open(fileName, 'w') as ofile:    
-        locale.setlocale(locale.LC_NUMERIC, locale.getdefaultlocale())
-        delimiter = formatOptions.get('delimiter', ';')
-        newline   = formatOptions.get('newline', os.linesep)
-        
-        vDict = dm.sortByBlocks(varList)
-        for vList in vDict.values():
-            vData = dm.getVarArray(vList)
-            vList.insert(0, dm._absc[0])
-            oFile.write(delimiter.join(['"%s"'%n for n in vList])+newline)
-            for i in range(vData.shape[1]):
-                oFile.write(delimiter.join([locale.format('%g', n) for n in vData[:,i]])+newline)
+    oFile = open(fileName, 'w')
+    
+    locale.setlocale(locale.LC_NUMERIC, locale.getdefaultlocale())
+    delimiter = formatOptions.get('delimiter', ';')
+    newline   = formatOptions.get('newline', os.linesep)
+    
+    vDict = dm.sortByBlocks(varList)
+    for vList in vDict.values():
+        vData = dm.getVarArray(vList)
+        vList.insert(0, dm._absc[0])
+        oFile.write(delimiter.join(['"%s"'%n for n in vList])+newline)
+        for i in range(vData.shape[1]):
+            oFile.write(delimiter.join([locale.format('%g', n) for n in vData[:,i]])+newline)
+    
+    oFile.close()
