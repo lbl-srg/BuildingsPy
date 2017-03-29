@@ -421,7 +421,7 @@ class Tester(object):
             If ``key`` is found, increase the counter.
         '''
 
-        with open(fileName, mode="rt", encoding="utf-8") as filObj:
+        with open(fileName, mode="rt", encoding="utf-8-sig") as filObj:
             filTex=filObj.readline()
             # Strip white spaces so we can test strpos for zero.
             # This test returns non-zero for partial classes.
@@ -698,7 +698,7 @@ class Tester(object):
 
                     # open the mos file and read its content.
                     # Path and name of mos file without 'Resources/Scripts/Dymola'
-                    with open(os.path.join(root, mosFil), mode="r", encoding="utf-8") as fMOS:
+                    with open(os.path.join(root, mosFil), mode="r", encoding="utf-8-sig") as fMOS:
                         Lines=fMOS.readlines()
 
                     # Remove white spaces
@@ -1166,7 +1166,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         import ast
 
         d = dict()
-        with open(refFilNam, mode="r", encoding="utf-8") as f:
+        with open(refFilNam, mode="r", encoding="utf-8-sig") as f:
             lines = f.readlines()
 
         # Compute the number of the first line that contains the results
@@ -1685,7 +1685,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         if not os.path.isfile(self._statistics_log):
             raise IOError("Statistics file {} does not exist.".format(self._statistics_log))
 
-        with open(self._statistics_log, mode="rt", encoding="utf-8") as fil:
+        with open(self._statistics_log, mode="rt", encoding="utf-8-sig") as fil:
             try:
                 stat = json.load(fil)['testCase']
             except ValueError as e:
@@ -1800,7 +1800,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                 raise ValueError(em)
 
         retVal = None
-        with open(mosFilNam, mode="r+", encoding="utf-8") as fil:
+        with open(mosFilNam, mode="r+", encoding="utf-8-sig") as fil:
             for lin in fil:
                 if "simulateModel" in lin or "modelToOpen" in lin:
                     if self._modelicaCmd == 'dymola':
@@ -1819,7 +1819,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         This allows to work around a bug in Dymola 2012 which can cause an exception
         from the Windows operating system, or which can cause Dymola to hang on Linux.
         '''
-        with open(mosFilNam, mode="r+", encoding="utf-8") as fil:
+        with open(mosFilNam, mode="r+", encoding="utf-8-sig") as fil:
             lines = fil.readlines()
         linWri = []
         goToPlotEnd = False
@@ -2246,7 +2246,7 @@ getErrorString();
                 for d in self._temDir:
                     for temLogFilNam in glob.glob( os.path.join(d, self.getLibraryName(), '*.translation.log') ):
                         if os.path.exists(temLogFilNam):
-                            with open(temLogFilNam, mode="r", encoding="utf-8") as fil:
+                            with open(temLogFilNam, mode="r", encoding="utf-8-sig") as fil:
                                 data=fil.read()
                             logFil.write(data)
                         else:
@@ -2259,7 +2259,7 @@ getErrorString();
                 for d in self._temDir:
                     temLogFilNam = os.path.join(d, self.getLibraryName(), self._statistics_log)
                     if os.path.exists(temLogFilNam):
-                        with open(temLogFilNam.replace('Temp\tmp','Temp\\tmp'), mode="r", encoding="utf-8") as temSta:
+                        with open(temLogFilNam.replace('Temp\tmp','Temp\\tmp'), mode="r", encoding="utf-8-sig") as temSta:
                             try:
                                 cas = json.load(temSta)["testCase"]
                                 # Iterate over all test cases of this output file
@@ -2691,7 +2691,7 @@ successfully (={:.1%})"\
             # process the log file
             print("Logfile created: {}".format(logFilNam))
             print("Starting analysis of logfile")
-            with open(logFilNam, mode="r", encoding="utf-8") as f:
+            with open(logFilNam, mode="r", encoding="utf-8-sig") as f:
                 self._omstats = f.readlines()
             self._analyseOMStats(lines=self._omstats, models=self._ommodels, simulate=simulate)
 

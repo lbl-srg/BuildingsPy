@@ -258,7 +258,7 @@ def replace_text_in_file(file_name, old, new, isRegExp=False):
     '''
     import re
     # Read source file, store the lines and update the content of the lines
-    with open(file_name, mode="r", encoding="utf-8") as f_sou:
+    with open(file_name, mode="r", encoding="utf-8-sig") as f_sou:
         lines = list()
         for _, lin in enumerate(f_sou):
             if isRegExp == True:
@@ -442,14 +442,14 @@ def _get_package_list_for_file(directory, file_name):
     if file_name == 'package.mo':
         # Some package.mo files contain a UsersGuide.
         # Add this to the list if needed.
-        with open(os.path.join(directory, file_name), mode="r", encoding="utf-8") as fil:
+        with open(os.path.join(directory, file_name), mode="r", encoding="utf-8-sig") as fil:
             for line in fil:
                 if "package UsersGuide" in line:
                     pacLis.append([__MOD, "UsersGuide"])
                     break
         # Some package.mo files contain constants for the whole package.
         # They need to be added to the package.order as well.
-        with open(os.path.join(directory, file_name), mode="r", encoding="utf-8") as fil:
+        with open(os.path.join(directory, file_name), mode="r", encoding="utf-8-sig") as fil:
             lines = fil.read()
             # Constants can be 'constant Real n = ..." or "constant someClass n(..."
             con=re.findall(r";\s*constant\s+[a-zA-Z0-9_\.]+\s+(\w+)\s*[=\(]", lines, re.MULTILINE);
@@ -478,7 +478,7 @@ def _get_package_list_for_file(directory, file_name):
         # records should be listed after all the models.
         class_name = file_name[:-3]
         recordString = "record %s" % class_name
-        with open(os.path.join(directory, file_name), mode="r", encoding="utf-8") as fil:
+        with open(os.path.join(directory, file_name), mode="r", encoding="utf-8-sig") as fil:
             typ=__MOD
             for _ in range(2):
                 if recordString in fil.readline():

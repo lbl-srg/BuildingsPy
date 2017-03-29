@@ -98,7 +98,7 @@ class IBPSA(object):
                     "2013-{}-Wetter.pdf".format(self._new_library_name):
                     "2013-IBPSA-Wetter.pdf"})
         # Read source file, store the lines and update the content of the lines
-        with open(source_file, mode="r", encoding="utf-8") as f_sou:
+        with open(source_file, mode="r", encoding="utf-8-sig") as f_sou:
             lines = list()
             for _, lin in enumerate(f_sou):
                 # First, rename the library.
@@ -171,7 +171,7 @@ class IBPSA(object):
         previouslyCopiedFiles = list()
         if os.path.isfile(copFilPat):
             roo = self._target_home.rsplit(self._new_library_name, 1)[0]
-            with open(copFilPat, mode="r", encoding="utf-8") as fp:
+            with open(copFilPat, mode="r", encoding="utf-8-sig") as fp:
                 files = fp.read().splitlines()
                 for fil in files:
                     fil = os.path.normpath(fil.rstrip())
