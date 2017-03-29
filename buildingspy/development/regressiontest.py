@@ -711,7 +711,7 @@ class Tester(object):
                             # Add the model name to the dictionary.
                             # This is needed to export the model as an FMU.
                             # Also, set the flag mustSimulate to True.
-                            simCom=re.search('^simulateModel\\(\s*".*"', lin)
+                            simCom=re.search('simulateModel\\(\s*".*"', lin)
                             if simCom is not None:
                                     modNam = re.sub('simulateModel\\(\s*"', '', simCom.string)
                                     modNam = modNam[0:modNam.index('"')]
