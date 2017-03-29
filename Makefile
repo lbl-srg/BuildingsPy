@@ -35,7 +35,7 @@ dist:	clean doctest unittest doc
 	python setup.py bdist_egg
 	rm -rf build
 	rm -rf buildingspy.egg-info
-	python setup.py sdist --formats=gztar,zip bdist_egg upload -r https://pypi.python.org/pypi
+	twine upload dist/*
 	@echo "Source distribution is in directory dist"
 	@echo "To post to server, run postBuildingsPyToWeb.sh"
 
