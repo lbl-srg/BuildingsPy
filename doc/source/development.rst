@@ -27,7 +27,7 @@ Merging Annex60 library
 -----------------------
 
 .. automodule:: buildingspy.development.merger
-.. autoclass:: buildingspy.development.merger.Annex60
+.. autoclass:: buildingspy.development.merger.IBPSA
    :members:
 
 Error dictionary
