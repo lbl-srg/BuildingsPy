@@ -246,20 +246,20 @@ def replace_tolerance_intervals(content, name, value, mos_file):
 
      """
     if ("" + name + "=" + "" == "tolerance=" and float(value) > 1e-6):
-        wrong_parameter (mos_file, name, value)
-#         foundStop = False
-#         # tolerance="1e-6"
-#         consPar = "1e-6"
-#         foundStop, content = replace_content(content, name, value, consPar, foundStop)
-#         value = "1e-6"
-#         # print("\t=================================")
-#         # rewrite = raw_input("\n\tARE YOU SURE TO REWRITE THE MOS (N/y)?")
-#         # rewrite = raw_input("\n\tARE YOU SURE TO REWRITE THE MOS (N/y)?")
-#         # rewrite = 'y'
-#         # if rewrite == 'y':
-#         write_file(mos_file, content)    
-    if ("" + name + "=" + "" == "numberOfIntervals=" and (float(value) != 0 and float(value) < 500)):
-        wrong_parameter (mos_file, name, value)
+#         wrong_parameter (mos_file, name, value)
+        foundStop = False
+        # tolerance="1e-6"
+        consPar = "1e-6"
+        foundStop, content = replace_content(content, name, value, consPar, foundStop)
+        value = "1e-6"
+        # print("\t=================================")
+        # rewrite = raw_input("\n\tARE YOU SURE TO REWRITE THE MOS (N/y)?")
+        # rewrite = raw_input("\n\tARE YOU SURE TO REWRITE THE MOS (N/y)?")
+        # rewrite = 'y'
+        # if rewrite == 'y':
+        write_file(mos_file, content)    
+#     if ("" + name + "=" + "" == "numberOfIntervals=" and (float(value) != 0 and float(value) < 500)):
+#         wrong_parameter (mos_file, name, value)
 #         foundStop = False
 #         # tolerance="1e-6"
 #         consPar = "500"
