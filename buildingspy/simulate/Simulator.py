@@ -15,7 +15,7 @@ from io import open
 try:
     # Python 2
     basestring
-except NameError
+except NameError:
     # Python 3 or newer
     basestring = str
 
