@@ -1,18 +1,22 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+#
+# import from future to make Python2 behave like Python3
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+from future import standard_library
+standard_library.install_aliases()
+from builtins import *
 from io import open
+# end of from future import
 
-from builtins import str
-from builtins import range
-from builtins import object
 try:
+    # Python 2
     basestring
-except NameError:
+except NameError
+    # Python 3 or newer
     basestring = str
 
 class Simulator(object):
@@ -933,7 +937,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         actual_res = Reader(os.path.join(self._outputDir_,
                               self._simulator_['resultFile'])+'.mat',
                               'dymola')
-        for key, value in self._parameters_.items():
+        for key, value in list(self._parameters_.items()):
             if isinstance(value, list): # lists
                 for index, val in enumerate(value):
                     key_string = key + '['+ str(index+1) + ']'
