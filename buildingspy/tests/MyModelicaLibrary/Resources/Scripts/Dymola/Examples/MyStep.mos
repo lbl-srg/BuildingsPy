@@ -1,4 +1,4 @@
-simulateModel("MyModelicaLibrary.Examples.MyStep", method="dassl", resultFile="MyStep");
+﻿simulateModel("MyModelicaLibrary.Examples.MyStep", method="dassl", resultFile="MyStep");
 createPlot(
   id=1, 
   y={"myStep.y"}
