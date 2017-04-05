@@ -119,7 +119,7 @@ def create_modelica_package(directory):
             os.makedirs(fd)
             parentPackage = fd[:fd.rfind(os.path.sep)].replace(os.path.sep, ".")
             if d == "Examples":
-                f = open(os.path.join(fd, "package.mo"), mode="w")
+                f = open(os.path.join(fd, "package.mo"), mode="w", encoding="utf-8")
                 s = '''
 within %s;
 package Examples "Collection of models that illustrate model use and test models"
@@ -136,7 +136,7 @@ end Examples;
                 f.write(s)
                 f.close()
             elif d == "Validation":
-                f = open(os.path.join(fd, "package.mo"), mode="w")
+                f = open(os.path.join(fd, "package.mo"), mode="w", encoding="utf-8")
                 s = '''
 within %s;
 package Validation "Collection of validation models"
@@ -162,7 +162,7 @@ end Validation;
                 f.write(s)
                 f.close()
             elif d == "BaseClasses":
-                f = open(os.path.join(fd, "package.mo"), mode="w")
+                f = open(os.path.join(fd, "package.mo"), mode="w", encoding="utf-8")
                 s = '''
 within %s;
 package BaseClasses "Package with base classes for %s"
@@ -179,7 +179,7 @@ end BaseClasses;
                 f.write(s)
                 f.close()
             else:
-                f = open(os.path.join(fd, "package.mo"), mode="w")
+                f = open(os.path.join(fd, "package.mo"), mode="w", encoding="utf-8")
                 s = '''
 within %s;
 package %s "fixme: add brief description"
@@ -198,7 +198,7 @@ end %s;
             parentPackageOrder = os.path.join(
                 parentPackage.replace(".", os.path.sep), 'package.order')
             if not os.path.isfile(parentPackageOrder):
-                f = open(parentPackageOrder, mode="w")
+                f = open(parentPackageOrder, mode="w", encoding="utf-8")
                 f.write("d")
                 f.close()
 
@@ -262,7 +262,7 @@ def replace_text_in_file(file_name, old, new, isRegExp=False):
     '''
     import re
     # Read source file, store the lines and update the content of the lines
-    with open(file_name, mode="r") as f_sou:
+    with open(file_name, mode="r", encoding="utf-8-sig") as f_sou:
         lines = list()
         for _, lin in enumerate(f_sou):
             if isRegExp == True:
@@ -272,7 +272,7 @@ def replace_text_in_file(file_name, old, new, isRegExp=False):
             lines.append(lin)
 
     # Write the lines to the new file
-    with open(file_name, mode="w") as f_des:
+    with open(file_name, mode="w", encoding="utf-8") as f_des:
         f_des.writelines(lines)
 
 
@@ -431,7 +431,7 @@ def write_package_order(directory=".", recursive=False):
 
         pacLis = _sort_package_order(pacLis)
         # Write the new package.order file
-        with open(os.path.join(directory, 'package.order'), mode="w") as filPac:
+        with open(os.path.join(directory, 'package.order'), mode="w", encoding="utf-8") as filPac:
             for p in pacLis:
                 filPac.write(p[1] + "\n")
 
@@ -446,14 +446,14 @@ def _get_package_list_for_file(directory, file_name):
     if file_name == 'package.mo':
         # Some package.mo files contain a UsersGuide.
         # Add this to the list if needed.
-        with open(os.path.join(directory, file_name), mode="r") as fil:
+        with open(os.path.join(directory, file_name), mode="r", encoding="utf-8-sig") as fil:
             for line in fil:
                 if "package UsersGuide" in line:
                     pacLis.append([__MOD, "UsersGuide"])
                     break
         # Some package.mo files contain constants for the whole package.
         # They need to be added to the package.order as well.
-        with open(os.path.join(directory, file_name), mode="r") as fil:
+        with open(os.path.join(directory, file_name), mode="r", encoding="utf-8-sig") as fil:
             lines = fil.read()
             # Constants can be 'constant Real n = ..." or "constant someClass n(..."
             con=re.findall(r";\s*constant\s+[a-zA-Z0-9_\.]+\s+(\w+)\s*[=\(]", lines, re.MULTILINE);
@@ -482,7 +482,7 @@ def _get_package_list_for_file(directory, file_name):
         # records should be listed after all the models.
         class_name = file_name[:-3]
         recordString = "record %s" % class_name
-        with open(os.path.join(directory, file_name), mode="r") as fil:
+        with open(os.path.join(directory, file_name), mode="r", encoding="utf-8-sig") as fil:
             typ=__MOD
             for _ in range(2):
                 if recordString in fil.readline():

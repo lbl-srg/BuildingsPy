@@ -107,7 +107,7 @@ class Reporter(object):
         msg += message + "\n"
         sys.stderr.write(msg)
         if self._logToFile:
-            with open(self._logFil, 'a') as fil:
+            with open(self._logFil, mode="a", encoding="utf-8") as fil:
                 fil.write(msg)
         return
 
@@ -122,7 +122,7 @@ class Reporter(object):
 
         msg = message + "\n"
         if self._logToFile:
-            with open(self._logFil, 'a') as fil:
+            with open(self._logFil, mode="a", encoding="utf-8") as fil:
                 fil.write(msg)
         sys.stdout.write(msg)
         return
