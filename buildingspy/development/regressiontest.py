@@ -301,6 +301,7 @@ class Tester(object):
         '''
         self._batch = batchMode
 
+
     def pedanticModelica(self, pedanticModelica):
         ''' Set the pedantic Modelica mode flag.
 
@@ -1673,23 +1674,24 @@ Skipping error checking for this variable.""" % (filNam, varNam, len(yOld), len(
                     # Reset answer, unless it is set to Y or N
                     if not (ans == "Y" or ans == "N"):
                         ans = "-"
-
-                    updateReferenceData = False
+                    
+                    # TSN changes this to be true so reference results are always overwritten
+                    updateReferenceData = True
                     # check if reference results already exists in library
                     oldRefFulFilNam=os.path.join(refDir, refFilNam)
-                    # If the reference file exists, and if the reference file contains results, compare the results.
-                    if os.path.exists(oldRefFulFilNam):
-                        # compare the new reference data with the old one
-                        [updateReferenceData, _, ans]=self._compareResults(
-                            data['ResultFile'], oldRefFulFilNam, y_sim, y_tra, refFilNam, ans)
-                    else:
-                        # Reference file does not exist
-                        print("*** Warning: Reference file {} does not yet exist.".format(refFilNam))
-                        while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
-                            print("             Create new file?")
-                            ans = input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
-                        if ans == "y" or ans == "Y":
-                            updateReferenceData = True
+#                     # If the reference file exists, and if the reference file contains results, compare the results.
+#                     if os.path.exists(oldRefFulFilNam):
+#                         # compare the new reference data with the old one
+#                         [updateReferenceData, _, ans]=self._compareResults(
+#                             data['ResultFile'], oldRefFulFilNam, y_sim, y_tra, refFilNam, ans)
+#                     else:
+#                         # Reference file does not exist
+#                         print("*** Warning: Reference file {} does not yet exist.".format(refFilNam))
+#                         while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
+#                             print("             Create new file?")
+#                             ans = input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
+#                         if ans == "y" or ans == "Y":
+#                             updateReferenceData = True
                     if updateReferenceData:    # If the reference data of any variable was updated
                         # Make dictionary to save the results and the svn information
                         self._writeReferenceResults(oldRefFulFilNam, y_sim, y_tra)
@@ -2312,6 +2314,7 @@ getErrorString();
             ans = "N"
         else:
             ans = "-"
+
 
         if self._modelicaCmd == 'dymola':
             retVal = self._check_fmu_statistics(ans)
