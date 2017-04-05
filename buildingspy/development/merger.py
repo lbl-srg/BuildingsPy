@@ -6,14 +6,17 @@
 #
 # MWetter@lbl.gov                            2014-04-15
 #######################################################
-
+#
+# import from future to make Python2 behave like Python3
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+from future import standard_library
+standard_library.install_aliases()
+from builtins import *
 from io import open
-
-from builtins import object
+# end of from future import
 
 class IBPSA(object):
     ''' Class that merges a Modelica library with the `IBPSA` library.
@@ -103,7 +106,7 @@ class IBPSA(object):
             for _, lin in enumerate(f_sou):
                 # First, rename the library.
                 lin = lin.replace(self._src_library_name, self._new_library_name)
-                for ori, new in rep.items():
+                for ori, new in list(rep.items()):
                     lin = lin.replace(ori, new)
                 lines.append(lin)
         # Write the lines to the new file
