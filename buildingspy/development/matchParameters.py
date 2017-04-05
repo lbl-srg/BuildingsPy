@@ -400,22 +400,22 @@ def fixParameters (name):
                         #print("\t=================================")
                         wrong_literal(mos_file)
                 if found == False:
-                    if (name=="startTime"):
-                        #print("\t"+ name + " not found, defined the default startTime=0.0")
-                        value = "0.0"
-                    elif (name=="stopTime"):
+#                     if (name=="startTime"):
+#                         #print("\t"+ name + " not found, defined the default startTime=0.0")
+#                         value = "0.0"
+                    if (name=="stopTime"):
                         #print("\t"+ name + " not found, defined the default stopTime=1.0")
                         value="1.0"
                     elif(name=="tolerance"):
                         #print( "\t"+ name + " not found, defined the default tolerance=1e-6")
                         value="1e-6"
-                    elif(name=="numberOfIntervals"):
-                        #print("\t"+ name + " not found, defined the default numberOfIntervals=500")
-                        value="500"
+#                     elif(name=="numberOfIntervals"):
+#                         #print("\t"+ name + " not found, defined the default numberOfIntervals=500")
+#                         value="500"
                     foundStop=False
                     if (name=="stopTime"):
                         foundStop, content = replace_resultfile(content, name, value, foundStop)
-                    else:
+                    elif(name=="tolerance"):
                         foundStop, content = replace_stoptime(content, name, value, foundStop)
                     if foundStop == False:
                         #print("stopTime not found in simulateModel() for model " 
@@ -580,7 +580,7 @@ def main():
     for k in range(N_Runs):
         print("This is the {!s} run.".format(k + 1))
     # First run 
-    for i in ["stopTime", "tolerance", "startTime", "numberOfIntervals"]:
+    for i in ["stopTime", "tolerance", "startTime"]:
     # for i in ["stopTime"]:
         fixParameters(i)
         print("Fixing ***{}*** in the Modelica files.".format(i))
