@@ -15,6 +15,15 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
+import logging as log
+
+log.basicConfig(filename='matchParameters.log', filemode='w',
+                level=log.DEBUG, format='%(asctime)s %(message)s',
+                datefmt='%m/%d/%Y %I:%M:%S %p')
+stderrLogger = log.StreamHandler()
+stderrLogger.setFormatter(log.Formatter(log.BASIC_FORMAT))
+log.getLogger().addHandler(stderrLogger)
+
 #from __future__ import unicode_literals
 
 import os
@@ -254,15 +263,16 @@ def wrong_parameter (mos_file, name, value):
     if ("" + name + "=" + "" == "tolerance="):
         if(float(value)> 1e-6):
             #print("\t=================================")
-            print("ERROR: Found mos_file: {!s} with a tolerance={!s} bigger than the maximum tolerance of 1e-6.".format(mos_file, value))
-            print("A tolerance of 1e-6 or less is required for the JModelica verification.")
-            print("Please correct the .mos file  and re-run the conversion script.")
+            log.error("Found mos_file: {!s} with a tolerance={!s}).".format(mos_file, value))
+            log.error("This tolerance is bigger than the maximum allowed tolerance of 1e-6.")
+            log.error("A tolerance of 1e-6 or less is required for the JModelica verification.")
+            log.error("Please correct the .mos file  and re-run the conversion script.")
             exit(1)
         elif(float(value)== 0.0):
-            #print("\t=================================")
-            print("ERROR: Found mos_file: {!s} without tolerance specified.".format(mos_file))
-            print("A tolerance of 1e-6 or less is required for the JModelica verification.")
-            print("Please correct the .mos file  and re-run the conversion script.")
+            #log.error("\t=================================")
+            log.info("Found mos_file: {!s} without **tolerance** specified.".format(mos_file))
+            log.error("A tolerance of 1e-6 or less is required for the JModelica verification.")
+            log.error("Please correct the .mos file  and re-run the conversion script.")
             exit(1)
             
 
@@ -275,10 +285,10 @@ def wrong_literal (mos_file):
 
      """
      
-    #print("\t=================================")
-    print("ERROR: Found mos_file: {!s} with expression such as startTime=startTime.".format(mos_file))
-    print("This is not allowed for the JModelica verification.")
-    print("Please correct the .mos file  and re-run the conversion script.")    
+    #log.error("\t=================================")
+    log.error("Found mos_file: {!s} with expression such as startTime=startTime.".format(mos_file))
+    log.error("This is not allowed for the JModelica verification.")
+    log.error("Please correct the .mos file  and re-run the conversion script.")    
     exit(1)
 
 
@@ -367,7 +377,7 @@ def fixParameters (name):
                         foundStop, content = replace_resultfile(content, name, value, foundStop)
                     elif(name=="tolerance"):
                         # Return with an error since tolerance is not specified in mos
-                        wrong_parameter (mos_file, value)
+                        wrong_parameter (mos_file, name, value)
                         #foundStop, content = replace_stoptime(content, name, value, foundStop)
                     if foundStop == False:
                         # Break and continue with other parameters
@@ -437,13 +447,19 @@ def fixParameters (name):
                             line.replace(" ", "")
                             if (name=="stopTime"):
                                 if (not foundExp and not foundStopExp):
-                                    if "__Dymola_Commands(" in line.replace(" ", ""):
-                                        newLine = line.replace("__Dymola_Commands(", "\nexperiment(StopTime="+str(value)+"),\n__Dymola_Commands(")
-                                        # replace
-                                        modelContent[k] = newLine
-                                        # replacement done
-                                        found = True    
-                                        break       
+                                    log.error("Found mo_file: {!s} without experiment annotation.".format(modelPath))
+                                    log.error("An **experiment** annotation is required in an .mo example file.")
+                                    log.error("The parameters of the **experiment** annotation must match the parameters of the associated .mos script: {!s}.".format(mos_file))
+                                    log.error("Please correct the .mo file  and re-run the conversion script.")
+                                    exit(1)
+                                    # Stop with an error if experiment annotation is missing in mo file
+#                                     if "__Dymola_Commands(" in line.replace(" ", ""):
+#                                         newLine = line.replace("__Dymola_Commands(", "\nexperiment(StopTime="+str(value)+"),\n__Dymola_Commands(")
+#                                         # replace
+#                                         modelContent[k] = newLine
+#                                         # replacement done
+#                                         found = True    
+#                                         break       
                                 elif (foundExp and not foundStopExp):
                                     if "Tolerance=" in line.replace(" ", ""):
                                         pTime    = re.compile(r"[\d\S\s.,]*("+"Tolerance"+"=)([\d]*[.]*[\d]*[eE]*[+|-]*[\d]*[*]*[\d]*[.]*[\d]*[eE]*[+|-]*[\d]*)")
@@ -488,15 +504,15 @@ def main():
         for i in ["stopTime", "tolerance", "startTime"]:
             fixParameters(i)
   
-    print("****************DIAGNOSTICS****************")
+    log.info("****************DIAGNOSTICS****************")
     
     n_files_tol_mos, n_files_fmus = number_occurences (mos_files, "mos")
     
-    print("Number of .mos files found without **translateModelFMU**={!s}.".format(len(mosCorrect)))
-    print("Number of .mos files found with **translateModelFMU**={!s}.".format(n_files_fmus))
+    log.info("Number of .mos files found without **translateModelFMU**={!s}.".format(len(mosCorrect)))
+    log.info("Number of .mos files found with **translateModelFMU**={!s}.".format(n_files_fmus))
     
-    print(".mos files with **stopTime=stopTime**={!s}.".format(mosToFixed))
-    print("Number of .mos files with **stopTime=stopTime**={!s}.".format(len(mosToFixed)))
+    log.info(".mos files with **stopTime=stopTime**={!s}.".format(mosToFixed))
+    log.info("Number of .mos files with **stopTime=stopTime**={!s}.".format(len(mosToFixed)))
     
     defect_mo = defect_mo_files(mosCorrect)
     
@@ -508,16 +524,16 @@ def main():
     
     n_files_tol_mo, n_files_fmus = number_occurences (mo_files, "mo")
 
-    print("Number of .mo files with **tolerance**={!s}.".format(n_files_tol_mo))
+    log.info("Number of .mo files with **tolerance**={!s}.".format(n_files_tol_mo))
     
-    print(".mo files without **tolerances**={!s}.".format(defect_mo))
-    print("Number of .mo files without **tolerances**={!s}.".format(len(defect_mo)))
+    log.info(".mo files without **tolerances**={!s}.".format(defect_mo))
+    log.info("Number of .mo files without **tolerances**={!s}.".format(len(defect_mo)))
     
-    print(".mo files without **experiment** annotation={!s}.".format(defect_mos))
-    print("Number of .mo files without **experiment** annotation={!s}.".format(len(defect_mos)))
+    log.info(".mo files without **experiment** annotation={!s}.".format(defect_mos))
+    log.info("Number of .mo files without **experiment** annotation={!s}.".format(len(defect_mos)))
     
-    print("Number of .mos files found with **tolerance**={!s}.".format(n_files_tol_mos))
-    print("Number of .mo files found with **Tolerance**={!s}.".format(n_files_tol_mo))
+    log.info("Number of .mos files found with **tolerance**={!s}.".format(n_files_tol_mos))
+    log.info("Number of .mo files found with **Tolerance**={!s}.".format(n_files_tol_mo))
     
     #if(knownMissingTolerance):
     #    n_files_tol_mo-=1
