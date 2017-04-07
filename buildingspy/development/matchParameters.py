@@ -37,7 +37,9 @@ print (libHome)
 rootPackage = os.path.join(libHome, 'Resources', 'Scripts', 'Dymola')
 
 mos_files = recursive_glob(rootPackage, '.mos')
-mo_files = recursive_glob(libHome, '.mo')
+
+
+
 
 # number of modified models
 N_modify_mos = 0
@@ -235,11 +237,11 @@ def replace_tolerance_intervals(content, name, value, mos_file):
 
      """
     if ("" + name + "=" + "" == "tolerance=" and float(value) > 1e-6):
-#         wrong_parameter (mos_file, name, value)
-        foundStop = False
-        consPar = "1e-6"
-        foundStop, content = replace_content(content, name, value, consPar, foundStop)
-        write_file(mos_file, content)    
+        wrong_parameter (mos_file, name, value)
+#         foundStop = False
+#         consPar = "1e-6"
+#         foundStop, content = replace_content(content, name, value, consPar, foundStop)
+#         write_file(mos_file, content)    
 
 def wrong_parameter (mos_file, name, value):
     """ 
@@ -251,13 +253,13 @@ def wrong_parameter (mos_file, name, value):
      """
      
     if ("" + name + "=" + "" == "tolerance="):
-        if(float(value)> 0):
+        if(float(value)> 1e-6):
             #print("\t=================================")
             print("ERROR: Found mos_file: {!s} with a tolerance={!s} bigger than the maximum tolerance of 1e-6.".format(mos_file, value))
             print("A tolerance of 1e-6 or less is required for the JModelica verification.")
             print("Please correct the .mos file  and re-run the conversion script.")
             exit(1)
-        else:
+        elif(float(value)== 0.0):
             #print("\t=================================")
             print("ERROR: Found mos_file: {!s} without tolerance specified.".format(mos_file))
             print("A tolerance of 1e-6 or less is required for the JModelica verification.")
@@ -364,13 +366,15 @@ def fixParameters (name):
                         #print("\t"+ name + " not found, defined the default stopTime=1.0")
                         value="1.0"
                     elif(name=="tolerance"):
-                        #print( "\t"+ name + " not found, defined the default tolerance=1e-6")
                         value="0.0"
                     foundStop=False
                     if (name=="stopTime"):
                         foundStop, content = replace_resultfile(content, name, value, foundStop)
                     elif(name=="tolerance"):
-                        foundStop, content = replace_stoptime(content, name, value, foundStop)
+                        # Return with an error since tolerance is not specified in mos
+                        # fixme Put under unit test
+                        wrong_parameter (mos_file, value)
+                        #foundStop, content = replace_stoptime(content, name, value, foundStop)
                     if foundStop == False:
                         # Break and continue with other parameters
                         break;
@@ -501,37 +505,42 @@ def fixParameters (name):
     
 def main():
     for k in range(N_Runs):
-        print("This is the {!s} run.".format(k + 1))
         for i in ["stopTime", "tolerance", "startTime"]:
-        # for i in ["stopTime"]:
             fixParameters(i)
   
-    print("*********DIAGNOSTICS***********")
+    print("****************DIAGNOSTICS****************")
+    
     n_files_tol_mos, n_files_fmus = number_occurences (mos_files, "mos")
-
-    print("Number of mos files found {!s}.".format(len(mos_files)))
-   
-    print(".mos files found with **translateModelFMU** {!s}.".format(n_files_fmus))
-    print("Number of mos files expected with **tolerance** {!s}.".format(len(mos_files) - n_files_fmus))
-    print(".mos files with stopTime=stopTime {!s}.".format(mosToFixed))
-    print("Number of .mos files with stopTime=stopTime {!s}.".format(mosToFixed))
-
-    n_files_tol_mo, n_files_fmus = number_occurences (mo_files, "mo")
+    
+    print("Number of .mos files found without **translateModelFMU**={!s}.".format(len(mosCorrect)))
+    print("Number of .mos files found with **translateModelFMU**={!s}.".format(n_files_fmus))
+    
+    print(".mos files with **stopTime=stopTime**={!s}.".format(mosToFixed))
+    print("Number of .mos files with **stopTime=stopTime**={!s}.".format(len(mosToFixed)))
     
     defect_mo = defect_mo_files(mosCorrect)
-
-    print("Number of .mo files with **tolerance** {!s}.".format(n_files_tol_mo))
-    print(".mo files with missing **tolerances** {!s}.".format(defect_mo))
-    print("Number of .mo files with missing **tolerances** {!s}.".format(len(defect_mo)))
-
-    print("Number of .mo files with missing **experiment** annotation: {!s}.".format(defect_mos))
-    print("Number of .mo files with missing **experiment** annotation: {!s}.".format(len(defect_mos)))
     
-    print("Number of .mos files found with **tolerance** {!s}.".format(n_files_tol_mos))
-    print("Number of .mo files found with **tolerance** {!s}.".format(n_files_tol_mo))
+    mo_files = []  
+    for i in mosCorrect:
+        mofile = i.replace("/Resources/Scripts/Dymola", "")
+        mofile = mofile.replace(".mos", ".mo")
+        mo_files.append(mofile)
+    
+    n_files_tol_mo, n_files_fmus = number_occurences (mo_files, "mo")
+
+    print("Number of .mo files with **tolerance**={!s}.".format(n_files_tol_mo))
+    
+    print(".mo files without **tolerances**={!s}.".format(defect_mo))
+    print("Number of .mo files without **tolerances**={!s}.".format(len(defect_mo)))
+    
+    print(".mo files without **experiment** annotation={!s}.".format(defect_mos))
+    print("Number of .mo files without **experiment** annotation={!s}.".format(len(defect_mos)))
+    
+    print("Number of .mos files found with **tolerance**={!s}.".format(n_files_tol_mos))
+    print("Number of .mo files found with **Tolerance**={!s}.".format(n_files_tol_mo))
     
     #if(knownMissingTolerance):
     #    n_files_tol_mo-=1
     
     # will be reduced to avoid the assert to trigger as this is to be expected.
-    #assert n_files_tol_mos - n_files_tol_mo == 0, "The number of .mo files with **tolerance** {!s} does not match the number of .mos scripts: {!s}."   
+    assert n_files_tol_mos - n_files_tol_mo == 0, "The number of .mo files with **tolerance** {!s} does not match the number of .mos scripts: {!s}."   
