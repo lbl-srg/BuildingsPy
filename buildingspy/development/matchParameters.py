@@ -26,8 +26,6 @@ def recursive_glob(rootdir='.', suffix=''):
             if ( filename.endswith(suffix) 
                  and ("ConvertBuildings_from" not in filename)) ]
 
-
-
 # Get the path to the library
 libHome = os.path.abspath(".")
 
@@ -37,9 +35,6 @@ print (libHome)
 rootPackage = os.path.join(libHome, 'Resources', 'Scripts', 'Dymola')
 
 mos_files = recursive_glob(rootPackage, '.mos')
-
-
-
 
 # number of modified models
 N_modify_mos = 0
@@ -57,6 +52,10 @@ N_Runs = 2
 mosCorrect=[]
 # Known missing tolerance flag
 knownMissingTolerance = False
+# Number of .mos files
+N_mos_files = len(mos_files)
+# Defect mos files
+defect_mos=[]
 
 def defect_mo_files(foundMos):
     """ 
@@ -282,9 +281,7 @@ def wrong_literal (mos_file):
     print("Please correct the .mos file  and re-run the conversion script.")    
     exit(1)
 
-# Number of .mos files
-N_mos_files = len(mos_files)
-defect_mos=[]
+
 def fixParameters (name):
     """ 
     Fix parameter settings.
@@ -305,7 +302,6 @@ def fixParameters (name):
 
     j = 1
     for mos_file in mos_files:
-        #print("{!s}: {!s}".format(j, mos_file))
         j += 1
         
         f = open(mos_file,"r")
@@ -332,7 +328,6 @@ def fixParameters (name):
                 #print("\t=================================")
                 wrong_literal(mos_file)
             if ""+name+"="+"" in line.replace(" ", ""):
-                # Old version, does not work with 86400*900
                 # pTime    = re.compile(r"[\d\S\s.,]*(stopTime=)([\d]*[.]*[\d]*[e]*[+|-]*[\d]*)")
                 pTime    = re.compile(r"[\d\S\s.,]*("+name+"=)([\d]*[.]*[\d]*[eE]*[+|-]*[\d]*[*]*[\d]*[.]*[\d]*[eE]*[+|-]*[\d]*)")
                 mTime    = pTime.match(line)
@@ -372,7 +367,6 @@ def fixParameters (name):
                         foundStop, content = replace_resultfile(content, name, value, foundStop)
                     elif(name=="tolerance"):
                         # Return with an error since tolerance is not specified in mos
-                        # fixme Put under unit test
                         wrong_parameter (mos_file, value)
                         #foundStop, content = replace_stoptime(content, name, value, foundStop)
                     if foundStop == False:
@@ -394,8 +388,7 @@ def fixParameters (name):
                 modelPath = ""
                 modelPath = modelName.replace(".", "/")
                 modelPath = "../"+modelPath+".mo"
-            
-                #print("\n\tThe model is here: {!s}".format(modelPath))
+
                 fm = open(modelPath,"r")
                 
                 modelContent = fm.readlines()
@@ -415,7 +408,6 @@ def fixParameters (name):
                 if (not foundExp and not foundStopExp):
                     defect_mos.append(modelPath)
                     
-                
                 for i in range(Nlines-1, 0, -1):
 #                     
                     line = modelContent[i]
@@ -437,12 +429,7 @@ def fixParameters (name):
                     
                     # check if we shouldn't remove spaces in line.replace(" ", "")s to avoid this?
                     if ("annotation(" in line.replace(" ", "")) and not found:    
-                        # we reach the beginning of the annotation and we don't found the stop time
-                        # let's add it
-                        #print("\t==============================================")
-                        #print("\t NOT FOUND, ADD Start time STATEMENT. REPLACE ")
-                    
-                        # if true, reached the end of the annotations
+                        # We reach the beginning of the annotation and we don't found the stop time
                         # Go back and look for the __DymolaCommand and replace it adding the experiment
                         # stopTime command
                         for k in range(Nlines-1, i-1, -1):
@@ -450,11 +437,8 @@ def fixParameters (name):
                             line.replace(" ", "")
                             if (name=="stopTime"):
                                 if (not foundExp and not foundStopExp):
-                                    #print("\t{}".format(line)
                                     if "__Dymola_Commands(" in line.replace(" ", ""):
                                         newLine = line.replace("__Dymola_Commands(", "\nexperiment(StopTime="+str(value)+"),\n__Dymola_Commands(")
-                                        #print("\t WITH")
-                                        #print("\t{}".format(newLine))
                                         # replace
                                         modelContent[k] = newLine
                                         # replacement done
@@ -483,7 +467,6 @@ def fixParameters (name):
                                         break
                             else:
                                 if "StopTime=" in line.replace(" ", ""):
-                                    #print("\t{}".format(line))
                                     newLine = line.replace("StopTime" , ""+capitalize_first(name)+"="+""+str(value)+", StopTime")
                                     
                                     # replace
@@ -492,7 +475,6 @@ def fixParameters (name):
                                     found = True  
                                     break  
                 write_file(modelPath, modelContent)
-                #print("\tNew model is available!")
                 N_modify_models += 1  
                 
             elif value == ""+name+"":
@@ -500,8 +482,6 @@ def fixParameters (name):
                 print("\tDO THAT MODIFICATION AT HAND!!!")
             
         f.close()
-        
-    #raw_input("\n\tContinue?")
     
 def main():
     for k in range(N_Runs):
