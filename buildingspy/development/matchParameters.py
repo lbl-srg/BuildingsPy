@@ -24,8 +24,6 @@ stderrLogger = log.StreamHandler()
 stderrLogger.setFormatter(log.Formatter(log.BASIC_FORMAT))
 log.getLogger().addHandler(stderrLogger)
 
-#from __future__ import unicode_literals
-
 import os
 import re
 
@@ -277,7 +275,7 @@ def wrong_parameter (mos_file, name, value):
             
 
 
-def wrong_literal (mos_file):
+def wrong_literal (mos_file, name):
     """ 
     Stop if wrong invalid literal is detected.
 
@@ -286,7 +284,7 @@ def wrong_literal (mos_file):
      """
      
     #log.error("\t=================================")
-    log.error("Found mos_file: {!s} with expression such as startTime=startTime.".format(mos_file))
+    log.error("Found mos_file: {!s} with expression: {!s}.".format(mos_file, name+'='+name))
     log.error("This is not allowed for the JModelica verification.")
     log.error("Please correct the .mos file  and re-run the conversion script.")    
     exit(1)
@@ -336,7 +334,8 @@ def fixParameters (name):
             if ""+name+"="+name+"" in line.replace(" ", ""):
                 value = ""+name+""
                 #print("\t=================================")
-                wrong_literal(mos_file)
+                wrong_literal(mos_file ,name)
+               
             if ""+name+"="+"" in line.replace(" ", ""):
                 # pTime    = re.compile(r"[\d\S\s.,]*(stopTime=)([\d]*[.]*[\d]*[e]*[+|-]*[\d]*)")
                 pTime    = re.compile(r"[\d\S\s.,]*("+name+"=)([\d]*[.]*[\d]*[eE]*[+|-]*[\d]*[*]*[\d]*[.]*[\d]*[eE]*[+|-]*[\d]*)")
@@ -362,7 +361,7 @@ def fixParameters (name):
                     if ""+name+"="+name+"" in line.replace(" ", ""):
                         value = ""+name+""
                         #print("\t=================================")
-                        wrong_literal(mos_file)
+                        wrong_literal(mos_file, name)
                 if found == False:
 #                     if (name=="startTime"):
 #                         #print("\t"+ name + " not found, defined the default startTime=0.0")
@@ -381,8 +380,8 @@ def fixParameters (name):
                         #foundStop, content = replace_stoptime(content, name, value, foundStop)
                     if foundStop == False:
                         # Break and continue with other parameters
-                        break;
-                    write_file(mos_file, content) 
+                        continue;
+                    #write_file(mos_file, content) 
                     
                     #print("\tNew mos script is available!")
                     N_modify_mos += 1    
