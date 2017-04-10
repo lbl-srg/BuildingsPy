@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 ###########################################################
-# Python script for making sure that the simulation 
-# settings specified in the mos files are the same 
-# as the ones used in the Experiment Annotation 
-# of the corresponding Modelica model.The reason is 
-# because Dymola ignores the parameters defined in 
-# the Experiment Annotation when running the simulateModel() 
-# command of the unit test
+# Scripts with functions to validate consistency
+# between mos files and mo files.
+
+# This script checks invalid expression (x*y) in 
+# the experiment annotation of Modelica model,
+# In addition it checks if an experiment annotation exists
+# in all Modelica models. It checks if their values are
+# consistent with the values defined in the mos script.
+# It checks if each model has a tolerance less than 1e-6
 #
 # TSNouidui@lbl.gov                            2017-01-24
 ###########################################################
@@ -317,7 +319,7 @@ def wrong_literal (mos_file, name):
     exit(1)
 
 
-def fixParameters (name):
+def validate_model_parameters (name):
     """ 
     Fix parameter settings.
 
@@ -540,7 +542,7 @@ def fixParameters (name):
 def main():
     for k in range(N_Runs):
         for i in ["stopTime", "tolerance", "startTime"]:
-            fixParameters(i)
+            validate_model_parameters(i)
   
     log.info("****************DIAGNOSTICS****************")
     
