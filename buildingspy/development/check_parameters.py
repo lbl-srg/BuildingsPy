@@ -426,7 +426,6 @@ def validate_model_parameters (name):
                 modelPath = ""
                 modelPath = modelName.replace(".", "/")
                 modelPath = "../"+modelPath+".mo"
-
                 fm = open(modelPath,"r")
                 
                 modelContent = fm.readlines()
@@ -495,10 +494,9 @@ def validate_model_parameters (name):
                                         val = mTime.group(2)
                                         # Check the experiment annotation
                                         check_experiment(name, val, value, modelPath, mos_file)
-                                            
                                         newLine = line.replace("Tolerance="+"" + str(val), ""+capitalize_first(name)+"="+""+str(value))
                                         # replace
-                                        modelContent[k] = newLine
+                                        #modelContent[k] = newLine
                                         # replacement done
                                         found = True             
                                         break
