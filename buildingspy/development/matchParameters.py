@@ -31,7 +31,7 @@ def recursive_glob(rootdir='.', suffix=''):
     return [os.path.join(rootdir, filename) for rootdir, dirnames, 
             filenames in os.walk(rootdir) for filename in filenames 
             if ( filename.endswith(suffix) 
-                 and ("ConvertBuildings_from" not in filename)) ]
+                and ("ConvertBuildings_from" not in filename)) ]
 
 # Get the path to the library
 libHome = os.path.abspath(".")
@@ -103,7 +103,7 @@ def check_experiment(name, val, value, modelPath, mos_file):
     """ 
     Check experiment annotation in mo file.
 
-    :param name: Word to be capitalized.
+    :param name: Parameter name.
     :param val: Value found in mo file.
     :param value: Value found in mos file.
     :param modelPath: Path to mo file.
@@ -112,18 +112,17 @@ def check_experiment(name, val, value, modelPath, mos_file):
      """
     
     if("*" in str(val)):
-        log.error("Found mo_file: {!s} with " +capitalize_first(name)
-                  +" which contains literal expression with *: {!s}".
-                  format(modelPath, str(val)))
-        log.error("Please correct the .mo file  and re-run the conversion script.")
+        log.error("Found mo_file: {!s} with **experiment** annotation: {!s} which contains invalid literal expression: {!s}"
+                  .format(modelPath, capitalize_first(name), str(val)))
+        log.error("Please correct the .mo file and re-run the conversion script.")
         exit()
 
     delta = abs(eval(val) - eval(value))
+    
     if (delta!=0):
-        log.error("Found mo_file: {!s} with " +"StopTime"
-                  +": {!s} which is different from the " +"StopTime"+" :{!} found in the mos_file: {!s}".
-                  format(modelPath, str(val), str(value), mos_file))
-        log.error("Please correct the .mo/.mos file  and re-run the conversion script.")
+        log.error("Found mo_file: {!s} with **experiment** annotation: {!s}: with value: {!s} which is different from the value: {!s} of the parameter: {!s} of the corresponding .mos file: {!s}."
+                  .format(modelPath, capitalize_first(name), val, name, value, mos_file))
+        log.error("Please correct the .mo/.mos file and re-run the conversion script.")
         exit()
 
 def capitalize_first(name):
@@ -293,20 +292,19 @@ def wrong_parameter (mos_file, name, value):
             log.error("Found mos_file: {!s} with a tolerance={!s}).".format(mos_file, value))
             log.error("This tolerance is bigger than the maximum allowed tolerance of 1e-6.")
             log.error("A tolerance of 1e-6 or less is required for the JModelica verification.")
-            log.error("Please correct the .mos file  and re-run the conversion script.")
+            log.error("Please correct the .mos file and re-run the conversion script.")
             exit(1)
         elif(float(value)== 0.0):
             #log.error("\t=================================")
             log.info("Found mos_file: {!s} without **tolerance** specified.".format(mos_file))
             log.error("A tolerance of 1e-6 or less is required for the JModelica verification.")
-            log.error("Please correct the .mos file  and re-run the conversion script.")
+            log.error("Please correct the .mos file and re-run the conversion script.")
             exit(1)
             
 
-
 def wrong_literal (mos_file, name):
     """ 
-    Stop if wrong invalid literal is detected.
+    Stop if invalid literal is detected.
 
     :param mos_file: mos file.
 
@@ -315,7 +313,7 @@ def wrong_literal (mos_file, name):
     #log.error("\t=================================")
     log.error("Found mos_file: {!s} with expression: {!s}.".format(mos_file, name+'='+name))
     log.error("This is not allowed for the JModelica verification.")
-    log.error("Please correct the .mos file  and re-run the conversion script.")    
+    log.error("Please correct the .mos file and re-run the conversion script.")    
     exit(1)
 
 
@@ -478,7 +476,7 @@ def fixParameters (name):
                                     log.error("Found mo_file: {!s} without experiment annotation.".format(modelPath))
                                     log.error("An **experiment** annotation is required in an .mo example file.")
                                     log.error("The parameters of the **experiment** annotation must match the parameters of the associated .mos script: {!s}.".format(mos_file))
-                                    log.error("Please correct the .mo file  and re-run the conversion script.")
+                                    log.error("Please correct the .mo file and re-run the conversion script.")
                                     exit(1)
                                     # Stop with an error if experiment annotation is missing in mo file
 #                                     if "__Dymola_Commands(" in line.replace(" ", ""):
