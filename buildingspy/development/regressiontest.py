@@ -1226,7 +1226,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             sys.stdout.write("             for %s\n" % refFilNam)
             sys.stdout.write("             Accept new results?\n")
             while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
-                ans = eval(input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): "))
+                ans = input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
             if ans == "y" or ans == "Y":
                 # update the flag
                 updateReferenceData = True
@@ -1324,7 +1324,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                     foundError = True
                     while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
                         print("             Accept new results and update reference file in library?")
-                        ans = eval(input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): "))
+                        ans = input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
                     if ans == "y" or ans == "Y":
                         # Write results to reference file
                         updateReferenceData = True
@@ -1432,7 +1432,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             self._figSize=gcf.get_size_inches()
 
             while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
-                ans = eval(input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): "))
+                ans = input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
             if ans == "y" or ans == "Y":
                 # update the flag
                 updateReferenceData = True
@@ -1489,7 +1489,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             print("*** Warning: Reference file {} does not yet exist.".format(reference_file_name))
             while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
                 print("             Create new file?")
-                ans = eval(input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): "))
+                ans = input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
             if ans == "y" or ans == "Y":
                 self._writeReferenceResults(abs_ref_fil_nam, None, y_tra)
                 self._reporter.writeWarning("*** Warning: Wrote new reference file %s." %
@@ -1512,7 +1512,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             if found_differences:
                 while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
                     print("             Rewrite file?")
-                    ans = eval(input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): "))
+                    ans = input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
                 if ans == "y" or ans == "Y":
                     self._writeReferenceResults(abs_ref_fil_nam, None, y_tra)
                     self._reporter.writeWarning("*** Warning: Rewrote reference file %s due to new FMU statistics." %
@@ -1525,7 +1525,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             print("*** Warning: Reference file {} has no FMU statistics.".format(reference_file_name))
             while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
                 print("             Rewrite file?")
-                ans = eval(input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): "))
+                ans = input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
             if ans == "y" or ans == "Y":
                 self._writeReferenceResults(abs_ref_fil_nam, None, y_tra)
                 self._reporter.writeWarning("*** Warning: Rewrote reference file %s as the old one had no FMU statistics." %
@@ -1659,7 +1659,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                         print("*** Warning: Reference file {} does not yet exist.".format(refFilNam))
                         while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
                             print("             Create new file?")
-                            ans = eval(input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): "))
+                            ans = input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
                         if ans == "y" or ans == "Y":
                             updateReferenceData = True
                     if updateReferenceData:    # If the reference data of any variable was updated
