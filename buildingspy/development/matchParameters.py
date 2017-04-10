@@ -97,6 +97,35 @@ def defect_mo_files(foundMos):
         f.close()
     return moToFixed
 
+
+def check_experiment(name, val, value, modelPath, mos_file):
+    
+    """ 
+    Check experiment annotation in mo file.
+
+    :param name: Word to be capitalized.
+    :param val: Value found in mo file.
+    :param value: Value found in mos file.
+    :param modelPath: Path to mo file.
+    :param mos_file: Path to mos file.
+
+     """
+    
+    if("*" in str(val)):
+        log.error("Found mo_file: {!s} with " +capitalize_first(name)
+                  +" which contains literal expression with *: {!s}".
+                  format(modelPath, str(val)))
+        log.error("Please correct the .mo file  and re-run the conversion script.")
+        exit()
+
+    delta = abs(eval(val) - eval(value))
+    if (delta!=0):
+        log.error("Found mo_file: {!s} with " +"StopTime"
+                  +": {!s} which is different from the " +"StopTime"+" :{!} found in the mos_file: {!s}".
+                  format(modelPath, str(val), str(value), mos_file))
+        log.error("Please correct the .mo/.mos file  and re-run the conversion script.")
+        exit()
+
 def capitalize_first(name):
     """ 
     Capitalize the first letter of the given word.
@@ -413,7 +442,6 @@ def fixParameters (name):
                     if "StopTime" in line.replace(" ", ""):
                         foundStopExp=True
                     
-            
                 if (not foundExp and not foundStopExp):
                     defect_mos.append(modelPath)
                     
@@ -428,12 +456,13 @@ def fixParameters (name):
                         pTime    = re.compile(r"[\d\S\s.,]*("+capitalize_first(name)+"=)([\d]*[.]*[\d]*[eE]*[+|-]*[\d]*[*]*[\d]*[.]*[\d]*[eE]*[+|-]*[\d]*)[\S\s.,]*")
                         mTime    = pTime.match(line)
                         val = mTime.group(2)
+                        # Check the experiment annotation
+                        check_experiment(name, val, value, modelPath, mos_file)
        
                         #newLine = line.replace(mNameStr,""+capitalize_first(name)+"="+""+str(value))
-                        newLine = line.replace(""+capitalize_first(name)+"="+"" + str(val), ""+capitalize_first(name)+"="+""+str(value))
-                         
+                        #newLine = line.replace(""+capitalize_first(name)+"="+"" + str(val), ""+capitalize_first(name)+"="+""+str(value))
                         # replace
-                        modelContent[i] = newLine
+                        #modelContent[i] = newLine
                         found = True
                     
                     # check if we shouldn't remove spaces in line.replace(" ", "")s to avoid this?
@@ -464,6 +493,9 @@ def fixParameters (name):
                                         pTime    = re.compile(r"[\d\S\s.,]*("+"Tolerance"+"=)([\d]*[.]*[\d]*[eE]*[+|-]*[\d]*[*]*[\d]*[.]*[\d]*[eE]*[+|-]*[\d]*)")
                                         mTime    = pTime.match(line)
                                         val = mTime.group(2)
+                                        # Check the experiment annotation
+                                        check_experiment(name, val, value, modelPath, mos_file)
+                                            
                                         newLine = line.replace("Tolerance="+"" + str(val), ""+capitalize_first(name)+"="+""+str(value))
                                         # replace
                                         modelContent[k] = newLine
@@ -474,27 +506,36 @@ def fixParameters (name):
                                         pTime    = re.compile(r"[\d\S\s.,]*("+"StartTime"+"=)([\d]*[.]*[\d]*[eE]*[+|-]*[\d]*[*]*[\d]*[.]*[\d]*[eE]*[+|-]*[\d]*)")
                                         mTime    = pTime.match(line)
                                         val = mTime.group(2)
-                                        newLine = line.replace("StartTime="+"" + str(val), ""+capitalize_first(name)+"="+""+str(value))
+                                        # Check the experiment annotation
+                                        check_experiment(name, val, value, modelPath, mos_file)
+                                        #newLine = line.replace("StartTime="+"" + str(val), ""+capitalize_first(name)+"="+""+str(value))
                                         # replace
-                                        modelContent[k] = newLine
+                                        #modelContent[k] = newLine
                                         # replacement done
                                         found = True  
                                         break
                             else:
                                 if "StopTime=" in line.replace(" ", ""):
-                                    newLine = line.replace("StopTime" , ""+capitalize_first(name)+"="+""+str(value)+", StopTime")
                                     
+                                    # found the stopTime assignment, replace with the value in the mos file
+                                    pTime    = re.compile(r"[\d\S\s.,]*("+"StopTime"+"=)([\d]*[.]*[\d]*[eE]*[+|-]*[\d]*[*]*[\d]*[.]*[\d]*[eE]*[+|-]*[\d]*)[\S\s.,]*")
+                                    mTime    = pTime.match(line)
+                                    val = mTime.group(2)
+                                    # Check the experiment annotation
+                                    check_experiment(name, val, value, modelPath, mos_file)
+                                    #newLine = line.replace("StopTime" , ""+"StopTime"+"="+""+str(value)+", StopTime")
                                     # replace
-                                    modelContent[k] = newLine 
+                                    #modelContent[k] = newLine 
                                     # replacement done
                                     found = True  
                                     break  
-                write_file(modelPath, modelContent)
-                N_modify_models += 1  
+                #write_file(modelPath, modelContent)
+                #N_modify_models += 1  
                 
             elif value == ""+name+"":
                 #print("\n\t*******************************")
-                print("\tDO THAT MODIFICATION AT HAND!!!")
+                wrong_literal(modelPath, name)
+
             
         f.close()
     
