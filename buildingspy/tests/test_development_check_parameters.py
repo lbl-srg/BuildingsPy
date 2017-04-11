@@ -21,7 +21,7 @@ class Test_development_check_parameters(unittest.TestCase):
         val = v.Validator()
         myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
         # Get a list whose elements are the error strings
-        errStr = val.validateModelParameters(myMoLib)
+        retVal = val.validateModelParameters(myMoLib)
         #self.assertEqual(len(errStr), 0)
         # Test a package that does not exist
         #self.assertRaises(ValueError, val.validateHTMLInPackage, "non_existent_modelica_package")
