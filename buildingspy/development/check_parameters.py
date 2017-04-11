@@ -1,14 +1,18 @@
 #!/usr/bin/env python
 ###########################################################
-# Scripts with functions to validate consistency
-# between mos files and mo files.
+# Script with functions to validate consistency
+# between .mos files and .mo files.
 
 # This script checks invalid expression (x*y) in 
-# the experiment annotation of Modelica model,
+# the experiment annotation of a Modelica model,
 # In addition it checks if an experiment annotation exists
-# in all Modelica models. It checks if their values are
+# in all Modelica models. 
+# It checks if the parameters of experiment annotation is 
 # consistent with the values defined in the mos script.
-# It checks if each model has a tolerance less than 1e-6
+# It checks if each model has a tolerance less than 1e-6.
+# It checks it the mos script contains expression such as
+# startTime=startTime.
+# If any of the checks fail, the script returns with an error.
 #
 # TSNouidui@lbl.gov                            2017-01-24
 ###########################################################
@@ -101,7 +105,6 @@ def defect_mo_files(foundMos):
 
 
 def check_experiment(name, val, value, modelPath, mos_file):
-    
     """ 
     Check experiment annotation in mo file.
 
@@ -285,6 +288,7 @@ def wrong_parameter (mos_file, name, value):
 
     :param mos_file: mos file.
     :param name: parameter name.
+    :param value: parameter value.
 
      """
      
@@ -309,6 +313,7 @@ def wrong_literal (mos_file, name):
     Stop if invalid literal is detected.
 
     :param mos_file: mos file.
+    :param name: Parameter name.
 
      """
      
@@ -323,7 +328,7 @@ def validate_model_parameters (name):
     """ 
     Fix parameter settings.
 
-    :param name: mos file.
+    :param name: Parameter name.
 
      """
 
@@ -538,20 +543,11 @@ def validate_model_parameters (name):
         f.close()
     
 def main():
-    for k in range(N_Runs):
-        for i in ["stopTime", "tolerance", "startTime"]:
-            validate_model_parameters(i)
+    #for k in range(N_Runs):
+    for i in ["stopTime", "tolerance", "startTime"]:
+        validate_model_parameters(i)
   
-    log.info("****************DIAGNOSTICS****************")
-    
     n_files_tol_mos, n_files_fmus = number_occurences (mos_files, "mos")
-    
-    log.info("Number of .mos files found without **translateModelFMU**={!s}.".format(len(mosCorrect)))
-    log.info("Number of .mos files found with **translateModelFMU**={!s}.".format(n_files_fmus))
-    
-    log.info(".mos files with **stopTime=stopTime**={!s}.".format(mosToFixed))
-    log.info("Number of .mos files with **stopTime=stopTime**={!s}.".format(len(mosToFixed)))
-    
     defect_mo = defect_mo_files(mosCorrect)
     
     mo_files = []  
@@ -561,20 +557,19 @@ def main():
         mo_files.append(mofile)
     
     n_files_tol_mo, n_files_fmus = number_occurences (mo_files, "mo")
-
-    log.info("Number of .mo files with **tolerance**={!s}.".format(n_files_tol_mo))
     
-    log.info(".mo files without **tolerances**={!s}.".format(defect_mo))
-    log.info("Number of .mo files without **tolerances**={!s}.".format(len(defect_mo)))
-    
-    log.info(".mo files without **experiment** annotation={!s}.".format(defect_mos))
-    log.info("Number of .mo files without **experiment** annotation={!s}.".format(len(defect_mos)))
-    
-    log.info("Number of .mos files found with **tolerance**={!s}.".format(n_files_tol_mos))
-    log.info("Number of .mo files found with **Tolerance**={!s}.".format(n_files_tol_mo))
-    
-    #if(knownMissingTolerance):
-    #    n_files_tol_mo-=1
+#     log.info("****************DIAGNOSTICS****************")
+#     log.info("Number of .mos files found without **translateModelFMU**={!s}.".format(len(mosCorrect)))
+#     log.info("Number of .mos files found with **translateModelFMU**={!s}.".format(n_files_fmus))
+#     log.info(".mos files with **stopTime=stopTime**={!s}.".format(mosToFixed))
+#     log.info("Number of .mos files with **stopTime=stopTime**={!s}.".format(len(mosToFixed))) 
+#     log.info("Number of .mo files with **tolerance**={!s}.".format(n_files_tol_mo))
+#     log.info(".mo files without **tolerances**={!s}.".format(defect_mo))
+#     log.info("Number of .mo files without **tolerances**={!s}.".format(len(defect_mo)))
+#     log.info(".mo files without **experiment** annotation={!s}.".format(defect_mos))
+#     log.info("Number of .mo files without **experiment** annotation={!s}.".format(len(defect_mos)))
+#     log.info("Number of .mos files found with **tolerance**={!s}.".format(n_files_tol_mos))
+#     log.info("Number of .mo files found with **Tolerance**={!s}.".format(n_files_tol_mo))
     
     # will be reduced to avoid the assert to trigger as this is to be expected.
     assert n_files_tol_mos - n_files_tol_mo == 0, "The number of .mo files with **tolerance** {!s} does not match the number of .mos scripts: {!s}."   
