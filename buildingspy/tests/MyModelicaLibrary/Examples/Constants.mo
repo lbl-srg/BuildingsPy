@@ -7,7 +7,7 @@ model Constants "Test model for two constant sources"
     annotation (Placement(transformation(extent={{0,-20},{20,0}})));
   Modelica.Blocks.Sources.Constant const3(k=1) "Constant source"
     annotation (Placement(transformation(extent={{0,-60},{20,-40}})));
-  annotation (
+  annotation (experiment(Tolerance=1e-6),
   __Dymola_Commands(file="Resources/Scripts/Dymola/Examples/Constants.mos"
         "Simulate and plot"),
 Documentation(info="<html>
