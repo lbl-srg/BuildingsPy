@@ -62,15 +62,15 @@ class Validator(object):
          """
         
         if("*" in str(val)):
-            log.error("Found mo_file: {!s} with **experiment** annotation: {!s} which contains the invalid expression: {!s}"
+            log.error("Found mo_file: {!s} with **experiment** annotation: {!s} which contains the invalid expression: {!s}."
                       .format(modelPath, self._capitalize_first(name), str(val)))
             sys.exit(1)
     
         delta = abs(eval(val) - eval(value))
         
         if (delta!=0):
-            log.error("Found mo_file: {!s} with **experiment** annotation: {!s}".format(modelPath, self._capitalize_first(name)))
-            log.error("The value of {!s} is : {!s} which is different from the (default) value: {!s} found in the .mos file: {!s}."
+            log.error("Found mo_file: {!s} with **experiment** annotation: **{!s}**.".format(modelPath, self._capitalize_first(name)))
+            log.error("The value of **{!s}** is : {!s} which is different from the (default) value: {!s} found in the .mos file: {!s}."
                       .format(val, value, name, mos_file))
             sys.exit(1)
             
@@ -85,8 +85,7 @@ class Validator(object):
     
          """
         
-        
-        log.error("Found mo_file: {!s} without experiment annotation **"+self._capitalize_first(name)+"**.".format(modelPath))
+        log.error("Found mo_file: {!s} without **experiment** annotation **{!s}**.".format(modelPath, self._capitalize_first(name)))
         log.error("The parameter **"+name+"** with value : {!s} is however defined in the .mos file {!s}.".format(value, mos_file)) 
         sys.exit(1)   
         
@@ -404,15 +403,15 @@ class Validator(object):
                     
                     # Check if attributes StartTime/startTime are defined in mos and mo                    
                     if (""+name+"="+"" == "startTime=" and eval(value)!=0.0 and (not foundStartExp_mo)):
-                        self._missing_parameter(self, name, value, modelPath, mos_file)
+                        self._missing_parameter(name, value, modelPath, mos_file)
                         
                     # Check if attributes StopTime/stopTime are defined in mos and mo
                     if (""+name+"="+"" == "stopTime=" and eval(value)!=1.0 and (not foundStopExp_mo)):
-                        self._missing_parameter(self, name, value, modelPath, mos_file)
+                        self._missing_parameter(name, value, modelPath, mos_file)
                         
                     # Check if attributes Tolerance/tolerance are defined in mos and mo
                     if (""+name+"="+"" == "tolerance=" and eval(value) >= 1e-6 and (not foundToleranceExp_mo)):
-                        self._missing_parameter(self, name, value, modelPath, mos_file)
+                        self._missing_parameter(name, value, modelPath, mos_file)
                                             
                     for i in range(Nlines-1, 0, -1):
     #                     
