@@ -369,12 +369,10 @@ class Validator(object):
                 
             if (""+name+"="+"" != "numberOfIntervals=" ):
                 if value != "NA" and value != ""+name+"":   
-                    
-                    modelPath = ""
-                    modelPath = modelName.replace(".", os.sep)
-                    modelPath = modelPath + '.mo'
-                    rootDirOneUp=os.path.dirname(rootDir)
-                    modelPath=os.path.join(rootDirOneUp, modelPath)
+
+                    mosPath=os.path.join(os.sep, 'Resources', 'Scripts', 'Dymola')
+                    modelPath=mos_file.replace(mosPath, "")
+                    modelPath = modelPath.replace(".mos", ".mo")
                     fm = open(modelPath,"r")
                     
                     modelContent = fm.readlines()
