@@ -1,14 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+#
+# import from future to make Python2 behave like Python3
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+from future import standard_library
+standard_library.install_aliases()
+from builtins import *
 from io import open
-
-from builtins import range
-from builtins import object
+# end of from future import
 
 from buildingspy.thirdParty.dymat.DyMat import DyMatFile
 
@@ -49,9 +51,9 @@ def get_model_statistics(log_file, simulator):
         raise ValueError('Argument "simulator" needs to be set to "dymola".')
 
     if not os.path.isfile(log_file):
-        raise IOError("File {} does not exist".format(log_file))
+        raise IOError("File {!s} does not exist".format(log_file))
 
-    with open(log_file) as fil:
+    with open(log_file, mode="r", encoding="utf-8-sig") as fil:
         lines = fil.readlines();
         # Instantiate a dictionary that is used for the return value
 
@@ -133,7 +135,7 @@ def get_errors_and_warnings(log_file, simulator):
     if not os.path.isfile(log_file):
         raise IOError("File {} does not exist".format(log_file))
 
-    with open(log_file) as fil:
+    with open(log_file, mode="r", encoding="utf-8-sig") as fil:
         lines = fil.readlines();
     
     # Instantiate lists that are used for the return value    

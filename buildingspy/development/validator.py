@@ -6,15 +6,17 @@
 #
 # MWetter@lbl.gov                            2013-05-31
 #######################################################
-
+#
+# import from future to make Python2 behave like Python3
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+from future import standard_library
+standard_library.install_aliases()
+from builtins import *
 from io import open
-
-from builtins import range
-from builtins import object
+# end of from future import
 
 class Validator(object):
     ''' Class that validates ``.mo`` files for the correct html syntax.
@@ -86,9 +88,8 @@ Modelica package. Expected file '%s'."
                  section.
         '''
         # Open file.
-        f = open(moFile, mode="r")
-        lines = f.readlines()
-        f.close()
+        with open(moFile, mode="r", encoding="utf-8-sig") as f:
+            lines = f.readlines()
 
         nLin = len(lines)
         isTagClosed = True
@@ -173,6 +174,6 @@ Modelica package. Expected file '%s'."
         # Write html file.
         if self._writeHTML:
             htmlName = "%s%s" % (moFile[0:-2], "html")
-            with open(htmlName, mode="w") as f:
+            with open(htmlName, mode="w", encoding="utf-8") as f:
                 f.write(document)
         return (document, errors)
