@@ -77,8 +77,7 @@ class Test_development_Validator(unittest.TestCase):
         
         path_mos=os.path.join(mod_lib, 'Resources', 'Scripts', 'Dymola', 
                               'Examples', model_name+'.mos')
-        if(os.path.isfile(path_mos)):
-            os.remove(path_mo)
+
         template= Template(MOS_TEMPLATE)
         output_res = template.render(parameter=mos_param, model_name=model_name)
         
@@ -90,7 +89,8 @@ class Test_development_Validator(unittest.TestCase):
             val.validateModelParameters(mod_lib)
         
         for path in [path_mo, path_mos]:
-            os.remove(path)
+            if os.path.exists(path):
+                os.remove(path)
         self.assertTrue(err_msg in str(context.exception))
 
 
