@@ -296,7 +296,6 @@ Modelica package. Expected file '%s'."
         
         for itr in mos_files:
             found_sim = False
-            found_fmu = False
             found_tol = False
             f = open(itr,"r", encoding="utf8")
             content = f.readlines()
@@ -313,7 +312,6 @@ Modelica package. Expected file '%s'."
                 elif ("translateModelFMU" in l):
                     n_fmus += 1
                     mos_fmus.append(itr)
-                    found_fmu = True
                 i += 1
             f.close()
             
