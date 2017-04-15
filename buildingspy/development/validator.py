@@ -323,11 +323,10 @@ Modelica package. Expected file '%s'."
                     + "A maximum tolerance of 1e-6 is required by JModelica.\n")
                 raise ValueError(s)
                 
-            
-            if (not found_sim and not found_fmu):
-                s = ("Found mos file=" + str(itr) 
-                    + " with neither simulateModel() nor translateModelFMU()" + ".\n")
-                raise ValueError(s)
+            #if (not found_sim and not found_fmu):
+            #    s = ("Found mos file=" + str(itr) 
+            #        + " with neither simulateModel() nor translateModelFMU()" + ".\n")
+            #    raise ValueError(s)
                 
         return n_tols, mos_non_fmus, mos_fmus
         
