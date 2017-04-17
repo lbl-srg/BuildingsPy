@@ -199,7 +199,7 @@ Modelica package. Expected file '%s'."
         
         if("*" in str(val)):
             s = ("Found mo file=" + str(model_path) + " with experiment annotation " + self._capitalize_first(name) + ".\n" 
-                + self._capitalize_first(name) + "contains invalid such as x * y. Only literal expressions are allowed " 
+                + self._capitalize_first(name) + " contains invalid expressions such as x * y. Only literal expressions are allowed " 
                 + "by JModelica and OpenModelica unit tests.\n")
             raise ValueError(s) 
     
