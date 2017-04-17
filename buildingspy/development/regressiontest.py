@@ -6,21 +6,17 @@
 #
 # MWetter@lbl.gov                            2011-02-23
 #######################################################
-
+#
+# import from future to make Python2 behave like Python3
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from io import open
-
 from future import standard_library
 standard_library.install_aliases()
-from builtins import zip
-from builtins import map
-from builtins import str
-from builtins import input
-from builtins import range
-from builtins import object
+from builtins import *
+from io import open
+# end of from future import
 
 import sys
 import os
@@ -39,7 +35,7 @@ def runSimulation(worDir, cmd):
     import subprocess
 
     logFilNam=os.path.join(worDir, 'stdout.log')
-    with open(logFilNam, mode="w") as logFil:
+    with open(logFilNam, mode="w", encoding="utf-8") as logFil:
         pro = subprocess.Popen(args=cmd,
                                stdout=logFil,
                                stderr=logFil,
@@ -422,7 +418,7 @@ class Tester(object):
             If ``key`` is found, increase the counter.
         '''
 
-        with open(fileName, mode="rt", encoding="utf-8") as filObj:
+        with open(fileName, mode="rt", encoding="utf-8-sig") as filObj:
             filTex=filObj.readline()
             # Strip white spaces so we can test strpos for zero.
             # This test returns non-zero for partial classes.
@@ -592,7 +588,7 @@ class Tester(object):
                     # File name.
                     filNam = os.path.join(desDir, experiment['modelName'] + ".mos")
                     # Write the file
-                    with open(filNam, mode="w") as fil:
+                    with open(filNam, mode="w", encoding="utf-8") as fil:
                         fil.write(filCon)
 
     @staticmethod
@@ -699,7 +695,7 @@ class Tester(object):
 
                     # open the mos file and read its content.
                     # Path and name of mos file without 'Resources/Scripts/Dymola'
-                    with open(os.path.join(root, mosFil), mode="r") as fMOS:
+                    with open(os.path.join(root, mosFil), mode="r", encoding="utf-8-sig") as fMOS:
                         Lines=fMOS.readlines()
 
                     # Remove white spaces
@@ -1150,7 +1146,7 @@ Skipping error checking for this variable.""" % (filNam, varNam, len(yOld), len(
         from datetime import date
         import json
 
-        with open(refFilNam, mode="w") as f:
+        with open(refFilNam, mode="w", encoding="utf-8") as f:
             f.write('last-generated=' + str(date.today()) + '\n')
             for stage in ['initialization', 'simulation', 'fmu-dependencies']:
                 if stage in y_tra:
@@ -1189,7 +1185,7 @@ Skipping error checking for this variable.""" % (filNam, varNam, len(yOld), len(
         import ast
 
         d = dict()
-        with open(refFilNam, mode="r") as f:
+        with open(refFilNam, mode="r", encoding="utf-8-sig") as f:
             lines = f.readlines()
 
         # Compute the number of the first line that contains the results
@@ -1729,7 +1725,7 @@ Skipping error checking for this variable.""" % (filNam, varNam, len(yOld), len(
         if not os.path.isfile(self._statistics_log):
             raise IOError("Statistics file {} does not exist.".format(self._statistics_log))
 
-        with open(self._statistics_log, mode="rt", encoding="utf-8") as fil:
+        with open(self._statistics_log, mode="rt", encoding="utf-8-sig") as fil:
             try:
                 stat = json.load(fil)['testCase']
             except ValueError as e:
@@ -1759,7 +1755,7 @@ Skipping error checking for this variable.""" % (filNam, varNam, len(yOld), len(
             else:
                 key = 'FMUExport'
 
-            for k, v in self._error_dict.get_dictionary().items():
+            for k, v in list(self._error_dict.get_dictionary().items()):
                 if ele[key][k] > 0:
                     self._reporter.writeWarning(v["model_message"].format(ele[key]["command"]))
                     self._error_dict.increment_counter(k)
@@ -1772,7 +1768,7 @@ Skipping error checking for this variable.""" % (filNam, varNam, len(yOld), len(
             print("Number of models that failed to export as an FMU             : {}".format(iFMU))
 
         # Write summary messages
-        for _, v in self._error_dict.get_dictionary().items():
+        for _, v in list(self._error_dict.get_dictionary().items()):
             counter = v['counter']
             if counter > 0:
                 print(v['summary_message'].format(counter))
@@ -1844,7 +1840,7 @@ Skipping error checking for this variable.""" % (filNam, varNam, len(yOld), len(
                 raise ValueError(em)
 
         retVal = None
-        with open(mosFilNam, mode="r+") as fil:
+        with open(mosFilNam, mode="r+", encoding="utf-8-sig") as fil:
             for lin in fil:
                 if "simulateModel" in lin or "modelToOpen" in lin:
                     if self._modelicaCmd == 'dymola':
@@ -1863,7 +1859,7 @@ Skipping error checking for this variable.""" % (filNam, varNam, len(yOld), len(
         This allows to work around a bug in Dymola 2012 which can cause an exception
         from the Windows operating system, or which can cause Dymola to hang on Linux.
         '''
-        with open(mosFilNam, mode="r+") as fil:
+        with open(mosFilNam, mode="r+", encoding="utf-8-sig") as fil:
             lines = fil.readlines()
         linWri = []
         goToPlotEnd = False
@@ -1877,7 +1873,7 @@ Skipping error checking for this variable.""" % (filNam, varNam, len(yOld), len(
                 if (lines[i].count(";") > 0):
                     goToPlotEnd = False
         # Write file
-        with open(mosFilNam, mode="w") as filWri:
+        with open(mosFilNam, mode="w", encoding="utf-8") as filWri:
             for i in range(len(linWri)):
                 filWri.write(lines[linWri[i]])
 
@@ -1903,7 +1899,7 @@ iJac=sum(Modelica.Utilities.Strings.count(lines, "Number of numerical Jacobians:
             runFil.write(template.format(**values))
 
             # Do the other tests
-            for _, v in self._error_dict.get_dictionary().items():
+            for _, v in list(self._error_dict.get_dictionary().items()):
                 template = r"""  {}=sum(Modelica.Utilities.Strings.count(lines, "{}"));
 """
                 runFil.write(template.format(v["buildingspy_var"], v["tool_message"]))
@@ -1911,7 +1907,7 @@ iJac=sum(Modelica.Utilities.Strings.count(lines, "Number of numerical Jacobians:
 
         def _write_translation_stats(runFil, values):
 
-            for k, v in self._error_dict.get_dictionary().items():
+            for k, v in list(self._error_dict.get_dictionary().items()):
                 if k != "numerical Jacobians":
                     template = r"""
 Modelica.Utilities.Streams.print("        \"{}\"  : " + String({}) + ",", "{}");"""
@@ -1946,7 +1942,7 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
 
         for iPro in range(self._nPro):
 
-            runFil=open(os.path.join(self._temDir[iPro], self.getLibraryName(), "runAll.mos"), mode="w")
+            runFil=open(os.path.join(self._temDir[iPro], self.getLibraryName(), "runAll.mos"), mode="w", encoding="utf-8")
             runFil.write("// File autogenerated for process {!s} of {!s}\n".format(iPro+1, self._nPro))
             runFil.write("// File created for execution by {}. Do not edit.\n".format(self._modelicaCmd))
 
@@ -2286,13 +2282,12 @@ getErrorString();
                 runSimulation(os.path.join(self._temDir[0], libNam), cmd)
 
             # Concatenate simulator output files into one file
-            with open(self._simulator_log_file, mode="w") as logFil:
+            with open(self._simulator_log_file, mode="w", encoding="utf-8") as logFil:
                 for d in self._temDir:
                     for temLogFilNam in glob.glob( os.path.join(d, self.getLibraryName(), '*.translation.log') ):
                         if os.path.exists(temLogFilNam):
-                            fil=open(temLogFilNam, mode="r")
-                            data=fil.read()
-                            fil.close()
+                            with open(temLogFilNam, mode="r", encoding="utf-8-sig") as fil:
+                                data=fil.read()
                             logFil.write(data)
                         else:
                             self._reporter.writeError("Log file '" + temLogFilNam + "' does not exist.\n")
@@ -2304,16 +2299,15 @@ getErrorString();
                 for d in self._temDir:
                     temLogFilNam = os.path.join(d, self.getLibraryName(), self._statistics_log)
                     if os.path.exists(temLogFilNam):
-                        temSta=open(temLogFilNam.replace('Temp\tmp','Temp\\tmp'), mode="r")
-                        try:
-                            cas = json.load(temSta)["testCase"]
-                            # Iterate over all test cases of this output file
-                            for ele in cas:
-                                stat.append(ele)
-                        except ValueError as e:
-                            self._reporter.writeError("Decoding '%s' failed: %s" % (temLogFilNam, e.message))
-                            raise
-                        temSta.close()
+                        with open(temLogFilNam.replace('Temp\tmp','Temp\\tmp'), mode="r", encoding="utf-8-sig") as temSta:
+                            try:
+                                cas = json.load(temSta)["testCase"]
+                                # Iterate over all test cases of this output file
+                                for ele in cas:
+                                    stat.append(ele)
+                            except ValueError as e:
+                                self._reporter.writeError("Decoding '%s' failed: %s" % (temLogFilNam, e.message))
+                                raise
                     else:
                         self._reporter.writeError("Log file '" + temLogFilNam + "' does not exist.\n")
                         retVal = 1
@@ -2604,7 +2598,7 @@ successfully (={:.1%})"\
 
         mosfilename = os.path.join(worDir, 'OMTests.mos')
 
-        with open(mosfilename, mode="w") as mosfile:
+        with open(mosfilename, mode="w", encoding="utf-8") as mosfile:
             # preamble
             mosfile.write("//Automatically generated script for testing model compliance with OpenModelica.\n")
             mosfile.write("loadModel(Modelica, {\"3.2\"});\n")
@@ -2719,7 +2713,7 @@ successfully (={:.1%})"\
 
         try:
             logFilNam=mosfile.replace('.mos', '.log')
-            with open(logFilNam, mode="w") as logFil:
+            with open(logFilNam, mode="w", encoding="utf-8") as logFil:
                 retcode = subprocess.Popen(args=[omc, '+d=initialization', mosfile],
                                            stdout=logFil,
                                            stderr=logFil,
@@ -2738,7 +2732,7 @@ successfully (={:.1%})"\
             # process the log file
             print("Logfile created: {}".format(logFilNam))
             print("Starting analysis of logfile")
-            with open(logFilNam, mode="r") as f:
+            with open(logFilNam, mode="r", encoding="utf-8-sig") as f:
                 self._omstats = f.readlines()
             self._analyseOMStats(lines=self._omstats, models=self._ommodels, simulate=simulate)
 

@@ -18,21 +18,27 @@
 ###########################################################
 #
 
+# import from future to make Python2 behave like Python3
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
-import logging as log
+from __future__ import unicode_literals
+from future import standard_library
+standard_library.install_aliases()
+from builtins import *
+from io import open
+#from io import open
+#import logging as log
 
-log.basicConfig(filename='check_parameters.log', filemode='w',
-                level=log.DEBUG, format='%(asctime)s %(message)s',
-                datefmt='%m/%d/%Y %I:%M:%S %p')
-stderrLogger = log.StreamHandler()
-stderrLogger.setFormatter(log.Formatter(log.BASIC_FORMAT))
-log.getLogger().addHandler(stderrLogger)
+# log.basicConfig(filename='check_parameters.log', filemode='w',
+#                 level=log.DEBUG, format='%(asctime)s %(message)s',
+#                 datefmt='%m/%d/%Y %I:%M:%S %p')
+# stderrLogger = log.StreamHandler()
+# stderrLogger.setFormatter(log.Formatter(log.BASIC_FORMAT))
+# log.getLogger().addHandler(stderrLogger)
 
 import os
 import re
-import sys
 
 class Validator(object):
     ''' Class that validates ``.mo`` files for the correct syntax.
@@ -49,49 +55,56 @@ class Validator(object):
                 if (filename.endswith(suffix) 
                     and ("ConvertBuildings_from" not in filename)) ]    
     
-    def _check_experiment(self, name, val, value, modelPath, mos_file):
+    def _check_experiment(self, name, val, value, model_path, mos_file):
         """ 
         Check experiment annotation in mo file.
     
         :param name: Parameter name.
         :param val: Value found in mo file.
         :param value: Value found in mos file.
-        :param modelPath: Path to mo file.
+        :param model_path: Path to mo file.
         :param mos_file: Path to mos file.
     
          """
         
         if("*" in str(val)):
-            log.error("Found mo_file: {!s} with **experiment** annotation: {!s} which contains the invalid expression: {!s}."
-                      .format(modelPath, self._capitalize_first(name), str(val)))
-            sys.exit(1)
+            s = ("Found mo file=" + str(model_path) + " with experiment annotation " + self._capitalize_first(name) + ".\n" 
+                + self._capitalize_first(name) + "contains invalid such as x * y. Only literal expressions are allowed " 
+                + "by JModelica and OpenModelica unit tests.\n")
+            raise ValueError(s) 
     
         delta = abs(eval(val) - eval(value))
         
         if (delta!=0):
-            log.error("Found mo_file: {!s} with **experiment** annotation: **{!s}**.".format(modelPath, self._capitalize_first(name)))
-            log.error("The value of **{!s}** is : {!s} which is different from the (default) value: {!s} found in the .mos file: {!s}."
-                      .format(val, value, name, mos_file))
-            sys.exit(1)
+            s = ("Found mo file=" + str(model_path) + " with experiment annotation " + self._capitalize_first(name) + ".\n" 
+                + "The value of " + self._capitalize_first(name) + "="+str(val) +" is different from the (default) value="
+                + str(value)+" found in the mos file=" + str(mos_file) + ".\n")
+            raise ValueError(s)            
             
-    def _missing_parameter(self, name, value, modelPath, mos_file):
+
+            
+    def _missing_parameter(self, name, value, model_path, mos_file):
         """ 
         Check experiment annotation in mo file.
     
         :param name: Parameter name.
         :param value: Value found in mos file.
-        :param modelPath: Path to mo file.
+        :param model_path: Path to mo file.
         :param mos_file: Path to mos file.
     
          """
         
-        log.error("Found mo_file: {!s} without **experiment** annotation **{!s}**.".format(modelPath, self._capitalize_first(name)))
-        log.error("The parameter **"+name+"** with value : {!s} is however defined in the .mos file {!s}.".format(value, mos_file)) 
-        sys.exit(1)   
+        s = ("Found mo file=" + str(model_path) + " without parameter " 
+             + self._capitalize_first(name) + " defined.\n" 
+            + "The parameter name " + name + " is defined in the mos file=" 
+            + str(mos_file) + " and hence must be defined in the mo file.\n")
+        raise ValueError(s)
         
+
     def _capitalize_first(self, name):
         """ 
         Capitalize the first letter of the given word.
+        Return a word with first letter capitalized.
     
         :param name: Word to be capitalized.
     
@@ -99,135 +112,98 @@ class Validator(object):
         lst = [word[0].upper() + word[1:] for word in name.split()]
         return " ".join(lst)
     
-    def _write_file(self, mos_file, content):
+    def _missing_experiment(self, mos_files):
         """ 
-        Write new mos file.
+        Check if ``experiment`` annotation exists in mo file.
+        Return number of mo files with experiment.
     
-        :param mos_file: mos file name.
-        :param content: mos file content.
+        :param mos_files: List of mos files.
     
          """
         
-        # Delete the old file
-        # print( "\tDeleting the old mos script...")
-        os.system("rm "+mos_file)
+        n_mo_files = 0
+        for mos_file in mos_files:
+            mos_path=os.path.join(os.sep, 'Resources', 'Scripts', 'Dymola')
+            model_path=mos_file.replace(mos_path, "")
+            model_path = model_path.replace(".mos", ".mo")
+            fm = open(model_path,"r", encoding="utf8")
+            
+            model_content = fm.readlines()
+            Nlines = len(model_content)
+            
+            foundExp = False
+            for i in range(Nlines-1, 0, -1):
+                line = model_content[i]
+                if "experiment(" in line.replace(" ", ""):
+                    foundExp=True
+                    n_mo_files+=1
+            if (not foundExp):
+                s = ("Found mo file=" + str(model_path) 
+                    + " without experiment annotation" + ".\n")
+                raise ValueError(s)
+                
+            # close and exit
+            fm.close()
+        return n_mo_files 
     
-        # Create a new one with the same name
-        fm = open(mos_file,"w")
-    
-        for line in content:
-            fm.write(line)
-    
-        # close and exit
-        fm.close()
         
-    def _number_occurences(self, filPat, ext):
+    def _separate_mos_files(self, mos_files):
         """ 
-        Count number of occurences of Tolerance=1.
+        Return number of files with tolerance parameter
+        and two list of mos files file, one with the ``simulateModel``
+        and the other one with the ``translateModelFMU`` command.
     
-        :param filPat: file path.
-        :param ext: file extension.
+        :param mos_files: file path.
     
          """
         
-        mosCorrect = []
+        mos_non_fmus = []
+        mos_fmus = []
         
-        n_files_tol = 0
-        n_files_fmus = 0
-        for itr in filPat:
-            f = open(itr,"r")
+        n_tols = 0
+        n_fmus = 0
+        n_sim = 0
+        
+        for itr in mos_files:
+            found_sim = False
+            found_fmu = False
+            found_tol = False
+            f = open(itr,"r", encoding="utf8")
             content = f.readlines()
-            found = False
             i=0
-            while found == False and i<len(content):
+            while i<len(content):
                 l = content[i]
-                if "tolerance=1" in l.lower():
-                    found = True
-                    n_files_tol += 1
-                    if (ext=="mos"):
-                        mosCorrect.append(itr)
-                    break
-                if (ext=="mos"):
-                    if ("translateModelFMU" in l):
-                        n_files_fmus += 1
+                if "tolerance=1" in (l.replace(" ", "")).lower():
+                    found_tol =True
+                    n_tols += 1
+                if "simulateModel(" in l.replace(" ", ""):
+                    n_sim+=1
+                    found_sim = True
+                    mos_non_fmus.append(itr)
+                elif ("translateModelFMU" in l):
+                    n_fmus += 1
+                    mos_fmus.append(itr)
+                    found_fmu = True
                 i += 1
             f.close()
-        return n_files_tol, n_files_fmus, mosCorrect
-    
-    def _replace_content(self, content, name, value, para, foundStop):
-        """ 
-        Replace content to a file.
-    
-        :param content: file content.
-        :param name: variable name.
-        :param value: variable value.
-        :param para: parameter value.
-        :param foundStop: Flag to stop.
-    
-         """
-    
-        i=0
-        while i < len(content):
-            line = content[i]
-            i += 1
-            # Remove white spaces
-            line.replace(" ", "")
-            if ""+name+"="+"" in line.replace(" ", ""):
-                newLine = line.replace(""+name+"="+"" + str(value), ""+name+"="+""+str(para))
-                content[i-1] = newLine
-                foundStop = True
-                return foundStop, content
+            
+            if (found_sim and not found_tol):
+                s = ("Found mos file=" + str(itr) 
+                    + " without tolerance defined" + ".\n"
+                    + "A maximum tolerance of 1e-6 is required by JModelica.\n")
+                raise ValueError(s)
+                
+            
+            if (not found_sim and not found_fmu):
+                s = ("Found mos file=" + str(itr) 
+                    + " with neither simulateModel() nor translateModelFMU()" + ".\n")
+                raise ValueError(s)
+                
+        return n_tols, mos_non_fmus, mos_fmus
         
-    
-    def _replace_stoptime(self, content, name, value, foundStop):
-        """ 
-        Replace stopTime in file.
-    
-        :param content: file content.
-        :param name: variable name.
-        :param value: variable value.
-        :param foundStop: Flag to stop.
-    
-         """
-        # Delete the old file
-        i=0
-        while i < len(content):
-            line = content[i]
-            i += 1
-            # Remove white spaces
-            line.replace(" ", "")
-            if "stopTime=" in line.replace(" ", ""):
-                newLine = line.replace("stopTime" , ""+name+"="+"" + str(value) + ", stopTime")
-                content[i-1] = newLine
-                foundStop = True
-                return foundStop, content
-    
-    def _replace_resultfile(self, content, name, value, foundStop):
-        """ 
-        Replace resultFile in file.
-    
-        :param content: file content.
-        :param name: variable name.
-        :param value: variable value.
-        :param foundStop: Flag to stop.
-    
-         """
-        # Delete the old file
-        i=0
-        while i < len(content):
-            line = content[i]
-            i += 1
-            # Remove white spaces
-            line.replace(" ", "")
-            if "resultFile=" in line.replace(" ", ""):
-                newLine = line.replace("resultFile" , ""+name+"="+"" + str(value) + ", resultFile")
-                content[i-1] = newLine
-                foundStop = True
-                return foundStop, content
-    
     def _check_tolerance(self, content, name, value, mos_file):
         """ 
-        Replace tolerance in file.
+        Check value of tolerance in file.
     
         :param content: file content.
         :param name: variable name.
@@ -237,10 +213,7 @@ class Validator(object):
          """
         if ("" + name + "=" + "" == "tolerance=" and float(value) > 1e-6):
             self._wrong_parameter (mos_file, name, value)
-    #         foundStop = False
-    #         consPar = "1e-6"
-    #         foundStop, content = _replace_content(content, name, value, consPar, foundStop)
-    #         _write_file(mos_file, content)    
+  
     
     def _wrong_parameter (self, mos_file, name, value):
         """ 
@@ -253,23 +226,20 @@ class Validator(object):
          """
          
         if ("" + name + "=" + "" == "tolerance="):
-            if(float(value)> 1e-6):
-                #print("\t=================================")
-                log.error("Found mos_file: {!s} with a tolerance={!s}).".format(mos_file, value))
-                log.error("This tolerance is bigger than the maximum allowed tolerance of 1e-6.")
-                log.error("A tolerance of 1e-6 or less is required for the JModelica verification.")
-                sys.exit(1)
-            elif(float(value)== 0.0):
-                #log.error("\t=================================")
-                log.info("Found mos_file: {!s} without **tolerance** specified.".format(mos_file))
-                log.error("A tolerance of 1e-6 or less is required for the JModelica verification.")
-                sys.exit(1)
+            if(float(value) > 1e-6):
+                s = ("Found mos file=" + str(mos_file) + " with tolerance=" + str(value) + ".\n"
+                    "The tolerance found is bigger than 1e-6, the maximum required by "
+                    "JModelica for unit tests.\n")
+                raise ValueError(s)
+            elif(float(value) == 0.0):
+                s = ("Found mos file=" + str(mos_file) + " without tolerance specified.\n" + 
+                    "A maximum tolerance of 1e-6 is required by JModelica for unit tests.\n")
+                raise ValueError(s)
         if ("" + name + "=" + "" == "stopTime="):
-            if(float(value)== 0.0):
-                #log.error("\t=================================")
-                log.info("Found mos_file: {!s} without **stopTime** specified.".format(mos_file))
-                log.error("A non-null **stopTime** is required for the JModelica verification.")
-                sys.exit(1)
+            if(float(value) == 0.0):
+                s = ("Found mos file=" + str(mos_file) + " without stopTime specified.\n" + 
+                    "A non-null stopTime is required by OpenModelica for unit tests.\n")
+                raise ValueError(s)
                 
     def _wrong_literal (self, mos_file, name):
         """ 
@@ -279,18 +249,20 @@ class Validator(object):
         :param name: Parameter name.
     
          """
-         
-        #log.error("\t=================================")
-        log.error("Found mos_file: {!s} with expression: {!s}.".format(mos_file, name+'='+name))
-        log.error("This is not allowed for the JModelica verification.")  
-        sys.exit(1)
+        
+        s = ("Found mos file=" + str(mos_file) + " with invalid expression=" 
+             + str(name+'='+name) + ".\n" 
+             + "This is not allowed for cross validation with JModelica.\n")
+        raise ValueError(s)
     
     
-    def _validate_model_parameters (self, name, mos_files, rootDir):
+    def _validate_model_parameters (self, name, mos_files, root_dir):
         """ 
-        Fix parameter settings.
+        Validate parameter settings.
     
         :param name: Parameter name.
+        :param mos_files: List of mos files.
+        :param root_dir: Root directory.
     
          """
 
@@ -300,38 +272,29 @@ class Validator(object):
         for mos_file in mos_files:
             j += 1
             
-            f = open(mos_file,"r")
+            f = open(mos_file,"r", encoding="utf8")
             
             content = f.readlines()
             found = False
             i = 0
             while found == False and i<len(content):
                 l = content[i]
-                if "simulateModel(" in l:
+                if "simulateModel(" in l.replace(" ", ""):
                     line = l
                     found = True
                 i += 1
             
-            # Remove white spaces
-            line.replace(" ", "")
-            
             try:
-                pModel    = re.compile('simulateModel\("([^\(|^"]+)[\S]*"')
-                mModel    = pModel.match(line)
-                modelName = mModel.group(1)
                 if ""+name+"="+name+"" in line.replace(" ", ""):
                     value = ""+name+""
-                    #print("\t=================================")
                     self._wrong_literal(mos_file ,name)
                    
                 if ""+name+"="+"" in line.replace(" ", ""):
-                    # pTime    = re.compile(r"[\d\S\s.,]*(stopTime=)([\d]*[.]*[\d]*[e]*[+|-]*[\d]*)")
                     pTime    = re.compile(r"[\d\S\s.,]*("+name+"=)([\d]*[.]*[\d]*[eE]*[+|-]*[\d]*[*]*[\d]*[.]*[\d]*[eE]*[+|-]*[\d]*)")
                     mTime    = pTime.match(line)
                     value = mTime.group(2)
                     self._check_tolerance(content, name, value, mos_file)     
                 else:
-                    # print("\tThe name is not in the simulation command row... go ahead")
                     found = False
                     while found == False and i<len(content):
                         line = content[i]
@@ -348,125 +311,112 @@ class Validator(object):
                             #startTime = startTime[:-1]
                         if ""+name+"="+name+"" in line.replace(" ", ""):
                             value = ""+name+""
-                            #print("\t=================================")
                             self._wrong_literal(mos_file, name)
                     if found == False:
                         if (name=="startTime"):
                             value = "0.0"
                         elif (name=="stopTime"):
-                            #print("\t"+ name + " not found, defined the default stopTime=1.0")
                             value="1.0"
                         elif(name=="tolerance"):
-                            #foundToleranceExp_mos = True
                             value="0.0"
+                            print("Should be coming here")
                             self._wrong_parameter (mos_file, name, value)
     
             except AttributeError:
-                #print("\tThe script does not contain the simulation command! Maybe it is a plot script...")
                 value = "NA"
                 N_mos_defect += 1
                 
-            if (""+name+"="+"" != "numberOfIntervals=" ):
-                if value != "NA" and value != ""+name+"":   
+            if value != "NA" and value != ""+name+"":   
 
-                    mosPath=os.path.join(os.sep, 'Resources', 'Scripts', 'Dymola')
-                    modelPath=mos_file.replace(mosPath, "")
-                    modelPath = modelPath.replace(".mos", ".mo")
-                    fm = open(modelPath,"r")
+                mos_path=os.path.join(os.sep, 'Resources', 'Scripts', 'Dymola')
+                model_path=mos_file.replace(mos_path, "")
+                model_path = model_path.replace(".mos", ".mo")
+                fm = open(model_path,"r", encoding="utf8")
+                
+                model_content = fm.readlines()
+                Nlines = len(model_content)
+                
+                found = False
+                foundStopExp_mo = False
+                foundStartExp_mo = False
+                foundToleranceExp_mo = False
+                
+                for i in range(Nlines-1, 0, -1):
+                    line = model_content[i]
+                    if "StopTime=" in line.replace(" ", ""):
+                        foundStopExp_mo=True
+                    if "StartTime=" in line.replace(" ", ""):
+                        foundStartExp_mo=True
+                    if "Tolerance=" in line.replace(" ", ""):
+                        foundToleranceExp_mo=True
+                
+                # Check if attributes StartTime/startTime are defined in mos and mo                    
+                if (""+name+"="+"" == "startTime=" and eval(value)!=0.0 and (not foundStartExp_mo)):
+                    self._missing_parameter(name, value, model_path, mos_file)
                     
-                    modelContent = fm.readlines()
-                    Nlines = len(modelContent)
+                # Check if attributes StopTime/stopTime are defined in mos and mo
+                if (""+name+"="+"" == "stopTime=" and eval(value)!=1.0 and (not foundStopExp_mo)):
+                    self._missing_parameter(name, value, model_path, mos_file)
                     
-                    found = False
-                    foundExp = False
-                    foundStopExp_mo = False
-                    foundStartExp_mo = False
-                    foundToleranceExp_mo = False
-                    for i in range(Nlines-1, 0, -1):
-                        line = modelContent[i]
-                        if "experiment(" in line.replace(" ", ""):
-                            foundExp=True
-                        if "StopTime=" in line.replace(" ", ""):
-                            foundStopExp_mo=True
-                        if "StartTime=" in line.replace(" ", ""):
-                            foundStartExp_mo=True
-                        if "Tolerance=" in line.replace(" ", ""):
-                            foundToleranceExp_mo=True
-                    
-                    # Check if experiment annotation is defined  
-                    if (not foundExp):
-                        log.error("Found mo_file: {!s} without **experiment** annotation.".format(modelPath))
-                        log.error("An **experiment** annotation is required in the .mo example file.")
-                        log.error("The parameters of the **experiment** annotation must match the parameters of the .mos script: {!s}."
-                                  .format(mos_file))
-                        sys.exit(1)
-                    
-                    # Check if attributes StartTime/startTime are defined in mos and mo                    
-                    if (""+name+"="+"" == "startTime=" and eval(value)!=0.0 and (not foundStartExp_mo)):
-                        self._missing_parameter(name, value, modelPath, mos_file)
-                        
-                    # Check if attributes StopTime/stopTime are defined in mos and mo
-                    if (""+name+"="+"" == "stopTime=" and eval(value)!=1.0 and (not foundStopExp_mo)):
-                        self._missing_parameter(name, value, modelPath, mos_file)
-                        
-                    # Check if attributes Tolerance/tolerance are defined in mos and mo
-                    if (""+name+"="+"" == "tolerance=" and eval(value) >= 1e-6 and (not foundToleranceExp_mo)):
-                        self._missing_parameter(name, value, modelPath, mos_file)
-                                            
-                    for i in range(Nlines-1, 0, -1):
-    #                     
-                        line = modelContent[i]
-                 
-    #                   # if the lines contains experiment stop time, replace it
-                        if ""+self._capitalize_first(name)+"="+"" in line.replace(" ", "") and not found:
-                            
-                            # found the stopTime assignment, replace with the value in the mos file
-                            pTime    = re.compile(r"[\d\S\s.,]*("+self._capitalize_first(name)+"=)([\d]*[.]*[\d]*[eE]*[+|-]*[\d]*[*]*[\d]*[.]*[\d]*[eE]*[+|-]*[\d]*)[\S\s.,]*")
-                            mTime    = pTime.match(line)
-                            val = mTime.group(2)
-                            self._check_experiment(name, val, value, modelPath, mos_file)
-                            found = True
-                    
-                elif value == ""+name+"":
-                    self._wrong_literal(modelPath, name)
+                # Check if attributes Tolerance/tolerance are defined in mos and mo
+                if (""+name+"="+"" == "tolerance=" and eval(value) >= 1e-6 and (not foundToleranceExp_mo)):
+                    self._missing_parameter(name, value, model_path, mos_file)
+                                        
+                for i in range(Nlines-1, 0, -1):   
+                    line = model_content[i]
+             
+                    # if the lines contains experiment stop time, replace it
+                    if ""+self._capitalize_first(name)+"="+"" in line.replace(" ", "") and not found:
+                        pTime    = re.compile(r"[\d\S\s.,]*("+self._capitalize_first(name)+"=)([\d]*[.]*[\d]*[eE]*[+|-]*[\d]*[*]*[\d]*[.]*[\d]*[eE]*[+|-]*[\d]*)[\S\s.,]*")
+                        mTime    = pTime.match(line)
+                        val = mTime.group(2)
+                        self._check_experiment(name, val, value, model_path, mos_file)
+                        found = True
+                
+                fm.close()
+            elif value == ""+name+"":
+                self._wrong_literal(model_path, name)
     
                 
             f.close()
     
-    def validateModelParameters(self, rootDir):
+    def validateModelParameters(self, root_dir):
         
-        # Make sure that the parameter rootDir points to a Modelica package.
-        topPackage = os.path.join(rootDir, "package.mo")
+        """ 
+        Validate parameter of mo and mos files.
+    
+        :param root_dir: Root directory.
+    
+         """
+        
+        # Make sure that the parameter root_dir points to a Modelica package.
+        topPackage = os.path.join(root_dir, "package.mo")
         if not os.path.isfile(topPackage):
-            raise ValueError("Argument rootDir=%s is not a Modelica package. Expected file '%s'."
-                             % (rootDir, topPackage))
+            s = ("Argument root_dir=" + str(root_dir) + " is not a Modelica package\n" 
+                + " Expected file=" + str(topPackage)+ ".\n")
+            raise ValueError(s)
                 
         # Get the path to the mos files
-        rootPackage = os.path.join(rootDir, 'Resources', 'Scripts', 'Dymola')
+        rootPackage = os.path.join(root_dir, 'Resources', 'Scripts', 'Dymola')
         
         # Get all mos files
         mos_files = self._recursive_glob(rootPackage, '.mos')
         
+        # Split mos files which either contain simulateModel or translateModelFMU
+        n_tols, mos_non_fmus, _ =  self._separate_mos_files (mos_files)
+        
+        # Check if all .mo files contain experiment annotation
+        n_mo_files = self._missing_experiment(mos_non_fmus)
+        
         # Validate model parameters
         for i in ["stopTime", "tolerance", "startTime"]:
-            self._validate_model_parameters(i, mos_files, rootDir)
-      
-        # Get the number of mos files with/without translateModelFMU 
-        n_files_tol_mos, n_files_fmus, mosCorrect = self._number_occurences (mos_files, "mos")
+            self._validate_model_parameters(i, mos_non_fmus, root_dir)
         
-        mo_files = []  
-        for i in mosCorrect:
-            mosPath=os.path.join(os.sep, 'Resources', 'Scripts', 'Dymola')
-            mofile = i.replace(mosPath, "")
-            mofile = mofile.replace(".mos", ".mo")
-            mo_files.append(mofile)
-        
-        # Get the number of valid mo files
-        n_files_tol_mo, _, _ = self._number_occurences (mo_files, "mo")
-        
-        if(n_files_tol_mos != n_files_tol_mo):
-            raise ValueError("The number of .mo files with **tolerance** %s does not match the number of .mos scripts %s."
-                % (str(n_files_tol_mos), str(n_files_tol_mo)))     
+        if(n_tols!=n_mo_files):
+            s = ("The number of tolerances in the mos files=" + str(n_tols) 
+                + " does no match the number of mo files=" + str(n_mo_files)+ ".\n")
+            raise ValueError(s)
+  
 #         log.info("****************DIAGNOSTICS****************")
 #         log.info("Number of .mos files found without **translateModelFMU**={!s}.".format(len(mosCorrect)))
 #         log.info("Number of .mos files found with **translateModelFMU**={!s}.".format(n_files_fmus))

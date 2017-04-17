@@ -25,7 +25,8 @@ doctest:
 	buildingspy/examples/dymola/*.py \
 	buildingspy/simulate/*.py \
 	buildingspy/development/*.py
-	@rm -f plot.pdf plot.png roomTemperatures.png dymola.log
+	@rm -f plot.pdf plot.png roomTemperatures.png dymola.log MyModel.mat dslog.txt package.order \
+	   run_simulate.mos run_translate.mos simulator.log translator.log
 
 dist:	clean doctest unittest doc
 	@# Make sure README.rst are consistent
@@ -34,7 +35,7 @@ dist:	clean doctest unittest doc
 	python setup.py bdist_egg
 	rm -rf build
 	rm -rf buildingspy.egg-info
-	python setup.py sdist --formats=gztar,zip bdist_egg upload -r https://pypi.python.org/pypi
+	twine upload dist/*
 	@echo "Source distribution is in directory dist"
 	@echo "To post to server, run postBuildingsPyToWeb.sh"
 
