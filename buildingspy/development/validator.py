@@ -187,7 +187,7 @@ Modelica package. Expected file '%s'."
     
     def _check_experiment(self, name, val, value, model_path, mos_file):
         """ 
-        Check experiment annotation in mo file.
+        Check experiment annotation parameters in mo file.
     
         :param name: Parameter name.
         :param val: Value found in mo file.
@@ -215,7 +215,7 @@ Modelica package. Expected file '%s'."
             
     def _missing_parameter(self, name, value, model_path, mos_file):
         """ 
-        Check experiment annotation in mo file.
+        Check missing experiment annotation parameter in mo file.
     
         :param name: Parameter name.
         :param value: Value found in mos file.
@@ -244,7 +244,7 @@ Modelica package. Expected file '%s'."
     
     def _missing_experiment(self, mos_files):
         """ 
-        Check if ``experiment`` annotation exists in mo file.
+        Check missing experiment annotation in mo file.
         Return number of mo files with experiment.
     
         :param mos_files: List of mos files.
@@ -280,8 +280,8 @@ Modelica package. Expected file '%s'."
     def _separate_mos_files(self, mos_files):
         """ 
         Return number of files with tolerance parameter
-        and two list of mos files file, one with the ``simulateModel``
-        and the other one with the ``translateModelFMU`` command.
+        and two list of mos files file, one with the simulateModel
+        and the other one with the translateModelFMU command.
     
         :param mos_files: file path.
     
@@ -365,7 +365,7 @@ Modelica package. Expected file '%s'."
                 
     def _wrong_literal (self, mos_file, name):
         """ 
-        Stop if invalid literal is detected.
+        Stop if invalid literal is found.
     
         :param mos_file: mos file.
         :param name: Parameter name.

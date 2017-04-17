@@ -53,7 +53,7 @@ class Test_development_Validator(unittest.TestCase):
         
     def run_case(self, val, mod_lib, mo_param, mos_param, err_msg):
         """
-        Create and validate mo and mos files on the fly  
+        Create and validate mo and mos files
         
         
         :param: val Validator object.
