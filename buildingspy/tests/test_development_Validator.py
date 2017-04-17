@@ -9,10 +9,9 @@ from __future__ import unicode_literals
 from future import standard_library
 standard_library.install_aliases()
 from builtins import *
-from io import open
+# end of from future import
 from jinja2 import Template 
 import random, string, os
-# end of from future import
 
 import unittest
 
@@ -41,7 +40,6 @@ class Test_development_Validator(unittest.TestCase):
     """
 
     def test_validateHTMLInPackage(self):
-        import os
         import buildingspy.development.validator as v
         val = v.Validator()
         myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
