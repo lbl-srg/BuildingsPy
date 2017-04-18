@@ -181,6 +181,16 @@ Modelica package. Expected file '%s'."
         return (document, errors)
     
     def _recursive_glob(self, rootdir='.', suffix=''):
+        """ 
+        Return all files with given extension.
+    
+        :param rootdir: Root directory.
+        :param suffix: File extension.
+        :return: List of files with given extension.
+
+    
+         """
+        
         return [os.path.join(rootdir, filename) for rootdir, dirnames,
                 filenames in os.walk(rootdir) for filename in filenames 
                 if (filename.endswith(suffix) 
@@ -238,6 +248,7 @@ Modelica package. Expected file '%s'."
         Return a word with first letter capitalized.
     
         :param name: Word to be capitalized.
+        :return: Word with first letter capitalized.
     
          """
         lst = [word[0].upper() + word[1:] for word in name.split()]
@@ -281,10 +292,13 @@ Modelica package. Expected file '%s'."
     def _separate_mos_files(self, mos_files):
         """ 
         Return number of files with tolerance parameter
-        and two list of mos files file, one with the simulateModel
+        and two lists of mos files file, one with the simulateModel
         and the other one with the translateModelFMU command.
     
         :param mos_files: file path.
+        :return: Number of files with tolerance parameter,
+                and two lists of mos files file, one with the simulateModel
+                and the other one with the translateModelFMU command.
     
          """
         
