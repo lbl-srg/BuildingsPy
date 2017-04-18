@@ -9,7 +9,9 @@ from __future__ import unicode_literals
 from future import standard_library
 standard_library.install_aliases()
 from builtins import *
+from io import open
 # end of from future import
+
 from jinja2 import Template 
 import random, string, os
 
@@ -69,7 +71,7 @@ class Test_development_Validator(unittest.TestCase):
         template= Template(MO_TEMPLATE)
         output_res = template.render(experiment=mo_param, model_name=model_name)
         
-        with open(path_mo, 'w') as mo_fil:
+        with open(path_mo, mode="w", encoding="utf-8") as mo_fil:
             mo_fil.write(output_res)
         mo_fil.close()
         
@@ -79,7 +81,7 @@ class Test_development_Validator(unittest.TestCase):
         template= Template(MOS_TEMPLATE)
         output_res = template.render(parameter=mos_param, model_name=model_name)
         
-        with open(path_mos, 'w') as mos_fil:
+        with open(path_mos, mode="w", encoding="utf-8") as mos_fil:
             mos_fil.write(output_res)
         mos_fil.close()
         
