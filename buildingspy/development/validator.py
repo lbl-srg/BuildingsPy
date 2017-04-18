@@ -16,8 +16,9 @@ from future import standard_library
 standard_library.install_aliases()
 from builtins import *
 from io import open
-import os, re
 # end of from future import
+
+import os, re
 
 class Validator(object):
     ''' Class that validates ``.mo`` files for the correct html syntax.

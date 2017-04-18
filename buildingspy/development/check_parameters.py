@@ -27,7 +27,8 @@ from future import standard_library
 standard_library.install_aliases()
 from builtins import *
 from io import open
-#from io import open
+# end of from future import
+
 #import logging as log
 
 # log.basicConfig(filename='check_parameters.log', filemode='w',
