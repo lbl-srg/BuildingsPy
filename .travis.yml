@@ -44,4 +44,5 @@ install:
 # Execute tests
 script:
   - omc --version
-  - make doctest unittest
+  - make doctest
+  - make unittest
