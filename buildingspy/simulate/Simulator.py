@@ -429,7 +429,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         self._simulateDir_ = worDir
         # Copy directory
         shutil.copytree(os.path.abspath(self._packagePath), worDir,
-                        ignore = shutil.ignore_patterns('*.svn', '*.git'))
+                        ignore=shutil.ignore_patterns('*.svn', '*.git'))
 
         # Construct the model instance with all parameter values
         # and the package redeclarations
@@ -445,7 +445,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
                 fil.write(self._get_dymola_commands(
                     working_directory=worDir,
                     log_file="simulator.log",
-                    model_name = mi,
+                    model_name=mi,
                     translate_only=False))
             # Copy files to working directory
 
@@ -506,7 +506,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
                 fil.write(self._get_dymola_commands(
                     working_directory=worDir,
                     log_file="translator.log",
-                    model_name = mi,
+                    model_name=mi,
                     translate_only=True))
             # Copy files to working directory
 

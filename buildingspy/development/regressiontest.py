@@ -636,7 +636,7 @@ class Tester(object):
             y[i] = re.sub(',\W*', ', ', y[i])
         return y
 
-    def setDataDictionary(self, root_package = None):
+    def setDataDictionary(self, root_package=None):
         ''' Build the data structures that are needed to parse the output files.
 
            :param: root_package The name of the top-level package for which the files need to be parsed.
@@ -976,7 +976,7 @@ class Tester(object):
         import numpy as np
         from buildingspy.io.postprocess import Plotter
 
-        def getTimeGrid(t, nPoi = self._nPoi):
+        def getTimeGrid(t, nPoi=self._nPoi):
             if len(t) == 2:
                 return self._getTimeGrid(t[0], t[-1], nPoi)
             elif len(t) == nPoi:
@@ -2307,7 +2307,7 @@ getErrorString();
 
         # check logfile if omc
         if self._modelicaCmd == 'omc':
-            self._analyseOMStats(filename = self._simulator_log_file,
+            self._analyseOMStats(filename=self._simulator_log_file,
                                  nModels=self.get_number_of_tests())
 
         # Check reference results
