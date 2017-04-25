@@ -797,7 +797,7 @@ class Tester(object):
                                             '(?<=filename=\")[a-zA-Z0-9_\.]+', lin).group()
                                         break
                             if len(matFil) == 0:
-                                raise  ValueError('Did not find *.mat file in ' + mosFil)
+                                raise ValueError('Did not find *.mat file in ' + mosFil)
 
                             dat['ResultFile'] = matFil
                     if dat not in self._data:
