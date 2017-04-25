@@ -621,8 +621,8 @@ def _update_all_references(source, target):
             fileList.append([root, fil, source, target])
     # Update the files
 #    pool=Pool(processes=4)
-#    pool.map(_updateFile, fileList)  # This can fail with OSError: [Errno 24] Too many open files
-                                      # when moving large packages
+#    pool.map(_updateFile, fileList)    # This can fail with OSError: [Errno 24] Too many open files
+                                        # when moving large packages
     for ele in fileList:
         _updateFile(ele)
 
