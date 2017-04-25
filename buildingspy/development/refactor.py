@@ -693,7 +693,7 @@ def _updateFile(arg):
         # remain short instance names.
         shortSource = _getShortName(srcFil, source)
         shortTarget = _getShortName(srcFil, target)
-        if shortSource == None or shortTarget == None:
+        if shortSource is None or shortTarget is None:
             return
 
         # If shortSource is only one class (e.g., "xx" and not "xx.yy",
