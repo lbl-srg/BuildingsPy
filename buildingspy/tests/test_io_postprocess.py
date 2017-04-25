@@ -85,4 +85,3 @@ class Test_io_Plotter(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-

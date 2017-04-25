@@ -68,4 +68,3 @@ def setup(app):
     app.add_config_value('mathjax_inline', [r'\(', r'\)'], 'html')
     app.add_config_value('mathjax_display', [r'\[', r'\]'], 'html')
     app.connect('builder-inited', builder_inited)
-
