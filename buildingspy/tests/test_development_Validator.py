@@ -139,7 +139,7 @@ class Test_development_Validator(unittest.TestCase):
         ###########################################
         # Checking stopTime mismatch 
         self.run_case(val, myMoLib, "experiment(Tolerance=1e-6, StopTime=30.0),",
-                      "tolerance=1e-6, stopTime=15",
+                      "tolerance=1e-6, stopTime=15,",
                       "The value of StopTime=30.0 is different from the") 
 
 #           
@@ -170,7 +170,7 @@ class Test_development_Validator(unittest.TestCase):
            
         ###########################################
         # Checking stopTime mismatch 
-        self.run_case(val, myMoLib, "experiment(Tolerance=1e-6), StartTime=15",
+        self.run_case(val, myMoLib, "experiment(Tolerance=1e-6, StartTime=15),",
                       "tolerance=1e-6, startTime=10,",
                       "The value of StartTime=15 is different from the") 
 
