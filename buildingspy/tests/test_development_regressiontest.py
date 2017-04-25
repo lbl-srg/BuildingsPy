@@ -249,5 +249,5 @@ class Test_regressiontest_Tester(unittest.TestCase):
 if __name__ == '__main__':
     unittest.main()
     #selection = unittest.TestSuite()
-    #selection.addTest(Test_regressiontest_Tester('test_test_OpenModelica'))
-    #unittest.TextTestRunner().run(selection)
+    # selection.addTest(Test_regressiontest_Tester('test_test_OpenModelica'))
+    # unittest.TextTestRunner().run(selection)

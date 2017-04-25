@@ -161,7 +161,7 @@ class Tester(object):
         self._pedanticModelica = False
 
         # List of scripts that should be excluded from the regression tests
-        #self._excludeMos=['Resources/Scripts/Dymola/Airflow/Multizone/Examples/OneOpenDoor.mos']
+        # self._excludeMos=['Resources/Scripts/Dymola/Airflow/Multizone/Examples/OneOpenDoor.mos']
         self._excludeMos = []
 
         # Number of data points that are used
@@ -450,8 +450,8 @@ class Tester(object):
             # Remove all files, except a few for testing
     #        test=os.path.join('Resources','Scripts','Dymola','Controls','Continuous','Examples')
     ##        test=os.path.join('Resources', 'Scripts', 'Dymola', 'Fluid', 'Movers', 'Examples')
-    ##        if fileName.find(test) != 0:
-    ##            return False
+    # if fileName.find(test) != 0:
+    # return False
 
             if (self._excludeMos.count(fileName) == 0):
                 return True
@@ -673,8 +673,8 @@ class Tester(object):
         # which case we return doing nothing.
         # This is needed because methods append to the dictionary, which
         # can lead to double entries.
-##        if len(self._data) > 0:
-##            return
+# if len(self._data) > 0:
+# return
         roo_pac = root_package if root_package is not None else os.path.join(
             self._libHome, 'Resources', 'Scripts', 'Dymola')
         for root, _, files in os.walk(roo_pac):
@@ -1303,7 +1303,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         foundError = False
         verifiedTime = False
 
-        #Load the old data (in dictionary format)
+        # Load the old data (in dictionary format)
         old_results = self._readReferenceResults(oldRefFulFilNam)
         # Numerical results of the simulation
         y_ref = old_results['results']
@@ -2063,7 +2063,7 @@ Modelica.Utilities.Streams.print("        \"result\"  : " + String(iSuc > 0) + "
                                            self._statistics_log)
 
                     ##########################################################################
-                    ## FMU export
+                    # FMU export
                     if self._modelicaCmd == 'dymola' and self._data[i]["mustExportFMU"] and self._include_fmu_test:
                         template = r"""
 Modelica.Utilities.Files.removeFile("{FMUName}");

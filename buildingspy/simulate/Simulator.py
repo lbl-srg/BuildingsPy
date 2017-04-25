@@ -46,7 +46,7 @@ class Simulator(object):
         import buildingspy.io.reporter as reporter
         import os
 
-        ## Check arguments and make output directory if needed
+        # Check arguments and make output directory if needed
         if simulator != "dymola":
             raise ValueError("Argument 'simulator' needs to be set to 'dymola'.")
         # Set log file name for python script
@@ -65,7 +65,7 @@ class Simulator(object):
         else:
             self.setPackagePath(packagePath)
 
-        ## This call is needed so that the reporter can write to the working directory
+        # This call is needed so that the reporter can write to the working directory
         self._createDirectory(outputDirectory)
         self._preProcessing_ = list()
         self._postProcessing_ = list()
@@ -107,7 +107,7 @@ class Simulator(object):
 
         # Check whether the file package.mo exists in the directory specified
 #        fileMo = os.path.abspath(os.path.join(packagePath, "package.mo"))
-        #if os.path.isfile(fileMo) == False:
+        # if os.path.isfile(fileMo) == False:
             #msg = "The directory '%s' does not contain the required " % packagePath
             #msg +="file '%s'." %fileMo
             #raise ValueError(msg)
@@ -569,7 +569,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
                 fil.write("// Do not edit.\n")
                 fil.write('cd("' + worDir + '");\n')
                 fil.write("Modelica.Utilities.Files.remove(\"simulator.log\");\n")
-                #fil.write("openModel(\"package.mo\");\n")
+                # fil.write("openModel(\"package.mo\");\n")
                 fil.write('OutputCPUtime:=true;\n')
                 # Pre-processing commands
                 for prePro in self._preProcessing_:

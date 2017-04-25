@@ -63,9 +63,9 @@ class Test_io_Plotter(unittest.TestCase):
         # Test whether y remains unchanged
         numpy.testing.assert_allclose(y, yP)
         # Should raise an exception of t[0] != 0
-#fixme                self.assertRaises(ValueError, Plotter.convertToPeriodic(10, range(1,1000), y))
+# fixme                self.assertRaises(ValueError, Plotter.convertToPeriodic(10, range(1,1000), y))
         # Test for period to be larger than time vector
-#fixme        self.assertRaises(ValueError, Plotter.convertToPeriodic(100, range(10), range(10)))
+# fixme        self.assertRaises(ValueError, Plotter.convertToPeriodic(100, range(10), range(10)))
 
     def test_boxplot(self):
         '''

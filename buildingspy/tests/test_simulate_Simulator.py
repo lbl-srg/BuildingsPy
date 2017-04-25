@@ -89,7 +89,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         s.setNumberOfIntervals(50)
         s.setResultFile("myResults")
         s.exitSimulator(True)
-        #s.deleteOutputFiles()
+        # s.deleteOutputFiles()
         s.showGUI(False)
 #        s.printModelAndTime()
         s.showProgressBar(False)
