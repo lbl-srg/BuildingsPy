@@ -374,7 +374,7 @@ OutputCPUtime:=true;
         for prePro in self._preProcessing_:
             s += prePro + '\n'
 
-        s += "modelInstance={0};\n".format(model_name);
+        s += "modelInstance={0};\n".format(model_name)
 
         if translate_only:
             s += "translateModel(modelInstance);\n"
@@ -665,7 +665,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
 
         By default, the simulator runs without GUI
         '''
-        self._showGUI = show;
+        self._showGUI = show
         return
 
     def printModelAndTime(self):

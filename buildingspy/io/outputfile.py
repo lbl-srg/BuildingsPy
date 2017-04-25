@@ -55,7 +55,7 @@ def get_model_statistics(log_file, simulator):
         raise IOError("File {!s} does not exist".format(log_file))
 
     with open(log_file, mode="r", encoding="utf-8-sig") as fil:
-        lines = fil.readlines();
+        lines = fil.readlines()
         # Instantiate a dictionary that is used for the return value
 
         ret = {}
@@ -138,7 +138,7 @@ def get_errors_and_warnings(log_file, simulator):
         raise IOError("File {} does not exist".format(log_file))
 
     with open(log_file, mode="r", encoding="utf-8-sig") as fil:
-        lines = fil.readlines();
+        lines = fil.readlines()
 
     # Instantiate lists that are used for the return value
     ret = {}
@@ -260,7 +260,7 @@ class Reader(object):
            -21.589191160164773
         '''
         (t, v) = self.values(varName)
-        val = 0.0;
+        val = 0.0
         for i in range(len(t)-1):
             val = val + (t[i+1]-t[i]) * (v[i+1]+v[i])/2.0
         return val

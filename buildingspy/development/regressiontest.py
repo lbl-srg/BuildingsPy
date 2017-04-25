@@ -276,7 +276,7 @@ class Tester(object):
 
         By default, the simulator runs without GUI
         '''
-        self._showGUI = show;
+        self._showGUI = show
         return
 
     def batchMode(self, batchMode):
@@ -432,7 +432,7 @@ class Tester(object):
                 filTex.strip()
             strpos = filTex.find(key)
             if strpos == 0:
-                counter += 1;
+                counter += 1
             return counter
 
 
@@ -568,7 +568,7 @@ class Tester(object):
         '''
         # Create the data dictionary.
         if len(self._data) == 0:
-            self.setDataDictionary(self._rootPackage);
+            self.setDataDictionary(self._rootPackage)
 
         # Directory where files will be stored
         desDir = os.path.join(self._libHome, "Resources", "Scripts", "OpenModelica", "compareVars")
@@ -683,7 +683,7 @@ class Tester(object):
 ##        if len(self._data) > 0:
 ##            return
         roo_pac = root_package if root_package is not None else os.path.join(
-            self._libHome, 'Resources', 'Scripts', 'Dymola');
+            self._libHome, 'Resources', 'Scripts', 'Dymola')
         for root, _, files in os.walk(roo_pac):
             for mosFil in files:
                 # Exclude the conversion scripts and also backup copies
@@ -1842,7 +1842,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                         retVal = 'checkModel("{}")'.format(getModelName(mosFilNam, lin))
                     elif self._modelicaCmd == 'omc':
                         retVal = "checkModel({})".format(getModelName(mosFilNam, lin))
-                    break;
+                    break
         return retVal
 
     def _removePlotCommands(self, mosFilNam):
@@ -1923,13 +1923,13 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
         def _print_end_of_json(isLastItem, fileHandle, logFileName):
             if isLastItem:
                 fileHandle.write(
-                    "Modelica.Utilities.Streams.print(\"    }\", \"%s\")\n" % logFileName);
+                    "Modelica.Utilities.Streams.print(\"    }\", \"%s\")\n" % logFileName)
                 fileHandle.write(
-                    "Modelica.Utilities.Streams.print(\"  ]\", \"%s\")\n" % logFileName);
-                fileHandle.write("Modelica.Utilities.Streams.print(\"}\", \"%s\")\n" % logFileName);
+                    "Modelica.Utilities.Streams.print(\"  ]\", \"%s\")\n" % logFileName)
+                fileHandle.write("Modelica.Utilities.Streams.print(\"}\", \"%s\")\n" % logFileName)
             else:
                 fileHandle.write(
-                    "Modelica.Utilities.Streams.print(\"  },\", \"%s\")\n" % logFileName);
+                    "Modelica.Utilities.Streams.print(\"  },\", \"%s\")\n" % logFileName)
 
         nUniTes = 0
 
@@ -2080,7 +2080,7 @@ Modelica.Utilities.Streams.print("        \"result\"  : " + String(iSuc > 0) + "
 
                         _print_end_of_json(isLastItem,
                                            runFil,
-                                           self._statistics_log);
+                                           self._statistics_log)
 
                     ##########################################################################
                     ## FMU export
@@ -2121,7 +2121,7 @@ Modelica.Utilities.Streams.print("        \"result\"  : " + String(iSuc > 0)  + 
 
                         _print_end_of_json(isLastItem,
                                            runFil,
-                                           self._statistics_log);
+                                           self._statistics_log)
 
 
                     elif self._modelicaCmd == 'omc':
