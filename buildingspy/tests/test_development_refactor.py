@@ -23,9 +23,9 @@ class Test_development_refactor(unittest.TestCase):
     def test_sort_package_order(self):
         import random
         import buildingspy.development.refactor as r
-        __MOD=0
-        __REC=1
-        __PAC=2
+        __MOD = 0
+        __REC = 1
+        __PAC = 2
 
         o  = [[__PAC, "UsersGuide"],
               [__MOD, "a"],

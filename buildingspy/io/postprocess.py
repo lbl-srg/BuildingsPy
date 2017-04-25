@@ -59,7 +59,7 @@ class Plotter(object):
         # more than once.
         # If the last points are for the same time stamp, we remove them from the interpolation
         iMax = len(t)-1
-        maxT=max(t)
+        maxT = max(t)
         dT = (maxT-min(t))/float(iMax)
         while t[iMax] <= t[iMax-1]:
             iMax = iMax-1
@@ -91,7 +91,7 @@ class Plotter(object):
         for i in range(1, len(tSup)):
             if tSup[i] <= tSup[i-1]:
                 raise ValueError('Time tSup is not strictly increasing.')
-        yI=np.interp(tSup, tNew, yNew)
+        yI = np.interp(tSup, tNew, yNew)
         if ((np.isnan(yI)).any()):
             raise ValueError('NaN in interpolation.')
 
@@ -125,17 +125,17 @@ class Plotter(object):
             raise ValueError('t[-1] = %s, but tPeriod = %s. The array t must contain at least two periods.'
                                 % (t[-1], tPeriod))
         # n is the index of the last element before the vector is looped
-        n=-1
+        n = -1
         for ele in t:
-            if abs(ele-tPeriod)<1E-20:
+            if abs(ele-tPeriod) < 1E-20:
                 break
-            n=n+1
+            n = n+1
         if n+1 == len(t):
             raise ValueError('tPeriod is not within t[0] and t[len(t)-1].\n'
                              + "   Received tPeriod = " + str(tPeriod) + '\n'
                              + "            t[-1]   = " + str(t[-1] ) + '.')
-        tRet=[]
-        inc=t[1]-t[0]
+        tRet = []
+        inc = t[1]-t[0]
         for i in t:
             tRet.append(i % ((n+1) * inc))
         return (np.array(tRet), y)
@@ -200,8 +200,8 @@ class Plotter(object):
         import matplotlib.pyplot as plt
 
         # Make sure that input is periodic
-        tPeriod=increment*nIncrement
-        rem=(t[-1]-t[0]) % tPeriod
+        tPeriod = increment*nIncrement
+        rem = (t[-1]-t[0]) % tPeriod
         if abs(rem) > 1E-20:
             raise ValueError('Length of time series must be a multiple of increment*nIncrement.\n'
                              + '  Received increment  = ' + str(increment) + '\n'
@@ -210,11 +210,11 @@ class Plotter(object):
 
         # Make equidistant grid for the whole simulation period, such as 0, 1, ... 47
         # for two days
-        tMax=max(t)
-        tGrid=np.linspace(0, tMax-increment, num=round(tMax/increment))
+        tMax = max(t)
+        tGrid = np.linspace(0, tMax-increment, num=round(tMax/increment))
 
         # Interpolate to hourly time stamps
-        yGrid=Plotter.interpolate(tGrid, t, y)
+        yGrid = Plotter.interpolate(tGrid, t, y)
 
         # Convert to periodic data
         yPer = Plotter.convertToPeriodic(tPeriod=tPeriod,
@@ -222,7 +222,7 @@ class Plotter(object):
                                                  y=yGrid)[1]
 
         tMaxPlot = nIncrement
-        yStacked=np.reshape(yPer, (-1, tMaxPlot))
+        yStacked = np.reshape(yPer, (-1, tMaxPlot))
         plt.boxplot(yStacked, positions=list(range(tMaxPlot)),
                     notch=notch,
                     sym=sym, vert=vert, whis=whis,

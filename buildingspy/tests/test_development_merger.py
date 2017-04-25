@@ -49,8 +49,8 @@ class Test_development_merger_IBPSA(unittest.TestCase):
         else:
             self._repDir = self.__class__.repDir
 
-        self._ibpsa_dir=os.path.join(self._repDir, "modelica", "IBPSA")
-        self._dest_dir=os.path.join(self._repDir,  "modelica-buildings", "Buildings")
+        self._ibpsa_dir = os.path.join(self._repDir, "modelica", "IBPSA")
+        self._dest_dir = os.path.join(self._repDir,  "modelica-buildings", "Buildings")
 
         # Call constructor of parent class
         super(Test_development_merger_IBPSA, self).__init__(*args, **kwargs)

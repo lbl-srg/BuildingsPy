@@ -37,7 +37,7 @@ class Test_io_Plotter(unittest.TestCase):
         # Add one more element to t100. This emulates an event
         # at t=10, in which case dymola adds two points
         t100.append(10)
-        y100=list(map(f, sorted(t100)))
+        y100 = list(map(f, sorted(t100)))
         y10Int = Plotter.interpolate(t10, sorted(t100), y100)
         numpy.testing.assert_allclose(y10, y10Int)
 

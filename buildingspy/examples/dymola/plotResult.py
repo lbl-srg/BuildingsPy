@@ -25,8 +25,8 @@ def main():
     #rc('font', family='serif')
 
     # Read results
-    ofr1=Reader(os.path.join("buildingspy", "examples", "dymola", "case1", "PIDHysteresis.mat"), "dymola")
-    ofr2=Reader(os.path.join("buildingspy", "examples", "dymola", "case2", "PIDHysteresis.mat"), "dymola")
+    ofr1 = Reader(os.path.join("buildingspy", "examples", "dymola", "case1", "PIDHysteresis.mat"), "dymola")
+    ofr2 = Reader(os.path.join("buildingspy", "examples", "dymola", "case2", "PIDHysteresis.mat"), "dymola")
     (time1, T1) = ofr1.values("cap.T")
     (time1, y1) = ofr1.values("con.y")
     (time2, T2) = ofr2.values("cap.T")

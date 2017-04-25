@@ -34,7 +34,7 @@ def runSimulation(worDir, cmd):
 
     import subprocess
 
-    logFilNam=os.path.join(worDir, 'stdout.log')
+    logFilNam = os.path.join(worDir, 'stdout.log')
     with open(logFilNam, mode="w", encoding="utf-8") as logFil:
         pro = subprocess.Popen(args=cmd,
                                stdout=logFil,
@@ -162,7 +162,7 @@ class Tester(object):
 
         # List of scripts that should be excluded from the regression tests
         #self._excludeMos=['Resources/Scripts/Dymola/Airflow/Multizone/Examples/OneOpenDoor.mos']
-        self._excludeMos=[]
+        self._excludeMos = []
 
         # Number of data points that are used
         self._nPoi = 101
@@ -352,7 +352,7 @@ class Tester(object):
         # Add .exe, which is needed on Windows 7 to test existence
         # of the program
         if platform.system() == "Windows":
-            program=program + ".exe"
+            program = program + ".exe"
 
         if is_exe(program):
             return True
@@ -418,17 +418,17 @@ class Tester(object):
         '''
 
         with open(fileName, mode="rt", encoding="utf-8-sig") as filObj:
-            filTex=filObj.readline()
+            filTex = filObj.readline()
             # Strip white spaces so we can test strpos for zero.
             # This test returns non-zero for partial classes.
             filTex.strip()
-            strpos=filTex.find("within")
+            strpos = filTex.find("within")
             if strpos == 0:
                 # first line is "within ...
                 # get second line
-                filTex=filObj.readline()
+                filTex = filObj.readline()
                 filTex.strip()
-            strpos=filTex.find(key)
+            strpos = filTex.find(key)
             if strpos == 0:
                 counter += 1;
             return counter
@@ -446,7 +446,7 @@ class Tester(object):
         self._excludeMos. During this check, all backward slashes will
         be replaced by a forward slash.
     '''
-        pos=fileName.endswith('.mos')
+        pos = fileName.endswith('.mos')
         if pos > -1: # This is an mos file
             # Check whether the file is in the exclude list
             fileName = fileName.replace('\\', '/')
@@ -568,7 +568,7 @@ class Tester(object):
             self.setDataDictionary(self._rootPackage);
 
         # Directory where files will be stored
-        desDir=os.path.join(self._libHome, "Resources", "Scripts", "OpenModelica", "compareVars")
+        desDir = os.path.join(self._libHome, "Resources", "Scripts", "OpenModelica", "compareVars")
         if not os.path.exists(desDir):
             os.makedirs(desDir)
         # Loop over all experiments and write the files.
@@ -614,12 +614,12 @@ class Tester(object):
         # This evaluates for example
         #   re.search("y.*=.*{.*}", "aay = {aa, bb, cc}aa").group()
         #   'y = {aa, bb, cc}'
-        var=re.search("y\s*=\s*{.*}", line)
+        var = re.search("y\s*=\s*{.*}", line)
         if var is None:
             return None
         s = var.group()
-        s=re.search('{.*?}', s).group()
-        s=s.strip('{}')
+        s = re.search('{.*?}', s).group()
+        s = s.strip('{}')
         # Use the lexer module as simply splitting by "," won't work because arrays have
         # commas in the form "a[1, 1]", "a[1, 2]"
         lexer = shlex.shlex(s)
@@ -695,7 +695,7 @@ class Tester(object):
                     # open the mos file and read its content.
                     # Path and name of mos file without 'Resources/Scripts/Dymola'
                     with open(os.path.join(root, mosFil), mode="r", encoding="utf-8-sig") as fMOS:
-                        Lines=fMOS.readlines()
+                        Lines = fMOS.readlines()
 
                     # Remove white spaces
                     for i in range(len(Lines)):
@@ -707,7 +707,7 @@ class Tester(object):
                             # Add the model name to the dictionary.
                             # This is needed to export the model as an FMU.
                             # Also, set the flag mustSimulate to True.
-                            simCom=re.search('simulateModel\\(\s*".*"', lin)
+                            simCom = re.search('simulateModel\\(\s*".*"', lin)
                             if simCom is not None:
                                     modNam = re.sub('simulateModel\\(\s*"', '', simCom.string)
                                     modNam = modNam[0:modNam.index('"')]
@@ -756,9 +756,9 @@ class Tester(object):
                         # Plot variables are only used for those models that need to be simulated.
                         if dat['mustSimulate']:
                             plotVars = []
-                            iLin=0
+                            iLin = 0
                             for lin in Lines:
-                                iLin=iLin+1
+                                iLin = iLin+1
                                 try:
                                     y = self.get_plot_variables(lin)
                                     if y is not None:
@@ -876,21 +876,21 @@ class Tester(object):
             # Replace the last element with the last element in time,
             # [::step] may not extract the last time stamp, in which case
             # the final time changes when the number of event changes.
-            r=y[::step]
+            r = y[::step]
             r[len(r)-1] = y[len(y)-1]
             return r
 
         # Get the working directory that contains the ".mat" file
-        fulFilNam=os.path.join(data['ResultDirectory'], self.getLibraryName(), data['ResultFile'])
-        ret=[]
+        fulFilNam = os.path.join(data['ResultDirectory'], self.getLibraryName(), data['ResultFile'])
+        ret = []
         try:
-            r=Reader(fulFilNam, "dymola")
+            r = Reader(fulFilNam, "dymola")
         except IOError as e:
             errors.append("Failed to read %s generated by %s.\n%s\n" % (fulFilNam, data['ScriptFile'], e))
             return ret
 
         for pai in data['ResultVariables']: # pairs of variables that are plotted together
-            dat=dict()
+            dat = dict()
             for var in pai:
                 time = []
                 val = []
@@ -902,8 +902,8 @@ class Tester(object):
                     # It also makes it easier to compare accuracy
                     # in case that a slight change in the location of
                     # state events triggered a different output interval grid.
-                    tMin=float(min(time))
-                    tMax=float(max(time))
+                    tMin = float(min(time))
+                    tMax = float(max(time))
                     nPoi = min(self._nPoi, len(val))
                     ti = self._getTimeGrid(tMin, tMax, nPoi)
                 except ZeroDivisionError as e:
@@ -919,13 +919,13 @@ class Tester(object):
                 else:
                     # Store time grid.
                     if ('time' not in dat):
-                        dat['time']=[tMin, tMax]
+                        dat['time'] = [tMin, tMax]
 
                     if self._isParameter(val):
                         dat[var] = val
                     else:
                         try:
-                            dat[var]=Plotter.interpolate(ti, time, val)
+                            dat[var] = Plotter.interpolate(ti, time, val)
                         except ValueError as e:
                             msg = "Failed to process {} generated by {}.\n{}\n".format(fulFilNam, data['ScriptFile'], e)
                             errors.append(msg)
@@ -952,7 +952,7 @@ class Tester(object):
         import buildingspy.io.outputfile as of
 
         # Get the working directory that contains the ".log" file
-        fulFilNam=os.path.join(data['ResultDirectory'], self.getLibraryName(), data['TranslationLogFile'])
+        fulFilNam = os.path.join(data['ResultDirectory'], self.getLibraryName(), data['TranslationLogFile'])
         return of.get_model_statistics(fulFilNam, "dymola")
 
 
@@ -996,7 +996,7 @@ class Tester(object):
 
         timMaxErr = 0
 
-        tol=1E-3  #Tolerance
+        tol = 1E-3  #Tolerance
 
         # Interpolate the new variables to the old time stamps
         #
@@ -1058,9 +1058,9 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
   len(yInt)=%d
   Stop processing.""" % (filNam, varNam, len(yOld), len(yInt)))
 
-        errAbs=np.zeros(len(yInt))
-        errRel=np.zeros(len(yInt))
-        errFun=np.zeros(len(yInt))
+        errAbs = np.zeros(len(yInt))
+        errRel = np.zeros(len(yInt))
+        errFun = np.zeros(len(yInt))
 
         for i in range(len(yInt)):
             errAbs[i] = abs(yOld[i] - yInt[i])
@@ -1166,12 +1166,12 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             lines = f.readlines()
 
         # Compute the number of the first line that contains the results
-        iSta=0
+        iSta = 0
         for iLin in range(min(2, len(lines))):
             if "svn-id" in lines[iLin]:
-                iSta=iSta+1
+                iSta = iSta+1
             if "last-generated" in lines[iLin]:
-                iSta=iSta+1
+                iSta = iSta+1
 
         r = dict()
         iLin = iSta
@@ -1193,7 +1193,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                     d[key] = ast.literal_eval(value)
                 else:
                     s = (value[value.find('[')+1: value.rfind(']')]).strip()
-                    numAsStr=s.split(',')
+                    numAsStr = s.split(',')
                     val = []
                     for num in numAsStr:
                         # We need to use numpy.float64 here for the comparison to work
@@ -1299,19 +1299,19 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         #Load the old data (in dictionary format)
         old_results = self._readReferenceResults(oldRefFulFilNam)
         # Numerical results of the simulation
-        y_ref=old_results['results']
+        y_ref = old_results['results']
 
         if len(y_ref) == 0:
             return self._askNoReferenceResultsFound(y_sim, refFilNam, ans)
 
         # The old data contains results
-        t_ref=y_ref.get('time')
+        t_ref = y_ref.get('time')
 
         # Iterate over the pairs of data that are to be plotted together
         timOfMaxErr = dict()
         noOldResults = [] # List of variables for which no old results have been found
         for pai in y_sim:
-            t_sim=pai['time']
+            t_sim = pai['time']
             if not verifiedTime:
                 verifiedTime = True
 
@@ -1337,9 +1337,9 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                     if varNam in y_ref:
                         # Check results
                         if self._isParameter(pai[varNam]):
-                            t=[min(t_sim), max(t_sim)]
+                            t = [min(t_sim), max(t_sim)]
                         else:
-                            t=t_sim
+                            t = t_sim
 
                         (res, timMaxErr, warning) = self.areResultsEqual(t_ref, y_ref[varNam], \
                                                                          t, pai[varNam], \
@@ -1381,7 +1381,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
 
                 plt.subplot(nPlo, 1, iPlo)
                 # Iterate over the variable names that are to be plotted together
-                color=['k', 'r', 'b', 'g', 'c', 'm']
+                color = ['k', 'r', 'b', 'g', 'c', 'm']
                 iPai = -1
                 t_sim = pai['time']
                 for varNam in list(pai.keys()):
@@ -1429,7 +1429,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             # Display the plot
             plt.show()
             # Store the size for reuse in the next plot.
-            self._figSize=gcf.get_size_inches()
+            self._figSize = gcf.get_size_inches()
 
             while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
                 ans = input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
@@ -1548,7 +1548,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
 
         retVal = 0
         #Check if the directory "self._libHome\\Resources\\ReferenceResults\\Dymola" exists, if not create it.
-        refDir=os.path.join(self._libHome, 'Resources', 'ReferenceResults', 'Dymola')
+        refDir = os.path.join(self._libHome, 'Resources', 'ReferenceResults', 'Dymola')
         if not os.path.exists(refDir):
             os.makedirs(refDir)
 
@@ -1559,11 +1559,11 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                 # Convert 'aa/bb.mos' to 'aa_bb.txt'
                 mosFulFilNam = os.path.join(self.getLibraryName(), data['ScriptFile'])
                 mosFulFilNam = mosFulFilNam.replace(os.sep, '_')
-                refFilNam=os.path.splitext(mosFulFilNam)[0] + ".txt"
-                fmu_fil=os.path.join(data['ResultDirectory'], self.getLibraryName(), data['FMUName'])
+                refFilNam = os.path.splitext(mosFulFilNam)[0] + ".txt"
+                fmu_fil = os.path.join(data['ResultDirectory'], self.getLibraryName(), data['FMUName'])
                 try:
                     # Get the new dependency
-                    dep_new=fmi.get_dependencies(fmu_fil)
+                    dep_new = fmi.get_dependencies(fmu_fil)
                     # Compare it with the stored results, and update the stored results if
                     # needed and requested by the user.
                     [updated_reference_data, ans] = self._compare_and_rewrite_fmu_dependencies(dep_new,
@@ -1605,7 +1605,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             not considered an error in executing this function.
         '''
         #Check if the directory "self._libHome\\Resources\\ReferenceResults\\Dymola" exists, if not create it.
-        refDir=os.path.join(self._libHome, 'Resources', 'ReferenceResults', 'Dymola')
+        refDir = os.path.join(self._libHome, 'Resources', 'ReferenceResults', 'Dymola')
         if not os.path.exists(refDir):
             os.makedirs(refDir)
 
@@ -1616,7 +1616,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                 # Convert 'aa/bb.mos' to 'aa_bb.txt'
                 mosFulFilNam = os.path.join(self.getLibraryName(), data['ScriptFile'])
                 mosFulFilNam = mosFulFilNam.replace(os.sep, '_')
-                refFilNam=os.path.splitext(mosFulFilNam)[0] + ".txt"
+                refFilNam = os.path.splitext(mosFulFilNam)[0] + ".txt"
 
 
                 try:
@@ -1624,9 +1624,9 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                     warnings = []
                     errors = []
                     # Get the simulation results
-                    y_sim=self._getSimulationResults(data, warnings, errors)
+                    y_sim = self._getSimulationResults(data, warnings, errors)
                     # Get the translation statistics
-                    y_tra=self._getTranslationStatistics(data, warnings, errors)
+                    y_tra = self._getTranslationStatistics(data, warnings, errors)
                     for entry in warnings:
                         self._reporter.writeWarning(entry)
                     for entry in errors:
@@ -1648,11 +1648,11 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
 
                     updateReferenceData = False
                     # check if reference results already exists in library
-                    oldRefFulFilNam=os.path.join(refDir, refFilNam)
+                    oldRefFulFilNam = os.path.join(refDir, refFilNam)
                     # If the reference file exists, and if the reference file contains results, compare the results.
                     if os.path.exists(oldRefFulFilNam):
                         # compare the new reference data with the old one
-                        [updateReferenceData, _, ans]=self._compareResults(
+                        [updateReferenceData, _, ans] = self._compareResults(
                             data['ResultFile'], oldRefFulFilNam, y_sim, y_tra, refFilNam, ans)
                     else:
                         # Reference file does not exist
@@ -1754,20 +1754,20 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             standard output stream
         '''
 
-        iMod=0
-        iBlo=0
-        iFun=0
+        iMod = 0
+        iBlo = 0
+        iFun = 0
         for root, _, files in os.walk(self._libHome):
-            pos=root.find('.svn' or '.git')
+            pos = root.find('.svn' or '.git')
             # skip .svn folders
             if pos == -1:
                 for filNam in files:
                     # find .mo files
-                    pos=filNam.find('.mo')
-                    posExa=root.find('Examples')
+                    pos = filNam.find('.mo')
+                    posExa = root.find('Examples')
                     if pos > -1 and posExa == -1:
                         # find classes that are not partial
-                        filFulNam=os.path.join(root, filNam)
+                        filFulNam = os.path.join(root, filNam)
                         iMod = self._checkKey("model", filFulNam, iMod)
                         iBlo = self._checkKey("block", filFulNam, iBlo)
                         iFun = self._checkKey("function", filFulNam, iFun)
@@ -1898,7 +1898,7 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
 
         for iPro in range(self._nPro):
 
-            runFil=open(os.path.join(self._temDir[iPro], self.getLibraryName(), "runAll.mos"), mode="w", encoding="utf-8")
+            runFil = open(os.path.join(self._temDir[iPro], self.getLibraryName(), "runAll.mos"), mode="w", encoding="utf-8")
             runFil.write("// File autogenerated for process {!s} of {!s}\n".format(iPro+1, self._nPro))
             runFil.write("// File created for execution by {}. Do not edit.\n".format(self._modelicaCmd))
 
@@ -2100,7 +2100,7 @@ getErrorString();
                     if allDat['mustSimulate']:
                         resFil = allDat['ResultFile']
                         if resFil == matFil:
-                            dat['ResultDirectory']=allDat['ResultDirectory']
+                            dat['ResultDirectory'] = allDat['ResultDirectory']
                             break
 
         print("Generated {} regression tests.\n".format(nUniTes))
@@ -2127,7 +2127,7 @@ getErrorString();
         # write run scripts to directory
         for iPro in range(self._nPro):
             #print("Calling parallel loop for iPro={}, self._nPro={}".format(iPro, self._nPro))
-            dirNam = tempfile.mkdtemp(prefix='tmp-' + self.getLibraryName() + '-'+ str(iPro) +  "-")
+            dirNam = tempfile.mkdtemp(prefix='tmp-' + self.getLibraryName() + '-' + str(iPro) +  "-")
             self._temDir.append(dirNam)
             # Directory that contains the library as a sub directory
             libDir = self._libHome
@@ -2243,7 +2243,7 @@ getErrorString();
                     for temLogFilNam in glob.glob( os.path.join(d, self.getLibraryName(), '*.translation.log') ):
                         if os.path.exists(temLogFilNam):
                             with open(temLogFilNam, mode="r", encoding="utf-8-sig") as fil:
-                                data=fil.read()
+                                data = fil.read()
                             logFil.write(data)
                         else:
                             self._reporter.writeError("Log file '" + temLogFilNam + "' does not exist.\n")
@@ -2667,7 +2667,7 @@ successfully (={:.1%})"\
 
 
         try:
-            logFilNam=mosfile.replace('.mos', '.log')
+            logFilNam = mosfile.replace('.mos', '.log')
             with open(logFilNam, mode="w", encoding="utf-8") as logFil:
                 retcode = subprocess.Popen(args=[omc, '+d=initialization', mosfile],
                                            stdout=logFil,

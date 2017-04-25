@@ -421,7 +421,7 @@ def write_package_order(directory=".", recursive=False):
             if os.path.isdir(os.path.join(directory, f)):
                 # List all files in this directory. If there is at least one
                 # file with the .mo extension, then it is a Modelica package.
-                pat=os.path.join(directory, f)
+                pat = os.path.join(directory, f)
                 files_in_sub_dir = (fil for fil in os.listdir(pat)
                                     if os.path.isfile(os.path.join(pat, fil)))
                 for file_in_sub_dir in files_in_sub_dir:
@@ -456,7 +456,7 @@ def _get_package_list_for_file(directory, file_name):
         with open(os.path.join(directory, file_name), mode="r", encoding="utf-8-sig") as fil:
             lines = fil.read()
             # Constants can be 'constant Real n = ..." or "constant someClass n(..."
-            con=re.findall(r";\s*constant\s+[a-zA-Z0-9_\.]+\s+(\w+)\s*[=\(]", lines, re.MULTILINE);
+            con = re.findall(r";\s*constant\s+[a-zA-Z0-9_\.]+\s+(\w+)\s*[=\(]", lines, re.MULTILINE);
 #                        con=re.search(r"constant\s+\w+\s+(\w+)\s*=", lines, re.MULTILINE);
             for ele in con:
                 # Found a constant whose name is in con.group(1)
@@ -471,7 +471,7 @@ def _get_package_list_for_file(directory, file_name):
             #      annotation (
             #      preferedView="info",
             #      Documentation(info="<html>...");
-            con=re.findall(r"type\s*(?P<name>\w*)\s*=\s*enumeration", lines, re.MULTILINE)
+            con = re.findall(r"type\s*(?P<name>\w*)\s*=\s*enumeration", lines, re.MULTILINE)
 
             for ele in con:
             # Found a constant whose name is in con.group(1)
@@ -483,7 +483,7 @@ def _get_package_list_for_file(directory, file_name):
         class_name = file_name[:-3]
         recordString = "record %s" % class_name
         with open(os.path.join(directory, file_name), mode="r", encoding="utf-8-sig") as fil:
-            typ=__MOD
+            typ = __MOD
             for _ in range(2):
                 if recordString in fil.readline():
                     typ = __REC
@@ -600,7 +600,7 @@ def _update_all_references(source, target):
 #    from multiprocessing import Pool
 
     # Update all references in the mo and mos files
-    fileList=list()
+    fileList = list()
     for root, _, files in os.walk(os.path.curdir):
         # Exclude certain folders
 #            dirs[:] = [os.path.join(root, d) for d in dirs]
@@ -632,15 +632,15 @@ def _updateFile(arg):
     def _getShortName(fileName, className):
         import re
 
-        pos=re.search(r'\w', fileName).start()
-        splFil=fileName[pos:].split(os.path.sep)
-        splCla=className.split(".")
+        pos = re.search(r'\w', fileName).start()
+        splFil = fileName[pos:].split(os.path.sep)
+        splCla = className.split(".")
         shortSource = None
         for i in range(min(len(splFil), len(splCla))):
             if splFil[i] != splCla[i]:
                 # shortSource starts with a space as instance names are
                 # preceeded with a space
-                shortSource=" "
+                shortSource = " "
                 for j in range(i, len(splCla)):
                     shortSource += splCla[j] + "."
                 # Remove last dot
@@ -648,12 +648,12 @@ def _updateFile(arg):
                 break
         return shortSource
 
-    root  =arg[0]
-    fil   =arg[1]
-    source=arg[2]
-    target=arg[3]
+    root  = arg[0]
+    fil   = arg[1]
+    source = arg[2]
+    target = arg[3]
 
-    srcFil=os.path.join(root, fil)
+    srcFil = os.path.join(root, fil)
     # Loop over all
     # - .mo
     # - package.order
@@ -677,8 +677,8 @@ def _updateFile(arg):
         # with the new name.
         # The same is done with the target name so that short instance names
         # remain short instance names.
-        shortSource=_getShortName(srcFil, source)
-        shortTarget=_getShortName(srcFil, target)
+        shortSource = _getShortName(srcFil, source)
+        shortTarget = _getShortName(srcFil, target)
         if shortSource == None or shortTarget == None:
             return
 

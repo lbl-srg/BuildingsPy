@@ -32,7 +32,7 @@ class Test_io_Reader(unittest.TestCase):
         # Name of temporary file
         staFil = "test_stat_file.txt"
         # Write a file that contains the simulation statistics as reported by Dymola
-        s ="""
+        s = """
 Translation of Buildings.Examples.ChillerPlant.DataCenterContinuousTimeControl:
 
 The DAE has 1795 scalar unknowns and 1795 scalar equations.

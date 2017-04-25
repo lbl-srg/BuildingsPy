@@ -195,7 +195,7 @@ class Test_regressiontest_Tester(unittest.TestCase):
     def test_test_OpenModelica(self):
         import buildingspy.development.regressiontest as r
         rt = r.Tester(check_html=False)
-        rt._deleteTemporaryDirectories=False
+        rt._deleteTemporaryDirectories = False
 
         myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
         rt.setLibraryRoot(myMoLib)

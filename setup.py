@@ -1,6 +1,6 @@
 import os
 from setuptools import setup
-# Python setup file. 
+# Python setup file.
 # See http://packages.python.org/an_example_pypi_project/setuptools.html
 
 def read(fname):
@@ -20,11 +20,11 @@ setup(
                         'pytidylib',
                         'gitpython'],
     packages = ['buildingspy',
-                'buildingspy/development', 
-                'buildingspy/examples', 
-                'buildingspy/fmi', 
-                'buildingspy/io', 
-                'buildingspy/simulate', 
+                'buildingspy/development',
+                'buildingspy/examples',
+                'buildingspy/fmi',
+                'buildingspy/io',
+                'buildingspy/simulate',
                 'buildingspy/thirdParty',
                 'buildingspy/thirdParty.dymat',
                 'buildingspy/thirdParty.dymat.DyMat',
