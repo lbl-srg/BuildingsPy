@@ -685,7 +685,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
 
         if self._outputDir_ != '.':
             self._createDirectory(self._outputDir_)
-        filLis = ['run_simulate.mos','run_translate.mos','run.mos', 'translator.log', 'simulator.log', 'dslog.txt',
+        filLis = ['run_simulate.mos', 'run_translate.mos', 'run.mos', 'translator.log', 'simulator.log', 'dslog.txt',
                 self._simulator_.get('resultFile') + '.mat']
         for fil in filLis:
             srcFil = os.path.join(srcDir, fil)

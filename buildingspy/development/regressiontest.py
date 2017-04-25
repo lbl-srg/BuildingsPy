@@ -489,7 +489,7 @@ class Tester(object):
         for ele in entries:
             pac.append("{}{}".format(pre, ele))
         ret = ",".join(pac)
-        return ret.replace(' ','')
+        return ret.replace(' ', '')
 
     def setSinglePackage(self, packageName):
         '''
@@ -661,9 +661,9 @@ class Tester(object):
                 posEq = line.find('=', pos)
                 posComma = line.find(',', pos)
                 posBracket = line.find(')', pos)
-                posEnd = min(posComma,posBracket)
+                posEnd = min(posComma, posBracket)
                 if posEnd < 0:
-                    posEnd = max(posComma,posBracket)
+                    posEnd = max(posComma, posBracket)
                 entry = line[posEq+1:posEnd]
                 dat[keyword] = re.sub(r'^"|"$', '', entry)
             return
@@ -1976,14 +1976,14 @@ Modelica.Utilities.Streams.print("{\"testCase\" : [", "%s");
                                              self._data[i]['ScriptFile'])
                     absMosFilNam = os.path.join(self._temDir[iPro], mosFilNam)
 
-                    values = {"mosWithPath": mosFilNam.replace("\\","/"),
-                              "checkCommand": self._getModelCheckCommand(absMosFilNam).replace("\\","/"),
+                    values = {"mosWithPath": mosFilNam.replace("\\", "/"),
+                              "checkCommand": self._getModelCheckCommand(absMosFilNam).replace("\\", "/"),
                               "checkCommandString": self._getModelCheckCommand(absMosFilNam).replace('\"', r'\\\"'),
-                              "scriptFile": self._data[i]['ScriptFile'].replace("\\","/"),
-                              "modelName": self._data[i]['modelName'].replace("\\","/"),
+                              "scriptFile": self._data[i]['ScriptFile'].replace("\\", "/"),
+                              "modelName": self._data[i]['modelName'].replace("\\", "/"),
                               "modelName_underscore":  self._data[i]['modelName'].replace(".", "_"),
-                              "statisticsLog": self._statistics_log.replace("\\","/"),
-                              "simulatorLog": self._simulator_log_file.replace("\\","/")}
+                              "statisticsLog": self._statistics_log.replace("\\", "/"),
+                              "simulatorLog": self._simulator_log_file.replace("\\", "/")}
 
                     if 'FMUName' in self._data[i]:
                         values["FMUName"] = self._data[i]['FMUName']
@@ -2285,7 +2285,7 @@ getErrorString();
                 for d in self._temDir:
                     temLogFilNam = os.path.join(d, self.getLibraryName(), self._statistics_log)
                     if os.path.exists(temLogFilNam):
-                        with open(temLogFilNam.replace('Temp\tmp','Temp\\tmp'), mode="r", encoding="utf-8-sig") as temSta:
+                        with open(temLogFilNam.replace('Temp\tmp', 'Temp\\tmp'), mode="r", encoding="utf-8-sig") as temSta:
                             try:
                                 cas = json.load(temSta)["testCase"]
                                 # Iterate over all test cases of this output file
@@ -2596,7 +2596,7 @@ successfully (={:.1%})"\
             comp = ['checkModel(' + m + '); getErrorString();\n' for m in models]
             sim = ['simulate(' + m + '); getErrorString();\n' for m in models]
 
-            for c,s in zip(comp, sim):
+            for c, s in zip(comp, sim):
                 if cmpl:
                     mosfile.write(c)
                 if simulate:
@@ -2746,7 +2746,7 @@ successfully (={:.1%})"\
 
         check_ok, sim_ok = 0, 0
         check_nok, sim_nok = 0, 0
-        models_check_ok, models_check_nok, models_sim_ok, models_sim_nok = [],[],[],[]
+        models_check_ok, models_check_nok, models_sim_ok, models_sim_nok = [], [], [], []
 
         for line in lines:
             if line.find('resultFile = "') > 0:
