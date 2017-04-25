@@ -294,7 +294,7 @@ def _move_mo_file(source, target):
     _git_move(sourceFile, targetFile)
     # The targetFile may have `within Buildings.Fluid;`
     # Update this if needed.
-    sd = lambda s: "within " + s[:s.rfind('.')] + ";"
+    def sd(s): return "within " + s[:s.rfind('.')] + ";"
     replace_text_in_file(targetFile, sd(source), sd(target))
     # Update the class name
     replace_text_in_file(targetFile, \
@@ -339,7 +339,7 @@ def _move_mos_file(source, target):
         replace_text_in_file(targetMosFile, source, target)
         # The result file name is typically the model name.
         # Update this name with the new model name
-        l = lambda s: s[s.rfind(".")+1:]
+        def l(s): return s[s.rfind(".")+1:]
         replace_text_in_file(targetMosFile, l(source), l(target))
 
 
@@ -375,7 +375,7 @@ def _move_image_files(source, target):
     '''
 
     # Name of directory that may contain the image files
-    imgDir = lambda s: os.path.join(os.path.curdir, "Resources",
+    def imgDir(s): return os.path.join(os.path.curdir, "Resources",
                                     "Images", os.path.join(*s.split(".")[1:-1]))
     sourceImgDir = imgDir(source)
     if os.path.isdir(sourceImgDir):
@@ -529,7 +529,7 @@ def _move_class_directory(source, target):
 
         # The targetFile may have `within Buildings.Fluid;`
         # Update this if needed.
-        sd = lambda s: "within " + s[:s.rfind('.')] + ";"
+        def sd(s): return "within " + s[:s.rfind('.')] + ";"
         replace_text_in_file(os.path.join(target_dir, "package.mo"), sd(source), sd(target))
         # Update the class name
         replace_text_in_file(os.path.join(target_dir, "package.mo"),
@@ -708,7 +708,7 @@ def _updateFile(arg):
         # Replace the hyperlinks, without the top-level library name.
         # This updates for example the RunScript command that points to
         # "....Dymola/Fluid/..."
-        sd = lambda s: "Resources/Scripts/Dymola/" + s[s.find('.')+1:].replace(".", "/")
+        def sd(s): return "Resources/Scripts/Dymola/" + s[s.find('.')+1:].replace(".", "/")
         replace_text_in_file(srcFil, sd(source), sd(target))
     elif srcFil.endswith("package.order"):
         # Update package.order

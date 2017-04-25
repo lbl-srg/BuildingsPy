@@ -1463,7 +1463,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             return True
         # If they have a comma, such as from 1, 20, 1, 14, then split it,
         # sort it, and compare the entries for equality
-        g = lambda s: s.replace(" ", "").split(",")
+        def g(s): return s.replace(" ", "").split(",")
         sp1 = sorted(g(x))
         sp2 = sorted(g(y))
         # If the list have different lengths, they are not equal
@@ -2524,16 +2524,16 @@ getErrorString();
         :param simulate: Set to ``True`` to cause the model to be simulated.
         """
 
-        count_cmpl = lambda x: [True for _, v in list(x.items())
+        def count_cmpl(x): return [True for _, v in list(x.items())
                                 if v['compilation_ok']]
-        list_failed_cmpl = lambda x: [k for k, v in list(x.items())
+        def list_failed_cmpl(x): return [k for k, v in list(x.items())
                                       if not v['compilation_ok']]
-        count_load = lambda x: [True for _, v in list(x.items()) if v['load_ok']]
-        list_failed_load = lambda x: [k for k, v in list(x.items())
+        def count_load(x): return [True for _, v in list(x.items()) if v['load_ok']]
+        def list_failed_load(x): return [k for k, v in list(x.items())
                                       if not v['load_ok']]
 
-        count_sim = lambda x: [True for _, v in list(x.items()) if v['sim_ok']]
-        list_failed_sim = lambda x: [k for k, v in list(x.items())
+        def count_sim(x): return [True for _, v in list(x.items()) if v['sim_ok']]
+        def list_failed_sim(x): return [k for k, v in list(x.items())
                                       if not v['sim_ok']]
 
         nbr_tot = len(self._jmstats)
