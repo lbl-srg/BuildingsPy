@@ -1463,6 +1463,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             return True
         # If they have a comma, such as from 1, 20, 1, 14, then split it,
         # sort it, and compare the entries for equality
+
         def g(s): return s.replace(" ", "").split(",")
         sp1 = sorted(g(x))
         sp2 = sorted(g(y))
@@ -2526,13 +2527,17 @@ getErrorString();
 
         def count_cmpl(x): return [True for _, v in list(x.items())
                                 if v['compilation_ok']]
+
         def list_failed_cmpl(x): return [k for k, v in list(x.items())
                                       if not v['compilation_ok']]
+
         def count_load(x): return [True for _, v in list(x.items()) if v['load_ok']]
+
         def list_failed_load(x): return [k for k, v in list(x.items())
                                       if not v['load_ok']]
 
         def count_sim(x): return [True for _, v in list(x.items()) if v['sim_ok']]
+
         def list_failed_sim(x): return [k for k, v in list(x.items())
                                       if not v['sim_ok']]
 

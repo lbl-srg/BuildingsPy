@@ -30,6 +30,7 @@ class Test_io_Plotter(unittest.TestCase):
         '''
         t10 = list(range(10))
         t100 = list(range(100))
+
         def f(x): return 10+2*x
         y10  = list(map(f, t10))
         y100 = list(map(f, t100))

@@ -294,6 +294,7 @@ def _move_mo_file(source, target):
     _git_move(sourceFile, targetFile)
     # The targetFile may have `within Buildings.Fluid;`
     # Update this if needed.
+
     def sd(s): return "within " + s[:s.rfind('.')] + ";"
     replace_text_in_file(targetFile, sd(source), sd(target))
     # Update the class name
@@ -339,6 +340,7 @@ def _move_mos_file(source, target):
         replace_text_in_file(targetMosFile, source, target)
         # The result file name is typically the model name.
         # Update this name with the new model name
+
         def l(s): return s[s.rfind(".")+1:]
         replace_text_in_file(targetMosFile, l(source), l(target))
 
