@@ -18,12 +18,14 @@ from docutils import nodes
 from sphinx.application import ExtensionError
 from sphinx.ext.mathbase import setup_math as mathbase_setup
 
+
 def html_visit_math(self, node):
     self.body.append(self.starttag(node, 'span', '', CLASS='math'))
     self.body.append(self.builder.config.mathjax_inline[0] + \
                      self.encode(node['latex']) +\
                      self.builder.config.mathjax_inline[1] + '</span>')
     raise nodes.SkipNode
+
 
 def html_visit_displaymath(self, node):
     self.body.append(self.starttag(node, 'div', CLASS='math'))
@@ -52,11 +54,13 @@ def html_visit_displaymath(self, node):
     self.body.append('</div>\n')
     raise nodes.SkipNode
 
+
 def builder_inited(app):
     if not app.config.mathjax_path:
         raise ExtensionError('mathjax_path config value must be set for the '
                              'mathjax extension to work')
     app.add_javascript(app.config.mathjax_path)
+
 
 def setup(app):
     mathbase_setup(app, (html_visit_math, None), (html_visit_displaymath, None))
