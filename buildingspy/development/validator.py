@@ -239,7 +239,9 @@ Modelica package. Expected file '%s'."
         
         s = ("Found mo file={!s} without parameter {!s} defined.\n" 
             + "The parameter name {!s} is defined in the mos file={!s}" 
-            + " and hence must be defined in the mo file.\n").format(model_path, self._capitalize_first(name), name, mos_file)
+            + " and hence must be defined in the mo file.\n").format(model_path, 
+                                                                     self._capitalize_first(name), 
+                                                                     name, mos_file)
         raise ValueError(s)
         
 
