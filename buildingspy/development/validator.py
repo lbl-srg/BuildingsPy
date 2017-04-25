@@ -5,7 +5,7 @@
 # html syntax
 #
 # MWetter@lbl.gov                            2013-05-31
-# TSnouidui@lbl.gov                          2017-04-25
+# TSNouidui@lbl.gov                          2017-04-25
 #######################################################
 #
 # import from future to make Python2 behave like Python3
