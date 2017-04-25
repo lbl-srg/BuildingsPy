@@ -60,7 +60,7 @@ class Simulator(object):
 
         # Check if the package Path parameter is correct
         self._packagePath = None
-        if packagePath == None:
+        if packagePath is None:
             self.setPackagePath(os.path.abspath('.'))
         else:
             self.setPackagePath(packagePath)
@@ -96,11 +96,11 @@ class Simulator(object):
         import os
 
         # Check whether the package Path parameter is correct
-        if os.path.exists(packagePath) == False:
+        if not os.path.exists(packagePath):
             msg = "Argument packagePath=%s does not exist." % packagePath
             raise ValueError(msg)
 
-        if os.path.isdir(packagePath) == False:
+        if not os.path.isdir(packagePath):
             msg = "Argument packagePath=%s must be a directory " % packagePath
             msg += "containing a Modelica package."
             raise ValueError(msg)

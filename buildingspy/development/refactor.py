@@ -269,7 +269,7 @@ def replace_text_in_file(file_name, old, new, isRegExp=False):
     with open(file_name, mode="r", encoding="utf-8-sig") as f_sou:
         lines = list()
         for _, lin in enumerate(f_sou):
-            if isRegExp == True:
+            if isRegExp:
                 lin = re.sub(old, new, lin)
             else:
                 lin = lin.replace(old, new)
