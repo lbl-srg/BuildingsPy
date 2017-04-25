@@ -3,7 +3,7 @@
 #######################################################
 # Class that validates the .mo file for correct
 # html syntax and checks the consistency of 
-# experiment annotation in .mo with the mos files.
+# experiment annotation in .mo with the .mos files.
 #
 # MWetter@lbl.gov                            2013-05-31
 # TSNouidui@lbl.gov                          2017-04-25
