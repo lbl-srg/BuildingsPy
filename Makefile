@@ -2,7 +2,7 @@ BPDIR=buildingspy
 BPDOC=doc
 
 PEP8_ARGS=--recursive --max-line-length=100 \
-  --exclude="*/thirdParty/*,buildingspy/tests/MyModelicaLibrary/Resources/Scripts/travis/usr/local/bin/dymola" \
+  --exclude="*/thirdParty/*" \
   --select="E225,E301,E302,E501,E711,E771,W291,W293" buildingspy
 
 .PHONY: doc clean
