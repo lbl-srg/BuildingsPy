@@ -1000,7 +1000,7 @@ class Tester(object):
 
         timMaxErr = 0
 
-        tol = 1E-3  #Tolerance
+        tol = 1E-3  # Tolerance
 
         # Interpolate the new variables to the old time stamps
         #
