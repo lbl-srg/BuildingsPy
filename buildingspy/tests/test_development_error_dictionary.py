@@ -43,7 +43,8 @@ class Test_development_error_dictionary(unittest.TestCase):
 
         self.assertEqual(len(k), len(k_expected), "Wrong number of keys.")
         for i in range(len(k)):
-            self.assertEqual(k[i], k_expected[i], "Wrong key, expected \"{}\".".format(k_expected[i]))
+            self.assertEqual(k[i], k_expected[i],
+                             "Wrong key, expected \"{}\".".format(k_expected[i]))
 
     def test_tool_messages(self):
         import buildingspy.development.error_dictionary as e
@@ -66,7 +67,8 @@ class Test_development_error_dictionary(unittest.TestCase):
 
         self.assertEqual(len(k), len(k_expected), "Wrong number of tool messages.")
         for i in range(len(k)):
-            self.assertEqual(k[i], k_expected[i], "Wrong tool message, expected \"{}\".".format(k_expected[i]))
+            self.assertEqual(k[i], k_expected[i],
+                             "Wrong tool message, expected \"{}\".".format(k_expected[i]))
 
 
 if __name__ == '__main__':

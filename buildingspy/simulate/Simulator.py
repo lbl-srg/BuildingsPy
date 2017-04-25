@@ -130,7 +130,8 @@ class Simulator(object):
 
         if directoryName != '.':
             if len(directoryName) == 0:
-                raise ValueError("Specified directory is not valid. Set to '.' for current directory.")
+                raise ValueError(
+                    "Specified directory is not valid. Set to '.' for current directory.")
             # Try to create directory
             if not os.path.exists(directoryName):
                 os.makedirs(directoryName)
@@ -260,7 +261,8 @@ class Simulator(object):
         This method is deprecated. Use :meth:`~Simulator.getParameters` instead.
 
         '''
-        raise DeprecationWarning("The method Simulator.getSimulatorSettings() is deprecated. Use Simulator.getParameters() instead.")
+        raise DeprecationWarning(
+            "The method Simulator.getSimulatorSettings() is deprecated. Use Simulator.getParameters() instead.")
         return self.getParameters()
 
     def setStartTime(self, t0):
@@ -430,7 +432,8 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         worDir = self._create_worDir()
         self._simulateDir_ = worDir
         # Copy directory
-        shutil.copytree(os.path.abspath(self._packagePath), worDir,ignore = shutil.ignore_patterns('*.svn', '*.git'))
+        shutil.copytree(os.path.abspath(self._packagePath), worDir,
+                        ignore = shutil.ignore_patterns('*.svn', '*.git'))
 
         # Construct the model instance with all parameter values
         # and the package redeclarations
@@ -713,7 +716,8 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         if worDir is None:
             return
 
-        # Walk one level up, since we appended the name of the current directory to the name of the working directory
+        # Walk one level up, since we appended the name of the current directory
+        # to the name of the working directory
         dirNam = os.path.split(worDir)[0]
         # Make sure we don't delete a root directory
         if dirNam.find('tmp-simulator-') == -1:
@@ -833,10 +837,12 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
             if not killedProcess:
                 std_out = pro.stdout.read()
                 if len(std_out) > 0:
-                    self._reporter.writeOutput("*** Standard output stream from simulation:\n" + std_out)
+                    self._reporter.writeOutput(
+                        "*** Standard output stream from simulation:\n" + std_out)
                 std_err = pro.stderr.read()
                 if len(std_err) > 0:
-                    self._reporter.writeError("*** Standard error stream from simulation:\n" + std_err)
+                    self._reporter.writeError(
+                        "*** Standard error stream from simulation:\n" + std_err)
             else:
                 self._reporter.writeError("Killed process as it computed longer than " +
                              str(timeout) + " seconds.")
@@ -912,7 +918,8 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         curDir = os.path.abspath(self._packagePath)
         ds = curDir.split(os.sep)
         dirNam = ds[len(ds)-1]
-        worDir = os.path.join(tempfile.mkdtemp(prefix='tmp-simulator-' + getpass.getuser() + '-'), dirNam)
+        worDir = os.path.join(tempfile.mkdtemp(
+            prefix='tmp-simulator-' + getpass.getuser() + '-'), dirNam)
 
         return worDir
 

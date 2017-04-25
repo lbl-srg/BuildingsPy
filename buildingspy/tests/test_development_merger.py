@@ -42,9 +42,11 @@ class Test_development_merger_IBPSA(unittest.TestCase):
             # Clone the libraries
             print("Cloning Buildings repository. This may take a while.")
             print("Dir is {}".format(self._repDir))
-            Repo.clone_from("https://github.com/lbl-srg/modelica-buildings", os.path.join(self._repDir, "modelica-buildings"), depth=5)
+            Repo.clone_from("https://github.com/lbl-srg/modelica-buildings",
+                            os.path.join(self._repDir, "modelica-buildings"), depth=5)
             print("Cloning Annex 60 repository. This may take a while.")
-            Repo.clone_from("https://github.com/ibpsa/modelica", os.path.join(self._repDir, "modelica"), depth=5)
+            Repo.clone_from("https://github.com/ibpsa/modelica",
+                            os.path.join(self._repDir, "modelica"), depth=5)
             print("Finished cloning.")
 
         else:

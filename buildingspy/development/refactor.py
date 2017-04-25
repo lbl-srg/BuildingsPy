@@ -375,7 +375,8 @@ def _move_image_files(source, target):
     '''
 
     # Name of directory that may contain the image files
-    imgDir = lambda s: os.path.join(os.path.curdir, "Resources", "Images", os.path.join(*s.split(".")[1:-1]))
+    imgDir = lambda s: os.path.join(os.path.curdir, "Resources",
+                                    "Images", os.path.join(*s.split(".")[1:-1]))
     sourceImgDir = imgDir(source)
     if os.path.isdir(sourceImgDir):
         files = [f for f in os.listdir( sourceImgDir ) if os.path.isfile(f)]
@@ -462,7 +463,8 @@ def _get_package_list_for_file(directory, file_name):
         with open(os.path.join(directory, file_name), mode="r", encoding="utf-8-sig") as fil:
             lines = fil.read()
             # Constants can be 'constant Real n = ..." or "constant someClass n(..."
-            con = re.findall(r";\s*constant\s+[a-zA-Z0-9_\.]+\s+(\w+)\s*[=\(]", lines, re.MULTILINE);
+            con = re.findall(
+                r";\s*constant\s+[a-zA-Z0-9_\.]+\s+(\w+)\s*[=\(]", lines, re.MULTILINE);
 #                        con=re.search(r"constant\s+\w+\s+(\w+)\s*=", lines, re.MULTILINE);
             for ele in con:
                 # Found a constant whose name is in con.group(1)
@@ -543,7 +545,8 @@ def _move_class_directory(source, target):
     # In Buildings, all classes are in their own .mo file. Hence,
     # we iterate through these files, and also delete the package.order file
     # Iterate through files
-    mo_files = [f for f in glob.glob(os.path.join(source_dir, "*.mo")) if not f.endswith("package.mo")]
+    mo_files = [f for f in glob.glob(os.path.join(source_dir, "*.mo"))
+                                     if not f.endswith("package.mo")]
     for fil in mo_files:
         move_class(source + "." + fil[len(source_dir)+1:-3], \
                    target + "." + fil[len(source_dir)+1:-3])
@@ -675,8 +678,10 @@ def _updateFile(arg):
 
         # Replace links to images such as
         # ref=\"modelica://Buildings/Resources/Images/Fluid/Movers/UsersGuide/2013-IBPSA-Wetter.pdf
-        src_link = 'modelica://{}/Resources/Images/{}'.format( source.split(".")[0], "/".join(source.split('.')[1:]) )
-        tar_link = 'modelica://{}/Resources/Images/{}'.format( target.split(".")[0], "/".join(target.split('.')[1:]) )
+        src_link = 'modelica://{}/Resources/Images/{}'.format(
+            source.split(".")[0], "/".join(source.split('.')[1:]) )
+        tar_link = 'modelica://{}/Resources/Images/{}'.format(
+            target.split(".")[0], "/".join(target.split('.')[1:]) )
         replace_text_in_file(srcFil, src_link, tar_link)
 
         # For example, in Buildings/Fluid/Sources/xx.mo, the model Buildings.Fluid.Sensors.yy

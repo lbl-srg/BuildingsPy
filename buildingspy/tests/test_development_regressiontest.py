@@ -30,13 +30,19 @@ class Test_regressiontest_Tester(unittest.TestCase):
 
         self.assertIsNone(r.Tester.get_plot_variables("abc"), "Expected None return value")
         self.assertIsNone(r.Tester.get_plot_variables("y=abc"), "Expected None return value")
-        self.assertIsNone(r.Tester.get_plot_variables("leftTitleType=1, bottomTitleType=1, colors={{0,0,255},"), "Expected None")
+        self.assertIsNone(r.Tester.get_plot_variables(
+            "leftTitleType=1, bottomTitleType=1, colors={{0,0,255},"), "Expected None")
 
-        self.assertEqual(["a", "b", "c"], r.Tester.get_plot_variables('y = {"a", "b", "c"}'), "Expected a b c")
-        self.assertEqual(["a", "b", "c"], r.Tester.get_plot_variables('y = {"a","b","c"}'), "Expected a b c")
-        self.assertEqual(["a", "b", "c"], r.Tester.get_plot_variables('y = {" a", "b ", "c"}'), "Expected a b c")
-        self.assertEqual(["a", "b", "c"], r.Tester.get_plot_variables('y = {" a" , "b " , "c"}'), "Expected a b c")
-        self.assertEqual(["a", "b", "c"], r.Tester.get_plot_variables('y = {"a","b","c"}'), "Expected a b c")
+        self.assertEqual(["a", "b", "c"], r.Tester.get_plot_variables(
+            'y = {"a", "b", "c"}'), "Expected a b c")
+        self.assertEqual(["a", "b", "c"], r.Tester.get_plot_variables(
+            'y = {"a","b","c"}'), "Expected a b c")
+        self.assertEqual(["a", "b", "c"], r.Tester.get_plot_variables(
+            'y = {" a", "b ", "c"}'), "Expected a b c")
+        self.assertEqual(["a", "b", "c"], r.Tester.get_plot_variables(
+            'y = {" a" , "b " , "c"}'), "Expected a b c")
+        self.assertEqual(["a", "b", "c"], r.Tester.get_plot_variables(
+            'y = {"a","b","c"}'), "Expected a b c")
         self.assertEqual(["a"], r.Tester.get_plot_variables('y = {"a"}'), "Expected a")
         self.assertEqual(["a"], r.Tester.get_plot_variables('y = { "a"}'), "Expected a")
         self.assertEqual(["a"], r.Tester.get_plot_variables('y = { "a" }'), "Expected a")
@@ -44,7 +50,8 @@ class Test_regressiontest_Tester(unittest.TestCase):
         self.assertEqual(["a"], r.Tester.get_plot_variables('y={ "a" }'), "Expected a")
 
         self.assertEqual(["a"], r.Tester.get_plot_variables('abc, y = {"a"}'), "Expected a")
-        self.assertEqual(["a"], r.Tester.get_plot_variables('x= {"x"}, y = {"a"}, z = {"s"}'), "Expected a")
+        self.assertEqual(["a"], r.Tester.get_plot_variables(
+            'x= {"x"}, y = {"a"}, z = {"s"}'), "Expected a")
         self.assertEqual(["x_incStrict[1]", "x_incStrict[2]"],\
                           r.Tester.get_plot_variables('y={"x_incStrict[1]", "x_incStrict[2]"},'),\
                          "Expect other result")
@@ -108,7 +115,8 @@ class Test_regressiontest_Tester(unittest.TestCase):
         rt.setLibraryRoot(myMoLib)
         rt.include_fmu_tests(True)
         # No new tests should be found as FMUs is a subdirectory of Examples.
-        self.assertRaises(ValueError, rt.setSinglePackage, "MyModelicaLibrary.Examples,MyModelicaLibrary.Examples.FMUs")
+        self.assertRaises(ValueError, rt.setSinglePackage,
+                          "MyModelicaLibrary.Examples,MyModelicaLibrary.Examples.FMUs")
 
     def test_runSimulation(self):
         import buildingspy.development.regressiontest as r

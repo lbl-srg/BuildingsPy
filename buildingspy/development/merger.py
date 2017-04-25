@@ -252,7 +252,8 @@ class IBPSA(object):
                 previouslyCopiedFiles.remove(filNam)
         # Now, remove the files, unless they are no longer in the repository anyway.
         for fil in previouslyCopiedFiles:
-            filNam = os.path.join(self._target_home[0: self._target_home.rfind( self._new_library_name )], fil)
+            filNam = os.path.join(
+                self._target_home[0: self._target_home.rfind( self._new_library_name )], fil)
             if os.path.isfile(filNam):
                 os.remove(filNam)
 
