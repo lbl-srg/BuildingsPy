@@ -7,11 +7,19 @@ doc:
 	(cd $(BPDOC); make html linkcheck)
 
 pep8:
-	pep8 buildingspy/io/*.py \
-	buildingspy/examples/*.py \
-	buildingspy/examples/dymola/*.py \
-	buildingspy/simulate/*.py \
-        buildingspy/development/*.py
+ifeq ($(PEP8_CORRECT_CODE), true)
+	@echo "*** Running autopep8 to correct code"
+	autopep8 --in-place --recursive --max-line-length=200 \
+	  --exclude="*/thirdParty/*" \
+      --select="E225,W291,W293" buildingspy
+	@echo "*** Checking for required code changes (apply with 'make pep8 PEP8_CORRECT_CODE=true')"
+	git diff --exit-code .
+else
+	@echo "*** Checking for required code changes (apply with 'make pep8 PEP8_CORRECT_CODE=true')"
+	autopep8 --diff --recursive --max-line-length=200 \
+	  --exclude="*/thirdParty/*" \
+      --select="E225,W291,W293" buildingspy
+endif
 
 unittest:
 	python -m unittest discover buildingspy/tests
