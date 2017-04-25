@@ -18,6 +18,7 @@ import os
 # To run this test, navigate to the BuildingsPy folder, then type
 # python buildingspy/tests/test_development_regressiontest.py
 
+
 class Test_regressiontest_Tester(unittest.TestCase):
     """
        This class contains the unit tests for
@@ -29,13 +30,19 @@ class Test_regressiontest_Tester(unittest.TestCase):
 
         self.assertIsNone(r.Tester.get_plot_variables("abc"), "Expected None return value")
         self.assertIsNone(r.Tester.get_plot_variables("y=abc"), "Expected None return value")
-        self.assertIsNone(r.Tester.get_plot_variables("leftTitleType=1, bottomTitleType=1, colors={{0,0,255},"), "Expected None")
+        self.assertIsNone(r.Tester.get_plot_variables(
+            "leftTitleType=1, bottomTitleType=1, colors={{0,0,255},"), "Expected None")
 
-        self.assertEqual(["a", "b", "c"], r.Tester.get_plot_variables('y = {"a", "b", "c"}'), "Expected a b c")
-        self.assertEqual(["a", "b", "c"], r.Tester.get_plot_variables('y = {"a","b","c"}'), "Expected a b c")
-        self.assertEqual(["a", "b", "c"], r.Tester.get_plot_variables('y = {" a", "b ", "c"}'), "Expected a b c")
-        self.assertEqual(["a", "b", "c"], r.Tester.get_plot_variables('y = {" a" , "b " , "c"}'), "Expected a b c")
-        self.assertEqual(["a", "b", "c"], r.Tester.get_plot_variables('y = {"a","b","c"}'), "Expected a b c")
+        self.assertEqual(["a", "b", "c"], r.Tester.get_plot_variables(
+            'y = {"a", "b", "c"}'), "Expected a b c")
+        self.assertEqual(["a", "b", "c"], r.Tester.get_plot_variables(
+            'y = {"a","b","c"}'), "Expected a b c")
+        self.assertEqual(["a", "b", "c"], r.Tester.get_plot_variables(
+            'y = {" a", "b ", "c"}'), "Expected a b c")
+        self.assertEqual(["a", "b", "c"], r.Tester.get_plot_variables(
+            'y = {" a" , "b " , "c"}'), "Expected a b c")
+        self.assertEqual(["a", "b", "c"], r.Tester.get_plot_variables(
+            'y = {"a","b","c"}'), "Expected a b c")
         self.assertEqual(["a"], r.Tester.get_plot_variables('y = {"a"}'), "Expected a")
         self.assertEqual(["a"], r.Tester.get_plot_variables('y = { "a"}'), "Expected a")
         self.assertEqual(["a"], r.Tester.get_plot_variables('y = { "a" }'), "Expected a")
@@ -43,13 +50,13 @@ class Test_regressiontest_Tester(unittest.TestCase):
         self.assertEqual(["a"], r.Tester.get_plot_variables('y={ "a" }'), "Expected a")
 
         self.assertEqual(["a"], r.Tester.get_plot_variables('abc, y = {"a"}'), "Expected a")
-        self.assertEqual(["a"], r.Tester.get_plot_variables('x= {"x"}, y = {"a"}, z = {"s"}'), "Expected a")
+        self.assertEqual(["a"], r.Tester.get_plot_variables(
+            'x= {"x"}, y = {"a"}, z = {"s"}'), "Expected a")
         self.assertEqual(["x_incStrict[1]", "x_incStrict[2]"],\
                           r.Tester.get_plot_variables('y={"x_incStrict[1]", "x_incStrict[2]"},'),\
                          "Expect other result")
         self.assertEqual(["const1[1].y", "const2[1, 1].y"], \
                          r.Tester.get_plot_variables(' y={"const1[1].y", "const2[1, 1].y"} '))
-
 
     def test_regressiontest(self):
         import buildingspy.development.regressiontest as r
@@ -107,7 +114,8 @@ class Test_regressiontest_Tester(unittest.TestCase):
         rt.setLibraryRoot(myMoLib)
         rt.include_fmu_tests(True)
         # No new tests should be found as FMUs is a subdirectory of Examples.
-        self.assertRaises(ValueError, rt.setSinglePackage, "MyModelicaLibrary.Examples,MyModelicaLibrary.Examples.FMUs")
+        self.assertRaises(ValueError, rt.setSinglePackage,
+                          "MyModelicaLibrary.Examples,MyModelicaLibrary.Examples.FMUs")
 
     def test_runSimulation(self):
         import buildingspy.development.regressiontest as r
@@ -195,7 +203,7 @@ class Test_regressiontest_Tester(unittest.TestCase):
     def test_test_OpenModelica(self):
         import buildingspy.development.regressiontest as r
         rt = r.Tester(check_html=False)
-        rt._deleteTemporaryDirectories=False
+        rt._deleteTemporaryDirectories = False
 
         myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
         rt.setLibraryRoot(myMoLib)
@@ -237,8 +245,9 @@ class Test_regressiontest_Tester(unittest.TestCase):
         self.assertRaises(ValueError, \
             r.Tester.expand_packages, "AB}a{")
 
+
 if __name__ == '__main__':
     unittest.main()
     #selection = unittest.TestSuite()
-    #selection.addTest(Test_regressiontest_Tester('test_test_OpenModelica'))
-    #unittest.TextTestRunner().run(selection)
+    # selection.addTest(Test_regressiontest_Tester('test_test_OpenModelica'))
+    # unittest.TextTestRunner().run(selection)

@@ -16,6 +16,7 @@ import unittest
 from buildingspy.io.postprocess import Plotter
 import numpy.testing
 
+
 class Test_io_Plotter(unittest.TestCase):
     """
        This class contains the unit tests for
@@ -29,7 +30,8 @@ class Test_io_Plotter(unittest.TestCase):
         '''
         t10 = list(range(10))
         t100 = list(range(100))
-        f = lambda x: 10+2*x
+
+        def f(x): return 10+2*x
         y10  = list(map(f, t10))
         y100 = list(map(f, t100))
         y10Int = Plotter.interpolate(t10, t100, y100)
@@ -37,7 +39,7 @@ class Test_io_Plotter(unittest.TestCase):
         # Add one more element to t100. This emulates an event
         # at t=10, in which case dymola adds two points
         t100.append(10)
-        y100=list(map(f, sorted(t100)))
+        y100 = list(map(f, sorted(t100)))
         y10Int = Plotter.interpolate(t10, sorted(t100), y100)
         numpy.testing.assert_allclose(y10, y10Int)
 
@@ -61,9 +63,9 @@ class Test_io_Plotter(unittest.TestCase):
         # Test whether y remains unchanged
         numpy.testing.assert_allclose(y, yP)
         # Should raise an exception of t[0] != 0
-#fixme                self.assertRaises(ValueError, Plotter.convertToPeriodic(10, range(1,1000), y))
+# fixme                self.assertRaises(ValueError, Plotter.convertToPeriodic(10, range(1,1000), y))
         # Test for period to be larger than time vector
-#fixme        self.assertRaises(ValueError, Plotter.convertToPeriodic(100, range(10), range(10)))
+# fixme        self.assertRaises(ValueError, Plotter.convertToPeriodic(100, range(10), range(10)))
 
     def test_boxplot(self):
         '''
@@ -82,6 +84,6 @@ class Test_io_Plotter(unittest.TestCase):
                 notch=0, sym='b+', vert=1, whis=1.5,
                 positions=None, widths=None, patch_artist=False, bootstrap=None, hold=None)
 
+
 if __name__ == '__main__':
     unittest.main()
-

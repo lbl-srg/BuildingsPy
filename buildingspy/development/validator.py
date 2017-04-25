@@ -18,14 +18,16 @@ from builtins import *
 from io import open
 # end of from future import
 
+
 class Validator(object):
     ''' Class that validates ``.mo`` files for the correct html syntax.
     '''
+
     def __init__(self):
 
         # --------------------------
         # Class variables
-#        self._libHome=os.path.abspath(".")
+        # self._libHome=os.path.abspath(".")
         self._writeHTML = False
 
     def validateHTMLInPackage(self, rootDir):
@@ -140,7 +142,6 @@ Modelica package. Expected file '%s'."
 
         entries = self._getInfoRevisionsHTML(moFile)
 
-
         # Document header
         header = "<?xml version='1.0' encoding='utf-8'?> \n \
         <!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \n \
@@ -158,7 +159,6 @@ Modelica package. Expected file '%s'."
             body += line + '\n'
         # Replace \" with "
         body = body.replace('\\"', '"')
-
 
         # Document footer
         footer = "<!-- +++++++++++++++++++++++++++++++++++++ -->\n \

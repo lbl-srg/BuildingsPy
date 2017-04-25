@@ -14,6 +14,7 @@ from io import open
 
 from buildingspy.thirdParty.dymat.DyMat import DyMatFile
 
+
 def get_model_statistics(log_file, simulator):
     """ Open the simulation file ``log_file`` and return a dictionary
         with the model statistics.
@@ -54,7 +55,7 @@ def get_model_statistics(log_file, simulator):
         raise IOError("File {!s} does not exist".format(log_file))
 
     with open(log_file, mode="r", encoding="utf-8-sig") as fil:
-        lines = fil.readlines();
+        lines = fil.readlines()
         # Instantiate a dictionary that is used for the return value
 
         ret = {}
@@ -63,12 +64,12 @@ def get_model_statistics(log_file, simulator):
 
         reg = re.compile('\{(.*?)\}')
 
-        CONSTA="Continuous time states:"
-        NONLIN="Sizes after manipulation of the nonlinear systems:"
-        LIN=   "Sizes after manipulation of the linear systems:"
-        NUMJAC="Number of numerical Jacobians"
-        TRAABO="Translation aborted"
-        initalizationMode=False
+        CONSTA = "Continuous time states:"
+        NONLIN = "Sizes after manipulation of the nonlinear systems:"
+        LIN =   "Sizes after manipulation of the linear systems:"
+        NUMJAC = "Number of numerical Jacobians"
+        TRAABO = "Translation aborted"
+        initalizationMode = False
 
         ret['translated'] = True
         for lin in lines:
@@ -100,14 +101,14 @@ def get_model_statistics(log_file, simulator):
                     dicSim['numerical Jacobians'] = temp
 
             if lin.find("Initialization problem") > 0:
-                initalizationMode=True
-
+                initalizationMode = True
 
         if initalizationMode:
-            ret["initialization"]=dicIni
-        ret["simulation"]=dicSim
+            ret["initialization"] = dicIni
+        ret["simulation"] = dicSim
         return ret
-    
+
+
 def get_errors_and_warnings(log_file, simulator):
     """ Open the simulation file ``log_file`` and return a dictionary
         with the model warnings and errors.
@@ -121,12 +122,12 @@ def get_errors_and_warnings(log_file, simulator):
 
         >>> simulateModel(...);                        #doctest: +SKIP
         >>> savelog("simulator.log");                  #doctest: +SKIP
-        
+
         This function returns a dictionary. The top level keys are
-        ``warnings`` and ``errors``, which contain list of warning and 
+        ``warnings`` and ``errors``, which contain list of warning and
         error messages.
     """
-    
+
     import os
 
     if simulator != "dymola":
@@ -136,27 +137,28 @@ def get_errors_and_warnings(log_file, simulator):
         raise IOError("File {} does not exist".format(log_file))
 
     with open(log_file, mode="r", encoding="utf-8-sig") as fil:
-        lines = fil.readlines();
-    
-    # Instantiate lists that are used for the return value    
+        lines = fil.readlines()
+
+    # Instantiate lists that are used for the return value
     ret = {}
     listWarn = []
     listErr = []
 
-    WARN="Warning:"
-    ERR="... Error message from dymosim"
-    
+    WARN = "Warning:"
+    ERR = "... Error message from dymosim"
+
     for index, lin in enumerate(lines):
         if lin.find(WARN) >= 0:
             temp = lin.rpartition(":")[2].strip()
             listWarn.append(temp)
         elif lin.find(ERR) >= 0:
             listErr.append(lines[index+1].strip())
-            
-    ret["warnings"]=listWarn   
-    ret["errors"]=listErr  
+
+    ret["warnings"] = listWarn
+    ret["errors"] = listErr
     return ret
-    
+
+
 class Reader(object):
     """Open the file ``fileName`` and parse its content.
 
@@ -175,7 +177,6 @@ class Reader(object):
 
         self.fileName = fileName
         self._data_ = DyMatFile(fileName)
-
 
     def varNames(self, pattern=None):
         '''
@@ -213,7 +214,7 @@ class Reader(object):
         if pattern is None:
             return AllNames
         else:
-            AllNamesFilt=[]    # Filtered variable names
+            AllNamesFilt = []    # Filtered variable names
             for item in AllNames:
                 if re.search(pattern, item):
                     AllNamesFilt.append(item)
@@ -256,8 +257,8 @@ class Reader(object):
            >>> r.integral('preHea.port.Q_flow')
            -21.589191160164773
         '''
-        (t, v)=self.values(varName)
-        val=0.0;
+        (t, v) = self.values(varName)
+        val = 0.0
         for i in range(len(t)-1):
             val = val + (t[i+1]-t[i]) * (v[i+1]+v[i])/2.0
         return val
@@ -286,7 +287,7 @@ class Reader(object):
            >>> r.mean('preHea.port.Q_flow')
            -21.589191160164773
         '''
-        t=self.values(varName)[0]
+        t = self.values(varName)[0]
         r = self.integral(varName)/(max(t)-min(t))
         return r
 
@@ -307,7 +308,7 @@ class Reader(object):
            >>> r.min('preHea.port.Q_flow')
            -50.0
         '''
-        v=self.values(varName)[1]
+        v = self.values(varName)[1]
         return min(v)
 
     def max(self, varName):
@@ -327,5 +328,5 @@ class Reader(object):
            >>> r.max('preHea.port.Q_flow')
            -11.284342
         '''
-        v=self.values(varName)[1]
+        v = self.values(varName)[1]
         return max(v)
