@@ -215,7 +215,7 @@ Modelica package. Expected file '%s'."
     
         delta = abs(eval(val) - eval(value))
         
-        if (delta!=0):
+        if (delta > 0):
             s = ("Found mo file={!s} with experiment annotation {!s}.\n" 
                 + "The value of {!s}={!s} is different from the (default) value={!s}"
                 + " found in the mos file={!s}.\n").format(model_path, 
@@ -239,9 +239,9 @@ Modelica package. Expected file '%s'."
         
         s = ("Found mo file={!s} without parameter {!s} defined.\n" 
             + "The parameter name {!s} is defined in the mos file={!s}" 
-            + " and hence must be defined in the mo file.\n").format(model_path, 
+            + " with the value {!s}. It must hence be defined in the mo file.\n").format(model_path, 
                                                                      self._capitalize_first(name), 
-                                                                     name, mos_file)
+                                                                     name, mos_file, value)
         raise ValueError(s)
         
 
@@ -506,15 +506,15 @@ Modelica package. Expected file '%s'."
                         foundToleranceExp_mo=True
                 
                 # Check if attributes StartTime/startTime are defined in mos and mo                    
-                if (name+"=" == "startTime=" and eval(value)!=0.0 and (not foundStartExp_mo)):
+                if (name+"=" == "startTime=" and abs(eval(value)) > 0.0 and (not foundStartExp_mo)):
                     self._missing_parameter(name, value, model_path, mos_file)
                     
                 # Check if attributes StopTime/stopTime are defined in mos and mo
-                if (name+"=" == "stopTime=" and eval(value)!=1.0 and (not foundStopExp_mo)):
+                if (name+"=" == "stopTime=" and abs(eval(value) - 1.0) > 0.0 and (not foundStopExp_mo)):
                     self._missing_parameter(name, value, model_path, mos_file)
                     
                 # Check if attributes Tolerance/tolerance are defined in mos and mo
-                if (name+"=" == "tolerance=" and eval(value) >= 1e-6 and (not foundToleranceExp_mo)):
+                if (name+"=" == "tolerance=" and abs(eval(value)) > 0.0 and (not foundToleranceExp_mo)):
                     self._missing_parameter(name, value, model_path, mos_file)
                                         
                 for i in range(Nlines-1, 0, -1):   
