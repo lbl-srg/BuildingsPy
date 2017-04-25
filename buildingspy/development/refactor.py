@@ -484,7 +484,7 @@ def _get_package_list_for_file(directory, file_name):
             con = re.findall(r"type\s*(?P<name>\w*)\s*=\s*enumeration", lines, re.MULTILINE)
 
             for ele in con:
-            # Found a constant whose name is in con.group(1)
+                # Found a constant whose name is in con.group(1)
                 pacLis.append([__CON, ele])
 
     elif file_name.endswith(".mo"):
@@ -616,8 +616,8 @@ def _update_all_references(source, target):
     fileList = list()
     for root, _, files in os.walk(os.path.curdir):
         # Exclude certain folders
-#            dirs[:] = [os.path.join(root, d) for d in dirs]
-#            dirs[:] = [d for d in dirs if not re.search(excludes, d)]
+        # dirs[:] = [os.path.join(root, d) for d in dirs]
+        # dirs[:] = [d for d in dirs if not re.search(excludes, d)]
 
         for fil in files:
             fileList.append([root, fil, source, target])

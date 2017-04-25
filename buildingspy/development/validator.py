@@ -27,7 +27,7 @@ class Validator(object):
 
         # --------------------------
         # Class variables
-#        self._libHome=os.path.abspath(".")
+        # self._libHome=os.path.abspath(".")
         self._writeHTML = False
 
     def validateHTMLInPackage(self, rootDir):

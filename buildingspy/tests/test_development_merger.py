@@ -25,7 +25,7 @@ class Test_development_merger_IBPSA(unittest.TestCase):
     repDir = ""
 
     def __init__(self, *args, **kwargs):
-#        unittest.TestCase.__init__(self, name)
+        # unittest.TestCase.__init__(self, name)
         import os
         import tempfile
         from git import Repo

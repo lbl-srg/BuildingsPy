@@ -1131,7 +1131,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             f.write('last-generated=' + str(date.today()) + '\n')
             for stage in ['initialization', 'simulation', 'fmu-dependencies']:
                 if stage in y_tra:
-    #                f.write('statistics-%s=\n%s\n' % (stage, _pretty_print(y_tra[stage])))
+                    # f.write('statistics-%s=\n%s\n' % (stage, _pretty_print(y_tra[stage])))
                     f.write('statistics-%s=\n%s\n' % (stage, json.dumps(y_tra[stage], indent=2)))
             # FMU exports do not have simulation results.
             # Hence, we preclude them if y_sim == None
