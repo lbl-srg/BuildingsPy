@@ -760,16 +760,16 @@ class Tester(object):
                                     if y is not None:
                                         plotVars.append(y)
                                 except AttributeError:
-                                    s =  "%s, line %s, could not be parsed.\n" % (mosFil, iLin)
-                                    s +=  "The problem occurred at the line below:\n"
-                                    s +=  "%s\n" % lin
+                                    s = "%s, line %s, could not be parsed.\n" % (mosFil, iLin)
+                                    s += "The problem occurred at the line below:\n"
+                                    s += "%s\n" % lin
                                     s += "Make sure that each assignment of the plot command is on one line.\n"
                                     s += "Regression tests failed with error.\n"
                                     self._reporter.writeError(s)
                                     raise
 
                             if len(plotVars) == 0:
-                                s =  "%s does not contain any plot command.\n" % mosFil
+                                s = "%s does not contain any plot command.\n" % mosFil
                                 s += "You need to add a plot command to include its\n"
                                 s += "results in the regression tests.\n"
                                 self._reporter.writeError(s)
@@ -783,7 +783,7 @@ class Tester(object):
                                         '(?<=resultFile=\")[a-zA-Z0-9_\.]+', lin).group()
                                     # Add the .mat extension as this is not included in the
                                     # resultFile entry.
-                                    matFil =  matFil + '.mat'
+                                    matFil = matFil + '.mat'
                                     break
                             # Some *.mos file only contain plot commands, but no simulation.
                             # Hence, if 'resultFile=' could not be found, try to get the file that
@@ -1204,7 +1204,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                         val.append(numpy.float64(num))
                     r[key] = val
             except ValueError as detail:
-                s =  "%s could not be parsed.\n" % refFilNam
+                s = "%s could not be parsed.\n" % refFilNam
                 self._reporter.writeError(s)
                 raise TypeError(detail)
             iLin += 1
@@ -2155,7 +2155,7 @@ getErrorString();
         for iPro in range(self._nPro):
             #print("Calling parallel loop for iPro={}, self._nPro={}".format(iPro, self._nPro))
             dirNam = tempfile.mkdtemp(
-                prefix='tmp-' + self.getLibraryName() + '-' + str(iPro) +  "-")
+                prefix='tmp-' + self.getLibraryName() + '-' + str(iPro) + "-")
             self._temDir.append(dirNam)
             # Directory that contains the library as a sub directory
             libDir = self._libHome

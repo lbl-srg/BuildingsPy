@@ -33,7 +33,7 @@ class Test_development_merger_IBPSA(unittest.TestCase):
         # The constructor is called multiple times by the unit testing framework.
         # Hence, we keep track of the first call to avoid multiple temporary directories.
         if self.__class__.needs_initial:
-            self._repDir = tempfile.mkdtemp(prefix="tmp-BuildingsPy" +  "-testing-")
+            self._repDir = tempfile.mkdtemp(prefix="tmp-BuildingsPy" + "-testing-")
             print("************************** {}".format(self._repDir))
 
             self.__class__.needs_initial = False
