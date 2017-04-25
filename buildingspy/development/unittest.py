@@ -20,6 +20,7 @@ from io import open
 
 import buildingspy.development.regressiontest
 
+
 class Tester(buildingspy.development.regressiontest.Tester):
     ''' Class that runs all regression tests using Dymola.
 
@@ -28,6 +29,7 @@ class Tester(buildingspy.development.regressiontest.Tester):
              instead of `unittest`.
 
 '''
+
     def __init__(self):
         ''' Constructor.
         '''

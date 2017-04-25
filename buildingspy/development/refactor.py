@@ -87,6 +87,7 @@ def _sort_package_order(package_order):
 
     return s
 
+
 def _sh(cmd, directory):
     ''' Run the command ```cmd``` command in the directory ```directory```
 
@@ -202,6 +203,7 @@ end %s;
                 f.write("d")
                 f.close()
 
+
 def _git_move(source, target):
     ''' Moves `source` to `target` using `git mv`.
 
@@ -243,6 +245,7 @@ def _git_move(source, target):
 
     _sh(cmd=['git', 'mv', source, target], directory=os.path.curdir)
 
+
 def get_modelica_file_name(source):
     ''' Return for the Modelica class `source` its file name.
 
@@ -253,6 +256,7 @@ def get_modelica_file_name(source):
     :return: The file name of the Modelica class.
     '''
     return os.path.join(*source.split(".")) + ".mo"
+
 
 def replace_text_in_file(file_name, old, new, isRegExp=False):
     ''' Replace `old` with `new` in file `file_name`.
@@ -265,7 +269,7 @@ def replace_text_in_file(file_name, old, new, isRegExp=False):
     with open(file_name, mode="r", encoding="utf-8-sig") as f_sou:
         lines = list()
         for _, lin in enumerate(f_sou):
-            if isRegExp == True:
+            if isRegExp:
                 lin = re.sub(old, new, lin)
             else:
                 lin = lin.replace(old, new)
@@ -290,12 +294,14 @@ def _move_mo_file(source, target):
     _git_move(sourceFile, targetFile)
     # The targetFile may have `within Buildings.Fluid;`
     # Update this if needed.
-    sd = lambda s: "within " + s[:s.rfind('.')] + ";"
+
+    def sd(s): return "within " + s[:s.rfind('.')] + ";"
     replace_text_in_file(targetFile, sd(source), sd(target))
     # Update the class name
     replace_text_in_file(targetFile, \
                               " " + source[source.rfind('.')+1:], \
                               " " + target[target.rfind('.')+1:])
+
 
 def _move_mos_file(source, target):
     ''' Move the `.mos` script `sourceFile` to `targetFile` and its content.
@@ -334,7 +340,8 @@ def _move_mos_file(source, target):
         replace_text_in_file(targetMosFile, source, target)
         # The result file name is typically the model name.
         # Update this name with the new model name
-        l = lambda s: s[s.rfind(".")+1:]
+
+        def l(s): return s[s.rfind(".")+1:]
         replace_text_in_file(targetMosFile, l(source), l(target))
 
 
@@ -360,6 +367,7 @@ def _move_reference_result(source, target):
                        sourceRefFile.replace(source.replace(".", "_"),
                                              target.replace(".", "_")))
 
+
 def _move_image_files(source, target):
     ''' Move the image files of the model `source` to `target`.
 
@@ -369,7 +377,8 @@ def _move_image_files(source, target):
     '''
 
     # Name of directory that may contain the image files
-    imgDir = lambda s: os.path.join(os.path.curdir, "Resources", "Images", os.path.join(*s.split(".")[1:-1]))
+    def imgDir(s): return os.path.join(os.path.curdir, "Resources",
+                                    "Images", os.path.join(*s.split(".")[1:-1]))
     sourceImgDir = imgDir(source)
     if os.path.isdir(sourceImgDir):
         files = [f for f in os.listdir( sourceImgDir ) if os.path.isfile(f)]
@@ -421,7 +430,7 @@ def write_package_order(directory=".", recursive=False):
             if os.path.isdir(os.path.join(directory, f)):
                 # List all files in this directory. If there is at least one
                 # file with the .mo extension, then it is a Modelica package.
-                pat=os.path.join(directory, f)
+                pat = os.path.join(directory, f)
                 files_in_sub_dir = (fil for fil in os.listdir(pat)
                                     if os.path.isfile(os.path.join(pat, fil)))
                 for file_in_sub_dir in files_in_sub_dir:
@@ -456,7 +465,8 @@ def _get_package_list_for_file(directory, file_name):
         with open(os.path.join(directory, file_name), mode="r", encoding="utf-8-sig") as fil:
             lines = fil.read()
             # Constants can be 'constant Real n = ..." or "constant someClass n(..."
-            con=re.findall(r";\s*constant\s+[a-zA-Z0-9_\.]+\s+(\w+)\s*[=\(]", lines, re.MULTILINE);
+            con = re.findall(
+                r";\s*constant\s+[a-zA-Z0-9_\.]+\s+(\w+)\s*[=\(]", lines, re.MULTILINE)
 #                        con=re.search(r"constant\s+\w+\s+(\w+)\s*=", lines, re.MULTILINE);
             for ele in con:
                 # Found a constant whose name is in con.group(1)
@@ -471,10 +481,10 @@ def _get_package_list_for_file(directory, file_name):
             #      annotation (
             #      preferedView="info",
             #      Documentation(info="<html>...");
-            con=re.findall(r"type\s*(?P<name>\w*)\s*=\s*enumeration", lines, re.MULTILINE)
+            con = re.findall(r"type\s*(?P<name>\w*)\s*=\s*enumeration", lines, re.MULTILINE)
 
             for ele in con:
-            # Found a constant whose name is in con.group(1)
+                # Found a constant whose name is in con.group(1)
                 pacLis.append([__CON, ele])
 
     elif file_name.endswith(".mo"):
@@ -483,15 +493,16 @@ def _get_package_list_for_file(directory, file_name):
         class_name = file_name[:-3]
         recordString = "record %s" % class_name
         with open(os.path.join(directory, file_name), mode="r", encoding="utf-8-sig") as fil:
-            typ=__MOD
+            typ = __MOD
             for _ in range(2):
                 if recordString in fil.readline():
                     typ = __REC
-                    break;
+                    break
 
         pacLis.append([typ, class_name])
 
     return pacLis
+
 
 def _move_class_directory(source, target):
     ''' Move the directory `source`, which has a file `source/package.mo`,
@@ -520,7 +531,7 @@ def _move_class_directory(source, target):
 
         # The targetFile may have `within Buildings.Fluid;`
         # Update this if needed.
-        sd = lambda s: "within " + s[:s.rfind('.')] + ";"
+        def sd(s): return "within " + s[:s.rfind('.')] + ";"
         replace_text_in_file(os.path.join(target_dir, "package.mo"), sd(source), sd(target))
         # Update the class name
         replace_text_in_file(os.path.join(target_dir, "package.mo"),
@@ -536,7 +547,8 @@ def _move_class_directory(source, target):
     # In Buildings, all classes are in their own .mo file. Hence,
     # we iterate through these files, and also delete the package.order file
     # Iterate through files
-    mo_files = [f for f in glob.glob(os.path.join(source_dir, "*.mo")) if not f.endswith("package.mo")]
+    mo_files = [f for f in glob.glob(os.path.join(source_dir, "*.mo"))
+                                     if not f.endswith("package.mo")]
     for fil in mo_files:
         move_class(source + "." + fil[len(source_dir)+1:-3], \
                    target + "." + fil[len(source_dir)+1:-3])
@@ -591,6 +603,7 @@ def move_class(source, target):
 
     _update_all_references(source, target)
 
+
 def _update_all_references(source, target):
     ''' Updates all references in `.mo` and `.mos` files.
 
@@ -600,20 +613,21 @@ def _update_all_references(source, target):
 #    from multiprocessing import Pool
 
     # Update all references in the mo and mos files
-    fileList=list()
+    fileList = list()
     for root, _, files in os.walk(os.path.curdir):
         # Exclude certain folders
-#            dirs[:] = [os.path.join(root, d) for d in dirs]
-#            dirs[:] = [d for d in dirs if not re.search(excludes, d)]
+        # dirs[:] = [os.path.join(root, d) for d in dirs]
+        # dirs[:] = [d for d in dirs if not re.search(excludes, d)]
 
         for fil in files:
             fileList.append([root, fil, source, target])
     # Update the files
 #    pool=Pool(processes=4)
-#    pool.map(_updateFile, fileList)  # This can fail with OSError: [Errno 24] Too many open files
-                                      # when moving large packages
+#    pool.map(_updateFile, fileList)    # This can fail with OSError: [Errno 24] Too many open files
+                                        # when moving large packages
     for ele in fileList:
         _updateFile(ele)
+
 
 def _updateFile(arg):
     ''' Update all `.mo`, `package.order` and reference result file
@@ -632,15 +646,15 @@ def _updateFile(arg):
     def _getShortName(fileName, className):
         import re
 
-        pos=re.search(r'\w', fileName).start()
-        splFil=fileName[pos:].split(os.path.sep)
-        splCla=className.split(".")
+        pos = re.search(r'\w', fileName).start()
+        splFil = fileName[pos:].split(os.path.sep)
+        splCla = className.split(".")
         shortSource = None
         for i in range(min(len(splFil), len(splCla))):
             if splFil[i] != splCla[i]:
                 # shortSource starts with a space as instance names are
                 # preceeded with a space
-                shortSource=" "
+                shortSource = " "
                 for j in range(i, len(splCla)):
                     shortSource += splCla[j] + "."
                 # Remove last dot
@@ -648,12 +662,12 @@ def _updateFile(arg):
                 break
         return shortSource
 
-    root  =arg[0]
-    fil   =arg[1]
-    source=arg[2]
-    target=arg[3]
+    root  = arg[0]
+    fil   = arg[1]
+    source = arg[2]
+    target = arg[3]
 
-    srcFil=os.path.join(root, fil)
+    srcFil = os.path.join(root, fil)
     # Loop over all
     # - .mo
     # - package.order
@@ -666,8 +680,10 @@ def _updateFile(arg):
 
         # Replace links to images such as
         # ref=\"modelica://Buildings/Resources/Images/Fluid/Movers/UsersGuide/2013-IBPSA-Wetter.pdf
-        src_link = 'modelica://{}/Resources/Images/{}'.format( source.split(".")[0], "/".join(source.split('.')[1:]) )
-        tar_link = 'modelica://{}/Resources/Images/{}'.format( target.split(".")[0], "/".join(target.split('.')[1:]) )
+        src_link = 'modelica://{}/Resources/Images/{}'.format(
+            source.split(".")[0], "/".join(source.split('.')[1:]) )
+        tar_link = 'modelica://{}/Resources/Images/{}'.format(
+            target.split(".")[0], "/".join(target.split('.')[1:]) )
         replace_text_in_file(srcFil, src_link, tar_link)
 
         # For example, in Buildings/Fluid/Sources/xx.mo, the model Buildings.Fluid.Sensors.yy
@@ -677,9 +693,9 @@ def _updateFile(arg):
         # with the new name.
         # The same is done with the target name so that short instance names
         # remain short instance names.
-        shortSource=_getShortName(srcFil, source)
-        shortTarget=_getShortName(srcFil, target)
-        if shortSource == None or shortTarget == None:
+        shortSource = _getShortName(srcFil, source)
+        shortTarget = _getShortName(srcFil, target)
+        if shortSource is None or shortTarget is None:
             return
 
         # If shortSource is only one class (e.g., "xx" and not "xx.yy",
@@ -694,7 +710,7 @@ def _updateFile(arg):
         # Replace the hyperlinks, without the top-level library name.
         # This updates for example the RunScript command that points to
         # "....Dymola/Fluid/..."
-        sd = lambda s: "Resources/Scripts/Dymola/" + s[s.find('.')+1:].replace(".", "/")
+        def sd(s): return "Resources/Scripts/Dymola/" + s[s.find('.')+1:].replace(".", "/")
         replace_text_in_file(srcFil, sd(source), sd(target))
     elif srcFil.endswith("package.order"):
         # Update package.order

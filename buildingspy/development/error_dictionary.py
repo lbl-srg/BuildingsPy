@@ -19,6 +19,7 @@ from builtins import *
 from io import open
 # end of from future import
 
+
 class ErrorDictionary(object):
     ''' Class that contains data fields needed for the
         error checking of the regression tests.
@@ -136,7 +137,6 @@ class ErrorDictionary(object):
              'buildingspy_var' : "iStaGraRooMis",
              'model_message'   : "\"inner Modelica.StateGraph.StateGraphRoot\" is missing in '{}'.\n",
              'summary_message' : "Number of models with missing StateGraphRoot                 : {}\n"}
-
 
     def get_dictionary(self):
         """ Return the dictionary with all error data
