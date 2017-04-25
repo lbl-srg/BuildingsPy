@@ -45,5 +45,4 @@ install:
 # Execute tests
 script:
   - omc --version
-  - autopep8 --in-place --recursive --max-line-length=200 --exclude="*/thirdParty/*" --select="E225,W291,W293" buildingspy; git diff --exit-code .
   - make doctest unittest
