@@ -456,7 +456,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
             self._check_simulation_errors(worDir)
             self._copyResultFiles(worDir)
             self._deleteTemporaryDirectory(worDir)
-        except Exception as e: # Catch all possible exceptions
+        except Exception as e:  # Catch all possible exceptions
             em = "Simulation failed in '{worDir}'\n   Exception: {exc}.\n   You need to delete the directory manually.\n".format(
                 worDir=worDir, exc=str(e))
             self._reporter.writeError(em)
@@ -514,7 +514,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
             self._runSimulation(runScriptName,
                                 self._simulator_.get('timeout'),
                                 worDir)
-        except: # Catch all possible exceptions
+        except:  # Catch all possible exceptions
             self._reporter.writeError("Translation failed in '" + worDir + "'\n"
                                        + "   You need to delete the directory manually.")
             raise
@@ -618,7 +618,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
             self._copyResultFiles(worDir)
             self._deleteTemporaryDirectory(worDir)
             self._check_model_parametrization()
-        except: # Catch all possible exceptions
+        except:  # Catch all possible exceptions
             self._reporter.writeError("Simulation failed in '" + worDir + "'\n"
                                        + "   You need to delete the directory manually.")
             raise
@@ -941,11 +941,11 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
                               self._simulator_['resultFile'])+'.mat',
                               'dymola')
         for key, value in list(self._parameters_.items()):
-            if isinstance(value, list): # lists
+            if isinstance(value, list):  # lists
                 for index, val in enumerate(value):
                     key_string = key + '[' + str(index+1) + ']'
                     _compare(actual_res, key_string, val)
-            else: # int, floats
+            else:  # int, floats
                 key_string = key
                 _compare(actual_res, key_string, value)
 

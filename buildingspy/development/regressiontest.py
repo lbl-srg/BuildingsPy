@@ -444,7 +444,7 @@ class Tester(object):
         be replaced by a forward slash.
     '''
         pos = fileName.endswith('.mos')
-        if pos > -1: # This is an mos file
+        if pos > -1:  # This is an mos file
             # Check whether the file is in the exclude list
             fileName = fileName.replace('\\', '/')
             # Remove all files, except a few for testing
@@ -621,7 +621,7 @@ class Tester(object):
         # commas in the form "a[1, 1]", "a[1, 2]"
         lexer = shlex.shlex(s)
         lexer.quotes = '"'
-        lexer.whitespace = ", \t" # Skip commas, otherwise they are also returned as a token
+        lexer.whitespace = ", \t"  # Skip commas, otherwise they are also returned as a token
         y = list(lexer)
 
         for i in range(len(y)):
@@ -891,7 +891,7 @@ class Tester(object):
                           (fulFilNam, data['ScriptFile'], e))
             return ret
 
-        for pai in data['ResultVariables']: # pairs of variables that are plotted together
+        for pai in data['ResultVariables']:  # pairs of variables that are plotted together
             dat = dict()
             for var in pai:
                 time = []
@@ -1316,14 +1316,14 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
 
         # Iterate over the pairs of data that are to be plotted together
         timOfMaxErr = dict()
-        noOldResults = [] # List of variables for which no old results have been found
+        noOldResults = []  # List of variables for which no old results have been found
         for pai in y_sim:
             t_sim = pai['time']
             if not verifiedTime:
                 verifiedTime = True
 
                 # Check if the first and last time stamp are equal
-                tolTim = 1E-3 # Tolerance for time
+                tolTim = 1E-3  # Tolerance for time
                 if (abs(t_ref[0] - t_sim[0]) > tolTim) or abs(t_ref[-1] - t_sim[-1]) > tolTim:
                     print(
                         "*** Warning: Different simulation time interval in {} and {}".format(refFilNam, matFilNam))
@@ -1343,7 +1343,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
 
             # The time interval is the same for the stored and the current data.
             # Check the accuracy of the simulation.
-            for varNam in list(pai.keys()): # Iterate over the variable names that are to be plotted together
+            for varNam in list(pai.keys()):  # Iterate over the variable names that are to be plotted together
                 if varNam != 'time':
                     if varNam in y_ref:
                         # Check results
@@ -1426,7 +1426,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                             plt.axvline(x=timOfMaxErr[varNam])
 
                 leg = plt.legend(loc='right', fancybox=True)
-                leg.get_frame().set_alpha(0.5) # transparent legend
+                leg.get_frame().set_alpha(0.5)  # transparent legend
                 plt.xlabel('time')
                 plt.grid(True)
                 if iPlo == 1:
@@ -2671,7 +2671,7 @@ successfully (={:.1%})"\
         mosfile = self._writeOMRunScript(worDir=worDir, models=self._ommodels,
                                          cmpl=cmpl, simulate=simulate)
 
-        env = os.environ.copy() # will be passed to the subprocess.Popen call
+        env = os.environ.copy()  # will be passed to the subprocess.Popen call
 
         # Check whether OPENMODELICALIBRARY is set.
         # If it is not set, try to use /usr/lib/omlibrary if it exists.
