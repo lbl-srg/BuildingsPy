@@ -84,7 +84,6 @@ class Simulator(object):
         self._showGUI = False
         self._exitSimulator = True
 
-
     def setPackagePath(self, packagePath):
         ''' Set the path specified by ``packagePath``.
 
@@ -115,7 +114,6 @@ class Simulator(object):
 
         # All the checks have been successfully passed
         self._packagePath = packagePath
-
 
     def _createDirectory(self, directoryName):
         ''' Creates the directory *directoryName*
@@ -352,7 +350,6 @@ class Simulator(object):
         self._exitSimulator = exitAfterSimulation
         return
 
-
     def _get_dymola_commands(self, working_directory, log_file, model_name, translate_only=False):
         ''' Returns a string that contains all the commands required
             to run or translate the model.
@@ -423,7 +420,6 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         import os
         import shutil
 
-
         # Delete dymola output files
         self.deleteOutputFiles()
 
@@ -485,7 +481,6 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         '''
         import os
         import shutil
-
 
         # Delete dymola output files
         self.deleteOutputFiles()

@@ -103,7 +103,6 @@ def get_model_statistics(log_file, simulator):
             if lin.find("Initialization problem") > 0:
                 initalizationMode = True
 
-
         if initalizationMode:
             ret["initialization"] = dicIni
         ret["simulation"] = dicSim
@@ -178,7 +177,6 @@ class Reader(object):
 
         self.fileName = fileName
         self._data_ = DyMatFile(fileName)
-
 
     def varNames(self, pattern=None):
         '''

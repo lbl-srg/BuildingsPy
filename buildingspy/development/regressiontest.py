@@ -126,7 +126,6 @@ class Tester(object):
 
     '''
 
-
     def __init__(self, check_html=True, executable="dymola", cleanup=True):
         ''' Constructor.
         '''
@@ -260,7 +259,6 @@ class Tester(object):
         self.deleteTemporaryDirectories(False)
         self._useExistingResults = True
 
-
     def setNumberOfThreads(self, number):
         ''' Set the number of parallel threads that are used to run the regression tests.
 
@@ -316,7 +314,6 @@ class Tester(object):
         '''
         self._pedanticModelica = pedanticModelica
 
-
     def include_fmu_tests(self, fmu_export):
         ''' Sets a flag that, if ``False``, does not test the export of FMUs.
 
@@ -341,7 +338,6 @@ class Tester(object):
 
         '''
         return self._modelicaCmd
-
 
     def isExecutable(self, program):
         """ Return ``True`` if the ``program`` is an executable
@@ -434,7 +430,6 @@ class Tester(object):
             if strpos == 0:
                 counter += 1
             return counter
-
 
     def _includeFile(self, fileName):
         ''' Returns true if the file need to be included in the list of scripts to run
@@ -550,7 +545,6 @@ class Tester(object):
 
             self.setDataDictionary(rooPat)
 
-
     def writeOpenModelicaResultDictionary(self):
         ''' Write in ``Resources/Scripts/OpenModelica/compareVars`` files whose
         name are the name of the example model, and whose content is::
@@ -641,7 +635,6 @@ class Tester(object):
             # reading .mat is picky. For example, it refused to read a[1,1] or a[1,  1]
             y[i] = re.sub(',\W*', ', ', y[i])
         return y
-
 
     def setDataDictionary(self, root_package = None):
         ''' Build the data structures that are needed to parse the output files.
@@ -735,7 +728,6 @@ class Tester(object):
                                 if "modelName" in dat and dat["modelName"] == "" or ("modelName" in dat):
                                     if "modelToOpen" in dat:
                                         dat["modelName"] = dat["modelToOpen"]
-
 
                         # We are finished iterating over all lines of the .mos
                         # For FMU export, if modelName="", then Dymola uses the
@@ -968,7 +960,6 @@ class Tester(object):
                                  self.getLibraryName(), data['TranslationLogFile'])
         return of.get_model_statistics(fulFilNam, "dymola")
 
-
     def areResultsEqual(self, tOld, yOld, tNew, yNew, varNam, filNam):
         ''' Return `True` if the data series are equal within a tolerance.
 
@@ -1123,7 +1114,6 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         import re
         return re.sub( re.compile('\.e'), 'e', \
           re.sub(re.compile('0*e'), 'e', "{0:.15e}".format(value)))
-
 
     def _writeReferenceResults(self, refFilNam, y_sim, y_tra):
         ''' Write the reference results.
@@ -1389,7 +1379,6 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             newStatistics = self._check_statistics(
                 old_results, y_tra, stage, foundError, newStatistics, matFilNam)
 
-
         # If the users selected "Y" or "N" (to not accept or reject any new results) in previous tests,
         # or if the script is run in batch mode, then don't plot the results.
         # If we found an error, plot the results, and ask the user to accept or
@@ -1463,7 +1452,6 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                 updateReferenceData = True
         return (updateReferenceData, foundError, ans)
 
-
     def are_statistics_equal(self, s1, s2):
         ''' Compare the simulation statistics `s1` and `s2` and
             return `True` if they are equal, or `False` otherwise.
@@ -1487,8 +1475,6 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                 return False
 
         return True
-
-
 
     def _compare_and_rewrite_fmu_dependencies(self, new_dependencies, reference_file_path, reference_file_name, ans):
         ''' Compares whether the ``.fmu`` dependencies have been changed.
@@ -1545,7 +1531,6 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                                                 reference_file_name)
             return [found_differences, ans]
 
-
         else:
             # The old file has no statistics. Ask to rewrite it.
             print("*** Warning: Reference file {} has no FMU statistics.".format(reference_file_name))
@@ -1557,7 +1542,6 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                 self._reporter.writeWarning("*** Warning: Rewrote reference file %s as the old one had no FMU statistics." %
                                             reference_file_name)
             return [True, ans]
-
 
     def _check_fmu_statistics(self, ans):
         ''' Check the fmu statistics from each regression test and compare it with the previously
@@ -1651,7 +1635,6 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                 mosFulFilNam = mosFulFilNam.replace(os.sep, '_')
                 refFilNam = os.path.splitext(mosFulFilNam)[0] + ".txt"
 
-
                 try:
                     # extract reference points from the ".mat" file corresponding to "filNam"
                     warnings = []
@@ -1723,7 +1706,6 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                 stat = json.load(fil)['testCase']
             except ValueError as e:
                 raise ValueError("Failed to parse {}.\n{}".format(self._statistics_log, str(e)))
-
 
         # Error counters
         iChe = 0
@@ -1899,7 +1881,6 @@ iJac=sum(Modelica.Utilities.Strings.count(lines, "Number of numerical Jacobians:
 """
                 runFil.write(template.format(v["buildingspy_var"], v["tool_message"]))
 
-
         def _write_translation_stats(runFil, values):
 
             for k, v in list(self._error_dict.get_dictionary().items()):
@@ -1914,7 +1895,6 @@ Modelica.Utilities.Streams.print("        \"{}\"  : " + String({}) + ",", "{}");
 Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(lJac-iJac), "{statisticsLog}");
 """
             runFil.write(template.format(**values))
-
 
             # Close the bracket for the JSON object
             runFil.write("""Modelica.Utilities.Streams.print("      }", """ + \
@@ -2007,7 +1987,6 @@ Modelica.Utilities.Streams.print("{\"testCase\" : [", "%s");
 
                     if 'FMUName' in self._data[i]:
                         values["FMUName"] = self._data[i]['FMUName']
-
 
                     if self._modelicaCmd == 'dymola':
                         # Delete command log, modelName.simulation.log and dslog.txt
@@ -2123,14 +2102,12 @@ Modelica.Utilities.Streams.print("        \"result\"  : " + String(iSuc > 0)  + 
                                            runFil,
                                            self._statistics_log)
 
-
                     elif self._modelicaCmd == 'omc':
                         template("""
 runScript("Resources/Scripts/Dymola/{scriptFile}");
 getErrorString();
 """)
                         runFil.write(template.format(**values))
-
 
                     if self._modelicaCmd == 'dymola' and not (self._data[i]["mustExportFMU"] or self._data[i]["mustSimulate"]):
                         print(
@@ -2188,7 +2165,6 @@ getErrorString();
                             symlinks=True,
                             ignore=shutil.ignore_patterns('.svn', '.mat', 'request.', 'status.'))
         return
-
 
     def run(self):
         ''' Run all regression tests and checks the results.
@@ -2329,7 +2305,6 @@ getErrorString();
                                          separators=(',', ': '), ensure_ascii=False)
                 logFil.write(json_string)
 
-
         # check logfile if omc
         if self._modelicaCmd == 'omc':
             self._analyseOMStats(filename = self._simulator_log_file,
@@ -2345,7 +2320,6 @@ getErrorString();
             retVal = self._check_fmu_statistics(ans)
             if retVal != 0:
                 retVal = 4
-
 
         if self._modelicaCmd == 'dymola':
             r = self._checkReferencePoints(ans)
@@ -2416,7 +2390,6 @@ getErrorString();
         model = '.'.join(splt[root:])
         # remove the '.mo' at the end
         return model[:-3]
-
 
     def test_JModelica(self, cmpl=True, load=False, simulate=False,
                        packages=['Examples'], number=-1):
@@ -2683,7 +2656,6 @@ successfully (={:.1%})"\
         if number < 0:
             number = int(1e15)
 
-
         self.setNumberOfThreads(1)
         self._setTemporaryDirectories()
 
@@ -2723,7 +2695,6 @@ successfully (={:.1%})"\
         else:
             # we suppose the omc executable is known
             omc = 'omc'
-
 
         try:
             logFilNam = mosfile.replace('.mos', '.log')

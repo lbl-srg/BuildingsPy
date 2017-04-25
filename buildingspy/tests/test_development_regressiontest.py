@@ -58,7 +58,6 @@ class Test_regressiontest_Tester(unittest.TestCase):
         self.assertEqual(["const1[1].y", "const2[1, 1].y"], \
                          r.Tester.get_plot_variables(' y={"const1[1].y", "const2[1, 1].y"} '))
 
-
     def test_regressiontest(self):
         import buildingspy.development.regressiontest as r
         rt = r.Tester(check_html=False)

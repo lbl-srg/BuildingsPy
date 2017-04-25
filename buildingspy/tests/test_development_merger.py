@@ -58,7 +58,6 @@ class Test_development_merger_IBPSA(unittest.TestCase):
         # Call constructor of parent class
         super(Test_development_merger_IBPSA, self).__init__(*args, **kwargs)
 
-
     def test_initialize(self):
         import buildingspy.development.merger as m
 
@@ -68,7 +67,6 @@ class Test_development_merger_IBPSA(unittest.TestCase):
 
         # Test packages that do exist
         m.IBPSA(self._ibpsa_dir, self._dest_dir)
-
 
     def test_merge(self):
         """Test merging the libraries
@@ -84,7 +82,6 @@ class Test_development_merger_IBPSA(unittest.TestCase):
 
         if "tmp-BuildingsPy" in self._repDir:
             shutil.rmtree(self._repDir)
-
 
 
 if __name__ == '__main__':

@@ -76,7 +76,6 @@ class Test_simulate_Simulator(unittest.TestCase):
 
         from buildingspy.io.outputfile import Reader
 
-
         s = Simulator("MyModelicaLibrary.MyModel", "dymola", packagePath=self._packagePath)
         s.addPreProcessingStatement("Advanced.StoreProtectedVariables:= true;")
         s.addPostProcessingStatement("Advanced.StoreProtectedVariables:= false;")
@@ -241,7 +240,6 @@ class Test_simulate_Simulator(unittest.TestCase):
         s.deleteOutputFiles()
         s.deleteLogFiles()
         s.deleteTranslateDirectory()
-
 
     def test_translate_simulate_exception_parameter(self):
         '''

@@ -78,7 +78,6 @@ class IBPSA(object):
             raise ValueError("Argument must be a list.")
         self._excluded_packages = packages
 
-
     def _copy_mo_and_mos(self, source_file, destination_file):
         """ Update the library name and do other replacements that
             may be specific for an individual library.
@@ -114,7 +113,6 @@ class IBPSA(object):
         # Write the lines to the new file
         with open(destination_file, mode="w", encoding="utf-8") as f_des:
             f_des.writelines(lines)
-
 
     def merge(self):
         """ Merge all files except the license file and the top-level ``package.mo``
@@ -186,7 +184,6 @@ class IBPSA(object):
                             previouslyCopiedFiles.append(fil)
 
         copiedFiles = list()
-
 
         for root, dirs, files in os.walk(self._ibpsa_home, topdown=True):
             # Exclude certain folders
