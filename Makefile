@@ -1,6 +1,10 @@
 BPDIR=buildingspy
 BPDOC=doc
 
+PEP8_ARGS=--recursive --max-line-length=100 \
+  --exclude="*/thirdParty/*,buildingspy/tests/MyModelicaLibrary/Resources/Scripts/travis/usr/local/bin/dymola" \
+  --select="E225,E301,E302,E501,E711,E771,W291,W293" buildingspy
+
 .PHONY: doc clean
 
 doc:
@@ -9,16 +13,12 @@ doc:
 pep8:
 ifeq ($(PEP8_CORRECT_CODE), true)
 	@echo "*** Running autopep8 to correct code"
-	autopep8 --in-place --recursive --max-line-length=100 \
-	  --exclude="*/thirdParty/*,dymola" \
-      --select="E225,E301,E302,E501,E771,W291,W293" buildingspy
+	autopep8 --in-place $(PEP8_ARGS)
 	@echo "*** Checking for required code changes (apply with 'make pep8 PEP8_CORRECT_CODE=true')"
 	git diff --exit-code .
 else
 	@echo "*** Checking for required code changes (apply with 'make pep8 PEP8_CORRECT_CODE=true')"
-	autopep8 --diff --recursive --max-line-length=100 \
-	  --exclude="*/thirdParty/*,dymola" \
-      --select="E225,E301,E302,E501,E771,W291,W293" buildingspy
+	autopep8 --diff $(PEP8_ARGS)
 endif
 
 unittest:
