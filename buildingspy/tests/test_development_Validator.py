@@ -32,5 +32,6 @@ class Test_development_Validator(unittest.TestCase):
         # Test a package that does not exist
         self.assertRaises(ValueError, val.validateHTMLInPackage, "non_existent_modelica_package")
 
+
 if __name__ == '__main__':
     unittest.main()

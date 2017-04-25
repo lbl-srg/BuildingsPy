@@ -245,6 +245,7 @@ class Test_regressiontest_Tester(unittest.TestCase):
         self.assertRaises(ValueError, \
             r.Tester.expand_packages, "AB}a{")
 
+
 if __name__ == '__main__':
     unittest.main()
     #selection = unittest.TestSuite()

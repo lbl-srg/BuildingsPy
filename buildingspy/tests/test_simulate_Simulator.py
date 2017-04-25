@@ -306,5 +306,6 @@ class Test_simulate_Simulator(unittest.TestCase):
         # This is called to clean up after an exception in simulate_translated().
         s.deleteSimulateDirectory()
 
+
 if __name__ == '__main__':
     unittest.main()

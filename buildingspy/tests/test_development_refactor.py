@@ -74,5 +74,6 @@ class Test_development_refactor(unittest.TestCase):
         self.assertEqual( r.get_modelica_file_name("Buildings.Rooms.MixedAir"), \
                 os.path.join("Buildings", "Rooms", "MixedAir.mo") )
 
+
 if __name__ == '__main__':
     unittest.main()

@@ -55,6 +55,7 @@ def main():
     shutil.rmtree('case1')
     shutil.rmtree('case2')
 
+
 # Main function
 if __name__ == '__main__':
     main()

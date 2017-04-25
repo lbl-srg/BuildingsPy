@@ -106,5 +106,6 @@ class Test_example_dymola_runSimulation(unittest.TestCase):
         os.remove("plot.pdf")
         os.remove("plot.png")
 
+
 if __name__ == '__main__':
     unittest.main()

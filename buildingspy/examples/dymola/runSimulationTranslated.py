@@ -68,6 +68,7 @@ def main():
     shutil.rmtree('case2')
     s1.deleteTranslateDirectory()
 
+
 # Main function
 if __name__ == '__main__':
     main()
