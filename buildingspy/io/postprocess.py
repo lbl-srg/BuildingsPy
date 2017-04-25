@@ -231,4 +231,3 @@ class Plotter(object):
                     patch_artist=patch_artist, bootstrap=bootstrap, hold=hold)
         return plt
     boxplot = staticmethod(boxplot)
-

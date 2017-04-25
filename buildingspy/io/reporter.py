@@ -127,4 +127,3 @@ class Reporter(object):
                 fil.write(msg)
         sys.stdout.write(msg)
         return
-

@@ -58,7 +58,6 @@ class Test_regressiontest_Tester(unittest.TestCase):
         self.assertEqual(["const1[1].y", "const2[1, 1].y"], \
                          r.Tester.get_plot_variables(' y={"const1[1].y", "const2[1, 1].y"} '))
 
-
     def test_regressiontest(self):
         import buildingspy.development.regressiontest as r
         rt = r.Tester(check_html=False)
@@ -246,8 +245,9 @@ class Test_regressiontest_Tester(unittest.TestCase):
         self.assertRaises(ValueError, \
             r.Tester.expand_packages, "AB}a{")
 
+
 if __name__ == '__main__':
     unittest.main()
     #selection = unittest.TestSuite()
-    #selection.addTest(Test_regressiontest_Tester('test_test_OpenModelica'))
-    #unittest.TextTestRunner().run(selection)
+    # selection.addTest(Test_regressiontest_Tester('test_test_OpenModelica'))
+    # unittest.TextTestRunner().run(selection)

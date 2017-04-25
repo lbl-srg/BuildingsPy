@@ -76,7 +76,6 @@ class Test_simulate_Simulator(unittest.TestCase):
 
         from buildingspy.io.outputfile import Reader
 
-
         s = Simulator("MyModelicaLibrary.MyModel", "dymola", packagePath=self._packagePath)
         s.addPreProcessingStatement("Advanced.StoreProtectedVariables:= true;")
         s.addPostProcessingStatement("Advanced.StoreProtectedVariables:= false;")
@@ -90,7 +89,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         s.setNumberOfIntervals(50)
         s.setResultFile("myResults")
         s.exitSimulator(True)
-        #s.deleteOutputFiles()
+        # s.deleteOutputFiles()
         s.showGUI(False)
 #        s.printModelAndTime()
         s.showProgressBar(False)
@@ -242,7 +241,6 @@ class Test_simulate_Simulator(unittest.TestCase):
         s.deleteLogFiles()
         s.deleteTranslateDirectory()
 
-
     def test_translate_simulate_exception_parameter(self):
         '''
         Tests the :mod:`buildingspy.simulate.Simulator.translate` and
@@ -307,6 +305,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         s.deleteLogFiles()
         # This is called to clean up after an exception in simulate_translated().
         s.deleteSimulateDirectory()
+
 
 if __name__ == '__main__':
     unittest.main()

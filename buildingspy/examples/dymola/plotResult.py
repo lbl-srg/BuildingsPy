@@ -63,7 +63,8 @@ def main():
     plt.savefig('plot.png')
 
     # To show the plot on the screen, uncomment the line below
-    #plt.show()
+    # plt.show()
+
 
 # Main function
 if __name__ == '__main__':
