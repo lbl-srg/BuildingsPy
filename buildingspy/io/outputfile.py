@@ -14,6 +14,7 @@ from io import open
 
 from buildingspy.thirdParty.dymat.DyMat import DyMatFile
 
+
 def get_model_statistics(log_file, simulator):
     """ Open the simulation file ``log_file`` and return a dictionary
         with the model statistics.
@@ -108,6 +109,7 @@ def get_model_statistics(log_file, simulator):
         ret["simulation"] = dicSim
         return ret
 
+
 def get_errors_and_warnings(log_file, simulator):
     """ Open the simulation file ``log_file`` and return a dictionary
         with the model warnings and errors.
@@ -156,6 +158,7 @@ def get_errors_and_warnings(log_file, simulator):
     ret["warnings"] = listWarn
     ret["errors"] = listErr
     return ret
+
 
 class Reader(object):
     """Open the file ``fileName`` and parse its content.

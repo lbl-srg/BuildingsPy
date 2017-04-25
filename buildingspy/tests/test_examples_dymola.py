@@ -19,6 +19,7 @@ try:
 except ImportError:
     from test.support import EnvironmentVarGuard
 
+
 class Test_example_dymola_runSimulation(unittest.TestCase):
     """
        This class contains the unit tests for

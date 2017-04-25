@@ -21,6 +21,7 @@ from io import open
 import sys
 import os
 
+
 def runSimulation(worDir, cmd):
     ''' Run the simulation.
 

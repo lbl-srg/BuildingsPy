@@ -16,6 +16,7 @@ import unittest
 import os
 from buildingspy.simulate.Simulator import Simulator
 
+
 class Test_simulate_Simulator(unittest.TestCase):
     """
        This class contains the unit tests for

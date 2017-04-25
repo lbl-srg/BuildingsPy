@@ -19,6 +19,7 @@ except NameError:
     # Python 3 or newer
     basestring = str
 
+
 class Simulator(object):
     """Class to simulate a Modelica model.
 

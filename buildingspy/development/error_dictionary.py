@@ -19,6 +19,7 @@ from builtins import *
 from io import open
 # end of from future import
 
+
 class ErrorDictionary(object):
     ''' Class that contains data fields needed for the
         error checking of the regression tests.

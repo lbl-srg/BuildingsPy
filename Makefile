@@ -11,14 +11,14 @@ ifeq ($(PEP8_CORRECT_CODE), true)
 	@echo "*** Running autopep8 to correct code"
 	autopep8 --in-place --recursive --max-line-length=200 \
 	  --exclude="*/thirdParty/*,dymola" \
-      --select="E225,W291,W293" buildingspy
+      --select="E225,E301,E302,E771,W291,W293" buildingspy
 	@echo "*** Checking for required code changes (apply with 'make pep8 PEP8_CORRECT_CODE=true')"
 	git diff --exit-code .
 else
 	@echo "*** Checking for required code changes (apply with 'make pep8 PEP8_CORRECT_CODE=true')"
 	autopep8 --diff --recursive --max-line-length=200 \
 	  --exclude="*/thirdParty/*,dymola" \
-      --select="E225,W291,W293" buildingspy
+      --select="E225,E301,E302,E771,W291,W293" buildingspy
 endif
 
 unittest:

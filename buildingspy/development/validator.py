@@ -18,9 +18,11 @@ from builtins import *
 from io import open
 # end of from future import
 
+
 class Validator(object):
     ''' Class that validates ``.mo`` files for the correct html syntax.
     '''
+
     def __init__(self):
 
         # --------------------------

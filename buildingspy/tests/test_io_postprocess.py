@@ -16,6 +16,7 @@ import unittest
 from buildingspy.io.postprocess import Plotter
 import numpy.testing
 
+
 class Test_io_Plotter(unittest.TestCase):
     """
        This class contains the unit tests for

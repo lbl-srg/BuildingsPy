@@ -14,6 +14,7 @@ from io import open
 
 import unittest
 
+
 class Test_development_merger_IBPSA(unittest.TestCase):
     """
        This class contains the unit tests for

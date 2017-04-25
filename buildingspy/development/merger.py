@@ -18,6 +18,7 @@ from builtins import *
 from io import open
 # end of from future import
 
+
 class IBPSA(object):
     ''' Class that merges a Modelica library with the `IBPSA` library.
 
@@ -29,6 +30,7 @@ class IBPSA(object):
         :meth:`~set_excluded_packages`.
 
     '''
+
     def __init__(self, ibpsa_dir, dest_dir):
         ''' Constructor.
 

@@ -12,6 +12,7 @@ from builtins import *
 from io import open
 # end of from future import
 
+
 class Reporter(object):
     ''' Class that is used to report errors.
     '''

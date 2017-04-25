@@ -14,6 +14,7 @@ from io import open
 
 import unittest
 
+
 class Test_development_error_dictionary(unittest.TestCase):
     """
        This class contains the unit tests for

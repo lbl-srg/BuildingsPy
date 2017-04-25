@@ -12,6 +12,7 @@ from builtins import *
 from io import open
 # end of from future import
 
+
 class Plotter(object):
     """
        This class contains static methods that can be used to create plots.

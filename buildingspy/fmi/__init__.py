@@ -14,6 +14,7 @@ from builtins import *
 from io import open
 # end of from future import
 
+
 def get_dependencies(fmu_file_name):
     '''Return the input and state dependencies of an FMU as a dictionary.
 

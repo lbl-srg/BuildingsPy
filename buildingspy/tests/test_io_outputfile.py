@@ -16,6 +16,7 @@ import unittest
 import buildingspy.io.outputfile as of
 import numpy.testing
 
+
 class Test_io_Reader(unittest.TestCase):
     """
        This class contains the unit tests for

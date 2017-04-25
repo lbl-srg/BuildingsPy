@@ -87,6 +87,7 @@ def _sort_package_order(package_order):
 
     return s
 
+
 def _sh(cmd, directory):
     ''' Run the command ```cmd``` command in the directory ```directory```
 
@@ -202,6 +203,7 @@ end %s;
                 f.write("d")
                 f.close()
 
+
 def _git_move(source, target):
     ''' Moves `source` to `target` using `git mv`.
 
@@ -243,6 +245,7 @@ def _git_move(source, target):
 
     _sh(cmd=['git', 'mv', source, target], directory=os.path.curdir)
 
+
 def get_modelica_file_name(source):
     ''' Return for the Modelica class `source` its file name.
 
@@ -253,6 +256,7 @@ def get_modelica_file_name(source):
     :return: The file name of the Modelica class.
     '''
     return os.path.join(*source.split(".")) + ".mo"
+
 
 def replace_text_in_file(file_name, old, new, isRegExp=False):
     ''' Replace `old` with `new` in file `file_name`.
@@ -296,6 +300,7 @@ def _move_mo_file(source, target):
     replace_text_in_file(targetFile, \
                               " " + source[source.rfind('.')+1:], \
                               " " + target[target.rfind('.')+1:])
+
 
 def _move_mos_file(source, target):
     ''' Move the `.mos` script `sourceFile` to `targetFile` and its content.
@@ -359,6 +364,7 @@ def _move_reference_result(source, target):
         _git_move(sourceRefFile,
                        sourceRefFile.replace(source.replace(".", "_"),
                                              target.replace(".", "_")))
+
 
 def _move_image_files(source, target):
     ''' Move the image files of the model `source` to `target`.
@@ -493,6 +499,7 @@ def _get_package_list_for_file(directory, file_name):
 
     return pacLis
 
+
 def _move_class_directory(source, target):
     ''' Move the directory `source`, which has a file `source/package.mo`,
     to the `target` name.
@@ -591,6 +598,7 @@ def move_class(source, target):
 
     _update_all_references(source, target)
 
+
 def _update_all_references(source, target):
     ''' Updates all references in `.mo` and `.mos` files.
 
@@ -614,6 +622,7 @@ def _update_all_references(source, target):
                                       # when moving large packages
     for ele in fileList:
         _updateFile(ele)
+
 
 def _updateFile(arg):
     ''' Update all `.mo`, `package.order` and reference result file
