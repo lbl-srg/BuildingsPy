@@ -19,6 +19,7 @@ except NameError:
     # Python 3 or newer
     basestring = str
 
+
 class Simulator(object):
     """Class to simulate a Modelica model.
 
@@ -45,7 +46,7 @@ class Simulator(object):
         import buildingspy.io.reporter as reporter
         import os
 
-        ## Check arguments and make output directory if needed
+        # Check arguments and make output directory if needed
         if simulator != "dymola":
             raise ValueError("Argument 'simulator' needs to be set to 'dymola'.")
         # Set log file name for python script
@@ -59,12 +60,12 @@ class Simulator(object):
 
         # Check if the package Path parameter is correct
         self._packagePath = None
-        if packagePath == None:
+        if packagePath is None:
             self.setPackagePath(os.path.abspath('.'))
         else:
             self.setPackagePath(packagePath)
 
-        ## This call is needed so that the reporter can write to the working directory
+        # This call is needed so that the reporter can write to the working directory
         self._createDirectory(outputDirectory)
         self._preProcessing_ = list()
         self._postProcessing_ = list()
@@ -77,12 +78,11 @@ class Simulator(object):
         self.setSolver("radau")
         self.setResultFile(modelName)
         self.setTimeOut(-1)
-        self._MODELICA_EXE='dymola'
+        self._MODELICA_EXE = 'dymola'
         self._reporter = reporter.Reporter(fileName=logFilNam)
         self._showProgressBar = False
         self._showGUI = False
         self._exitSimulator = True
-
 
     def setPackagePath(self, packagePath):
         ''' Set the path specified by ``packagePath``.
@@ -96,25 +96,24 @@ class Simulator(object):
         import os
 
         # Check whether the package Path parameter is correct
-        if os.path.exists(packagePath) == False:
+        if not os.path.exists(packagePath):
             msg = "Argument packagePath=%s does not exist." % packagePath
             raise ValueError(msg)
 
-        if os.path.isdir(packagePath) == False:
+        if not os.path.isdir(packagePath):
             msg = "Argument packagePath=%s must be a directory " % packagePath
-            msg +="containing a Modelica package."
+            msg += "containing a Modelica package."
             raise ValueError(msg)
 
         # Check whether the file package.mo exists in the directory specified
 #        fileMo = os.path.abspath(os.path.join(packagePath, "package.mo"))
-        #if os.path.isfile(fileMo) == False:
+        # if os.path.isfile(fileMo) == False:
             #msg = "The directory '%s' does not contain the required " % packagePath
             #msg +="file '%s'." %fileMo
             #raise ValueError(msg)
 
         # All the checks have been successfully passed
         self._packagePath = packagePath
-
 
     def _createDirectory(self, directoryName):
         ''' Creates the directory *directoryName*
@@ -129,7 +128,8 @@ class Simulator(object):
 
         if directoryName != '.':
             if len(directoryName) == 0:
-                raise ValueError("Specified directory is not valid. Set to '.' for current directory.")
+                raise ValueError(
+                    "Specified directory is not valid. Set to '.' for current directory.")
             # Try to create directory
             if not os.path.exists(directoryName):
                 os.makedirs(directoryName)
@@ -259,7 +259,8 @@ class Simulator(object):
         This method is deprecated. Use :meth:`~Simulator.getParameters` instead.
 
         '''
-        raise DeprecationWarning("The method Simulator.getSimulatorSettings() is deprecated. Use Simulator.getParameters() instead.")
+        raise DeprecationWarning(
+            "The method Simulator.getSimulatorSettings() is deprecated. Use Simulator.getParameters() instead.")
         return self.getParameters()
 
     def setStartTime(self, t0):
@@ -331,7 +332,7 @@ class Simulator(object):
         '''
         # If resultFile=aa.bb.cc, then split returns [aa, bb, cc]
         # This is needed to get the short model name
-        rs=resultFile.split(".")
+        rs = resultFile.split(".")
         self._simulator_.update(resultFile=rs[len(rs)-1])
         return
 
@@ -348,7 +349,6 @@ class Simulator(object):
         '''
         self._exitSimulator = exitAfterSimulation
         return
-
 
     def _get_dymola_commands(self, working_directory, log_file, model_name, translate_only=False):
         ''' Returns a string that contains all the commands required
@@ -371,15 +371,15 @@ OutputCPUtime:=true;
         for prePro in self._preProcessing_:
             s += prePro + '\n'
 
-        s += "modelInstance={0};\n".format(model_name);
+        s += "modelInstance={0};\n".format(model_name)
 
         if translate_only:
             s += "translateModel(modelInstance);\n"
         else:
             # Create string for numberOfIntervals
-            intervals=""
+            intervals = ""
             if 'numberOfIntervals' in self._simulator_:
-                intervals=", numberOfIntervals={0}".format(
+                intervals = ", numberOfIntervals={0}".format(
                     self._simulator_.get('numberOfIntervals'))
             s += """
 simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, method="{method}", tolerance={tolerance}, resultFile="{result_file}"{others});
@@ -420,7 +420,6 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         import os
         import shutil
 
-
         # Delete dymola output files
         self.deleteOutputFiles()
 
@@ -429,7 +428,8 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         worDir = self._create_worDir()
         self._simulateDir_ = worDir
         # Copy directory
-        shutil.copytree(os.path.abspath(self._packagePath), worDir,ignore = shutil.ignore_patterns('*.svn', '*.git'))
+        shutil.copytree(os.path.abspath(self._packagePath), worDir,
+                        ignore=shutil.ignore_patterns('*.svn', '*.git'))
 
         # Construct the model instance with all parameter values
         # and the package redeclarations
@@ -445,7 +445,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
                 fil.write(self._get_dymola_commands(
                     working_directory=worDir,
                     log_file="simulator.log",
-                    model_name = mi,
+                    model_name=mi,
                     translate_only=False))
             # Copy files to working directory
 
@@ -456,7 +456,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
             self._check_simulation_errors(worDir)
             self._copyResultFiles(worDir)
             self._deleteTemporaryDirectory(worDir)
-        except Exception as e: # Catch all possible exceptions
+        except Exception as e:  # Catch all possible exceptions
             em = "Simulation failed in '{worDir}'\n   Exception: {exc}.\n   You need to delete the directory manually.\n".format(
                 worDir=worDir, exc=str(e))
             self._reporter.writeError(em)
@@ -482,7 +482,6 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         import os
         import shutil
 
-
         # Delete dymola output files
         self.deleteOutputFiles()
 
@@ -507,7 +506,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
                 fil.write(self._get_dymola_commands(
                     working_directory=worDir,
                     log_file="translator.log",
-                    model_name = mi,
+                    model_name=mi,
                     translate_only=True))
             # Copy files to working directory
 
@@ -515,7 +514,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
             self._runSimulation(runScriptName,
                                 self._simulator_.get('timeout'),
                                 worDir)
-        except: # Catch all possible exceptions
+        except:  # Catch all possible exceptions
             self._reporter.writeError("Translation failed in '" + worDir + "'\n"
                                        + "   You need to delete the directory manually.")
             raise
@@ -570,7 +569,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
                 fil.write("// Do not edit.\n")
                 fil.write('cd("' + worDir + '");\n')
                 fil.write("Modelica.Utilities.Files.remove(\"simulator.log\");\n")
-                #fil.write("openModel(\"package.mo\");\n")
+                # fil.write("openModel(\"package.mo\");\n")
                 fil.write('OutputCPUtime:=true;\n')
                 # Pre-processing commands
                 for prePro in self._preProcessing_:
@@ -619,7 +618,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
             self._copyResultFiles(worDir)
             self._deleteTemporaryDirectory(worDir)
             self._check_model_parametrization()
-        except: # Catch all possible exceptions
+        except:  # Catch all possible exceptions
             self._reporter.writeError("Simulation failed in '" + worDir + "'\n"
                                        + "   You need to delete the directory manually.")
             raise
@@ -627,7 +626,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
     def deleteOutputFiles(self):
         ''' Deletes the output files of the simulator.
         '''
-        filLis=['buildlog.txt', 'dsfinal.txt', 'dsin.txt', 'dslog.txt',
+        filLis = ['buildlog.txt', 'dsfinal.txt', 'dsin.txt', 'dslog.txt',
                 'dsmodel*', 'dymosim', 'dymosim.exe',
                 str(self._simulator_.get('resultFile')) + '.mat',
                 'request.', 'status', 'failure', 'stop']
@@ -637,7 +636,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         ''' Deletes the log files of the Python simulator, e.g. the
             files ``BuildingsPy.log``, ``run.mos`` and ``simulator.log``.
         '''
-        filLis=['BuildingsPy.log', 'run.mos', 'run_simulate.mos',
+        filLis = ['BuildingsPy.log', 'run.mos', 'run_simulate.mos',
                 'run_translate.mos', 'simulator.log', 'translator.log']
         self._deleteFiles(filLis)
 
@@ -661,7 +660,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
 
         By default, the simulator runs without GUI
         '''
-        self._showGUI = show;
+        self._showGUI = show
         return
 
     def printModelAndTime(self):
@@ -686,7 +685,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
 
         if self._outputDir_ != '.':
             self._createDirectory(self._outputDir_)
-        filLis=['run_simulate.mos','run_translate.mos','run.mos', 'translator.log', 'simulator.log', 'dslog.txt',
+        filLis = ['run_simulate.mos', 'run_translate.mos', 'run.mos', 'translator.log', 'simulator.log', 'dslog.txt',
                 self._simulator_.get('resultFile') + '.mat']
         for fil in filLis:
             srcFil = os.path.join(srcDir, fil)
@@ -712,8 +711,9 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         if worDir is None:
             return
 
-        # Walk one level up, since we appended the name of the current directory to the name of the working directory
-        dirNam=os.path.split(worDir)[0]
+        # Walk one level up, since we appended the name of the current directory
+        # to the name of the working directory
+        dirNam = os.path.split(worDir)[0]
         # Make sure we don't delete a root directory
         if dirNam.find('tmp-simulator-') == -1:
             self._reporter.writeError("Failed to delete '" +
@@ -746,7 +746,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         # Add .exe, which is needed on Windows 7 to test existence
         # of the program
         if platform.system() == "Windows":
-            program=program + ".exe"
+            program = program + ".exe"
 
         if is_exe(program):
             return True
@@ -777,9 +777,9 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         mo_fil = mosFile.replace(directory, ".")
         # List of command and arguments
         if self._showGUI:
-            cmd=[self._MODELICA_EXE, mo_fil]
+            cmd = [self._MODELICA_EXE, mo_fil]
         else:
-            cmd=[self._MODELICA_EXE, mo_fil, "/nowindow"]
+            cmd = [self._MODELICA_EXE, mo_fil, "/nowindow"]
 
         # Check if executable is on the path
         if not self._isExecutable(cmd[0]):
@@ -797,7 +797,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
                                    stderr=subprocess.PIPE,
                                    shell=False,
                                    cwd=directory)
-            killedProcess=False
+            killedProcess = False
             if timeout > 0:
                 while pro.poll() is None:
                     time.sleep(0.01)
@@ -808,7 +808,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
                         # running, kill the process
 
                         if self._showProgressBar and not killedProcess:
-                            killedProcess=True
+                            killedProcess = True
                             # This output needed because of the progress bar
                             sys.stdout.write("\n")
                             self._reporter.writeError("Terminating simulation in "
@@ -832,10 +832,12 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
             if not killedProcess:
                 std_out = pro.stdout.read()
                 if len(std_out) > 0:
-                    self._reporter.writeOutput("*** Standard output stream from simulation:\n" + std_out)
+                    self._reporter.writeOutput(
+                        "*** Standard output stream from simulation:\n" + std_out)
                 std_err = pro.stderr.read()
                 if len(std_err) > 0:
-                    self._reporter.writeError("*** Standard error stream from simulation:\n" + std_err)
+                    self._reporter.writeError(
+                        "*** Standard error stream from simulation:\n" + std_err)
             else:
                 self._reporter.writeError("Killed process as it computed longer than " +
                              str(timeout) + " seconds.")
@@ -861,7 +863,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         '''
         import sys
         nInc = 50
-        count=int(nInc*fractionComplete)
+        count = int(nInc*fractionComplete)
         proBar = "|"
         for i in range(nInc):
             if i < count:
@@ -909,9 +911,10 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         import tempfile
         import getpass
         curDir = os.path.abspath(self._packagePath)
-        ds=curDir.split(os.sep)
-        dirNam=ds[len(ds)-1]
-        worDir = os.path.join(tempfile.mkdtemp(prefix='tmp-simulator-' + getpass.getuser() + '-'), dirNam)
+        ds = curDir.split(os.sep)
+        dirNam = ds[len(ds)-1]
+        worDir = os.path.join(tempfile.mkdtemp(
+            prefix='tmp-simulator-' + getpass.getuser() + '-'), dirNam)
 
         return worDir
 
@@ -938,11 +941,11 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
                               self._simulator_['resultFile'])+'.mat',
                               'dymola')
         for key, value in list(self._parameters_.items()):
-            if isinstance(value, list): # lists
+            if isinstance(value, list):  # lists
                 for index, val in enumerate(value):
-                    key_string = key + '['+ str(index+1) + ']'
+                    key_string = key + '[' + str(index+1) + ']'
                     _compare(actual_res, key_string, val)
-            else: # int, floats
+            else:  # int, floats
                 key_string = key
                 _compare(actual_res, key_string, value)
 

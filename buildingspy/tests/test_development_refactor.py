@@ -14,6 +14,7 @@ from io import open
 
 import unittest
 
+
 class Test_development_refactor(unittest.TestCase):
     """
        This class contains the unit tests for
@@ -23,9 +24,9 @@ class Test_development_refactor(unittest.TestCase):
     def test_sort_package_order(self):
         import random
         import buildingspy.development.refactor as r
-        __MOD=0
-        __REC=1
-        __PAC=2
+        __MOD = 0
+        __REC = 1
+        __PAC = 2
 
         o  = [[__PAC, "UsersGuide"],
               [__MOD, "a"],
@@ -72,6 +73,7 @@ class Test_development_refactor(unittest.TestCase):
         import buildingspy.development.refactor as r
         self.assertEqual( r.get_modelica_file_name("Buildings.Rooms.MixedAir"), \
                 os.path.join("Buildings", "Rooms", "MixedAir.mo") )
+
 
 if __name__ == '__main__':
     unittest.main()

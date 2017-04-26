@@ -19,6 +19,7 @@ try:
 except ImportError:
     from test.support import EnvironmentVarGuard
 
+
 class Test_example_dymola_runSimulation(unittest.TestCase):
     """
        This class contains the unit tests for
@@ -32,7 +33,6 @@ class Test_example_dymola_runSimulation(unittest.TestCase):
         super(Test_example_dymola_runSimulation, self).__init__(*args, **kwargs)
 
         self._temDir = None
-
 
     def setUp(self):
         ''' Ensure that environment variables that are needed to run
@@ -61,7 +61,6 @@ class Test_example_dymola_runSimulation(unittest.TestCase):
             shutil.move(os.path.join(os.getcwd(), "tmp", "Buildings"), \
                         os.path.join(os.getcwd()))
 
-
     def tearDown(self):
         ''' Method called after all the tests.
         '''
@@ -70,7 +69,6 @@ class Test_example_dymola_runSimulation(unittest.TestCase):
         import os
         shutil.rmtree(os.path.join(os.getcwd(), "Buildings"))
         shutil.rmtree(os.path.join(os.getcwd(), "tmp"))
-
 
     def test_runSimulation(self):
         '''
@@ -107,6 +105,7 @@ class Test_example_dymola_runSimulation(unittest.TestCase):
         # Remove the generated plot files
         os.remove("plot.pdf")
         os.remove("plot.png")
+
 
 if __name__ == '__main__':
     unittest.main()

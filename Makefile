@@ -1,17 +1,25 @@
 BPDIR=buildingspy
 BPDOC=doc
 
+PEP8_ARGS=--recursive --max-line-length=100 \
+  --exclude="*/thirdParty/*" \
+  --select="E114,E225,E231,E261,E262,E265,E271,E301,E302,E303,E305,E306,E401,E501,E703,E711,E712,E771,E731,W291,W293,W391" buildingspy
+
 .PHONY: doc clean
 
 doc:
 	(cd $(BPDOC); make html linkcheck)
 
 pep8:
-	pep8 buildingspy/io/*.py \
-	buildingspy/examples/*.py \
-	buildingspy/examples/dymola/*.py \
-	buildingspy/simulate/*.py \
-        buildingspy/development/*.py
+ifeq ($(PEP8_CORRECT_CODE), true)
+	@echo "*** Running autopep8 to correct code"
+	autopep8 --in-place $(PEP8_ARGS)
+	@echo "*** Checking for required code changes (apply with 'make pep8 PEP8_CORRECT_CODE=true')"
+	git diff --exit-code .
+else
+	@echo "*** Checking for required code changes (apply with 'make pep8 PEP8_CORRECT_CODE=true')"
+	autopep8 --diff $(PEP8_ARGS)
+endif
 
 unittest:
 	python -m unittest discover buildingspy/tests

@@ -14,6 +14,7 @@ from builtins import *
 from io import open
 # end of from future import
 
+
 def get_dependencies(fmu_file_name):
     '''Return the input and state dependencies of an FMU as a dictionary.
 
@@ -121,6 +122,6 @@ def get_dependencies(fmu_file_name):
                 variable = variable_names[int(child.attrib['index'])]
                 dependencies[typ][variable] = []
                 for ind_var in child.attrib['dependencies'].split(' '):
-                    if ind_var.strip() != "": # If variables depend on nothing, there will be an empty string
+                    if ind_var.strip() != "":  # If variables depend on nothing, there will be an empty string
                         dependencies[typ][variable].append(variable_names[int(ind_var)])
     return dependencies

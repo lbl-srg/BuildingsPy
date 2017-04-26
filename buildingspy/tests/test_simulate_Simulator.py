@@ -16,6 +16,7 @@ import unittest
 import os
 from buildingspy.simulate.Simulator import Simulator
 
+
 class Test_simulate_Simulator(unittest.TestCase):
     """
        This class contains the unit tests for
@@ -27,7 +28,8 @@ class Test_simulate_Simulator(unittest.TestCase):
         This method creates a variable that points to an existing folder
         that contains a Modelica package.
         '''
-        self._packagePath = os.path.abspath(os.path.join("buildingspy", "tests", "MyModelicaLibrary"))
+        self._packagePath = os.path.abspath(os.path.join(
+            "buildingspy", "tests", "MyModelicaLibrary"))
 
     def test_Constructor(self):
         '''
@@ -74,11 +76,11 @@ class Test_simulate_Simulator(unittest.TestCase):
 
         from buildingspy.io.outputfile import Reader
 
-
         s = Simulator("MyModelicaLibrary.MyModel", "dymola", packagePath=self._packagePath)
         s.addPreProcessingStatement("Advanced.StoreProtectedVariables:= true;")
         s.addPostProcessingStatement("Advanced.StoreProtectedVariables:= false;")
-        s.addModelModifier("redeclare Modelica.Blocks.Sources.Step source(offset=-0.1, height=1.1, startTime=0.5)")
+        s.addModelModifier(
+            "redeclare Modelica.Blocks.Sources.Step source(offset=-0.1, height=1.1, startTime=0.5)")
         s.setStartTime(-1)
         s.setStopTime(5)
         s.setTimeOut(600)
@@ -87,7 +89,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         s.setNumberOfIntervals(50)
         s.setResultFile("myResults")
         s.exitSimulator(True)
-        #s.deleteOutputFiles()
+        # s.deleteOutputFiles()
         s.showGUI(False)
 #        s.printModelAndTime()
         s.showProgressBar(False)
@@ -116,7 +118,8 @@ class Test_simulate_Simulator(unittest.TestCase):
         self.assertEqual(sorted(s.getParameters()), [('PID.k', 1.0), ('valve.m_flow_nominal', 0.1)])
         # Add one more parameter
         s.addParameters({'PID.t': 10.0})
-        self.assertEqual(sorted(s.getParameters()), [('PID.k', 1.0), ('PID.t', 10.0), ('valve.m_flow_nominal', 0.1)])
+        self.assertEqual(sorted(s.getParameters()), [
+                         ('PID.k', 1.0), ('PID.t', 10.0), ('valve.m_flow_nominal', 0.1)])
         # Arguments must be a dictionary
         self.assertRaises(ValueError, s.addParameters, ["aaa", "bbb"])
 
@@ -133,7 +136,8 @@ class Test_simulate_Simulator(unittest.TestCase):
         if os.path.exists(resultFile):
             os.remove(resultFile)
 
-        s = Simulator("MyModelicaLibrary.Examples.Constants", "dymola", packagePath=self._packagePath)
+        s = Simulator("MyModelicaLibrary.Examples.Constants",
+                      "dymola", packagePath=self._packagePath)
         s.addParameters({'const1.k' : [2, 3]})
         s.addParameters({'const2.k' : [[1.1, 1.2], [2.1, 2.2], [3.1, 3.2]]})
         s.addParameters({'const3.k' : 0})
@@ -169,7 +173,8 @@ class Test_simulate_Simulator(unittest.TestCase):
         if os.path.exists(resultFile):
             os.remove(resultFile)
 
-        s = Simulator("MyModelicaLibrary.Examples.BooleanParameters", "dymola", packagePath=self._packagePath)
+        s = Simulator("MyModelicaLibrary.Examples.BooleanParameters",
+                      "dymola", packagePath=self._packagePath)
         s.addParameters({'p1' : True})
         s.addParameters({'p2' : False})
         s.simulate()
@@ -195,7 +200,8 @@ class Test_simulate_Simulator(unittest.TestCase):
         from buildingspy.io.outputfile import Reader
 
         s = Simulator("MyModelicaLibrary.MyModel", "dymola", packagePath=self._packagePath)
-        s.addModelModifier("redeclare Modelica.Blocks.Sources.Step source(offset=-0.1, height=1.1, startTime=0.5)")
+        s.addModelModifier(
+            "redeclare Modelica.Blocks.Sources.Step source(offset=-0.1, height=1.1, startTime=0.5)")
         s.setStartTime(-1)
         s.setStopTime(5)
         s.setTimeOut(600)
@@ -235,7 +241,6 @@ class Test_simulate_Simulator(unittest.TestCase):
         s.deleteLogFiles()
         s.deleteTranslateDirectory()
 
-
     def test_translate_simulate_exception_parameter(self):
         '''
         Tests the :mod:`buildingspy.simulate.Simulator.translate` and
@@ -247,7 +252,8 @@ class Test_simulate_Simulator(unittest.TestCase):
         import numpy as np
         from buildingspy.io.outputfile import Reader
 
-        s = Simulator("MyModelicaLibrary.Examples.ParameterEvaluation", "dymola", packagePath=self._packagePath)
+        s = Simulator("MyModelicaLibrary.Examples.ParameterEvaluation",
+                      "dymola", packagePath=self._packagePath)
         s.translate()
         s.setSolver("dassl")
         desired_value = 0.2
@@ -286,7 +292,8 @@ class Test_simulate_Simulator(unittest.TestCase):
         the simulation settings are not appropriate.
         '''
 
-        s = Simulator("MyModelicaLibrary.Examples.ParameterEvaluation", "dymola", packagePath=self._packagePath)
+        s = Simulator("MyModelicaLibrary.Examples.ParameterEvaluation",
+                      "dymola", packagePath=self._packagePath)
         s.translate()
         s.setSolver("radau")
         # The next call must throw an exception.
@@ -298,6 +305,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         s.deleteLogFiles()
         # This is called to clean up after an exception in simulate_translated().
         s.deleteSimulateDirectory()
+
 
 if __name__ == '__main__':
     unittest.main()
