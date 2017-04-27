@@ -1516,9 +1516,10 @@ Skipping error checking for this variable.""" % (filNam, varNam, len(yOld), len(
         # Check whether the reference results exist.
         if not os.path.exists(abs_ref_fil_nam):
             print("*** Warning: Reference file {} does not yet exist.".format(reference_file_name))
-            while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
-                print("             Create new file?")
-                ans = input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
+            #while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
+            #    print("             Create new file?")
+            #    ans = input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
+            ans = "Y"
             if ans == "y" or ans == "Y":
                 self._writeReferenceResults(abs_ref_fil_nam, None, y_tra)
                 self._reporter.writeWarning("*** Warning: Wrote new reference file %s." %
@@ -1539,9 +1540,10 @@ Skipping error checking for this variable.""" % (filNam, varNam, len(yOld), len(
                     print("*** Warning: Reference file {} has different FMU statistics for '{}'.".format(reference_file_name, typ))
                     found_differences = True
             if found_differences:
-                while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
-                    print("             Rewrite file?")
-                    ans = input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
+                #while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
+                #    print("             Rewrite file?")
+                #    ans = input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
+                ans = "Y"
                 if ans == "y" or ans == "Y":
                     self._writeReferenceResults(abs_ref_fil_nam, None, y_tra)
                     self._reporter.writeWarning("*** Warning: Rewrote reference file %s due to new FMU statistics." %
@@ -1551,10 +1553,11 @@ Skipping error checking for this variable.""" % (filNam, varNam, len(yOld), len(
 
         else:
             # The old file has no statistics. Ask to rewrite it.
-            print("*** Warning: Reference file {} has no FMU statistics.".format(reference_file_name))
-            while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
-                print("             Rewrite file?")
-                ans = input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
+            #print("*** Warning: Reference file {} has no FMU statistics.".format(reference_file_name))
+            #while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
+            #    print("             Rewrite file?")
+            #    ans = input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
+            ans = "Y"
             if ans == "y" or ans == "Y":
                 self._writeReferenceResults(abs_ref_fil_nam, None, y_tra)
                 self._reporter.writeWarning("*** Warning: Rewrote reference file %s as the old one had no FMU statistics." %
