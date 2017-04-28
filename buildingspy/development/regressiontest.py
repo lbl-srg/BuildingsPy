@@ -431,6 +431,19 @@ class Tester(object):
                 counter += 1
             return counter
 
+    def setExcludeMosFromFile(self, excludeFile = None):
+        ''' Populate the global list self._excludeMos scripts from a text file
+
+        :param excludeFile: The text file with files that shall be excluded from regression tests
+        '''
+        if excludeFile is not None:
+            with open(excludeFile, mode="r", encoding="utf-8-sig") as f:
+                for line in f:
+                    if line.rstrip().endswith('.mos') and not line.startswith('#'):
+                        filNamTup = line.rpartition(self.getLibraryName())
+                        filNam = filNamTup[2].rstrip().replace('\\', '/').lstrip('/')
+                        self._excludeMos.append(filNam)
+
     def _includeFile(self, fileName):
         ''' Returns true if the file need to be included in the list of scripts to run
 
