@@ -453,25 +453,21 @@ class Tester(object):
         *Resources/Scripts/Dymola/Fluid/Actuators/Examples/Damper.mos*
         or *Resources/Scripts/someOtherFile.ext*.
         This function checks if *fileName* exists in the global list
-        self._excludeMos. During this check, all backward slashes will
-        be replaced by a forward slash.
-    '''
-        pos = fileName.endswith('.mos')
-        if pos > -1:  # This is an mos file
+        self._excludeMos. For checking, *fileName* will be normalized (strip
+        whitespace, convert backslash to slash, strip path).
+        '''
+        if fileName.rstrip().endswith('.mos'):
+            # This is a mos file, normalize the name
+            filNamTup = fileName.rpartition(self.getLibraryName())
+            filNam = filNamTup[2].rstrip().replace('\\', '/').lstrip('/')
             # Check whether the file is in the exclude list
-            fileName = fileName.replace('\\', '/')
-            # Remove all files, except a few for testing
-    #        test=os.path.join('Resources','Scripts','Dymola','Controls','Continuous','Examples')
-    ##        test=os.path.join('Resources', 'Scripts', 'Dymola', 'Fluid', 'Movers', 'Examples')
-    # if fileName.find(test) != 0:
-    # return False
-
-            if (self._excludeMos.count(fileName) == 0):
-                return True
-            else:
-                print("*** Warning: Excluded file {} from the regression tests.".format(fileName))
+            if filNam in self._excludeMos:
+                print("*** Warning: Excluded file {} from the regression tests.".format(filNam))
                 return False
+            else:
+                return True
         else:
+            # This is not a mos file, do not include it
             return False
 
     @staticmethod
