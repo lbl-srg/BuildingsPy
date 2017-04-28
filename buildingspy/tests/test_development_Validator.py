@@ -111,7 +111,7 @@ class Test_development_Validator(unittest.TestCase):
          
         ###########################################
         #Checking missing tolerance in mos file
-        self.run_case(val, myMoLib, "experiment(Tolerance=1e-6),",
+        self.run_case(val, myMoLib, "experiment(Tolerance=1e-6, StopTime=1.0),",
                       "", "A maximum tolerance of 1e-6 is required")  
           
         ###########################################
@@ -121,13 +121,14 @@ class Test_development_Validator(unittest.TestCase):
                       
         ###########################################
         # Checking tolerances mismatch
-        self.run_case(val, myMoLib, "experiment(Tolerance=1e-6),",
-                                        "tolerance=1e-3,",
+        self.run_case(val, myMoLib, "experiment(Tolerance=1e-6, StopTime=1.0),",
+                                        "tolerance=1e-3, stopTime=1.0,",
                                         "The tolerance found is bigger than 1e-6")
     
         #########################################
         # Checking tolerances mismatch
-        self.run_case(val, myMoLib, "experiment(Tolerance=1e-3),", "tolerance=1e-6,",
+        self.run_case(val, myMoLib, "experiment(Tolerance=1e-3, StopTime=1.0),", 
+                      "tolerance=1e-6, stopTime=1.0,",
                       "different from the (default) value=1e-6")            
             
         ###########################################
@@ -141,13 +142,6 @@ class Test_development_Validator(unittest.TestCase):
         self.run_case(val, myMoLib, "experiment(Tolerance=1e-6, StopTime=30.0),",
                       "tolerance=1e-6, stopTime=15,",
                       "The value of StopTime=30.0 is different from the") 
-
-#           
-        ###########################################
-        # Checking stopTime mismatch 
-        self.run_case(val, myMoLib, "experiment(Tolerance=1e-6),",
-                      "tolerance=1e-6, stopTime=10,",
-                      "parameter name stopTime is defined in") 
 #         
         ###########################################
         # Checking wrong literal in StopTime
@@ -157,22 +151,28 @@ class Test_development_Validator(unittest.TestCase):
                     
         ###########################################
         # Checking stopTime mismatch 
-        self.run_case(val, myMoLib, "experiment(Tolerance=1e-6, StartTime=2),",
-                      "tolerance=1e-6,",
+        self.run_case(val, myMoLib, "experiment(Tolerance=1e-6, StartTime=2, StopTime=1.0),",
+                      "tolerance=1e-6, stopTime=1.0,",
                       "The value of StartTime=2 is different from the (default) value=0.0") 
         
         ###########################################
         # Checking stopTime mismatch 
-        self.run_case(val, myMoLib, "experiment(Tolerance=1e-6),",
-                      "tolerance=1e-6, startTime=2.0,",
+        self.run_case(val, myMoLib, "experiment(Tolerance=1e-6, StopTime=1.0),",
+                      "tolerance=1e-6, startTime=2.0, stopTime=1.0,",
                       "The parameter name startTime is defined in the mos file") 
         
            
         ###########################################
         # Checking stopTime mismatch 
-        self.run_case(val, myMoLib, "experiment(Tolerance=1e-6, StartTime=15),",
-                      "tolerance=1e-6, startTime=10,",
+        self.run_case(val, myMoLib, "experiment(Tolerance=1e-6, StartTime=15, StopTime=1.0),",
+                      "tolerance=1e-6, startTime=10, stopTime=1.0,",
                       "The value of StartTime=15 is different from the") 
+        
+        ###########################################
+        # Checking missing StopTime in mo mismatch 
+        self.run_case(val, myMoLib, "experiment(Tolerance=1e-6),",
+                      "tolerance=1e-6,",
+                      "without StopTime in experiment annotation") 
 
 if __name__ == '__main__': 
     unittest.main()
