@@ -259,9 +259,9 @@ Modelica package. Expected file '%s'."
         lst = [word[0].upper() + word[1:] for word in name.split()]
         return " ".join(lst)
     
-    def _missing_experiment(self, mos_files):
+    def _missing_experiment_stoptime(self, mos_files):
         """ 
-        Check missing experiment annotation in mo file.
+        Check missing experiment and StopTime annotation in mo file.
         Return number of mo files with experiment.
     
         :param mos_files: List of mos files.
@@ -279,13 +279,19 @@ Modelica package. Expected file '%s'."
             Nlines = len(model_content)
             
             foundExp = False
+            foundStop = False
             for i in range(Nlines-1, 0, -1):
                 line = model_content[i]
                 if "experiment(" in line.replace(" ", ""):
                     foundExp=True
                     n_mo_files+=1
+                if "StopTime=" in line.replace(" ", ""):
+                    foundStop=True
             if (not foundExp):
                 s = ("Found mo file={!s} without experiment annotation.\n").format(model_path)
+                raise ValueError(s)
+            if (not foundStop):
+                s = ("Found mo file={!s} without StopTime in experiment annotation.\n").format(model_path)
                 raise ValueError(s)
                 
             # close and exit
@@ -560,7 +566,7 @@ Modelica package. Expected file '%s'."
         n_tols, mos_non_fmus, _ =  self._separate_mos_files (mos_files)
         
         # Check if all .mo files contain experiment annotation
-        n_mo_files = self._missing_experiment(mos_non_fmus)
+        n_mo_files = self._missing_experiment_stoptime(mos_non_fmus)
         
         # Validate model parameters
         for i in ["stopTime", "tolerance", "startTime"]:
