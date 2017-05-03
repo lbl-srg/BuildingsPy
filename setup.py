@@ -20,6 +20,7 @@ setup(
     url="http://simulationresearch.lbl.gov/modelica/",
     install_requires=['future',
                         'pytidylib',
+                        'jinja2',
                         'gitpython'],
     packages=['buildingspy',
                 'buildingspy/development',

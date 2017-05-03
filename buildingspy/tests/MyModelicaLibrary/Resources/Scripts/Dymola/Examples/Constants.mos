@@ -1,4 +1,4 @@
-simulateModel("MyModelicaLibrary.Examples.Constants", method="dassl", resultFile="Constants");
+simulateModel("MyModelicaLibrary.Examples.Constants", tolerance=1e-6, stopTime=1.0, method="dassl", resultFile="Constants");
 createPlot(
   id=1, 
   y={"const1[1].y", "const2[1, 1].y"}
