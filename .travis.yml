@@ -2,9 +2,7 @@ dist: trusty
 language: python
 python:
   - "2.7"
-#  - "3.4"
-#  - "3.5"
-#  - "3.6"
+  - "3.5"
 
 cache: pip
 
@@ -46,5 +44,5 @@ install:
 script:
   - omc --version
   - make pep8 PEP8_CORRECT_CODE=true
-  - make doctest
+  - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then make doctest; fi
   - make unittest
