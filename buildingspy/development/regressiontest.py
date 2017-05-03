@@ -109,10 +109,10 @@ class Tester(object):
        >>> rt.setLibraryRoot(myMoLib)
        >>> rt.run() # doctest: +ELLIPSIS
        Using ... of ... processors to run unit tests.
-       Number of models   : 2
+       Number of models   : ...
                  blocks   : 0
                  functions: 0
-       Generated 5 regression tests.
+       Generated ... regression tests.
        <BLANKLINE>
        Script that runs unit tests had 0 warnings and 0 errors.
        <BLANKLINE>
