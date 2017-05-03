@@ -32,7 +32,7 @@ end {{model_name}}
 
 MOS_TEMPLATE = """simulateModel("MyModelicaLibrary.Examples.{{model_name}}", method="dassl", {{parameter}} resultFile="{{model_name}}");
 createPlot(
-  id=1, 
+  id=1,
   y={"p1", "p2"}
 )
 """
@@ -57,15 +57,15 @@ class Test_development_Validator(unittest.TestCase):
     def run_case(self, val, mod_lib, mo_param, mos_param, err_msg):
         """
         Create and validate mo and mos files
-        
-        
+
+
         :param: val Validator object.
         :param: mod_lib Path to model library.
         :param: mo_param Parameter of mo file.
-        :param: mos_param Parameter of mos file.    
-        :param: mos_param Parameter of mos file.    
-        :param: mos_param Expected error message. 
-        
+        :param: mos_param Parameter of mos file.
+        :param: mos_param Parameter of mos file.
+        :param: mos_param Expected error message.
+
         """
 
         model_name = ''.join(random.choice(string.ascii_uppercase + string.digits)
@@ -90,14 +90,14 @@ class Test_development_Validator(unittest.TestCase):
         mos_fil.close()
 
         with self.assertRaises(ValueError) as context:
-            val.validateModelParameters(mod_lib)
+            val.validateExperimentSetup(mod_lib)
 
         for path in [path_mo, path_mos]:
             if os.path.exists(path):
                 os.remove(path)
         self.assertTrue(err_msg in str(context.exception))
 
-    def test_validateModelParameters(self):
+    def test_validateExperimentSetup(self):
 
         import buildingspy.development.validator as v
         val = v.Validator()
@@ -105,7 +105,7 @@ class Test_development_Validator(unittest.TestCase):
 
         #########################################
         # Checking default library
-        val.validateModelParameters(myMoLib)
+        val.validateExperimentSetup(myMoLib)
 
         #########################################
         # Checking missing experiment

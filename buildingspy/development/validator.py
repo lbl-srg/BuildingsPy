@@ -184,14 +184,14 @@ Modelica package. Expected file '%s'."
         return (document, errors)
 
     def _recursive_glob(self, rootdir='.', suffix=''):
-        """ 
+        """
         Return all files with given extension.
-    
+
         :param rootdir: Root directory.
         :param suffix: File extension.
         :return: List of files with given extension.
 
-    
+
          """
 
         return [os.path.join(rootdir, filename) for rootdir, dirnames,
@@ -200,15 +200,15 @@ Modelica package. Expected file '%s'."
                     and ("ConvertBuildings_from" not in filename)) ]
 
     def _check_experiment(self, name, val, value, model_path, mos_file):
-        """ 
+        """
         Check experiment annotation parameters in mo file.
-    
+
         :param name: Parameter name.
         :param val: Value found in mo file.
         :param value: Value found in mos file.
         :param model_path: Path to mo file.
         :param mos_file: Path to mos file.
-    
+
          """
 
         if("*" in str(val)):
@@ -230,14 +230,14 @@ Modelica package. Expected file '%s'."
             raise ValueError(s)
 
     def _missing_parameter(self, name, value, model_path, mos_file):
-        """ 
+        """
         Check missing experiment annotation parameter in mo file.
-    
+
         :param name: Parameter name.
         :param value: Value found in mos file.
         :param model_path: Path to mo file.
         :param mos_file: Path to mos file.
-    
+
          """
 
         s = ("Found mo file={!s} without parameter {!s} defined.\n"
@@ -248,24 +248,24 @@ Modelica package. Expected file '%s'."
         raise ValueError(s)
 
     def _capitalize_first(self, name):
-        """ 
+        """
         Capitalize the first letter of the given word.
         Return a word with first letter capitalized.
-    
+
         :param name: Word to be capitalized.
         :return: Word with first letter capitalized.
-    
+
          """
         lst = [word[0].upper() + word[1:] for word in name.split()]
         return " ".join(lst)
 
     def _missing_experiment_stoptime(self, mos_files):
-        """ 
+        """
         Check missing experiment and StopTime annotation in mo file.
         Return number of mo files with experiment.
-    
+
         :param mos_files: List of mos files.
-    
+
          """
 
         n_mo_files = 0
@@ -300,16 +300,16 @@ Modelica package. Expected file '%s'."
         return n_mo_files
 
     def _separate_mos_files(self, mos_files):
-        """ 
+        """
         Return number of files with tolerance parameter
         and two lists of mos files file, one with the simulateModel
         and the other one with the translateModelFMU command.
-    
+
         :param mos_files: file path.
         :return: Number of files with tolerance parameter,
                 and two lists of mos files file, one with the simulateModel
                 and the other one with the translateModelFMU command.
-    
+
          """
 
         mos_non_fmus = []
@@ -348,27 +348,27 @@ Modelica package. Expected file '%s'."
         return n_tols, mos_non_fmus, mos_fmus
 
     def _check_tolerance(self, content, name, value, mos_file):
-        """ 
+        """
         Check value of tolerance in file.
-    
+
         :param content: file content.
         :param name: variable name.
         :param value: variable value.
         :param mos_file: mos file.
-    
+
          """
 
         if (name + "=" == "tolerance=" and float(value) > 1e-6):
             self._wrong_parameter (mos_file, name, value)
 
     def _wrong_parameter (self, mos_file, name, value):
-        """ 
+        """
         Stop if invalid parameter is found.
-    
+
         :param mos_file: mos file.
         :param name: parameter name.
         :param value: parameter value.
-    
+
          """
 
         if (name + "=" == "tolerance="):
@@ -390,13 +390,13 @@ Modelica package. Expected file '%s'."
                 raise ValueError(s)
 
     def _getValue (self, name, line, fil_nam):
-        """ 
+        """
         Get value of input parameter.
-    
+
         :param name: Parameter name.
         :param line: Line with parameter name.
         :param fil_nam: File with parameter.
-    
+
          """
         # Split the name
         value1 = line.split(name+"=")
@@ -413,27 +413,25 @@ Modelica package. Expected file '%s'."
         return value3[0]
 
     def _wrong_literal (self, mos_file, name):
-        """ 
+        """
         Stop if invalid literal is found.
-    
+
         :param mos_file: mos file.
         :param name: Parameter name.
-    
+
          """
 
         s = ("Found mos file={!s} with invalid expression={!s}.\n"
             + "This is not allowed for cross validation with JModelica.\n").format(mos_file, name+'='+name)
         raise ValueError(s)
 
-    def _validate_model_parameters (self, name, mos_files, root_dir):
-        """ 
-        Validate parameter settings.
-    
+    def _validate_experiment_setup (self, name, mos_files):
+        """
+        Validate experiment setup.
+
         :param name: Parameter name.
         :param mos_files: List of mos files.
-        :param root_dir: Root directory.
-    
-         """
+        """
 
         N_mos_defect = 0
 
@@ -538,12 +536,12 @@ Modelica package. Expected file '%s'."
 
             f.close()
 
-    def validateModelParameters(self, root_dir):
-        """ 
-        Validate parameter of mo and mos files.
-    
+    def validateExperimentSetup(self, root_dir):
+        """
+        Validate the experiment setup in ``.mo`` and ``.mos`` files.
+
         :param root_dir: Root directory.
-    
+
          """
 
         # Make sure that the parameter root_dir points to a Modelica package.
@@ -567,7 +565,7 @@ Modelica package. Expected file '%s'."
 
         # Validate model parameters
         for i in ["stopTime", "tolerance", "startTime"]:
-            self._validate_model_parameters(i, mos_non_fmus, root_dir)
+            self._validate_experiment_setup(i, mos_non_fmus)
 
         if(n_tols != n_mo_files):
             s = ("The number of tolerances in the mos files={!s} does no match " +
