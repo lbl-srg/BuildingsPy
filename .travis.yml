@@ -39,11 +39,12 @@ before_install:
 install:
   - pip install --upgrade pip setuptools wheel
   - pip install --only-binary=numpy,scipy,matplotlib numpy scipy matplotlib
-  - pip install future gitpython pytidylib autopep8
+  - pip install autopep8
   - pip install .
 
 # Execute tests
 script:
   - omc --version
   - make pep8 PEP8_CORRECT_CODE=true
-  - make doctest unittest
+  - make doctest
+  - make unittest
