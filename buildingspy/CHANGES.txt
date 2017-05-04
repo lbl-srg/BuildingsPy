@@ -1,6 +1,12 @@
 BuildingsPy Changelog
 ---------------------
 
+Version 1.7.0, April 14, 2017 -- Release 1.7
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- Extend class buildingspy.development.validator 
+  to check the consistency and correctness of .mos and .mo files.
+- Added validation of .mos/.mo files to unit test script.
+
 Version 1.6.0, March 29, 2017 -- Release 1.6
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 - In development.regressiontest.setSinglePackage(packageName), added
