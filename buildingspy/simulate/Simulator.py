@@ -333,7 +333,7 @@ class Simulator(object):
         # If resultFile=aa.bb.cc, then split returns [aa, bb, cc]
         # This is needed to get the short model name
         rs = resultFile.split(".")
-        self._simulator_.update(resultFile=rs[len(rs)-1])
+        self._simulator_.update(resultFile=rs[len(rs) - 1])
         return
 
     def exitSimulator(self, exitAfterSimulation=True):
@@ -384,11 +384,11 @@ OutputCPUtime:=true;
             s += """
 simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, method="{method}", tolerance={tolerance}, resultFile="{result_file}"{others});
 """.format(start_time=self._simulator_.get('t0'),
-           stop_time=self._simulator_.get('t1'),
-           method=self._simulator_.get('solver'),
-           tolerance=self._simulator_.get('eps'),
-           result_file=self._simulator_.get('resultFile'),
-           others=intervals)
+                stop_time=self._simulator_.get('t1'),
+                method=self._simulator_.get('solver'),
+                tolerance=self._simulator_.get('eps'),
+                result_file=self._simulator_.get('resultFile'),
+                others=intervals)
 
         # Post-processing commands
         for posPro in self._postProcessing_:
@@ -451,8 +451,8 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
 
             # Run simulation
             self._runSimulation(runScriptName,
-                                 self._simulator_.get('timeout'),
-                                 worDir)
+                                self._simulator_.get('timeout'),
+                                worDir)
             self._check_simulation_errors(worDir)
             self._copyResultFiles(worDir)
             self._deleteTemporaryDirectory(worDir)
@@ -516,7 +516,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
                                 worDir)
         except:  # Catch all possible exceptions
             self._reporter.writeError("Translation failed in '" + worDir + "'\n"
-                                       + "   You need to delete the directory manually.")
+                                      + "   You need to delete the directory manually.")
             raise
 
     def simulate_translated(self):
@@ -580,12 +580,12 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
                 fil.write('resultFile=' + '"' + str(self._simulator_.get('resultFile')) + '"' + ';\n')
                 #fil.write('modelInstance=' + mi + ';\n')
                 fil.write('simulateModel("", ')
-                fil.write('startTime=' + str(self._simulator_.get('t0')) + \
-                              ', stopTime='  + str(self._simulator_.get('t1')) + \
-                              ', method="' + self._simulator_.get('solver') + '"' + \
-                              ', tolerance=' + str(self._simulator_.get('eps')) + \
-                              ', resultFile="' + str(self._simulator_.get('resultFile')
-                                                     + '"'))
+                fil.write('startTime=' + str(self._simulator_.get('t0')) +
+                          ', stopTime=' + str(self._simulator_.get('t1')) +
+                          ', method="' + self._simulator_.get('solver') + '"' +
+                          ', tolerance=' + str(self._simulator_.get('eps')) +
+                          ', resultFile="' + str(self._simulator_.get('resultFile')
+                                                 + '"'))
                 if 'numberOfIntervals' in self._simulator_:
                     fil.write(', numberOfIntervals=' +
                               str(self._simulator_.get('numberOfIntervals')))
@@ -612,24 +612,24 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
 
             # Run simulation
             self._runSimulation(runScriptName,
-                                 self._simulator_.get('timeout'),
-                                 worDir)
+                                self._simulator_.get('timeout'),
+                                worDir)
             self._check_simulation_errors(worDir)
             self._copyResultFiles(worDir)
             self._deleteTemporaryDirectory(worDir)
             self._check_model_parametrization()
         except:  # Catch all possible exceptions
             self._reporter.writeError("Simulation failed in '" + worDir + "'\n"
-                                       + "   You need to delete the directory manually.")
+                                      + "   You need to delete the directory manually.")
             raise
 
     def deleteOutputFiles(self):
         ''' Deletes the output files of the simulator.
         '''
         filLis = ['buildlog.txt', 'dsfinal.txt', 'dsin.txt', 'dslog.txt',
-                'dsmodel*', 'dymosim', 'dymosim.exe',
-                str(self._simulator_.get('resultFile')) + '.mat',
-                'request.', 'status', 'failure', 'stop']
+                  'dsmodel*', 'dymosim', 'dymosim.exe',
+                  str(self._simulator_.get('resultFile')) + '.mat',
+                  'request.', 'status', 'failure', 'stop']
         self._deleteFiles(filLis)
 
     def deleteLogFiles(self):
@@ -637,7 +637,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
             files ``BuildingsPy.log``, ``run.mos`` and ``simulator.log``.
         '''
         filLis = ['BuildingsPy.log', 'run.mos', 'run_simulate.mos',
-                'run_translate.mos', 'simulator.log', 'translator.log']
+                  'run_translate.mos', 'simulator.log', 'translator.log']
         self._deleteFiles(filLis)
 
     def _deleteFiles(self, fileList):
@@ -670,8 +670,8 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         '''
         import time
         self._reporter.writeOutput("Model name       = " + self.modelName + '\n' +
-                                    "Output directory = " + self._outputDir_ + '\n' +
-                                    "Time             = " + time.asctime() + '\n')
+                                   "Output directory = " + self._outputDir_ + '\n' +
+                                   "Time             = " + time.asctime() + '\n')
         return
 
     def _copyResultFiles(self, srcDir):
@@ -686,7 +686,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         if self._outputDir_ != '.':
             self._createDirectory(self._outputDir_)
         filLis = ['run_simulate.mos', 'run_translate.mos', 'run.mos', 'translator.log', 'simulator.log', 'dslog.txt',
-                self._simulator_.get('resultFile') + '.mat']
+                  self._simulator_.get('resultFile') + '.mat']
         for fil in filLis:
             srcFil = os.path.join(srcDir, fil)
             newFil = os.path.join(self._outputDir_, fil)
@@ -695,8 +695,8 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
                     shutil.copy(srcFil, newFil)
             except IOError as e:
                 self._reporter.writeError("Failed to copy '" +
-                                           srcFil + "' to '" + newFil +
-                                           "; : " + e.strerror)
+                                          srcFil + "' to '" + newFil +
+                                          "; : " + e.strerror)
 
     def _deleteTemporaryDirectory(self, worDir):
         ''' Deletes the working directory.
@@ -717,14 +717,14 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         # Make sure we don't delete a root directory
         if dirNam.find('tmp-simulator-') == -1:
             self._reporter.writeError("Failed to delete '" +
-                                       dirNam + "' as it does not seem to be a valid directory name.")
+                                      dirNam + "' as it does not seem to be a valid directory name.")
         else:
             try:
                 if os.path.exists(worDir):
                     shutil.rmtree(dirNam)
             except IOError as e:
                 self._reporter.writeError("Failed to delete '" +
-                                           worDir + ": " + e.strerror)
+                                          worDir + ": " + e.strerror)
 
     def deleteTranslateDirectory(self):
         ''' Deletes the translate directory. Called after simulate_translated
@@ -812,15 +812,15 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
                             # This output needed because of the progress bar
                             sys.stdout.write("\n")
                             self._reporter.writeError("Terminating simulation in "
-                                             + directory + ".")
+                                                      + directory + ".")
                             pro.terminate()
                         else:
                             self._reporter.writeError("Killing simulation in "
-                                             + directory + ".")
+                                                      + directory + ".")
                             pro.kill()
                     else:
                         if self._showProgressBar:
-                            fractionComplete = float(elapsedTime)/float(timeout)
+                            fractionComplete = float(elapsedTime) / float(timeout)
                             self._printProgressBar(fractionComplete)
 
             else:
@@ -840,7 +840,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
                         "*** Standard error stream from simulation:\n" + std_err)
             else:
                 self._reporter.writeError("Killed process as it computed longer than " +
-                             str(timeout) + " seconds.")
+                                          str(timeout) + " seconds.")
 
         except OSError as e:
             print(("Execution of ", cmd, " failed:", e))
@@ -863,7 +863,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         '''
         import sys
         nInc = 50
-        count = int(nInc*fractionComplete)
+        count = int(nInc * fractionComplete)
         proBar = "|"
         for i in range(nInc):
             if i < count:
@@ -871,7 +871,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
             else:
                 proBar += " "
         proBar += "|"
-        print((proBar, int(fractionComplete*100), "%\r",))
+        print((proBar, int(fractionComplete * 100), "%\r",))
         sys.stdout.flush()
 
     def _declare_parameters(self):
@@ -912,7 +912,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         import getpass
         curDir = os.path.abspath(self._packagePath)
         ds = curDir.split(os.sep)
-        dirNam = ds[len(ds)-1]
+        dirNam = ds[len(ds) - 1]
         worDir = os.path.join(tempfile.mkdtemp(
             prefix='tmp-simulator-' + getpass.getuser() + '-'), dirNam)
 
@@ -938,12 +938,12 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
                 raise IOError
 
         actual_res = Reader(os.path.join(self._outputDir_,
-                              self._simulator_['resultFile'])+'.mat',
-                              'dymola')
+                                         self._simulator_['resultFile']) + '.mat',
+                            'dymola')
         for key, value in list(self._parameters_.items()):
             if isinstance(value, list):  # lists
                 for index, val in enumerate(value):
-                    key_string = key + '[' + str(index+1) + ']'
+                    key_string = key + '[' + str(index + 1) + ']'
                     _compare(actual_res, key_string, val)
             else:  # int, floats
                 key_string = key

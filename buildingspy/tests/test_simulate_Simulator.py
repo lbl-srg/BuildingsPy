@@ -65,7 +65,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         '''
         Tests reporting the exception if a simulation fails.
         '''
-        self.failUnlessRaises(ValueError, \
+        self.failUnlessRaises(ValueError,
                               Simulator, "MyModelicaLibrary.MyModel" "dymola", "THIS IS NOT A VALID PACKAGE PATH")
 
     def test_addMethods(self):
@@ -100,7 +100,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         r = Reader(resultFile, "dymola")
         np.testing.assert_allclose(1.0, r.max('source.y'))
         np.testing.assert_allclose(0.725, r.mean('source.y'))
-        np.testing.assert_allclose(0.725*6, r.integral('source.y'))
+        np.testing.assert_allclose(0.725 * 6, r.integral('source.y'))
         np.testing.assert_allclose(-0.1, r.min('source.y'))
         # Delete output files
         s.deleteOutputFiles()
@@ -114,7 +114,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         '''
         s = Simulator("myPackage.myModel", "dymola", packagePath=self._packagePath)
         # Make sure values are added correctly
-        s.addParameters({'PID.k': 1.0, 'valve.m_flow_nominal' : 0.1})
+        s.addParameters({'PID.k': 1.0, 'valve.m_flow_nominal': 0.1})
         self.assertEqual(sorted(s.getParameters()), [('PID.k', 1.0), ('valve.m_flow_nominal', 0.1)])
         # Add one more parameter
         s.addParameters({'PID.t': 10.0})
@@ -138,9 +138,9 @@ class Test_simulate_Simulator(unittest.TestCase):
 
         s = Simulator("MyModelicaLibrary.Examples.Constants",
                       "dymola", packagePath=self._packagePath)
-        s.addParameters({'const1.k' : [2, 3]})
-        s.addParameters({'const2.k' : [[1.1, 1.2], [2.1, 2.2], [3.1, 3.2]]})
-        s.addParameters({'const3.k' : 0})
+        s.addParameters({'const1.k': [2, 3]})
+        s.addParameters({'const2.k': [[1.1, 1.2], [2.1, 2.2], [3.1, 3.2]]})
+        s.addParameters({'const3.k': 0})
         s.simulate()
 
         r = Reader(resultFile, "dymola")
@@ -175,8 +175,8 @@ class Test_simulate_Simulator(unittest.TestCase):
 
         s = Simulator("MyModelicaLibrary.Examples.BooleanParameters",
                       "dymola", packagePath=self._packagePath)
-        s.addParameters({'p1' : True})
-        s.addParameters({'p2' : False})
+        s.addParameters({'p1': True})
+        s.addParameters({'p2': False})
         s.simulate()
 
         r = Reader(resultFile, "dymola")
@@ -219,7 +219,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         np.testing.assert_allclose(1.0, r.max('source.y'))
         np.testing.assert_allclose(-0.1, r.min('source.y'))
         np.testing.assert_allclose(0.725, r.mean('source.y'))
-        np.testing.assert_allclose(0.725*6, r.integral('source.y'))
+        np.testing.assert_allclose(0.725 * 6, r.integral('source.y'))
         # Delete output files
         s.deleteOutputFiles()
         s.deleteLogFiles()
@@ -234,7 +234,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         np.testing.assert_allclose(2.0, r.max('source.y'))
         np.testing.assert_allclose(-0.1, r.min('source.y'))
         np.testing.assert_allclose(1.25, r.mean('source.y'))
-        np.testing.assert_allclose(7*1.25, r.integral('source.y'))
+        np.testing.assert_allclose(7 * 1.25, r.integral('source.y'))
 
         # clean up translate temporary dir
         s.deleteOutputFiles()
@@ -266,7 +266,7 @@ class Test_simulate_Simulator(unittest.TestCase):
             # No exception. Check results
             actual_res = Reader(os.path.join(".",
                                              'ParameterEvaluation.mat'),
-                                             'dymola')
+                                'dymola')
             (_, y) = actual_res.values('x')
             (_, n) = actual_res.values('n')
             np.testing.assert_allclose(y[0], desired_value)
