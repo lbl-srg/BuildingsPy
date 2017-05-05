@@ -52,10 +52,10 @@ class Test_regressiontest_Tester(unittest.TestCase):
         self.assertEqual(["a"], r.Tester.get_plot_variables('abc, y = {"a"}'), "Expected a")
         self.assertEqual(["a"], r.Tester.get_plot_variables(
             'x= {"x"}, y = {"a"}, z = {"s"}'), "Expected a")
-        self.assertEqual(["x_incStrict[1]", "x_incStrict[2]"],\
-                          r.Tester.get_plot_variables('y={"x_incStrict[1]", "x_incStrict[2]"},'),\
+        self.assertEqual(["x_incStrict[1]", "x_incStrict[2]"],
+                         r.Tester.get_plot_variables('y={"x_incStrict[1]", "x_incStrict[2]"},'),
                          "Expect other result")
-        self.assertEqual(["const1[1].y", "const2[1, 1].y"], \
+        self.assertEqual(["const1[1].y", "const2[1, 1].y"],
                          r.Tester.get_plot_variables(' y={"const1[1].y", "const2[1, 1].y"} '))
 
     def test_regressiontest(self):
@@ -119,7 +119,7 @@ class Test_regressiontest_Tester(unittest.TestCase):
 
     def test_runSimulation(self):
         import buildingspy.development.regressiontest as r
-        self.assertRaises(OSError, \
+        self.assertRaises(OSError,
                           r.runSimulation, ".", "this_command_does_not_exist")
 
     def test_areResultsEqual(self):
@@ -130,7 +130,7 @@ class Test_regressiontest_Tester(unittest.TestCase):
         nPoi = 101
         tOld = [tMin, tMax]
         yOld = [10, 10]
-        tNew = [tMin+float(i)/(nPoi-1)*(tMax-tMin) for i in range(nPoi) ]
+        tNew = [tMin + float(i) / (nPoi - 1) * (tMax - tMin) for i in range(nPoi)]
         yNew = [10.0 for i in range(nPoi)]
         varNam = "testVariable"
         filNam = "testFilename"
@@ -151,12 +151,12 @@ class Test_regressiontest_Tester(unittest.TestCase):
 
         # Test the case where the simulation may have failed and hence the end
         # time is smaller than the end time of the reference results
-        tNew = [tMin+float(i)/(nPoi-1)*0.9*(tMax-tMin) for i in range(nPoi) ]
+        tNew = [tMin + float(i) / (nPoi - 1) * 0.9 * (tMax - tMin) for i in range(nPoi)]
         yNew = [10.0 for i in range(nPoi)]
         (equ, timMaxErr, _) = rt.areResultsEqual(tNew, yNew, tOld, yOld, varNam, filNam)
         self.assertFalse(equ, "Test with smaller simulation end time should have returned false.")
         # Test for different start time
-        tNew = [0.1 + tMin+float(i)/(nPoi-1)*(tMax-tMin) for i in range(nPoi) ]
+        tNew = [0.1 + tMin + float(i) / (nPoi - 1) * (tMax - tMin) for i in range(nPoi)]
         (equ, timMaxErr, _) = rt.areResultsEqual(tNew, yNew, tOld, yOld, varNam, filNam)
         self.assertFalse(equ, "Test with smaller simulation start time should have returned false.")
 
@@ -197,7 +197,7 @@ class Test_regressiontest_Tester(unittest.TestCase):
         rt.setLibraryRoot(myMoLib)
         rt.setLibraryRoot(myMoLib)
         # This call must raise an exception
-        self.assertRaises(ValueError, \
+        self.assertRaises(ValueError,
                           rt.setLibraryRoot, "this_is_not_the_root_dir_of_a_library")
 
     def test_test_OpenModelica(self):
@@ -220,30 +220,30 @@ class Test_regressiontest_Tester(unittest.TestCase):
         import buildingspy.development.regressiontest as r
 
         self.assertEqual("A.B",
-           r.Tester.expand_packages("A.B"))
+                         r.Tester.expand_packages("A.B"))
         self.assertEqual("A.B,A.C",
-           r.Tester.expand_packages("A.{B,C}"))
+                         r.Tester.expand_packages("A.{B,C}"))
         self.assertEqual("A.B.xy,A.B.xy.z",
-           r.Tester.expand_packages("A.B.{xy,xy.z}"))
+                         r.Tester.expand_packages("A.B.{xy,xy.z}"))
 
         # Add spaces
         self.assertEqual("A.B,A.C",
-           r.Tester.expand_packages("A.{B, C}"))
+                         r.Tester.expand_packages("A.{B, C}"))
         self.assertEqual("A.B,A.C",
-           r.Tester.expand_packages("A.{ B , C }"))
+                         r.Tester.expand_packages("A.{ B , C }"))
         self.assertEqual("A.B.xy,A.B.xy.z",
-           r.Tester.expand_packages("A.B.{xy, xy.z}"))
+                         r.Tester.expand_packages("A.B.{xy, xy.z}"))
         self.assertEqual("A.B.xy,A.B.xy.z",
-           r.Tester.expand_packages("A.B.{ xy, xy.z}"))
+                         r.Tester.expand_packages("A.B.{ xy, xy.z}"))
         self.assertEqual("A.B.xy,A.B.xy.z",
-           r.Tester.expand_packages("A.B.{ xy , xy.z }"))
+                         r.Tester.expand_packages("A.B.{ xy , xy.z }"))
 
-        self.assertRaises(ValueError, \
-            r.Tester.expand_packages, "AB{")
-        self.assertRaises(ValueError, \
-            r.Tester.expand_packages, "AB{}")
-        self.assertRaises(ValueError, \
-            r.Tester.expand_packages, "AB}a{")
+        self.assertRaises(ValueError,
+                          r.Tester.expand_packages, "AB{")
+        self.assertRaises(ValueError,
+                          r.Tester.expand_packages, "AB{}")
+        self.assertRaises(ValueError,
+                          r.Tester.expand_packages, "AB}a{")
 
 
 if __name__ == '__main__':

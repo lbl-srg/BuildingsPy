@@ -27,19 +27,19 @@ class Test_development_error_dictionary(unittest.TestCase):
         k = sorted(err_dic.keys())
 
         k_expected = sorted(['differentiated if',
-                      'experiment annotation',
-                      'file not found',
-                      'invalid connect',
-                      'numerical Jacobians',
-                      'parameter with start value only',
-                      'redundant consistent initial conditions',
-                      'redundant connection',
-                      'redeclare non-replaceable',
-                      'type incompatibility',
-                      'type inconsistent definition equations',
-                      'unspecified initial conditions',
-                      'unused connector',
-                      'stateGraphRoot missing'])
+                             'experiment annotation',
+                             'file not found',
+                             'invalid connect',
+                             'numerical Jacobians',
+                             'parameter with start value only',
+                             'redundant consistent initial conditions',
+                             'redundant connection',
+                             'redeclare non-replaceable',
+                             'type incompatibility',
+                             'type inconsistent definition equations',
+                             'unspecified initial conditions',
+                             'unused connector',
+                             'stateGraphRoot missing'])
 
         self.assertEqual(len(k), len(k_expected), "Wrong number of keys.")
         for i in range(len(k)):
@@ -51,19 +51,19 @@ class Test_development_error_dictionary(unittest.TestCase):
         err_dic = e.ErrorDictionary()
         k = sorted(err_dic.tool_messages())
         k_expected = sorted(['Differentiating (if',
-                      'Warning: Failed to interpret experiment annotation',
-                      'which was not found',
-                      'The model contained invalid connect statements.',
-                      'Number of numerical Jacobians:',
-                      "Warning: The following parameters don't have any value, only a start value",
-                      "Redundant consistent initial conditions:",
-                      "Redundant connection",
-                      'Warning: Redeclaration of non-replaceable requires type equivalence',
-                      'but they must be compatible',
-                      'Type inconsistent definition equation',
-                      'Dymola has selected default initial condition',
-                      'Warning: The following connector variables are not used in the model',
-                      "A \\\"stateGraphRoot\\\" component was automatically introduced."])
+                             'Warning: Failed to interpret experiment annotation',
+                             'which was not found',
+                             'The model contained invalid connect statements.',
+                             'Number of numerical Jacobians:',
+                             "Warning: The following parameters don't have any value, only a start value",
+                             "Redundant consistent initial conditions:",
+                             "Redundant connection",
+                             'Warning: Redeclaration of non-replaceable requires type equivalence',
+                             'but they must be compatible',
+                             'Type inconsistent definition equation',
+                             'Dymola has selected default initial condition',
+                             'Warning: The following connector variables are not used in the model',
+                             "A \\\"stateGraphRoot\\\" component was automatically introduced."])
 
         self.assertEqual(len(k), len(k_expected), "Wrong number of tool messages.")
         for i in range(len(k)):

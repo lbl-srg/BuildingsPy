@@ -31,8 +31,8 @@ class Test_io_Plotter(unittest.TestCase):
         t10 = list(range(10))
         t100 = list(range(100))
 
-        def f(x): return 10+2*x
-        y10  = list(map(f, t10))
+        def f(x): return 10 + 2 * x
+        y10 = list(map(f, t10))
         y100 = list(map(f, t100))
         y10Int = Plotter.interpolate(t10, t100, y100)
         numpy.testing.assert_allclose(y10, y10Int)
@@ -59,7 +59,7 @@ class Test_io_Plotter(unittest.TestCase):
         (tP, yP) = Plotter.convertToPeriodic(10, t, y)
         # Test whether the time vector is periodic
         for i in range(10):
-            numpy.testing.assert_allclose(tP[i*10:(i+1)*10], list(range(10)))
+            numpy.testing.assert_allclose(tP[i * 10:(i + 1) * 10], list(range(10)))
         # Test whether y remains unchanged
         numpy.testing.assert_allclose(y, yP)
         # Should raise an exception of t[0] != 0
@@ -75,14 +75,14 @@ class Test_io_Plotter(unittest.TestCase):
         import numpy as np
         # Construct 3 days of data with 1/2 hour time interval
         # The first time stamp is 0, the last time stamp is 72
-        t = np.arange(0, 24*3+0.5, 0.5)
+        t = np.arange(0, 24 * 3 + 0.5, 0.5)
         y = t
         # Convert to period of 24 hours
 #        (tP, y) = Plotter.convertToPeriodic(24, t, y)
         # Create plot
-        Plotter.boxplot(t, y, increment=0.5, nIncrement=2*24,
-                notch=0, sym='b+', vert=1, whis=1.5,
-                positions=None, widths=None, patch_artist=False, bootstrap=None, hold=None)
+        Plotter.boxplot(t, y, increment=0.5, nIncrement=2 * 24,
+                        notch=0, sym='b+', vert=1, whis=1.5,
+                        positions=None, widths=None, patch_artist=False, bootstrap=None, hold=None)
 
 
 if __name__ == '__main__':
