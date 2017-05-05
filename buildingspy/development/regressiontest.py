@@ -425,7 +425,7 @@ class Tester(object):
                     counter += 1
         return counter
 
-    def setExcludeMosFromFile(self, excludeFile = None):
+    def setExcludeMosFromFile(self, excludeFile=None):
         ''' Populate the global list self._excludeMos scripts from a text file
 
         :param excludeFile: The text file with files that shall be excluded from regression tests
