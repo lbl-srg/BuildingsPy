@@ -49,16 +49,16 @@ class Test_example_dymola_runSimulation(unittest.TestCase):
 
         self._temDir = tempfile.mkdtemp(prefix='tmp-BuildingsPy-Modelica-Lib-')
 
-        if not os.path.exists( os.path.join(os.getcwd(), "tmp") ):
+        if not os.path.exists(os.path.join(os.getcwd(), "tmp")):
             clo_dir = os.path.join(os.getcwd(), "tmp")
             if os.path.exists(clo_dir):
                 shutil.rmtree(clo_dir)
-            Repo.clone_from("https://github.com/lbl-srg/modelica-buildings.git", \
+            Repo.clone_from("https://github.com/lbl-srg/modelica-buildings.git",
                             clo_dir, depth=1)
 
             if os.path.exists(os.path.join(os.getcwd(), "Buildings")):
                 shutil.rmtree(os.path.join(os.getcwd(), "Buildings"))
-            shutil.move(os.path.join(os.getcwd(), "tmp", "Buildings"), \
+            shutil.move(os.path.join(os.getcwd(), "tmp", "Buildings"),
                         os.path.join(os.getcwd()))
 
     def tearDown(self):

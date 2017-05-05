@@ -61,16 +61,19 @@ class IBPSA(object):
         self._new_library_name = os.path.basename(dest_dir)
 
         # Exclude packages and files
-        self.set_excluded_packages(["Experimental", \
+        self.set_excluded_packages(["Experimental",
                                     "Obsolete"])
-        self._excluded_files = [os.path.join(ibpsa_dir, "package.mo"), \
-                                os.path.join(ibpsa_dir, "simulator.log"), \
-                                os.path.join(ibpsa_dir, "unitTests.log"), \
-                                os.path.join(ibpsa_dir, "Fluid", "package.mo"), \
-                                os.path.join(ibpsa_dir, "Resources", "Scripts", "travis", "Makefile"), \
-                                os.path.join(ibpsa_dir, "Resources", "Scripts", "JModelica", "README.md"), \
-                                os.path.join(ibpsa_dir, "Resources", "Scripts", "JModelica", "getReferenceResults.py"), \
-                                os.path.join(ibpsa_dir, "Resources", "www", "modelicaDoc.css"), \
+        self._excluded_files = [os.path.join(ibpsa_dir, "package.mo"),
+                                os.path.join(ibpsa_dir, "simulator.log"),
+                                os.path.join(ibpsa_dir, "unitTests.log"),
+                                os.path.join(ibpsa_dir, "Fluid", "package.mo"),
+                                os.path.join(ibpsa_dir, "Resources",
+                                             "Scripts", "travis", "Makefile"),
+                                os.path.join(ibpsa_dir, "Resources", "Scripts",
+                                             "JModelica", "README.md"),
+                                os.path.join(ibpsa_dir, "Resources", "Scripts",
+                                             "JModelica", "getReferenceResults.py"),
+                                os.path.join(ibpsa_dir, "Resources", "www", "modelicaDoc.css"),
                                 os.path.join(ibpsa_dir, "legal.html")]
 
     def set_excluded_packages(self, packages):
@@ -255,7 +258,7 @@ class IBPSA(object):
         # Now, remove the files, unless they are no longer in the repository anyway.
         for fil in previouslyCopiedFiles:
             filNam = os.path.join(
-                self._target_home[0: self._target_home.rfind( self._new_library_name )], fil)
+                self._target_home[0: self._target_home.rfind(self._new_library_name)], fil)
             if os.path.isfile(filNam):
                 os.remove(filNam)
 

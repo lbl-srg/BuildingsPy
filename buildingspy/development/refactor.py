@@ -217,7 +217,7 @@ def _git_move(source, target):
     # Throw an error if source is not a file that exist.
     if not os.path.isfile(source):
         raise ValueError("Failed to move file '%s' as it does not exist." %
-                        os.path.abspath(os.path.join(os.path.curdir, source)))
+                         os.path.abspath(os.path.join(os.path.curdir, source)))
 
     # Throw an error if target is an existing file, except if it is the package.mo file
     if os.path.isfile(target):
@@ -225,13 +225,13 @@ def _git_move(source, target):
             print("*** Warning: Did not move {}.".format(target))
             return
         else:
-            raise ValueError("Failed to move '{}' to target '{}' as target already exists.".format( \
-                        os.path.abspath(os.path.join(os.path.curdir, source)), \
-                        os.path.abspath(os.path.join(os.path.curdir, target))))
+            raise ValueError("Failed to move '{}' to target '{}' as target already exists.".format(
+                os.path.abspath(os.path.join(os.path.curdir, source)),
+                os.path.abspath(os.path.join(os.path.curdir, target))))
 
     # If the destination directory does not exist, create it.
     targetDir = os.path.dirname(target)
-    ext       = os.path.splitext(target)[1]
+    ext = os.path.splitext(target)[1]
     if not os.path.exists(targetDir):
         # Directory does not exist.
         if ext == ".mo":
@@ -298,9 +298,9 @@ def _move_mo_file(source, target):
     def sd(s): return "within " + s[:s.rfind('.')] + ";"
     replace_text_in_file(targetFile, sd(source), sd(target))
     # Update the class name
-    replace_text_in_file(targetFile, \
-                              " " + source[source.rfind('.')+1:], \
-                              " " + target[target.rfind('.')+1:])
+    replace_text_in_file(targetFile,
+                         " " + source[source.rfind('.') + 1:],
+                         " " + target[target.rfind('.') + 1:])
 
 
 def _move_mos_file(source, target):
@@ -335,13 +335,13 @@ def _move_mos_file(source, target):
         # replace this in the name of the mos file and move the mos file to
         # its new name.
         _git_move(sourceMosFile,
-                       targetMosFile)
+                  targetMosFile)
         # Replace the Modelica class name that may be used in simulate.
         replace_text_in_file(targetMosFile, source, target)
         # The result file name is typically the model name.
         # Update this name with the new model name
 
-        def l(s): return s[s.rfind(".")+1:]
+        def l(s): return s[s.rfind(".") + 1:]
         replace_text_in_file(targetMosFile, l(source), l(target))
 
 
@@ -364,8 +364,8 @@ def _move_reference_result(source, target):
 
     if os.path.isfile(sourceRefFile):
         _git_move(sourceRefFile,
-                       sourceRefFile.replace(source.replace(".", "_"),
-                                             target.replace(".", "_")))
+                  sourceRefFile.replace(source.replace(".", "_"),
+                                        target.replace(".", "_")))
 
 
 def _move_image_files(source, target):
@@ -378,17 +378,17 @@ def _move_image_files(source, target):
 
     # Name of directory that may contain the image files
     def imgDir(s): return os.path.join(os.path.curdir, "Resources",
-                                    "Images", os.path.join(*s.split(".")[1:-1]))
+                                       "Images", os.path.join(*s.split(".")[1:-1]))
     sourceImgDir = imgDir(source)
     if os.path.isdir(sourceImgDir):
-        files = [f for f in os.listdir( sourceImgDir ) if os.path.isfile(f)]
+        files = [f for f in os.listdir(sourceImgDir) if os.path.isfile(f)]
         for f in files:
             # This iterates through all files in this directory.
-            if os.path.splitext(f) is source[source.rfind(".")+1:]:
+            if os.path.splitext(f) is source[source.rfind(".") + 1:]:
                 # This image has the same name (and directory) as the model that needs to be
                 # renamed. Hence, move it to the new location.
                 _git_move(os.path.join(sourceImgDir, f),
-                                   os.path.join(imgDir(target), f))
+                          os.path.join(imgDir(target), f))
 
 
 def write_package_order(directory=".", recursive=False):
@@ -420,7 +420,7 @@ def write_package_order(directory=".", recursive=False):
             write_package_order(directory=ele, recursive=False)
     else:
         # Update the package.order file in the current directory.
-        files = [f for f in os.listdir( directory )]
+        files = [f for f in os.listdir(directory)]
         pacLis = list()
         for f in files:
             if os.path.isfile(os.path.join(directory, f)):
@@ -535,8 +535,8 @@ def _move_class_directory(source, target):
         replace_text_in_file(os.path.join(target_dir, "package.mo"), sd(source), sd(target))
         # Update the class name
         replace_text_in_file(os.path.join(target_dir, "package.mo"),
-                              " " + source[source.rfind('.')+1:],
-                              " " + target[target.rfind('.')+1:])
+                             " " + source[source.rfind('.') + 1:],
+                             " " + target[target.rfind('.') + 1:])
         # Rename references to this package
         _update_all_references(source, target)
 
@@ -548,10 +548,10 @@ def _move_class_directory(source, target):
     # we iterate through these files, and also delete the package.order file
     # Iterate through files
     mo_files = [f for f in glob.glob(os.path.join(source_dir, "*.mo"))
-                                     if not f.endswith("package.mo")]
+                if not f.endswith("package.mo")]
     for fil in mo_files:
-        move_class(source + "." + fil[len(source_dir)+1:-3], \
-                   target + "." + fil[len(source_dir)+1:-3])
+        move_class(source + "." + fil[len(source_dir) + 1:-3],
+                   target + "." + fil[len(source_dir) + 1:-3])
     # Iterate through directories
     dirs = [f for f in os.listdir(source_dir) if os.path.isdir(os.path.join(source_dir, f))]
     for di in dirs:
@@ -624,7 +624,7 @@ def _update_all_references(source, target):
     # Update the files
 #    pool=Pool(processes=4)
 #    pool.map(_updateFile, fileList)    # This can fail with OSError: [Errno 24] Too many open files
-                                        # when moving large packages
+            # when moving large packages
     for ele in fileList:
         _updateFile(ele)
 
@@ -662,8 +662,8 @@ def _updateFile(arg):
                 break
         return shortSource
 
-    root  = arg[0]
-    fil   = arg[1]
+    root = arg[0]
+    fil = arg[1]
     source = arg[2]
     target = arg[3]
 
@@ -681,9 +681,9 @@ def _updateFile(arg):
         # Replace links to images such as
         # ref=\"modelica://Buildings/Resources/Images/Fluid/Movers/UsersGuide/2013-IBPSA-Wetter.pdf
         src_link = 'modelica://{}/Resources/Images/{}'.format(
-            source.split(".")[0], "/".join(source.split('.')[1:]) )
+            source.split(".")[0], "/".join(source.split('.')[1:]))
         tar_link = 'modelica://{}/Resources/Images/{}'.format(
-            target.split(".")[0], "/".join(target.split('.')[1:]) )
+            target.split(".")[0], "/".join(target.split('.')[1:]))
         replace_text_in_file(srcFil, src_link, tar_link)
 
         # For example, in Buildings/Fluid/Sources/xx.mo, the model Buildings.Fluid.Sensors.yy
@@ -710,7 +710,7 @@ def _updateFile(arg):
         # Replace the hyperlinks, without the top-level library name.
         # This updates for example the RunScript command that points to
         # "....Dymola/Fluid/..."
-        def sd(s): return "Resources/Scripts/Dymola/" + s[s.find('.')+1:].replace(".", "/")
+        def sd(s): return "Resources/Scripts/Dymola/" + s[s.find('.') + 1:].replace(".", "/")
         replace_text_in_file(srcFil, sd(source), sd(target))
     elif srcFil.endswith("package.order"):
         # Update package.order

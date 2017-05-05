@@ -71,7 +71,7 @@ class Test_development_Validator(unittest.TestCase):
         model_name = ''.join(random.choice(string.ascii_uppercase + string.digits)
                              for _ in range(6))
 
-        path_mo = os.path.join(mod_lib, 'Examples', model_name+'.mo')
+        path_mo = os.path.join(mod_lib, 'Examples', model_name + '.mo')
         template = Template(MO_TEMPLATE)
         output_res = template.render(experiment=mo_param, model_name=model_name)
 
@@ -80,7 +80,7 @@ class Test_development_Validator(unittest.TestCase):
         mo_fil.close()
 
         path_mos = os.path.join(mod_lib, 'Resources', 'Scripts', 'Dymola',
-                              'Examples', model_name+'.mos')
+                                'Examples', model_name + '.mos')
 
         template = Template(MOS_TEMPLATE)
         output_res = template.render(parameter=mos_param, model_name=model_name)
@@ -125,8 +125,8 @@ class Test_development_Validator(unittest.TestCase):
         ###########################################
         # Checking tolerances mismatch
         self.run_case(val, myMoLib, "experiment(Tolerance=1e-6, StopTime=1.0),",
-                                        "tolerance=1e-3, stopTime=1.0,",
-                                        "The tolerance found is bigger than 1e-6")
+                      "tolerance=1e-3, stopTime=1.0,",
+                      "The tolerance found is bigger than 1e-6")
 
         #########################################
         # Checking tolerances mismatch
