@@ -720,7 +720,7 @@ class Tester(object):
                                     _get_attribute_value(lin, attr, dat)
 
                             # Check if this model need to be translated as an FMU.
-                            if "translateModelFMU" in lin:
+                            if (self._include_fmu_test and "translateModelFMU" in lin):
                                 dat['mustExportFMU'] = True
                             if dat['mustExportFMU']:
                                 for attr in ["modelToOpen", "modelName"]:
@@ -1965,13 +1965,13 @@ Modelica.Utilities.Streams.print("{\"testCase\" : [", "%s");
             # This is needed to properly close the json brackets.
             nItem = 0
             for i in range(iPro, nTes, self._nPro):
-                if self._data[i]['mustSimulate'] or (self._include_fmu_test and self._data[i]['mustExportFMU']):
+                if self._data[i]['mustSimulate'] or self._data[i]['mustExportFMU']:
                     nItem = nItem + 1
             iItem = 0
             # Write unit tests for this process
             for i in range(iPro, nTes, self._nPro):
                 # Check if this mos file should be simulated
-                if self._data[i]['mustSimulate'] or (self._include_fmu_test and self._data[i]['mustExportFMU']):
+                if self._data[i]['mustSimulate'] or self._data[i]['mustExportFMU']:
                     isLastItem = (iItem == nItem-1)
                     self._data[i]['ResultDirectory'] = self._temDir[iPro]
                     mosFilNam = os.path.join(self.getLibraryName(),
@@ -2066,7 +2066,7 @@ Modelica.Utilities.Streams.print("        \"result\"  : " + String(iSuc > 0) + "
 
                     ##########################################################################
                     # FMU export
-                    if self._modelicaCmd == 'dymola' and self._data[i]["mustExportFMU"] and self._include_fmu_test:
+                    if self._modelicaCmd == 'dymola' and self._data[i]["mustExportFMU"]:
                         template = r"""
 Modelica.Utilities.Files.removeFile("{FMUName}");
 RunScript("Resources/Scripts/Dymola/{scriptFile}");
