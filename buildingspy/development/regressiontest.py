@@ -410,26 +410,20 @@ class Tester(object):
             raise ImportError(msg)
 
     def _checkKey(self, key, fileName, counter):
-        ''' Check whether the file ``fileName`` contains the string ``key``
-            as the first string on the first or second line.
-            If ``key`` is found, increase the counter.
+        ''' Checks whether ``key`` is contained in the header of the file ``fileName``
+            If the first line starts with ``within``
+            and the second line starts with ``key``
+            the counter is increased by one.
         '''
 
         with open(fileName, mode="rt", encoding="utf-8-sig") as filObj:
-            filTex = filObj.readline()
-            # Strip white spaces so we can test strpos for zero.
-            # This test returns non-zero for partial classes.
-            filTex.strip()
-            strpos = filTex.find("within")
-            if strpos == 0:
-                # first line is "within ...
-                # get second line
-                filTex = filObj.readline()
-                filTex.strip()
-            strpos = filTex.find(key)
-            if strpos == 0:
-                counter += 1
-            return counter
+            # filObj is an iterable object, so we can use next(filObj)
+            line0 = next(filObj).strip()
+            if line0.startswith("within"):
+                line1 = next(filObj).strip()
+                if line1.startswith(key):
+                    counter += 1
+        return counter
 
     def setExcludeMosFromFile(self, excludeFile = None):
         ''' Populate the global list self._excludeMos scripts from a text file
@@ -726,8 +720,7 @@ class Tester(object):
                                     _get_attribute_value(lin, attr, dat)
 
                             # Check if this model need to be translated as an FMU.
-                            pos = lin.find("translateModelFMU")
-                            if pos > -1:
+                            if "translateModelFMU" in lin:
                                 dat['mustExportFMU'] = True
                             if dat['mustExportFMU']:
                                 for attr in ["modelToOpen", "modelName"]:
