@@ -2,9 +2,7 @@ dist: trusty
 language: python
 python:
   - "2.7"
-#  - "3.4"
-#  - "3.5"
-#  - "3.6"
+  - "3.5"
 
 cache: pip
 
@@ -39,11 +37,12 @@ before_install:
 install:
   - pip install --upgrade pip setuptools wheel
   - pip install --only-binary=numpy,scipy,matplotlib numpy scipy matplotlib
-  - pip install future gitpython pytidylib autopep8
+  - pip install autopep8
   - pip install .
 
 # Execute tests
 script:
   - omc --version
   - make pep8 PEP8_CORRECT_CODE=true
-  - make doctest unittest
+  - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then make doctest; fi
+  - make unittest
