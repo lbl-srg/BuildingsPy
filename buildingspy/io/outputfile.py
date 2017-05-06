@@ -66,7 +66,7 @@ def get_model_statistics(log_file, simulator):
 
         CONSTA = "Continuous time states:"
         NONLIN = "Sizes after manipulation of the nonlinear systems:"
-        LIN =   "Sizes after manipulation of the linear systems:"
+        LIN = "Sizes after manipulation of the linear systems:"
         NUMJAC = "Number of numerical Jacobians"
         TRAABO = "Translation aborted"
         initalizationMode = False
@@ -152,7 +152,7 @@ def get_errors_and_warnings(log_file, simulator):
             temp = lin.rpartition(":")[2].strip()
             listWarn.append(temp)
         elif lin.find(ERR) >= 0:
-            listErr.append(lines[index+1].strip())
+            listErr.append(lines[index + 1].strip())
 
     ret["warnings"] = listWarn
     ret["errors"] = listErr
@@ -259,8 +259,8 @@ class Reader(object):
         '''
         (t, v) = self.values(varName)
         val = 0.0
-        for i in range(len(t)-1):
-            val = val + (t[i+1]-t[i]) * (v[i+1]+v[i])/2.0
+        for i in range(len(t) - 1):
+            val = val + (t[i + 1] - t[i]) * (v[i + 1] + v[i]) / 2.0
         return val
 
     def mean(self, varName):
@@ -288,7 +288,7 @@ class Reader(object):
            -21.589191160164773
         '''
         t = self.values(varName)[0]
-        r = self.integral(varName)/(max(t)-min(t))
+        r = self.integral(varName) / (max(t) - min(t))
         return r
 
     def min(self, varName):

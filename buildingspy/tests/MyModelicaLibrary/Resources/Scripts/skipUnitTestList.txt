@@ -1,0 +1,7 @@
+# skip some mos tests
+MyModelicaLibrary\Resources\Scripts\Dymola\Examples\BooleanParameters.mos
+# MyModelicaLibrary\Resources\Scripts\Dymola\Examples\Constants.mos
+MyModelicaLibrary\Resources\Scripts\Dymola\Examples\MyStep.mos
+MyModelicaLibrary\Resources\Scripts\Dymola\Examples\FMUs\Gain.mos
+MyModelicaLibrary\Resources\Scripts\Dymola\Examples\FMUs\Integrator_Underscore.mos
+MyModelicaLibrary\Resources\Scripts\Dymola\Examples\FMUs\IntegratorGain.mos

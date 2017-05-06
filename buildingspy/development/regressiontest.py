@@ -425,18 +425,20 @@ class Tester(object):
                     counter += 1
         return counter
 
-    def setExcludeMosFromFile(self, excludeFile = None):
+    def setExcludeMosFromFile(self, excludeFile):
         ''' Populate the global list self._excludeMos scripts from a text file
 
         :param excludeFile: The text file with files that shall be excluded from regression tests
         '''
-        if excludeFile is not None:
+        if os.path.isfile(excludeFile):
             with open(excludeFile, mode="r", encoding="utf-8-sig") as f:
                 for line in f:
                     if line.rstrip().endswith('.mos') and not line.startswith('#'):
                         filNamTup = line.rpartition(self.getLibraryName())
                         filNam = filNamTup[2].rstrip().replace('\\', '/').lstrip('/')
                         self._excludeMos.append(filNam)
+        else:
+            self._reporter.writeError("Could not find file {!s}".format(excludeFile))
 
     def _includeFile(self, fileName):
         ''' Returns true if the file need to be included in the list of scripts to run
@@ -456,7 +458,8 @@ class Tester(object):
             filNam = filNamTup[2].rstrip().replace('\\', '/').lstrip('/')
             # Check whether the file is in the exclude list
             if filNam in self._excludeMos:
-                print("*** Warning: Excluded file {} from the regression tests.".format(filNam))
+                self._reporter.writeWarning(
+                    "*** Warning: Excluded file {} from the regression tests.".format(filNam))
                 return False
             else:
                 return True
@@ -479,13 +482,13 @@ class Tester(object):
         ide = packages.find('}')
 
         # Make some simple test for checking the string format
-        if ide-1 <= ids:
+        if ide - 1 <= ids:
             raise ValueError("String '{}' is wrong formatted".format(packages))
 
         # Get text before the curly brackets
         pre = packages[0:ids]
         # Get text inside the curly brackets
-        in_bra = packages[ids+1:ide]
+        in_bra = packages[ids + 1:ide]
         entries = in_bra.split(',')
         # Add the start to the entries
         pac = []
@@ -537,7 +540,7 @@ class Tester(object):
 
         for pac in packages:
             pacSep = pac.find('.')
-            pacPat = pac[pacSep+1:]
+            pacPat = pac[pacSep + 1:]
             pacPat = pacPat.replace('.', os.sep)
             rooPat = os.path.join(self._libHome, 'Resources', 'Scripts', 'Dymola', pacPat)
             # Verify that the directory indeed exists
@@ -667,7 +670,7 @@ class Tester(object):
                 posEnd = min(posComma, posBracket)
                 if posEnd < 0:
                     posEnd = max(posComma, posBracket)
-                entry = line[posEq+1:posEnd]
+                entry = line[posEq + 1:posEnd]
                 dat[keyword] = re.sub(r'^"|"$', '', entry)
             return
 
@@ -686,11 +689,11 @@ class Tester(object):
                 # which have the extensions .mos~ if they are generated from emacs
                 if mosFil.endswith('.mos') and (not mosFil.startswith("Convert" + self.getLibraryName())):
                     matFil = ""
-                    dat = {\
-                           'ScriptFile': os.path.join(root[len(os.path.join(self._libHome, 'Resources', 'Scripts', 'Dymola'))+1:], \
-                                                     mosFil), \
-                           'mustSimulate': False, \
-                           'mustExportFMU': False}
+                    dat = {
+                        'ScriptFile': os.path.join(root[len(os.path.join(self._libHome, 'Resources', 'Scripts', 'Dymola')) + 1:],
+                                                   mosFil),
+                        'mustSimulate': False,
+                        'mustExportFMU': False}
 
                     # open the mos file and read its content.
                     # Path and name of mos file without 'Resources/Scripts/Dymola'
@@ -709,11 +712,11 @@ class Tester(object):
                             # Also, set the flag mustSimulate to True.
                             simCom = re.search('simulateModel\\(\s*".*"', lin)
                             if simCom is not None:
-                                    modNam = re.sub('simulateModel\\(\s*"', '', simCom.string)
-                                    modNam = modNam[0:modNam.index('"')]
-                                    dat['mustSimulate'] = True
-                                    dat['modelName'] = modNam
-                                    dat['TranslationLogFile'] = modNam + ".translation.log"
+                                modNam = re.sub('simulateModel\\(\s*"', '', simCom.string)
+                                modNam = modNam[0:modNam.index('"')]
+                                dat['mustSimulate'] = True
+                                dat['modelName'] = modNam
+                                dat['TranslationLogFile'] = modNam + ".translation.log"
                             # parse startTime and stopTime, if any
                             if dat['mustSimulate']:
                                 for attr in ["startTime", "stopTime"]:
@@ -756,7 +759,7 @@ class Tester(object):
                             plotVars = []
                             iLin = 0
                             for lin in Lines:
-                                iLin = iLin+1
+                                iLin = iLin + 1
                                 try:
                                     y = self.get_plot_variables(lin)
                                     if y is not None:
@@ -858,7 +861,7 @@ class Tester(object):
         :param tMax: Maximum time of the results.
         :param nPoi: Number of result points.
         '''
-        return [ tMin+float(i)/(nPoi-1)*(tMax-tMin) for i in range(nPoi) ]
+        return [tMin + float(i) / (nPoi - 1) * (tMax - tMin) for i in range(nPoi)]
 
     def _getSimulationResults(self, data, warnings, errors):
         '''
@@ -880,7 +883,7 @@ class Tester(object):
             # [::step] may not extract the last time stamp, in which case
             # the final time changes when the number of event changes.
             r = y[::step]
-            r[len(r)-1] = y[len(y)-1]
+            r[len(r) - 1] = y[len(y) - 1]
             return r
 
         # Get the working directory that contains the ".mat" file
@@ -914,13 +917,13 @@ class Tester(object):
                     s = "When processing " + fulFilNam + " generated by " + \
                         data['ScriptFile'] + ", caught division by zero.\n"
                     s += "   len(val)  = " + str(len(val)) + "\n"
-                    s += "   tMax-tMin = " + str(tMax-tMin) + "\n"
+                    s += "   tMax-tMin = " + str(tMax - tMin) + "\n"
                     warnings.append(s)
                     break
 
                 except KeyError:
                     warnings.append("%s uses %s which does not exist in %s.\n" %
-                                     (data['ScriptFile'], var, data['ResultFile']))
+                                    (data['ScriptFile'], var, data['ResultFile']))
                 else:
                     # Store time grid.
                     if ('time' not in dat):
@@ -988,13 +991,13 @@ class Tester(object):
             Stop processing %s\n" % (len(tNew), nPoi, filNam)
                 raise ValueError(s)
 
-        if (abs(tOld[-1]-tNew[-1]) > 1E-5):
+        if (abs(tOld[-1] - tNew[-1]) > 1E-5):
             msg = """The new results and the reference results have a different end time.
             tNew = [%d, %d]
             tOld = [%d, %d]""" % (tNew[0], tNew[-1], tOld[0], tOld[-1])
             return (False, min(tOld[-1], tNew[-1]), msg)
 
-        if (abs(tOld[0]-tNew[0]) > 1E-5):
+        if (abs(tOld[0] - tNew[0]) > 1E-5):
             msg = """The new results and the reference results have a different start time.
             tNew = [%d, %d]
             tOld = [%d, %d]""" % (tNew[0], tNew[-1], tOld[0], tOld[-1])
@@ -1043,7 +1046,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         # store the parameter as if it were a variable so that the reference result are not
         # going to be changed.
         if (varNam.endswith("heatPort.T") or varNam.endswith("heatPort.Q_flow")) and (len(yInt) == 2) \
-        and len(yOld) != len(yInt):
+                and len(yOld) != len(yInt):
             yInt = np.ones(len(yOld)) * yInt[0]
 
         # Compute error for the variable with name varNam
@@ -1072,10 +1075,10 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         for i in range(len(yInt)):
             errAbs[i] = abs(yOld[i] - yInt[i])
             if np.isnan(errAbs[i]):
-                raise ValueError('NaN in errAbs ' + varNam + " "  + str(yOld[i]) +
-                                 "  " + str(yInt[i]) + " i, N " + str(i) + " --:" + str(yInt[i-1]) +
-                                 " ++:", str(yInt[i+1]))
-            if (abs(yOld[i]) > 10*tol):
+                raise ValueError('NaN in errAbs ' + varNam + " " + str(yOld[i]) +
+                                 "  " + str(yInt[i]) + " i, N " + str(i) + " --:" + str(yInt[i - 1]) +
+                                 " ++:", str(yInt[i + 1]))
+            if (abs(yOld[i]) > 10 * tol):
                 errRel[i] = errAbs[i] / abs(yOld[i])
             else:
                 errRel[i] = 0
@@ -1105,8 +1108,8 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         '''
         import numpy as np
         if not (isinstance(dataSeries, np.ndarray) or isinstance(dataSeries, list)):
-            raise TypeError("Program error: dataSeries must be a numpy.ndarr or a list. Received type " \
-                                + str(type(dataSeries)) + ".\n")
+            raise TypeError("Program error: dataSeries must be a numpy.ndarr or a list. Received type "
+                            + str(type(dataSeries)) + ".\n")
         return (len(dataSeries) == 2)
 
     def format_float(self, value):
@@ -1114,8 +1117,8 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             non-significant zeros removed.
         '''
         import re
-        return re.sub( re.compile('\.e'), 'e', \
-          re.sub(re.compile('0*e'), 'e', "{0:.15e}".format(value)))
+        return re.sub(re.compile('\.e'), 'e',
+                      re.sub(re.compile('0*e'), 'e', "{0:.15e}".format(value)))
 
     def _writeReferenceResults(self, refFilNam, y_sim, y_tra):
         ''' Write the reference results.
@@ -1175,9 +1178,9 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         iSta = 0
         for iLin in range(min(2, len(lines))):
             if "svn-id" in lines[iLin]:
-                iSta = iSta+1
+                iSta = iSta + 1
             if "last-generated" in lines[iLin]:
-                iSta = iSta+1
+                iSta = iSta + 1
 
         r = dict()
         iLin = iSta
@@ -1193,12 +1196,12 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                     # The json string was pretty printed over several lines.
                     # Add to value the next line, unless it contains "-" or it does not exist.
                     value = value.strip()
-                    while (iLin < len(lines)-1 and lines[iLin+1].find('=') == -1):
-                        value = value + lines[iLin+1].strip('\n').strip()
+                    while (iLin < len(lines) - 1 and lines[iLin + 1].find('=') == -1):
+                        value = value + lines[iLin + 1].strip('\n').strip()
                         iLin += 1
                     d[key] = ast.literal_eval(value)
                 else:
-                    s = (value[value.find('[')+1: value.rfind(']')]).strip()
+                    s = (value[value.find('[') + 1: value.rfind(']')]).strip()
                     numAsStr = s.split(',')
                     val = []
                     for num in numAsStr:
@@ -1330,9 +1333,9 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                     print(
                         "*** Warning: Different simulation time interval in {} and {}".format(refFilNam, matFilNam))
                     print("             Old reference points are for {} <= t <= {}".format(
-                        t_ref[0], t_ref[len(t_ref)-1]))
+                        t_ref[0], t_ref[len(t_ref) - 1]))
                     print("             New reference points are for {} <= t <= {}".format(
-                        t_sim[0], t_sim[len(t_sim)-1]))
+                        t_sim[0], t_sim[len(t_sim) - 1]))
                     foundError = True
                     while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
                         print("             Accept new results and update reference file in library?")
@@ -1354,8 +1357,8 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                         else:
                             t = t_sim
 
-                        (res, timMaxErr, warning) = self.areResultsEqual(t_ref, y_ref[varNam], \
-                                                                         t, pai[varNam], \
+                        (res, timMaxErr, warning) = self.areResultsEqual(t_ref, y_ref[varNam],
+                                                                         t, pai[varNam],
                                                                          varNam, matFilNam)
                         if warning:
                             self._reporter.writeWarning(warning)
@@ -1401,7 +1404,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                 t_sim = pai['time']
                 for varNam in list(pai.keys()):
                     iPai += 1
-                    if iPai > len(color)-1:
+                    if iPai > len(color) - 1:
                         iPai = 0
                     if varNam != 'time':
                         if self._isParameter(pai[varNam]):
@@ -1583,9 +1586,9 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                     # Compare it with the stored results, and update the stored results if
                     # needed and requested by the user.
                     [updated_reference_data, ans] = self._compare_and_rewrite_fmu_dependencies(dep_new,
-                                                         refDir,
-                                                         refFilNam,
-                                                         ans)
+                                                                                               refDir,
+                                                                                               refFilNam,
+                                                                                               ans)
                     # Reset answer, unless it is set to Y or N
                     if not (ans == "Y" or ans == "N"):
                         ans = "-"
@@ -1753,11 +1756,11 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             if counter > 0:
                 print(v['summary_message'].format(counter))
 
-        self._reporter.writeOutput("Script that runs unit tests had " + \
-                                        str(self._reporter.getNumberOfWarnings()) + \
-                                        " warnings and " + \
-                                        str(self._reporter.getNumberOfErrors()) + \
-                                        " errors.\n")
+        self._reporter.writeOutput("Script that runs unit tests had " +
+                                   str(self._reporter.getNumberOfWarnings()) +
+                                   " warnings and " +
+                                   str(self._reporter.getNumberOfErrors()) +
+                                   " errors.\n")
         sys.stdout.write("See '{}' for details.\n".format(self._simulator_log_file))
 
         if self._reporter.getNumberOfErrors() > 0:
@@ -1900,7 +1903,7 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
             runFil.write(template.format(**values))
 
             # Close the bracket for the JSON object
-            runFil.write("""Modelica.Utilities.Streams.print("      }", """ + \
+            runFil.write("""Modelica.Utilities.Streams.print("      }", """ +
                          '"' + values['statisticsLog'] + '"' + ");\n")
 
         def _print_end_of_json(isLastItem, fileHandle, logFileName):
@@ -1925,9 +1928,9 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
         for iPro in range(self._nPro):
 
             runFil = open(os.path.join(self._temDir[iPro], self.getLibraryName(
-                ), "runAll.mos"), mode="w", encoding="utf-8")
+            ), "runAll.mos"), mode="w", encoding="utf-8")
             runFil.write(
-                "// File autogenerated for process {!s} of {!s}\n".format(iPro+1, self._nPro))
+                "// File autogenerated for process {!s} of {!s}\n".format(iPro + 1, self._nPro))
             runFil.write(
                 "// File created for execution by {}. Do not edit.\n".format(self._modelicaCmd))
 
@@ -1972,7 +1975,7 @@ Modelica.Utilities.Streams.print("{\"testCase\" : [", "%s");
             for i in range(iPro, nTes, self._nPro):
                 # Check if this mos file should be simulated
                 if self._data[i]['mustSimulate'] or self._data[i]['mustExportFMU']:
-                    isLastItem = (iItem == nItem-1)
+                    isLastItem = (iItem == nItem - 1)
                     self._data[i]['ResultDirectory'] = self._temDir[iPro]
                     mosFilNam = os.path.join(self.getLibraryName(),
                                              "Resources", "Scripts", "Dymola",
@@ -1984,7 +1987,7 @@ Modelica.Utilities.Streams.print("{\"testCase\" : [", "%s");
                               "checkCommandString": self._getModelCheckCommand(absMosFilNam).replace('\"', r'\\\"'),
                               "scriptFile": self._data[i]['ScriptFile'].replace("\\", "/"),
                               "modelName": self._data[i]['modelName'].replace("\\", "/"),
-                              "modelName_underscore":  self._data[i]['modelName'].replace(".", "_"),
+                              "modelName_underscore": self._data[i]['modelName'].replace(".", "_"),
                               "statisticsLog": self._statistics_log.replace("\\", "/"),
                               "simulatorLog": self._simulator_log_file.replace("\\", "/")}
 
@@ -2206,7 +2209,7 @@ getErrorString();
         self.checkPythonModuleAvailability()
 
         if self.get_number_of_tests() == 0:
-            self.setDataDictionary( self._rootPackage )
+            self.setDataDictionary(self._rootPackage)
 
         # Remove all data that do not require a simulation or an FMU export.
         # Otherwise, some processes may have no simulation to run and then
@@ -2218,7 +2221,7 @@ getErrorString();
         # Reset the number of processors to use no more processors than there are
         # examples to be run
         self.setNumberOfThreads(min(multiprocessing.cpu_count(),
-                                self.get_number_of_tests(), self._nPro))
+                                    self.get_number_of_tests(), self._nPro))
 
         retVal = 0
         # Start timer
@@ -2260,7 +2263,7 @@ getErrorString();
                 else:
                     cmd = [self.getModelicaCommand(), "runAll.mos", "/nowindow"]
             elif self._modelicaCmd == 'omc':
-                cmd    = [self.getModelicaCommand(), "runAll.mos"]
+                cmd = [self.getModelicaCommand(), "runAll.mos"]
             if self._nPro > 1:
                 po = multiprocessing.Pool(self._nPro)
                 po.map(functools.partial(runSimulation,
@@ -2272,7 +2275,7 @@ getErrorString();
             # Concatenate simulator output files into one file
             with open(self._simulator_log_file, mode="w", encoding="utf-8") as logFil:
                 for d in self._temDir:
-                    for temLogFilNam in glob.glob( os.path.join(d, self.getLibraryName(), '*.translation.log') ):
+                    for temLogFilNam in glob.glob(os.path.join(d, self.getLibraryName(), '*.translation.log')):
                         if os.path.exists(temLogFilNam):
                             with open(temLogFilNam, mode="r", encoding="utf-8-sig") as fil:
                                 data = fil.read()
@@ -2348,7 +2351,7 @@ getErrorString();
                 print("            {}".format(fil))
 
         # Print time
-        elapsedTime = time.time()-startTime
+        elapsedTime = time.time() - startTime
         print("Execution time = {:.3f} s".format(elapsedTime))
 
         # Delete statistics file
@@ -2528,20 +2531,20 @@ getErrorString();
         """
 
         def count_cmpl(x): return [True for _, v in list(x.items())
-                                if v['compilation_ok']]
+                                   if v['compilation_ok']]
 
         def list_failed_cmpl(x): return [k for k, v in list(x.items())
-                                      if not v['compilation_ok']]
+                                         if not v['compilation_ok']]
 
         def count_load(x): return [True for _, v in list(x.items()) if v['load_ok']]
 
         def list_failed_load(x): return [k for k, v in list(x.items())
-                                      if not v['load_ok']]
+                                         if not v['load_ok']]
 
         def count_sim(x): return [True for _, v in list(x.items()) if v['sim_ok']]
 
         def list_failed_sim(x): return [k for k, v in list(x.items())
-                                      if not v['sim_ok']]
+                                        if not v['sim_ok']]
 
         nbr_tot = len(self._jmstats)
         nbr_cmpl = len(count_cmpl(self._jmstats))
@@ -2549,16 +2552,16 @@ getErrorString();
         nbr_sim = len(count_sim(self._jmstats))
 
         print('\n')
-        print(70*'#')
+        print(70 * '#')
         print("Tested {} models:\n  * {} compiled \
-successfully (={:.1%})"\
+successfully (={:.1%})"
               .format(nbr_tot,
-                      nbr_cmpl, float(nbr_cmpl)/float(nbr_tot)))
+                      nbr_cmpl, float(nbr_cmpl) / float(nbr_tot)))
         if load:
-            print("  * {} loaded successfully (={:.1%})".format(nbr_load, float(nbr_load)/float(nbr_tot)))
+            print("  * {} loaded successfully (={:.1%})".format(nbr_load, float(nbr_load) / float(nbr_tot)))
 
         if simulate:
-            print("  * {} simulated successfully (={:.1%})".format(nbr_sim, float(nbr_sim)/float(nbr_tot)))
+            print("  * {} simulated successfully (={:.1%})".format(nbr_sim, float(nbr_sim) / float(nbr_tot)))
 
         print("\nFailed compilation for the following models:")
         for p in list_failed_cmpl(self._jmstats):
@@ -2575,7 +2578,7 @@ successfully (={:.1%})"\
                 print("  * {}".format(p.split(os.sep)[-1].split('.mo')[0]))
 
         print("\nMore detailed information is stored in self._jmstats")
-        print(70*'#')
+        print(70 * '#')
 
     def _writeOMRunScript(self, worDir, models, cmpl, simulate):
         """
@@ -2613,7 +2616,7 @@ successfully (={:.1%})"\
         return mosfilename
 
     def test_OpenModelica(self, cmpl=True, simulate=False,
-                      packages=['Examples'], number=-1):
+                          packages=['Examples'], number=-1):
         """
         Test the library compliance with OpenModelica.
 
@@ -2672,7 +2675,7 @@ successfully (={:.1%})"\
 
         tests = self._get_test_models(packages=packages)
         if len(tests) == 0:
-                raise RuntimeError("Did not find any examples to test.")
+            raise RuntimeError("Did not find any examples to test.")
         self._ommodels = sorted([self._model_from_mo(mo_file) for mo_file in tests[:number]])
 
         mosfile = self._writeOMRunScript(worDir=worDir, models=self._ommodels,
@@ -2690,7 +2693,7 @@ successfully (={:.1%})"\
             if os.path.exists('/usr/lib/omlibrary'):
                 env['OPENMODELICALIBRARY'] = worDir + ':/usr/lib/omlibrary'
             else:
-                raise OSError(\
+                raise OSError(
                     "Environment flag 'OPENMODELICALIBRARY' must be set, or '/usr/lib/omlibrary' must be present.")
 
         # get the executable for omc, depending on platform
@@ -2719,7 +2722,7 @@ successfully (={:.1%})"\
 
         except OSError as e:
             raise OSError("Execution of omc +d=initialization " + mosfile + " failed.\n" +
-                             "Working directory is '" + worDir + "'.")
+                          "Working directory is '" + worDir + "'.")
         else:
             # process the log file
             print("Logfile created: {}".format(logFilNam))
@@ -2763,7 +2766,7 @@ successfully (={:.1%})"\
                     sim_ok += 1
                     # Seems like OpenModelica always uses '/' as file separator
                     models_sim_ok.append(line.split('/')[-1].split('_res.mat')[0])
-            elif line.find('Check of ') > 0 :
+            elif line.find('Check of ') > 0:
                 if line.find(' completed successfully.') > 0:
                     check_ok += 1
                     models_check_ok.append(line.split('Check of')
@@ -2787,13 +2790,13 @@ successfully (={:.1%})"\
                 models_sim_nok.remove(m)
 
         print('\n')
-        print(70*'#')
-        print("Tested {} models:\n  * {} compiled successfully (={:.1%})"\
-          .format(check_ok+check_nok,
-                  check_ok, float(check_ok)/float(check_ok+check_nok)))
+        print(70 * '#')
+        print("Tested {} models:\n  * {} compiled successfully (={:.1%})"
+              .format(check_ok + check_nok,
+                      check_ok, float(check_ok) / float(check_ok + check_nok)))
         if simulate:
             print("  * {} simulated successfully (={:.1%})".format(sim_ok,
-                  float(sim_ok)/float(sim_ok+sim_nok)))
+                                                                   float(sim_ok) / float(sim_ok + sim_nok)))
 
         print("\nSuccessfully checked models:")
         for m in models_check_ok:
@@ -2811,4 +2814,4 @@ successfully (={:.1%})"\
                 print("  * {}".format(m))
 
         print("\nMore detailed information is stored in self._omstats")
-        print(70*'#')
+        print(70 * '#')

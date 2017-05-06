@@ -28,21 +28,21 @@ class Test_development_refactor(unittest.TestCase):
         __REC = 1
         __PAC = 2
 
-        o  = [[__PAC, "UsersGuide"],
-              [__MOD, "a"],
-              [__MOD, "y"],
-              [__REC, "a_data"],
-              [__PAC, "B"],
-              [__PAC, "Z"],
-              [__PAC, "Data"],
-              [__PAC, "Types"],
-              [__PAC, "Examples"],
-              [__PAC, "Validation"],
-              [__PAC, "Experimental"],
-              [__PAC, "Interfaces"],
-              [__PAC, "BaseClasses"],
-              [__PAC, "Internal"],
-              [__PAC, "Obsolete"]]
+        o = [[__PAC, "UsersGuide"],
+             [__MOD, "a"],
+             [__MOD, "y"],
+             [__REC, "a_data"],
+             [__PAC, "B"],
+             [__PAC, "Z"],
+             [__PAC, "Data"],
+             [__PAC, "Types"],
+             [__PAC, "Examples"],
+             [__PAC, "Validation"],
+             [__PAC, "Experimental"],
+             [__PAC, "Interfaces"],
+             [__PAC, "BaseClasses"],
+             [__PAC, "Internal"],
+             [__PAC, "Obsolete"]]
 
         random.seed(1)
         for i in range(10):
@@ -71,8 +71,8 @@ class Test_development_refactor(unittest.TestCase):
     def test_get_modelica_file_name(self):
         import os
         import buildingspy.development.refactor as r
-        self.assertEqual( r.get_modelica_file_name("Buildings.Rooms.MixedAir"), \
-                os.path.join("Buildings", "Rooms", "MixedAir.mo") )
+        self.assertEqual(r.get_modelica_file_name("Buildings.Rooms.MixedAir"),
+                         os.path.join("Buildings", "Rooms", "MixedAir.mo"))
 
 
 if __name__ == '__main__':

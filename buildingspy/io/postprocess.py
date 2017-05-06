@@ -59,38 +59,38 @@ class Plotter(object):
         # Numpy needs t to be strictly increasing, but Dymola may have the same time stamps
         # more than once.
         # If the last points are for the same time stamp, we remove them from the interpolation
-        iMax = len(t)-1
+        iMax = len(t) - 1
         maxT = max(t)
-        dT = (maxT-min(t))/float(iMax)
-        while t[iMax] <= t[iMax-1]:
-            iMax = iMax-1
+        dT = (maxT - min(t)) / float(iMax)
+        while t[iMax] <= t[iMax - 1]:
+            iMax = iMax - 1
 
         # Shift tNew slight in case of multiple equal entries.
         # Since the last entry was removed above, the final time is not going to change.
-        tTol = 1E-4*dT
-        tInc = 10.0*tTol
+        tTol = 1E-4 * dT
+        tInc = 10.0 * tTol
 
         tNew = list()
         yNew = list()
         tNew.append(t[0])
         yNew.append(y[0])
         for i in range(1, iMax):
-            if t[i] > t[i-1] + tTol:
+            if t[i] > t[i - 1] + tTol:
                 tNew.append(t[i])
                 yNew.append(y[i])
             else:
-                if t[i] != t[i-1] and t[i-1] + tInc < maxT:
-                    if t[i-1]+tInc < t[i+1]:
-                        tNew.append(t[i-1] + tInc)
+                if t[i] != t[i - 1] and t[i - 1] + tInc < maxT:
+                    if t[i - 1] + tInc < t[i + 1]:
+                        tNew.append(t[i - 1] + tInc)
                         yNew.append(y[i])
         tNew.append(t[iMax])
         yNew.append(y[iMax])
 
         for i in range(1, len(tNew)):
-            if tNew[i] < tNew[i-1] + 0.9*tTol:
+            if tNew[i] < tNew[i - 1] + 0.9 * tTol:
                 raise ValueError('Time t is not strictly increasing.')
         for i in range(1, len(tSup)):
-            if tSup[i] <= tSup[i-1]:
+            if tSup[i] <= tSup[i - 1]:
                 raise ValueError('Time tSup is not strictly increasing.')
         yI = np.interp(tSup, tNew, yNew)
         if ((np.isnan(yI)).any()):
@@ -124,21 +124,21 @@ class Plotter(object):
             raise ValueError('t[0] must be zero. Received t[0] = ' + str(t[0]))
         if t[-1] < tPeriod:
             raise ValueError('t[-1] = %s, but tPeriod = %s. The array t must contain at least two periods.'
-                                % (t[-1], tPeriod))
+                             % (t[-1], tPeriod))
         # n is the index of the last element before the vector is looped
         n = -1
         for ele in t:
-            if abs(ele-tPeriod) < 1E-20:
+            if abs(ele - tPeriod) < 1E-20:
                 break
-            n = n+1
-        if n+1 == len(t):
+            n = n + 1
+        if n + 1 == len(t):
             raise ValueError('tPeriod is not within t[0] and t[len(t)-1].\n'
                              + "   Received tPeriod = " + str(tPeriod) + '\n'
-                             + "            t[-1]   = " + str(t[-1] ) + '.')
+                             + "            t[-1]   = " + str(t[-1]) + '.')
         tRet = []
-        inc = t[1]-t[0]
+        inc = t[1] - t[0]
         for i in t:
-            tRet.append(i % ((n+1) * inc))
+            tRet.append(i % ((n + 1) * inc))
         return (np.array(tRet), y)
     convertToPeriodic = staticmethod(convertToPeriodic)
 
@@ -201,26 +201,26 @@ class Plotter(object):
         import matplotlib.pyplot as plt
 
         # Make sure that input is periodic
-        tPeriod = increment*nIncrement
-        rem = (t[-1]-t[0]) % tPeriod
+        tPeriod = increment * nIncrement
+        rem = (t[-1] - t[0]) % tPeriod
         if abs(rem) > 1E-20:
             raise ValueError('Length of time series must be a multiple of increment*nIncrement.\n'
                              + '  Received increment  = ' + str(increment) + '\n'
                              + '           nIncrement = ' + str(nIncrement) + '\n'
-                             + '           t[-1]-t[0] = ' + str(t[-1]-t[0]) + '.')
+                             + '           t[-1]-t[0] = ' + str(t[-1] - t[0]) + '.')
 
         # Make equidistant grid for the whole simulation period, such as 0, 1, ... 47
         # for two days
         tMax = max(t)
-        tGrid = np.linspace(0, tMax-increment, num=round(tMax/increment))
+        tGrid = np.linspace(0, tMax - increment, num=round(tMax / increment))
 
         # Interpolate to hourly time stamps
         yGrid = Plotter.interpolate(tGrid, t, y)
 
         # Convert to periodic data
         yPer = Plotter.convertToPeriodic(tPeriod=tPeriod,
-                                                 t=tGrid,
-                                                 y=yGrid)[1]
+                                         t=tGrid,
+                                         y=yGrid)[1]
 
         tMaxPlot = nIncrement
         yStacked = np.reshape(yPer, (-1, tMaxPlot))
