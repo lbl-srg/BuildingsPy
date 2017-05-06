@@ -121,7 +121,7 @@ class Test_regressiontest_Tester(unittest.TestCase):
         import buildingspy.development.regressiontest as r
         rt = r.Tester(check_html=False)
         myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
-        skpFil = os.path.join(moLibPath, "Resources", "Scripts", "skipUnitTestList.txt")
+        skpFil = os.path.join(myMoLib, "Resources", "Scripts", "skipUnitTestList.txt")
         rt.setLibraryRoot(myMoLib)
         rt.setExcludeMosFromFile(skpFil)
         self.assertEqual(2, rt.get_number_of_tests())
