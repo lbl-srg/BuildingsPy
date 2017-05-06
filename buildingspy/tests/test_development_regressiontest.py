@@ -124,7 +124,8 @@ class Test_regressiontest_Tester(unittest.TestCase):
         skpFil = os.path.join(myMoLib, "Resources", "Scripts", "skipUnitTestList.txt")
         rt.setLibraryRoot(myMoLib)
         rt.setExcludeMosFromFile(skpFil)
-        self.assertEqual(2, rt.get_number_of_tests())
+        rt.run()
+        self.assertEqual(1, rt.get_number_of_tests())
 
     def test_runSimulation(self):
         import buildingspy.development.regressiontest as r
