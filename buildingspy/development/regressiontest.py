@@ -456,7 +456,8 @@ class Tester(object):
             filNam = filNamTup[2].rstrip().replace('\\', '/').lstrip('/')
             # Check whether the file is in the exclude list
             if filNam in self._excludeMos:
-                self._reporter.writeWarning("*** Warning: Excluded file {} from the regression tests.".format(filNam))
+                self._reporter.writeWarning(
+                    "*** Warning: Excluded file {} from the regression tests.".format(filNam))
                 return False
             else:
                 return True
