@@ -437,6 +437,8 @@ class Tester(object):
                         filNamTup = line.rpartition(self.getLibraryName())
                         filNam = filNamTup[2].rstrip().replace('\\', '/').lstrip('/')
                         self._excludeMos.append(filNam)
+        else:
+            self._reporter.writeError("Could not find file {!s}".format(excludeFile))
 
     def _includeFile(self, fileName):
         ''' Returns true if the file need to be included in the list of scripts to run
