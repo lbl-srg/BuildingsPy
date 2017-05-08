@@ -161,8 +161,8 @@ class Tester(object):
         self._pedanticModelica = False
 
         # List of scripts that should be excluded from the regression tests
-        # self._excludeMos=['Resources/Scripts/Dymola/Airflow/Multizone/Examples/OneOpenDoor.mos']
-        self._excludeMos = []
+        # self._exclude_tests=['Resources/Scripts/Dymola/Airflow/Multizone/Examples/OneOpenDoor.mos']
+        self._exclude_tests = []
 
         # Number of data points that are used
         self._nPoi = 101
@@ -425,8 +425,8 @@ class Tester(object):
                     counter += 1
         return counter
 
-    def setExcludeMosFromFile(self, excludeFile):
-        ''' Populate the global list self._excludeMos scripts from a text file
+    def setExcludeTest(self, excludeFile):
+        ''' Exclude from the regression tests all tests specified in ``excludeFile``.
 
         :param excludeFile: The text file with files that shall be excluded from regression tests
         '''
@@ -436,7 +436,7 @@ class Tester(object):
                     if line.rstrip().endswith('.mos') and not line.startswith('#'):
                         filNamTup = line.rpartition(self.getLibraryName())
                         filNam = filNamTup[2].rstrip().replace('\\', '/').lstrip('/')
-                        self._excludeMos.append(filNam)
+                        self._exclude_tests.append(filNam)
         else:
             self._reporter.writeError("Could not find file {!s}".format(excludeFile))
 
@@ -445,11 +445,11 @@ class Tester(object):
 
         :param fileName: The name of the ``*.mos`` file.
 
-        The parameter *fileName* need to be of the form
-        *Resources/Scripts/Dymola/Fluid/Actuators/Examples/Damper.mos*
-        or *Resources/Scripts/someOtherFile.ext*.
-        This function checks if *fileName* exists in the global list
-        self._excludeMos. For checking, *fileName* will be normalized (strip
+        The parameter ``fileName`` need to be of the form
+        ``Resources/Scripts/Dymola/Fluid/Actuators/Examples/Damper.mos``
+        or ``Resources/Scripts/someOtherFile.ext``.
+        This function checks if ``fileName`` exists in the global list
+        ``self._exclude_tests``. For checking, ``fileName`` will be normalized (strip
         whitespace, convert backslash to slash, strip path).
         '''
         if fileName.rstrip().endswith('.mos'):
@@ -457,7 +457,7 @@ class Tester(object):
             filNamTup = fileName.rpartition(self.getLibraryName())
             filNam = filNamTup[2].rstrip().replace('\\', '/').lstrip('/')
             # Check whether the file is in the exclude list
-            if filNam in self._excludeMos:
+            if filNam in self._exclude_tests:
                 self._reporter.writeWarning(
                     "*** Warning: Excluded file {} from the regression tests.".format(filNam))
                 return False
@@ -2345,9 +2345,9 @@ getErrorString();
                 self._checkSimulationError(self._simulator_log_file)
 
         # Print list of files that may be excluded from unit tests
-        if len(self._excludeMos) > 0:
+        if len(self._exclude_tests) > 0:
             print("*** Warning: The following files may be excluded from the regression tests:\n")
-            for fil in self._excludeMos:
+            for fil in self._exclude_tests:
                 print("            {}".format(fil))
 
         # Print time
