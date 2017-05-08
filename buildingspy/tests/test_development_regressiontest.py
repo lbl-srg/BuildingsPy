@@ -117,6 +117,16 @@ class Test_regressiontest_Tester(unittest.TestCase):
         self.assertRaises(ValueError, rt.setSinglePackage,
                           "MyModelicaLibrary.Examples,MyModelicaLibrary.Examples.FMUs")
 
+    def test_setExcludeTest(self):
+        import buildingspy.development.regressiontest as r
+        rt = r.Tester(check_html=False)
+        myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
+        skpFil = os.path.join(myMoLib, "Resources", "Scripts", "skipUnitTestList.txt")
+        rt.setLibraryRoot(myMoLib)
+        rt.setExcludeTest(skpFil)
+        rt.run()
+        self.assertEqual(1, rt.get_number_of_tests())
+
     def test_runSimulation(self):
         import buildingspy.development.regressiontest as r
         self.assertRaises(OSError,

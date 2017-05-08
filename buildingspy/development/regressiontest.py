@@ -161,8 +161,8 @@ class Tester(object):
         self._pedanticModelica = False
 
         # List of scripts that should be excluded from the regression tests
-        # self._excludeMos=['Resources/Scripts/Dymola/Airflow/Multizone/Examples/OneOpenDoor.mos']
-        self._excludeMos = []
+        # self._exclude_tests=['Resources/Scripts/Dymola/Airflow/Multizone/Examples/OneOpenDoor.mos']
+        self._exclude_tests = []
 
         # Number of data points that are used
         self._nPoi = 101
@@ -410,55 +410,61 @@ class Tester(object):
             raise ImportError(msg)
 
     def _checkKey(self, key, fileName, counter):
-        ''' Check whether the file ``fileName`` contains the string ``key``
-            as the first string on the first or second line.
-            If ``key`` is found, increase the counter.
+        ''' Checks whether ``key`` is contained in the header of the file ``fileName``
+            If the first line starts with ``within``
+            and the second line starts with ``key``
+            the counter is increased by one.
         '''
 
         with open(fileName, mode="rt", encoding="utf-8-sig") as filObj:
-            filTex = filObj.readline()
-            # Strip white spaces so we can test strpos for zero.
-            # This test returns non-zero for partial classes.
-            filTex.strip()
-            strpos = filTex.find("within")
-            if strpos == 0:
-                # first line is "within ...
-                # get second line
-                filTex = filObj.readline()
-                filTex.strip()
-            strpos = filTex.find(key)
-            if strpos == 0:
-                counter += 1
-            return counter
+            # filObj is an iterable object, so we can use next(filObj)
+            line0 = next(filObj).strip()
+            if line0.startswith("within"):
+                line1 = next(filObj).strip()
+                if line1.startswith(key):
+                    counter += 1
+        return counter
+
+    def setExcludeTest(self, excludeFile):
+        ''' Exclude from the regression tests all tests specified in ``excludeFile``.
+
+        :param excludeFile: The text file with files that shall be excluded from regression tests
+        '''
+        if os.path.isfile(excludeFile):
+            with open(excludeFile, mode="r", encoding="utf-8-sig") as f:
+                for line in f:
+                    if line.rstrip().endswith('.mos') and not line.startswith('#'):
+                        filNamTup = line.rpartition(self.getLibraryName())
+                        filNam = filNamTup[2].rstrip().replace('\\', '/').lstrip('/')
+                        self._exclude_tests.append(filNam)
+        else:
+            self._reporter.writeError("Could not find file {!s}".format(excludeFile))
 
     def _includeFile(self, fileName):
         ''' Returns true if the file need to be included in the list of scripts to run
 
         :param fileName: The name of the ``*.mos`` file.
 
-        The parameter *fileName* need to be of the form
-        *Resources/Scripts/Dymola/Fluid/Actuators/Examples/Damper.mos*
-        or *Resources/Scripts/someOtherFile.ext*.
-        This function checks if *fileName* exists in the global list
-        self._excludeMos. During this check, all backward slashes will
-        be replaced by a forward slash.
-    '''
-        pos = fileName.endswith('.mos')
-        if pos > -1:  # This is an mos file
+        The parameter ``fileName`` need to be of the form
+        ``Resources/Scripts/Dymola/Fluid/Actuators/Examples/Damper.mos``
+        or ``Resources/Scripts/someOtherFile.ext``.
+        This function checks if ``fileName`` exists in the global list
+        ``self._exclude_tests``. For checking, ``fileName`` will be normalized (strip
+        whitespace, convert backslash to slash, strip path).
+        '''
+        if fileName.rstrip().endswith('.mos'):
+            # This is a mos file, normalize the name
+            filNamTup = fileName.rpartition(self.getLibraryName())
+            filNam = filNamTup[2].rstrip().replace('\\', '/').lstrip('/')
             # Check whether the file is in the exclude list
-            fileName = fileName.replace('\\', '/')
-            # Remove all files, except a few for testing
-    #        test=os.path.join('Resources','Scripts','Dymola','Controls','Continuous','Examples')
-    ##        test=os.path.join('Resources', 'Scripts', 'Dymola', 'Fluid', 'Movers', 'Examples')
-    # if fileName.find(test) != 0:
-    # return False
-
-            if (self._excludeMos.count(fileName) == 0):
-                return True
-            else:
-                print("*** Warning: Excluded file {} from the regression tests.".format(fileName))
+            if filNam in self._exclude_tests:
+                self._reporter.writeWarning(
+                    "*** Warning: Excluded file {} from the regression tests.".format(filNam))
                 return False
+            else:
+                return True
         else:
+            # This is not a mos file, do not include it
             return False
 
     @staticmethod
@@ -717,8 +723,7 @@ class Tester(object):
                                     _get_attribute_value(lin, attr, dat)
 
                             # Check if this model need to be translated as an FMU.
-                            pos = lin.find("translateModelFMU")
-                            if pos > -1:
+                            if "translateModelFMU" in lin:
                                 dat['mustExportFMU'] = True
                             if dat['mustExportFMU']:
                                 for attr in ["modelToOpen", "modelName"]:
@@ -2209,7 +2214,7 @@ getErrorString();
         # Remove all data that do not require a simulation or an FMU export.
         # Otherwise, some processes may have no simulation to run and then
         # the json output file would have an invalid syntax
-        for ele in self._data:
+        for ele in self._data[:]:
             if not (ele['mustSimulate'] or ele['mustExportFMU']):
                 self._data.remove(ele)
 
@@ -2340,9 +2345,9 @@ getErrorString();
                 self._checkSimulationError(self._simulator_log_file)
 
         # Print list of files that may be excluded from unit tests
-        if len(self._excludeMos) > 0:
+        if len(self._exclude_tests) > 0:
             print("*** Warning: The following files may be excluded from the regression tests:\n")
-            for fil in self._excludeMos:
+            for fil in self._exclude_tests:
                 print("            {}".format(fil))
 
         # Print time
