@@ -87,7 +87,7 @@ class Test_regressiontest_Tester(unittest.TestCase):
         rt.setLibraryRoot(myMoLib)
         rt.include_fmu_tests(True)
         rt.setSinglePackage("MyModelicaLibrary.Examples.FMUs")
-        self.assertEqual(2, rt.get_number_of_tests())
+        self.assertEqual(3, rt.get_number_of_tests())
 
     def test_setSinglePackage_2(self):
         import buildingspy.development.regressiontest as r
@@ -96,7 +96,7 @@ class Test_regressiontest_Tester(unittest.TestCase):
         rt.setLibraryRoot(myMoLib)
         rt.include_fmu_tests(True)
         rt.setSinglePackage("MyModelicaLibrary.Examples")
-        self.assertEqual(5, rt.get_number_of_tests())
+        self.assertEqual(6, rt.get_number_of_tests())
 
     def test_setSinglePackage_3(self):
         import buildingspy.development.regressiontest as r
@@ -105,7 +105,7 @@ class Test_regressiontest_Tester(unittest.TestCase):
         rt.setLibraryRoot(myMoLib)
         rt.include_fmu_tests(True)
         rt.setSinglePackage("MyModelicaLibrary.Examples.FMUs,MyModelicaLibrary.Examples")
-        self.assertEqual(5, rt.get_number_of_tests())
+        self.assertEqual(6, rt.get_number_of_tests())
 
     def test_setSinglePackage_4(self):
         import buildingspy.development.regressiontest as r

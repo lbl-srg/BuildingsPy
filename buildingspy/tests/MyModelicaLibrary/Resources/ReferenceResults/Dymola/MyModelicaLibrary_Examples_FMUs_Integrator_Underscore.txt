@@ -1,0 +1,29 @@
+last-generated=2017-01-03
+statistics-fmu-dependencies=
+{
+  "Outputs": {
+    "y1": [
+      "x"
+    ], 
+    "y2": [
+      "u"
+    ]
+  }, 
+  "InitialUnknowns": {
+    "y1": [
+      "x"
+    ], 
+    "y2": [
+      "k", 
+      "u"
+    ], 
+    "der(x)": [
+      "u"
+    ]
+  }, 
+  "Derivatives": {
+    "der(x)": [
+      "u"
+    ]
+  }
+}
