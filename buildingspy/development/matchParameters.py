@@ -7,6 +7,8 @@
 # because Dymola ignores the parameters defined in 
 # the Experiment Annotation when running the simulateModel() 
 # command of the unit test
+# Copy this file in the bin folder of modelica-buildings
+# Run the file from Buildings with python ../bin/matchParameters
 #
 # TSNouidui@lbl.gov                            2017-01-24
 ###########################################################
@@ -514,3 +516,6 @@ def main():
     if(knownMissingTolerance):
         n_files_tol_mos-=1
     assert n_files_tol_mos - n_files_tol_mo == 0, "The number of .mo files with **tolerance** does not match the number of .mos scripts."   
+    
+    if __name__ == "__main__":
+    main()
