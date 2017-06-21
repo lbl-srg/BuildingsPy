@@ -473,7 +473,7 @@ Modelica package. Expected file '%s'."
                         if name + "=" + name in line.replace(" ", ""):
                             value = name
                             self._wrong_literal(mos_file, name)
-                    if found == False:
+                    if not found:
                         if (name == "startTime"):
                             value = "0.0"
                         elif (name == "stopTime"):
