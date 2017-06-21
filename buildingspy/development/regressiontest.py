@@ -375,8 +375,9 @@ class Tester(object):
                              % (library_home, topPackage))
         srcDir = os.path.join(library_home, "Resources", "Scripts")
         if not os.path.exists(srcDir):
-            raise ValueError("Directory %s is not a Modelica library.\n    Expected directories '%s'."
-                             % (library_home, srcDir))
+            raise ValueError(
+                "Directory %s is not a Modelica library.\n    Expected directories '%s'." %
+                (library_home, srcDir))
 
         return os.path.exists(os.path.join(library_home, "Resources", "Scripts"))
 
@@ -528,8 +529,9 @@ class Tester(object):
             packages.append(packageName)
         # Inform the user that not all tests are run, but don't add to warnings
         # as this would flag the test to have failed
-        self._reporter.writeOutput("""Regression tests are only run for the following package{}:""".format(
-            '' if len(packages) == 1 else 's'))
+        self._reporter.writeOutput(
+            """Regression tests are only run for the following package{}:""".format(
+                '' if len(packages) == 1 else 's'))
         for pac in packages:
             self._reporter.writeOutput("""  {}""".format(pac))
         # Remove the top-level package name as the unit test directory does not
@@ -687,7 +689,9 @@ class Tester(object):
             for mosFil in files:
                 # Exclude the conversion scripts and also backup copies
                 # which have the extensions .mos~ if they are generated from emacs
-                if mosFil.endswith('.mos') and (not mosFil.startswith("Convert" + self.getLibraryName())):
+                if mosFil.endswith('.mos') and (
+                    not mosFil.startswith(
+                        "Convert" + self.getLibraryName())):
                     matFil = ""
                     dat = {
                         'ScriptFile': os.path.join(root[len(os.path.join(self._libHome, 'Resources', 'Scripts', 'Dymola')) + 1:],
@@ -730,7 +734,8 @@ class Tester(object):
                                     _get_attribute_value(lin, attr, dat)
                                 # The .mos script allows modelName="", in which case
                                 # we set the model name to be the entry of modelToOpen
-                                if "modelName" in dat and dat["modelName"] == "" or ("modelName" in dat):
+                                if "modelName" in dat and dat["modelName"] == "" or (
+                                        "modelName" in dat):
                                     if "modelToOpen" in dat:
                                         dat["modelName"] = dat["modelToOpen"]
 
@@ -1045,8 +1050,8 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         # implementation of the heatPort. Hence, we test for this special case, and
         # store the parameter as if it were a variable so that the reference result are not
         # going to be changed.
-        if (varNam.endswith("heatPort.T") or varNam.endswith("heatPort.Q_flow")) and (len(yInt) == 2) \
-                and len(yOld) != len(yInt):
+        if (varNam.endswith("heatPort.T") or varNam.endswith("heatPort.Q_flow")) and (
+                len(yInt) == 2) and len(yOld) != len(yInt):
             yInt = np.ones(len(yOld)) * yInt[0]
 
         # Compute error for the variable with name varNam
@@ -1108,8 +1113,8 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         '''
         import numpy as np
         if not (isinstance(dataSeries, np.ndarray) or isinstance(dataSeries, list)):
-            raise TypeError("Program error: dataSeries must be a numpy.ndarr or a list. Received type "
-                            + str(type(dataSeries)) + ".\n")
+            raise TypeError("Program error: dataSeries must be a numpy.ndarr or a list. Received type " +
+                            str(type(dataSeries)) + ".\n")
         return (len(dataSeries) == 2)
 
     def format_float(self, value):
@@ -1254,7 +1259,8 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                 # Check whether it changed.
                 for key in old_res['statistics-%s' % stage]:
                     if key in y_tra[stage]:
-                        if not self.are_statistics_equal(old_res['statistics-%s' % stage][key], y_tra[stage][key]):
+                        if not self.are_statistics_equal(
+                                old_res['statistics-%s' % stage][key], y_tra[stage][key]):
                             if foundError:
                                 self._reporter.writeWarning("%s: Translation statistics for %s and results changed for %s.\n Old = %s\n New = %s"
                                                             % (mat_file_name, stage, key, old_res['statistics-%s' % stage][key], y_tra[stage][key]))
@@ -1270,14 +1276,16 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             else:
                 # The new results have no such statistics.
                 self._reporter.writeWarning(
-                    "%s: Found translation statistics for %s in old but not in new results." % (mat_file_name, stage))
+                    "%s: Found translation statistics for %s in old but not in new results." %
+                    (mat_file_name, stage))
                 r = True
         else:
             # The old results have no such statistics.
             if stage in y_tra:
                 # The new results have such statistics, hence the statistics changed.
                 self._reporter.writeWarning(
-                    "%s: Found translation statistics for %s in new but not in old results." % (mat_file_name, stage))
+                    "%s: Found translation statistics for %s in new but not in old results." %
+                    (mat_file_name, stage))
                 r = True
         return r
 
@@ -1348,7 +1356,8 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
 
             # The time interval is the same for the stored and the current data.
             # Check the accuracy of the simulation.
-            for varNam in list(pai.keys()):  # Iterate over the variable names that are to be plotted together
+            for varNam in list(pai.keys()):
+                # Iterate over the variable names that are to be plotted together
                 if varNam != 'time':
                     if varNam in y_ref:
                         # Check results
@@ -1388,7 +1397,8 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         # or if the script is run in batch mode, then don't plot the results.
         # If we found an error, plot the results, and ask the user to accept or
         # reject the new values.
-        if (foundError or newStatistics) and (not self._batch) and (not ans == "N") and (not ans == "Y"):
+        if (foundError or newStatistics) and (not self._batch) and (
+                not ans == "N") and (not ans == "Y"):
             print("             For {},".format(refFilNam))
             print("             accept new file and update reference files? (Close plot window to continue.)")
             nPlo = len(y_sim)
@@ -1482,7 +1492,12 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
 
         return True
 
-    def _compare_and_rewrite_fmu_dependencies(self, new_dependencies, reference_file_path, reference_file_name, ans):
+    def _compare_and_rewrite_fmu_dependencies(
+            self,
+            new_dependencies,
+            reference_file_path,
+            reference_file_name,
+            ans):
         ''' Compares whether the ``.fmu`` dependencies have been changed.
             If they are the same, this function does nothing.
             If they do not exist in the reference results, it askes to generate them.
@@ -1533,8 +1548,9 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                     ans = input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
                 if ans == "y" or ans == "Y":
                     self._writeReferenceResults(abs_ref_fil_nam, None, y_tra)
-                    self._reporter.writeWarning("*** Warning: Rewrote reference file %s due to new FMU statistics." %
-                                                reference_file_name)
+                    self._reporter.writeWarning(
+                        "*** Warning: Rewrote reference file %s due to new FMU statistics." %
+                        reference_file_name)
             return [found_differences, ans]
 
         else:
@@ -1545,8 +1561,9 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                 ans = input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
             if ans == "y" or ans == "Y":
                 self._writeReferenceResults(abs_ref_fil_nam, None, y_tra)
-                self._reporter.writeWarning("*** Warning: Rewrote reference file %s as the old one had no FMU statistics." %
-                                            reference_file_name)
+                self._reporter.writeWarning(
+                    "*** Warning: Rewrote reference file %s as the old one had no FMU statistics." %
+                    reference_file_name)
             return [True, ans]
 
     def _check_fmu_statistics(self, ans):
@@ -1585,10 +1602,8 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                     dep_new = fmi.get_dependencies(fmu_fil)
                     # Compare it with the stored results, and update the stored results if
                     # needed and requested by the user.
-                    [updated_reference_data, ans] = self._compare_and_rewrite_fmu_dependencies(dep_new,
-                                                                                               refDir,
-                                                                                               refFilNam,
-                                                                                               ans)
+                    [updated_reference_data, ans] = self._compare_and_rewrite_fmu_dependencies(
+                        dep_new, refDir, refFilNam, ans)
                     # Reset answer, unless it is set to Y or N
                     if not (ans == "Y" or ans == "N"):
                         ans = "-"
@@ -1982,14 +1997,31 @@ Modelica.Utilities.Streams.print("{\"testCase\" : [", "%s");
                                              self._data[i]['ScriptFile'])
                     absMosFilNam = os.path.join(self._temDir[iPro], mosFilNam)
 
-                    values = {"mosWithPath": mosFilNam.replace("\\", "/"),
-                              "checkCommand": self._getModelCheckCommand(absMosFilNam).replace("\\", "/"),
-                              "checkCommandString": self._getModelCheckCommand(absMosFilNam).replace('\"', r'\\\"'),
-                              "scriptFile": self._data[i]['ScriptFile'].replace("\\", "/"),
-                              "modelName": self._data[i]['modelName'].replace("\\", "/"),
-                              "modelName_underscore": self._data[i]['modelName'].replace(".", "_"),
-                              "statisticsLog": self._statistics_log.replace("\\", "/"),
-                              "simulatorLog": self._simulator_log_file.replace("\\", "/")}
+                    values = {
+                        "mosWithPath": mosFilNam.replace(
+                            "\\",
+                            "/"),
+                        "checkCommand": self._getModelCheckCommand(absMosFilNam).replace(
+                            "\\",
+                            "/"),
+                        "checkCommandString": self._getModelCheckCommand(absMosFilNam).replace(
+                            '\"',
+                            r'\\\"'),
+                        "scriptFile": self._data[i]['ScriptFile'].replace(
+                            "\\",
+                            "/"),
+                        "modelName": self._data[i]['modelName'].replace(
+                            "\\",
+                            "/"),
+                        "modelName_underscore": self._data[i]['modelName'].replace(
+                            ".",
+                            "_"),
+                        "statisticsLog": self._statistics_log.replace(
+                            "\\",
+                            "/"),
+                        "simulatorLog": self._simulator_log_file.replace(
+                            "\\",
+                            "/")}
 
                     if 'FMUName' in self._data[i]:
                         values["FMUName"] = self._data[i]['FMUName']
@@ -1997,7 +2029,8 @@ Modelica.Utilities.Streams.print("{\"testCase\" : [", "%s");
                     if self._modelicaCmd == 'dymola':
                         # Delete command log, modelName.simulation.log and dslog.txt
                         runFil.write(
-                            "Modelica.Utilities.Files.remove(\"%s.translation.log\");\n" % values["modelName"])
+                            "Modelica.Utilities.Files.remove(\"%s.translation.log\");\n" %
+                            values["modelName"])
                         runFil.write("Modelica.Utilities.Files.remove(\"dslog.txt\");\n")
                         runFil.write("clearlog();\n")
 
@@ -2115,7 +2148,8 @@ getErrorString();
 """)
                         runFil.write(template.format(**values))
 
-                    if self._modelicaCmd == 'dymola' and not (self._data[i]["mustExportFMU"] or self._data[i]["mustSimulate"]):
+                    if self._modelicaCmd == 'dymola' and not (
+                            self._data[i]["mustExportFMU"] or self._data[i]["mustSimulate"]):
                         print(
                             "****** {} neither requires a simulation nor an FMU export.".format(self._data[i]['ScriptFile']))
 
@@ -2238,7 +2272,13 @@ getErrorString();
         if not self.isValidLibrary(self._libHome):
             print("*** {} is not a valid Modelica library.".format(self._libHome))
             print("*** The current directory is {}".format(os.getcwd()))
-            print("*** Expected directory {} ".format(os.path.abspath(os.path.join(self._libHome, "Resources", "Scripts"))))
+            print(
+                "*** Expected directory {} ".format(
+                    os.path.abspath(
+                        os.path.join(
+                            self._libHome,
+                            "Resources",
+                            "Scripts"))))
             print("*** Exit with error. Did not do anything.")
             return 2
 
@@ -2275,7 +2315,11 @@ getErrorString();
             # Concatenate simulator output files into one file
             with open(self._simulator_log_file, mode="w", encoding="utf-8") as logFil:
                 for d in self._temDir:
-                    for temLogFilNam in glob.glob(os.path.join(d, self.getLibraryName(), '*.translation.log')):
+                    for temLogFilNam in glob.glob(
+                        os.path.join(
+                            d,
+                            self.getLibraryName(),
+                            '*.translation.log')):
                         if os.path.exists(temLogFilNam):
                             with open(temLogFilNam, mode="r", encoding="utf-8-sig") as fil:
                                 data = fil.read()

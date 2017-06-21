@@ -196,8 +196,8 @@ Modelica package. Expected file '%s'."
 
         return [os.path.join(rootdir, filename) for rootdir, dirnames,
                 filenames in os.walk(rootdir) for filename in filenames
-                if (filename.endswith(suffix)
-                    and ("ConvertBuildings_from" not in filename))]
+                if (filename.endswith(suffix) and
+                    ("ConvertBuildings_from" not in filename))]
 
     def _check_experiment(self, name, val, value, model_path, mos_file):
         """
@@ -212,21 +212,26 @@ Modelica package. Expected file '%s'."
          """
 
         if("*" in str(val)):
-            s = ("Found mo file=" + str(model_path) + " with experiment annotation " + self._capitalize_first(name) + ".\n"
-                 + self._capitalize_first(
-                name) + " contains invalid expressions such as x * y. Only literal expressions are allowed "
-                + "by JModelica and OpenModelica unit tests.\n")
+            s = (
+                "Found mo file=" +
+                str(model_path) +
+                " with experiment annotation " +
+                self._capitalize_first(name) +
+                ".\n" +
+                self._capitalize_first(name) +
+                " contains invalid expressions such as x * y. Only literal expressions are allowed " +
+                "by JModelica and OpenModelica unit tests.\n")
             raise ValueError(s)
 
         delta = abs(eval(val) - eval(value))
 
         if (delta > 0):
-            s = ("Found mo file={!s} with experiment annotation {!s}.\n"
-                 + "The value of {!s}={!s} is different from the (default) value={!s}"
-                 + " found in the mos file={!s}.\n").format(model_path,
-                                                            self._capitalize_first(name),
-                                                            self._capitalize_first(name),
-                                                            val, value, mos_file)
+            s = ("Found mo file={!s} with experiment annotation {!s}.\n" +
+                 "The value of {!s}={!s} is different from the (default) value={!s}" +
+                 " found in the mos file={!s}.\n").format(model_path,
+                                                          self._capitalize_first(name),
+                                                          self._capitalize_first(name),
+                                                          val, value, mos_file)
             raise ValueError(s)
 
     def _missing_parameter(self, name, value, model_path, mos_file):
@@ -240,12 +245,15 @@ Modelica package. Expected file '%s'."
 
          """
 
-        s = ("Found mo file={!s} without parameter {!s} defined.\n"
-             + "The parameter name {!s} is defined in the mos file={!s}"
-             + " with the value {!s}. It must hence be defined in the mo file.\n").format(model_path,
-                                                                                          self._capitalize_first(
-                                                                                              name),
-                                                                                          name, mos_file, value)
+        s = (
+            "Found mo file={!s} without parameter {!s} defined.\n" +
+            "The parameter name {!s} is defined in the mos file={!s}" +
+            " with the value {!s}. It must hence be defined in the mo file.\n").format(
+            model_path,
+            self._capitalize_first(name),
+            name,
+            mos_file,
+            value)
         raise ValueError(s)
 
     def _capitalize_first(self, name):
@@ -342,8 +350,8 @@ Modelica package. Expected file '%s'."
             f.close()
 
             if (found_sim and not found_tol):
-                s = ("Found mos file={!s} without tolerance defined.\n"
-                     + "A maximum tolerance of 1e-6 is required by JModelica.\n").format(itr)
+                s = ("Found mos file={!s} without tolerance defined.\n" +
+                     "A maximum tolerance of 1e-6 is required by JModelica.\n").format(itr)
                 raise ValueError(s)
 
         return n_tols, mos_non_fmus, mos_fmus
@@ -374,8 +382,9 @@ Modelica package. Expected file '%s'."
 
         if (name + "=" == "tolerance="):
             if value is None:
-                s = ("Found mos file={!s} without tolerance specified.\n" +
-                     "A maximum tolerance of 1e-6 is required by JModelica for unit tests.\n").format(mos_file)
+                s = (
+                    "Found mos file={!s} without tolerance specified.\n" +
+                    "A maximum tolerance of 1e-6 is required by JModelica for unit tests.\n").format(mos_file)
                 raise ValueError(s)
             else:
                 if(float(value) > 1e-6):
@@ -386,8 +395,9 @@ Modelica package. Expected file '%s'."
 
         if (name + "=" == "stopTime="):
             if value is None:
-                s = ("Found mos file={!s} without stopTime specified.\n" +
-                     "A non-null stopTime is required by OpenModelica for unit tests.\n").format(mos_file)
+                s = (
+                    "Found mos file={!s} without stopTime specified.\n" +
+                    "A non-null stopTime is required by OpenModelica for unit tests.\n").format(mos_file)
                 raise ValueError(s)
 
     def _getValue(self, name, line, fil_nam):
@@ -422,8 +432,13 @@ Modelica package. Expected file '%s'."
 
          """
 
-        s = ("Found mos file={!s} with invalid expression={!s}.\n"
-             + "This is not allowed for cross validation with JModelica.\n").format(mos_file, name + '=' + name)
+        s = (
+            "Found mos file={!s} with invalid expression={!s}.\n" +
+            "This is not allowed for cross validation with JModelica.\n").format(
+            mos_file,
+            name +
+            '=' +
+            name)
         raise ValueError(s)
 
     def _validate_experiment_setup(self, name, mos_files):
@@ -473,7 +488,7 @@ Modelica package. Expected file '%s'."
                         if name + "=" + name in line.replace(" ", ""):
                             value = name
                             self._wrong_literal(mos_file, name)
-                    if found == False:
+                    if not found:
                         if (name == "startTime"):
                             value = "0.0"
                         elif (name == "stopTime"):
@@ -514,11 +529,13 @@ Modelica package. Expected file '%s'."
                     self._missing_parameter(name, value, model_path, mos_file)
 
                 # Check if attributes StopTime/stopTime are defined in mos and mo
-                if (name + "=" == "stopTime=" and abs(eval(value) - 1.0) > 0.0 and (not foundStopExp_mo)):
+                if (name + "=" == "stopTime=" and abs(eval(value) - 1.0) >
+                        0.0 and (not foundStopExp_mo)):
                     self._missing_parameter(name, value, model_path, mos_file)
 
                 # Check if attributes Tolerance/tolerance are defined in mos and mo
-                if (name + "=" == "tolerance=" and abs(eval(value)) > 0.0 and (not foundToleranceExp_mo)):
+                if (name + "=" == "tolerance=" and abs(eval(value)) >
+                        0.0 and (not foundToleranceExp_mo)):
                     self._missing_parameter(name, value, model_path, mos_file)
 
                 for i in range(Nlines - 1, 0, -1):
@@ -548,8 +565,8 @@ Modelica package. Expected file '%s'."
         # Make sure that the parameter root_dir points to a Modelica package.
         topPackage = os.path.join(root_dir, "package.mo")
         if not os.path.isfile(topPackage):
-            s = ("Argument root_dir={!s} is not a Modelica package.\n"
-                 + "Expected file={!s}.\n").format(root_dir, topPackage)
+            s = ("Argument root_dir={!s} is not a Modelica package.\n" +
+                 "Expected file={!s}.\n").format(root_dir, topPackage)
             raise ValueError(s)
 
         # Get the path to the mos files

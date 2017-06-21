@@ -36,8 +36,12 @@ class Test_simulate_Simulator(unittest.TestCase):
         Tests the :mod:`buildingspy.simulate.Simulator`
         constructor.
         '''
-        self.assertRaises(ValueError, Simulator,
-                          "myModelicaLibrary.myModel", "notSupported", packagePath=self._packagePath)
+        self.assertRaises(
+            ValueError,
+            Simulator,
+            "myModelicaLibrary.myModel",
+            "notSupported",
+            packagePath=self._packagePath)
 
         # Check that this path does not exists
         self.assertRaises(ValueError, Simulator,
@@ -65,8 +69,9 @@ class Test_simulate_Simulator(unittest.TestCase):
         '''
         Tests reporting the exception if a simulation fails.
         '''
-        self.failUnlessRaises(ValueError,
-                              Simulator, "MyModelicaLibrary.MyModel" "dymola", "THIS IS NOT A VALID PACKAGE PATH")
+        self.failUnlessRaises(
+            ValueError, Simulator, "MyModelicaLibrary.MyModel"
+            "dymola", "THIS IS NOT A VALID PACKAGE PATH")
 
     def test_addMethods(self):
         '''

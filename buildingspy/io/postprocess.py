@@ -132,9 +132,9 @@ class Plotter(object):
                 break
             n = n + 1
         if n + 1 == len(t):
-            raise ValueError('tPeriod is not within t[0] and t[len(t)-1].\n'
-                             + "   Received tPeriod = " + str(tPeriod) + '\n'
-                             + "            t[-1]   = " + str(t[-1]) + '.')
+            raise ValueError('tPeriod is not within t[0] and t[len(t)-1].\n' +
+                             "   Received tPeriod = " + str(tPeriod) + '\n' +
+                             "            t[-1]   = " + str(t[-1]) + '.')
         tRet = []
         inc = t[1] - t[0]
         for i in t:
@@ -204,10 +204,10 @@ class Plotter(object):
         tPeriod = increment * nIncrement
         rem = (t[-1] - t[0]) % tPeriod
         if abs(rem) > 1E-20:
-            raise ValueError('Length of time series must be a multiple of increment*nIncrement.\n'
-                             + '  Received increment  = ' + str(increment) + '\n'
-                             + '           nIncrement = ' + str(nIncrement) + '\n'
-                             + '           t[-1]-t[0] = ' + str(t[-1] - t[0]) + '.')
+            raise ValueError('Length of time series must be a multiple of increment*nIncrement.\n' +
+                             '  Received increment  = ' + str(increment) + '\n' +
+                             '           nIncrement = ' + str(nIncrement) + '\n' +
+                             '           t[-1]-t[0] = ' + str(t[-1] - t[0]) + '.')
 
         # Make equidistant grid for the whole simulation period, such as 0, 1, ... 47
         # for two days
