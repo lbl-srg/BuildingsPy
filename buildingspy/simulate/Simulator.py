@@ -514,7 +514,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
             self._runSimulation(runScriptName,
                                 self._simulator_.get('timeout'),
                                 worDir)
-        except:  # Catch all possible exceptions
+        except BaseException:
             self._reporter.writeError("Translation failed in '" + worDir + "'\n"
                                       + "   You need to delete the directory manually.")
             raise
@@ -618,7 +618,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
             self._copyResultFiles(worDir)
             self._deleteTemporaryDirectory(worDir)
             self._check_model_parametrization()
-        except:  # Catch all possible exceptions
+        except BaseException:
             self._reporter.writeError("Simulation failed in '" + worDir + "'\n"
                                       + "   You need to delete the directory manually.")
             raise

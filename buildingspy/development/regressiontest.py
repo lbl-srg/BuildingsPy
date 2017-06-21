@@ -1348,7 +1348,8 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
 
             # The time interval is the same for the stored and the current data.
             # Check the accuracy of the simulation.
-            for varNam in list(pai.keys()):  # Iterate over the variable names that are to be plotted together
+            for varNam in list(pai.keys()):
+                # Iterate over the variable names that are to be plotted together
                 if varNam != 'time':
                     if varNam in y_ref:
                         # Check results
