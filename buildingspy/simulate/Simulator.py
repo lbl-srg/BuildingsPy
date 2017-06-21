@@ -515,8 +515,8 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
                                 self._simulator_.get('timeout'),
                                 worDir)
         except BaseException:
-            self._reporter.writeError("Translation failed in '" + worDir + "'\n"
-                                      + "   You need to delete the directory manually.")
+            self._reporter.writeError("Translation failed in '" + worDir + "'\n" +
+                                      "   You need to delete the directory manually.")
             raise
 
     def simulate_translated(self):
@@ -619,8 +619,8 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
             self._deleteTemporaryDirectory(worDir)
             self._check_model_parametrization()
         except BaseException:
-            self._reporter.writeError("Simulation failed in '" + worDir + "'\n"
-                                      + "   You need to delete the directory manually.")
+            self._reporter.writeError("Simulation failed in '" + worDir + "'\n" +
+                                      "   You need to delete the directory manually.")
             raise
 
     def deleteOutputFiles(self):
@@ -811,12 +811,12 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
                             killedProcess = True
                             # This output needed because of the progress bar
                             sys.stdout.write("\n")
-                            self._reporter.writeError("Terminating simulation in "
-                                                      + directory + ".")
+                            self._reporter.writeError("Terminating simulation in " +
+                                                      directory + ".")
                             pro.terminate()
                         else:
-                            self._reporter.writeError("Killing simulation in "
-                                                      + directory + ".")
+                            self._reporter.writeError("Killing simulation in " +
+                                                      directory + ".")
                             pro.kill()
                     else:
                         if self._showProgressBar:

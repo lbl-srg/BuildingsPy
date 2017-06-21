@@ -548,8 +548,8 @@ Modelica package. Expected file '%s'."
         # Make sure that the parameter root_dir points to a Modelica package.
         topPackage = os.path.join(root_dir, "package.mo")
         if not os.path.isfile(topPackage):
-            s = ("Argument root_dir={!s} is not a Modelica package.\n"
-                 + "Expected file={!s}.\n").format(root_dir, topPackage)
+            s = ("Argument root_dir={!s} is not a Modelica package.\n" +
+                 "Expected file={!s}.\n").format(root_dir, topPackage)
             raise ValueError(s)
 
         # Get the path to the mos files
