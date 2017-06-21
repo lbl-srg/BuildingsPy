@@ -584,8 +584,8 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
                           ', stopTime=' + str(self._simulator_.get('t1')) +
                           ', method="' + self._simulator_.get('solver') + '"' +
                           ', tolerance=' + str(self._simulator_.get('eps')) +
-                          ', resultFile="' + str(self._simulator_.get('resultFile')
-                                                 + '"'))
+                          ', resultFile="' + str(self._simulator_.get('resultFile') +
+                                                 '"'))
                 if 'numberOfIntervals' in self._simulator_:
                     fil.write(', numberOfIntervals=' +
                               str(self._simulator_.get('numberOfIntervals')))
@@ -685,8 +685,8 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
 
         if self._outputDir_ != '.':
             self._createDirectory(self._outputDir_)
-        filLis = ['run_simulate.mos', 'run_translate.mos', 'run.mos', 'translator.log', 'simulator.log', 'dslog.txt',
-                  self._simulator_.get('resultFile') + '.mat']
+        filLis = ['run_simulate.mos', 'run_translate.mos', 'run.mos', 'translator.log',
+                  'simulator.log', 'dslog.txt', self._simulator_.get('resultFile') + '.mat']
         for fil in filLis:
             srcFil = os.path.join(srcDir, fil)
             newFil = os.path.join(self._outputDir_, fil)
@@ -716,8 +716,10 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         dirNam = os.path.split(worDir)[0]
         # Make sure we don't delete a root directory
         if dirNam.find('tmp-simulator-') == -1:
-            self._reporter.writeError("Failed to delete '" +
-                                      dirNam + "' as it does not seem to be a valid directory name.")
+            self._reporter.writeError(
+                "Failed to delete '" +
+                dirNam +
+                "' as it does not seem to be a valid directory name.")
         else:
             try:
                 if os.path.exists(worDir):
