@@ -1,7 +1,7 @@
 BuildingsPy
 -----------
 
-.. image:: https://travis-ci.org/lbl-srg/BuildingsPy.svg
+.. image:: https://travis-ci.org/lbl-srg/BuildingsPy.svg?branch=master
     :target: https://travis-ci.org/lbl-srg/BuildingsPy
 
 BuildingsPy is a Python package that can be used to
