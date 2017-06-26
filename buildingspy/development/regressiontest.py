@@ -2193,7 +2193,7 @@ getErrorString();
         # Make temporary directory, copy library into the directory and
         # write run scripts to directory
         for iPro in range(self._nPro):
-            #print("Calling parallel loop for iPro={}, self._nPro={}".format(iPro, self._nPro))
+            # print("Calling parallel loop for iPro={}, self._nPro={}".format(iPro, self._nPro))
             dirNam = tempfile.mkdtemp(
                 prefix='tmp-' + self.getLibraryName() + '-' + str(iPro) + "-")
             self._temDir.append(dirNam)
@@ -2238,7 +2238,7 @@ getErrorString();
         import json
         import glob
 
-        #import pdb;pdb.set_trace()
+        # import pdb;pdb.set_trace()
 
         self.checkPythonModuleAvailability()
 
@@ -2574,21 +2574,22 @@ getErrorString();
         :param simulate: Set to ``True`` to cause the model to be simulated.
         """
 
-        def count_cmpl(x): return [True for _, v in list(x.items())
-                                   if v['compilation_ok']]
+        def count_cmpl(x):
+            return [True for _, v in list(x.items()) if v['compilation_ok']]
 
-        def list_failed_cmpl(x): return [k for k, v in list(x.items())
-                                         if not v['compilation_ok']]
+        def list_failed_cmpl(x):
+            return [k for k, v in list(x.items()) if not v['compilation_ok']]
 
-        def count_load(x): return [True for _, v in list(x.items()) if v['load_ok']]
+        def count_load(x):
+            return [True for _, v in list(x.items()) if v['load_ok']]
 
-        def list_failed_load(x): return [k for k, v in list(x.items())
-                                         if not v['load_ok']]
+        def list_failed_load(x): return [k for k, v in list(x.items()) if not v['load_ok']]
 
-        def count_sim(x): return [True for _, v in list(x.items()) if v['sim_ok']]
+        def count_sim(x):
+            return [True for _, v in list(x.items()) if v['sim_ok']]
 
-        def list_failed_sim(x): return [k for k, v in list(x.items())
-                                        if not v['sim_ok']]
+        def list_failed_sim(x):
+            return [k for k, v in list(x.items()) if not v['sim_ok']]
 
         nbr_tot = len(self._jmstats)
         nbr_cmpl = len(count_cmpl(self._jmstats))

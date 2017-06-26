@@ -106,11 +106,11 @@ class Simulator(object):
             raise ValueError(msg)
 
         # Check whether the file package.mo exists in the directory specified
-#        fileMo = os.path.abspath(os.path.join(packagePath, "package.mo"))
+        # fileMo = os.path.abspath(os.path.join(packagePath, "package.mo"))
         # if os.path.isfile(fileMo) == False:
-            #msg = "The directory '%s' does not contain the required " % packagePath
-            #msg +="file '%s'." %fileMo
-            #raise ValueError(msg)
+            # msg = "The directory '%s' does not contain the required " % packagePath
+            # msg +="file '%s'." %fileMo
+            # raise ValueError(msg)
 
         # All the checks have been successfully passed
         self._packagePath = packagePath
@@ -578,7 +578,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
                 for c in dec:
                     fil.write(c + ';\n')
                 fil.write('resultFile=' + '"' + str(self._simulator_.get('resultFile')) + '"' + ';\n')
-                #fil.write('modelInstance=' + mi + ';\n')
+                # fil.write('modelInstance=' + mi + ';\n')
                 fil.write('simulateModel("", ')
                 fil.write('startTime=' + str(self._simulator_.get('t0')) +
                           ', stopTime=' + str(self._simulator_.get('t1')) +
