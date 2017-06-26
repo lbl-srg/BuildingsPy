@@ -460,7 +460,7 @@ Modelica package. Expected file '%s'."
             content = f.readlines()
             found = False
             i = 0
-            while found == False and i < len(content):
+            while not found and i < len(content):
                 l = content[i]
                 if "simulateModel(" in l.replace(" ", ""):
                     line = l
@@ -477,7 +477,7 @@ Modelica package. Expected file '%s'."
                     self._check_tolerance(content, name, value, mos_file)
                 else:
                     found = False
-                    while found == False and i < len(content):
+                    while not found and i < len(content):
                         line = content[i]
                         i += 1
 
