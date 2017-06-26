@@ -1,5 +1,9 @@
+group: deprecated-2017Q2
+
 dist: trusty
+
 language: python
+
 python:
   - "2.7"
   - "3.5"
