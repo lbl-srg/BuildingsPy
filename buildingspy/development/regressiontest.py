@@ -2193,7 +2193,7 @@ getErrorString();
         # Make temporary directory, copy library into the directory and
         # write run scripts to directory
         for iPro in range(self._nPro):
-            #print("Calling parallel loop for iPro={}, self._nPro={}".format(iPro, self._nPro))
+            # print("Calling parallel loop for iPro={}, self._nPro={}".format(iPro, self._nPro))
             dirNam = tempfile.mkdtemp(
                 prefix='tmp-' + self.getLibraryName() + '-' + str(iPro) + "-")
             self._temDir.append(dirNam)
@@ -2238,7 +2238,7 @@ getErrorString();
         import json
         import glob
 
-        #import pdb;pdb.set_trace()
+        # import pdb;pdb.set_trace()
 
         self.checkPythonModuleAvailability()
 

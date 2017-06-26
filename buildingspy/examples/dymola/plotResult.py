@@ -21,9 +21,9 @@ def main():
     import os
 
     # Optionally, change fonts to use LaTeX fonts
-    #from matplotlib import rc
-    #rc('text', usetex=True)
-    #rc('font', family='serif')
+    # from matplotlib import rc
+    # rc('text', usetex=True)
+    # rc('font', family='serif')
 
     # Read results
     ofr1 = Reader(os.path.join("buildingspy", "examples", "dymola",
