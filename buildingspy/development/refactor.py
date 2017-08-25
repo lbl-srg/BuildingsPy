@@ -396,6 +396,7 @@ def _move_openmodelica_script(source, target):
                   sourceRefFile.replace(source,
                                         target))
 
+
 def _move_image_files(source, target):
     ''' Move the image files of the model `source` to `target`.
 
