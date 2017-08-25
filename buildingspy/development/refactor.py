@@ -657,6 +657,10 @@ def move_class(source, target):
     # then these also need to be renamed
     _move_image_files(source, target)
 
+    ##############################################################
+    # Move OpenModelica script if present.
+    _move_openmodelica_script(source, target)
+
     _update_all_references(source, target)
 
 
