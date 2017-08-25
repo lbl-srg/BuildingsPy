@@ -214,6 +214,13 @@ def _git_move(source, target):
     :param target: Target file.
 
     '''
+    # Due to the recursive calls, this could be invoked to git mv an empty directory.
+    # The directory would exist, but has no files in it.
+    # In this case, simply delete the empty directory and return
+    if os.path.isdir(source) and len(os.listdir(source)) == 0:
+        os.rmdir(source)
+        return
+
     # Throw an error if source is not a file that exist.
     if not (os.path.isfile(source) or os.path.isdir(source)):
         raise ValueError("Failed to move file '%s' as it does not exist." %
@@ -240,14 +247,7 @@ def _git_move(source, target):
             create_modelica_package(targetDir)
         else:
             # Directory does not exist.
-            # If we git mv a file, create the whole directory,
-            # but if we git mv a directory, only create its parent directory.
-            # Otherwise, git mv moves the directory to a subdirectory of the target directory
-            if os.path.isfile(source):
-                os.makedirs(targetDir)
-            else:
-                parentDir = (os.path.sep).join(targetDir.split(os.path.sep)[:-1])
-                os.makedirs(parentDir)
+            os.makedirs(targetDir)
 
     _sh(cmd=['git', 'mv', source, target], directory=os.path.curdir)
 
