@@ -374,6 +374,28 @@ def _move_reference_result(source, target):
                                         target.replace(".", "_")))
 
 
+def _move_openmodelica_script(source, target):
+    ''' Move the OpenModelica script from the model `source` to `target`.
+
+        If the model `source` has no reference results, then this function
+        returns doing nothing.
+
+    :param source: Class name of the source.
+    :param target: Class name of the target.
+
+    '''
+    # Reference result file for sourceFile.
+    sourceRefFile = source[:source.find(".")] + \
+        os.path.sep + \
+        os.path.join("Resources", "Scripts", "OpenModelica", "compareVars") + \
+        os.path.sep + \
+        source + ".mos"
+
+    if os.path.isfile(sourceRefFile):
+        _git_move(sourceRefFile,
+                  sourceRefFile.replace(source,
+                                        target))
+
 def _move_image_files(source, target):
     ''' Move the image files of the model `source` to `target`.
 
