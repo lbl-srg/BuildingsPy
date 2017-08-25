@@ -215,7 +215,7 @@ def _git_move(source, target):
 
     '''
     # Throw an error if source is not a file that exist.
-    if not os.path.isfile(source):
+    if not (os.path.isfile(source) or os.path.isdir(source)):
         raise ValueError("Failed to move file '%s' as it does not exist." %
                          os.path.abspath(os.path.join(os.path.curdir, source)))
 
@@ -239,9 +239,15 @@ def _git_move(source, target):
             # Recursively create an populate it.
             create_modelica_package(targetDir)
         else:
-            # Directory does not exist and it is not a Modelica package.
-            # Recursively create it.
-            os.makedirs(targetDir)
+            # Directory does not exist.
+            # If we git mv a file, create the whole directory,
+            # but if we git mv a directory, only create its parent directory.
+            # Otherwise, git mv moves the directory to a subdirectory of the target directory
+            if os.path.isfile(source):
+                os.makedirs(targetDir)
+            else:
+                parentDir = (os.path.sep).join(targetDir.split(os.path.sep)[:-1])
+                os.makedirs(parentDir)
 
     _sh(cmd=['git', 'mv', source, target], directory=os.path.curdir)
 
@@ -504,6 +510,31 @@ def _get_package_list_for_file(directory, file_name):
     return pacLis
 
 
+def _move_images_directory(source, target):
+    ''' Move the directory with the images if it exists.
+
+    Both arguments need to be package names
+    such as `Buildings.Fluid.Sensors`, which are in corresponding
+    directories, e.g., in `Buildings/Fluid/Sensors`.
+
+    :param source: Package name of the source.
+    :param target: Package name of the target.
+
+    If the package has no images, then this function does nothing
+    and returns.
+    '''
+
+    # source_dir is of the form Buildings.Fluid.Sensors, but the
+    # images would be in Buildings/Resources/Images/Fluid/Sensors
+    insertion = os.path.sep + os.path.join("Resources", "Images") + os.path.sep
+
+    source_dir = source.replace(".", os.path.sep).replace(os.path.sep, insertion, 1)
+
+    if os.path.isdir(source_dir):
+        target_dir = target.replace(".", os.path.sep).replace(os.path.sep, insertion, 1)
+        _git_move(source_dir, target_dir)
+
+
 def _move_class_directory(source, target):
     ''' Move the directory `source`, which has a file `source/package.mo`,
     to the `target` name.
@@ -558,6 +589,9 @@ def _move_class_directory(source, target):
         src = ".".join([source, di])
         tar = ".".join([target, di])
         move_class(src, tar)
+
+    # Move the Resources/Images directory
+    _move_images_directory(source, target)
 
 
 def move_class(source, target):
