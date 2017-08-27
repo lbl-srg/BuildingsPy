@@ -214,8 +214,15 @@ def _git_move(source, target):
     :param target: Target file.
 
     '''
+    # Due to the recursive calls, this could be invoked to git mv an empty directory.
+    # The directory would exist, but has no files in it.
+    # In this case, simply delete the empty directory and return
+    if os.path.isdir(source) and len(os.listdir(source)) == 0:
+        os.rmdir(source)
+        return
+
     # Throw an error if source is not a file that exist.
-    if not os.path.isfile(source):
+    if not (os.path.isfile(source) or os.path.isdir(source)):
         raise ValueError("Failed to move file '%s' as it does not exist." %
                          os.path.abspath(os.path.join(os.path.curdir, source)))
 
@@ -239,8 +246,7 @@ def _git_move(source, target):
             # Recursively create an populate it.
             create_modelica_package(targetDir)
         else:
-            # Directory does not exist and it is not a Modelica package.
-            # Recursively create it.
+            # Directory does not exist.
             os.makedirs(targetDir)
 
     _sh(cmd=['git', 'mv', source, target], directory=os.path.curdir)
@@ -366,6 +372,29 @@ def _move_reference_result(source, target):
         _git_move(sourceRefFile,
                   sourceRefFile.replace(source.replace(".", "_"),
                                         target.replace(".", "_")))
+
+
+def _move_openmodelica_script(source, target):
+    ''' Move the OpenModelica script from the model `source` to `target`.
+
+        If the model `source` has no reference results, then this function
+        returns doing nothing.
+
+    :param source: Class name of the source.
+    :param target: Class name of the target.
+
+    '''
+    # Reference result file for sourceFile.
+    sourceRefFile = source[:source.find(".")] + \
+        os.path.sep + \
+        os.path.join("Resources", "Scripts", "OpenModelica", "compareVars") + \
+        os.path.sep + \
+        source + ".mos"
+
+    if os.path.isfile(sourceRefFile):
+        _git_move(sourceRefFile,
+                  sourceRefFile.replace(source,
+                                        target))
 
 
 def _move_image_files(source, target):
@@ -504,6 +533,31 @@ def _get_package_list_for_file(directory, file_name):
     return pacLis
 
 
+def _move_images_directory(source, target):
+    ''' Move the directory with the images if it exists.
+
+    Both arguments need to be package names
+    such as `Buildings.Fluid.Sensors`, which are in corresponding
+    directories, e.g., in `Buildings/Fluid/Sensors`.
+
+    :param source: Package name of the source.
+    :param target: Package name of the target.
+
+    If the package has no images, then this function does nothing
+    and returns.
+    '''
+
+    # source_dir is of the form Buildings.Fluid.Sensors, but the
+    # images would be in Buildings/Resources/Images/Fluid/Sensors
+    insertion = os.path.sep + os.path.join("Resources", "Images") + os.path.sep
+
+    source_dir = source.replace(".", os.path.sep).replace(os.path.sep, insertion, 1)
+
+    if os.path.isdir(source_dir):
+        target_dir = target.replace(".", os.path.sep).replace(os.path.sep, insertion, 1)
+        _git_move(source_dir, target_dir)
+
+
 def _move_class_directory(source, target):
     ''' Move the directory `source`, which has a file `source/package.mo`,
     to the `target` name.
@@ -559,6 +613,9 @@ def _move_class_directory(source, target):
         tar = ".".join([target, di])
         move_class(src, tar)
 
+    # Move the Resources/Images directory
+    _move_images_directory(source, target)
+
 
 def move_class(source, target):
     ''' Move the class from the `source`
@@ -600,6 +657,10 @@ def move_class(source, target):
     # If there are image files that start with the model name,
     # then these also need to be renamed
     _move_image_files(source, target)
+
+    ##############################################################
+    # Move OpenModelica script if present.
+    _move_openmodelica_script(source, target)
 
     _update_all_references(source, target)
 
