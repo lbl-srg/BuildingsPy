@@ -574,9 +574,9 @@ def _move_class_directory(source, target):
     source_dir = source.replace(".", os.path.sep)
     target_dir = target.replace(".", os.path.sep)
 
-    # Create the target directory if it does not yet exist
+    # Recursively create the target directory if it does not yet exist
     if not os.path.isdir(target_dir):
-        os.mkdir(target_dir)
+        os.makedirs(target_dir)
 
     # Copy the package.mo file if it does not exist in the target
     if not os.path.exists(os.path.join(target_dir, "package.mo")):
