@@ -145,7 +145,7 @@ class Plotter(object):
     def boxplot(t, y, increment=3600, nIncrement=24,
                 notch=0, sym='b+', vert=1, whis=1.5,
                 positions=None, widths=None, patch_artist=False, bootstrap=None, hold=None):
-        u''' Create a boxplot of time data.
+        ''' Create a boxplot of time data.
 
         :param t: The support points in time as received from the *Reader*.
         :param y: The function values at ``t`` as received from the *Reader*.
@@ -184,8 +184,8 @@ class Plotter(object):
            >>> # Decorate, save and show the plot
            >>> plt.xlabel('Time [h]')
            Text(0.5,0,u'Time [h]')
-           >>> plt.ylabel(u'Room temperature [°C]')
-           Text(0,0.5,u'Room temperature [°C]')
+           >>> plt.ylabel('Room temperature [$^\circ$C]')
+           Text(0,0.5,u''Room temperature [$^\circ$C]'')
            >>> plt.grid()
            >>> plt.savefig("roomTemperatures.png")
            >>> plt.show() # doctest: +SKIP
