@@ -2351,8 +2351,11 @@ getErrorString();
                         retVal = 1
                 # Dump an array of testCase objects
                 # dump to a string first using json.dumps instead of json.dump
-                json_string = json.dumps({"testCase": stat}, indent=4,
-                                         separators=(',', ': '), ensure_ascii=False)
+                json_string = json.dumps({"testCase": stat},
+                                         ensure_ascii=False,
+                                         indent=4,
+                                         separators=(',', ': '),
+                                         sort_keys=True)
                 logFil.write(json_string)
 
         # check logfile if omc
