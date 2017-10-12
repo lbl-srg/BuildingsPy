@@ -1144,7 +1144,8 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                     # f.write('statistics-%s=\n%s\n' % (stage, _pretty_print(y_tra[stage])))
                     f.write('statistics-%s=\n%s\n' % (stage, json.dumps(y_tra[stage],
                                                                         indent=2,
-                                                                        separators=(',', ': '))))
+                                                                        separators=(',', ': '),
+                                                                        sort_keys=True)))
             # FMU exports do not have simulation results.
             # Hence, we preclude them if y_sim == None
             if y_sim is not None:
