@@ -184,8 +184,8 @@ class Plotter(object):
            >>> # Decorate, save and show the plot
            >>> plt.xlabel('Time [h]')
            Text(0.5,0,u'Time [h]')
-           >>> plt.ylabel('Room temperature [$^\circ$C]')
-           Text(0,0.5,u'Room temperature [$^\circ$C]')
+           >>> plt.ylabel('Room temperature [degC]')
+           Text(0,0.5,u'Room temperature [degC]')
            >>> plt.grid()
            >>> plt.savefig("roomTemperatures.png")
            >>> plt.show() # doctest: +SKIP
