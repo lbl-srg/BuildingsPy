@@ -1142,7 +1142,10 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             for stage in ['initialization', 'simulation', 'fmu-dependencies']:
                 if stage in y_tra:
                     # f.write('statistics-%s=\n%s\n' % (stage, _pretty_print(y_tra[stage])))
-                    f.write('statistics-%s=\n%s\n' % (stage, json.dumps(y_tra[stage], indent=2)))
+                    f.write('statistics-%s=\n%s\n' % (stage, json.dumps(y_tra[stage],
+                                                                        indent=2,
+                                                                        separators=(',', ': '),
+                                                                        sort_keys=True)))
             # FMU exports do not have simulation results.
             # Hence, we preclude them if y_sim == None
             if y_sim is not None:
@@ -2351,8 +2354,11 @@ getErrorString();
                         retVal = 1
                 # Dump an array of testCase objects
                 # dump to a string first using json.dumps instead of json.dump
-                json_string = json.dumps({"testCase": stat}, logFil, indent=4,
-                                         separators=(',', ': '), ensure_ascii=False)
+                json_string = json.dumps({"testCase": stat},
+                                         ensure_ascii=False,
+                                         indent=4,
+                                         separators=(',', ': '),
+                                         sort_keys=True)
                 logFil.write(json_string)
 
         # check logfile if omc

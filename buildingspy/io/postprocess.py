@@ -182,10 +182,10 @@ class Plotter(object):
            >>> plt=Plotter.boxplot(t=t, y=y-273.15, increment=3600, nIncrement=24)
            >>>
            >>> # Decorate, save and show the plot
-           >>> plt.xlabel('Time [h]') #doctest: +ELLIPSIS
-           <matplotlib.text.Text object at ...>
-           >>> plt.ylabel(u'Room temperature [$^\circ$C]') #doctest: +ELLIPSIS
-           <matplotlib.text.Text object at ...>
+           >>> plt.xlabel('Time [h]')
+           Text(0.5,0,u'Time [h]')
+           >>> plt.ylabel(u'Room temperature [°C]') #doctest: +ELLIPSIS
+           Text(0,0.5,u'Room temperature [...C]')
            >>> plt.grid()
            >>> plt.savefig("roomTemperatures.png")
            >>> plt.show() # doctest: +SKIP

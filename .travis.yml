@@ -40,7 +40,7 @@ before_install:
 
 install:
   - pip install --upgrade pip setuptools wheel
-  - pip install --only-binary=numpy,scipy,matplotlib numpy scipy matplotlib
+  - pip install --only-binary=numpy,scipy,matplotlib numpy scipy matplotlib==2.1.0
   - pip install autopep8
   - pip install .
 
