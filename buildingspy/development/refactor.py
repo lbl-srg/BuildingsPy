@@ -5,7 +5,7 @@
 #
 # MWetter@lbl.gov                            2014-11-23
 #######################################################
-'''
+"""
   This module provides functions to
 
   * create Modelica packages and autopopulate for example the
@@ -14,7 +14,7 @@
     reference results and images, and
   * rewrite the `package.order` file.
 
-'''
+"""
 #
 # import from future to make Python2 behave like Python3
 from __future__ import absolute_import
@@ -89,11 +89,11 @@ def _sort_package_order(package_order):
 
 
 def _sh(cmd, directory):
-    ''' Run the command ```cmd``` command in the directory ```directory```
+    """ Run the command ```cmd``` command in the directory ```directory```
 
     :param cmd: List with the commands as is used in `subprocess.Popen()`.
     :param directory: Directory in which the command is executed.
-    '''
+    """
     import subprocess
 
     p = subprocess.Popen(cmd, cwd=directory)
@@ -103,7 +103,7 @@ def _sh(cmd, directory):
 
 
 def create_modelica_package(directory):
-    ''' Create in `directory` a Modelica package.
+    """ Create in `directory` a Modelica package.
 
     If `directory` exists, this method returns and does
     nothing. Otherwise, it creates the directory and populates
@@ -111,7 +111,7 @@ def create_modelica_package(directory):
 
     :param directory: The directory in which the package is created.
 
-    '''
+    """
     dirs = directory.split(os.path.sep)
     fd = ""
     for d in dirs:
@@ -205,7 +205,7 @@ end %s;
 
 
 def _git_move(source, target):
-    ''' Moves `source` to `target` using `git mv`.
+    """ Moves `source` to `target` using `git mv`.
 
     This method calls `git mv source target` in the current directory.
     It also creates the required subdirectories.
@@ -213,7 +213,7 @@ def _git_move(source, target):
     :param source: Source file.
     :param target: Target file.
 
-    '''
+    """
     # Due to the recursive calls, this could be invoked to git mv an empty directory.
     # The directory would exist, but has no files in it.
     # In this case, simply delete the empty directory and return
@@ -253,23 +253,23 @@ def _git_move(source, target):
 
 
 def get_modelica_file_name(source):
-    ''' Return for the Modelica class `source` its file name.
+    """ Return for the Modelica class `source` its file name.
 
     This method assumes the Modelica class is in a file
     with the same name.
 
     :param source: Class name of the source.
     :return: The file name of the Modelica class.
-    '''
+    """
     return os.path.join(*source.split(".")) + ".mo"
 
 
 def replace_text_in_file(file_name, old, new, isRegExp=False):
-    ''' Replace `old` with `new` in file `file_name`.
+    """ Replace `old` with `new` in file `file_name`.
 
         If `isRegExp==True`, then old must be a regular expression, and
         `re.sub(old, new, ...)` is called where `...` is each line of the file.
-    '''
+    """
     import re
     # Read source file, store the lines and update the content of the lines
     with open(file_name, mode="r", encoding="utf-8-sig") as f_sou:
@@ -287,13 +287,13 @@ def replace_text_in_file(file_name, old, new, isRegExp=False):
 
 
 def _move_mo_file(source, target):
-    ''' Move the `.mo` file `sourceFile` to `targetFile` and update its content.
+    """ Move the `.mo` file `sourceFile` to `targetFile` and update its content.
 
     :param source: Class name of the source.
     :param target: Class name of the target.
     :param sourceFile: Name of the source file.
     :param targetFile: Name of the target file.
-    '''
+    """
     sourceFile = get_modelica_file_name(source)
     targetFile = get_modelica_file_name(target)
 
@@ -310,13 +310,13 @@ def _move_mo_file(source, target):
 
 
 def _move_mos_file(source, target):
-    ''' Move the `.mos` script `sourceFile` to `targetFile` and its content.
+    """ Move the `.mos` script `sourceFile` to `targetFile` and its content.
 
     :param source: Class name of the source.
     :param target: Class name of the target.
     :param sourceMosFile: Name of the source file.
     :param targetMosFile: Name of the target file.
-    '''
+    """
     sourceFile = get_modelica_file_name(source)
     targetFile = get_modelica_file_name(target)
 
@@ -352,7 +352,7 @@ def _move_mos_file(source, target):
 
 
 def _move_reference_result(source, target):
-    ''' Move the reference results from the model `source` to `target`.
+    """ Move the reference results from the model `source` to `target`.
 
         If the model `source` has no reference results, then this function
         returns doing nothing.
@@ -360,7 +360,7 @@ def _move_reference_result(source, target):
     :param source: Class name of the source.
     :param target: Class name of the target.
 
-    '''
+    """
     # Reference result file for sourceFile.
     sourceRefFile = source[:source.find(".")] + \
         os.path.sep + \
@@ -375,7 +375,7 @@ def _move_reference_result(source, target):
 
 
 def _move_openmodelica_script(source, target):
-    ''' Move the OpenModelica script from the model `source` to `target`.
+    """ Move the OpenModelica script from the model `source` to `target`.
 
         If the model `source` has no reference results, then this function
         returns doing nothing.
@@ -383,7 +383,7 @@ def _move_openmodelica_script(source, target):
     :param source: Class name of the source.
     :param target: Class name of the target.
 
-    '''
+    """
     # Reference result file for sourceFile.
     sourceRefFile = source[:source.find(".")] + \
         os.path.sep + \
@@ -398,12 +398,12 @@ def _move_openmodelica_script(source, target):
 
 
 def _move_image_files(source, target):
-    ''' Move the image files of the model `source` to `target`.
+    """ Move the image files of the model `source` to `target`.
 
     :param source: Class name of the source.
     :param target: Class name of the target.
 
-    '''
+    """
 
     # Name of directory that may contain the image files
     def imgDir(s): return os.path.join(os.path.curdir, "Resources",
@@ -421,7 +421,7 @@ def _move_image_files(source, target):
 
 
 def write_package_order(directory=".", recursive=False):
-    ''' Write the `package.order` file in the directory `directory`.
+    """ Write the `package.order` file in the directory `directory`.
 
         Any existing `package.order` file will be overwritten.
 
@@ -434,7 +434,7 @@ def write_package_order(directory=".", recursive=False):
         >>> import buildingspy.development.refactor as r
         >>> r.write_package_order(".") #doctest: +ELLIPSIS
 
-    '''
+    """
     if recursive:
         s = set()
         for root, _, files in os.walk(directory):
@@ -475,8 +475,8 @@ def write_package_order(directory=".", recursive=False):
 
 
 def _get_package_list_for_file(directory, file_name):
-    ''' Gets the package list for the file `directory/file_name`
-    '''
+    """ Gets the package list for the file `directory/file_name`
+    """
     import re
 
     pacLis = list()
@@ -534,7 +534,7 @@ def _get_package_list_for_file(directory, file_name):
 
 
 def _move_images_directory(source, target):
-    ''' Move the directory with the images if it exists.
+    """ Move the directory with the images if it exists.
 
     Both arguments need to be package names
     such as `Buildings.Fluid.Sensors`, which are in corresponding
@@ -545,7 +545,7 @@ def _move_images_directory(source, target):
 
     If the package has no images, then this function does nothing
     and returns.
-    '''
+    """
 
     # source_dir is of the form Buildings.Fluid.Sensors, but the
     # images would be in Buildings/Resources/Images/Fluid/Sensors
@@ -559,7 +559,7 @@ def _move_images_directory(source, target):
 
 
 def _move_class_directory(source, target):
-    ''' Move the directory `source`, which has a file `source/package.mo`,
+    """ Move the directory `source`, which has a file `source/package.mo`,
     to the `target` name.
 
     Both arguments need to be package names
@@ -568,7 +568,7 @@ def _move_class_directory(source, target):
 
     :param source: Package name of the source.
     :param target: Package name of the target.
-    '''
+    """
     import glob
 
     source_dir = source.replace(".", os.path.sep)
@@ -618,7 +618,7 @@ def _move_class_directory(source, target):
 
 
 def move_class(source, target):
-    ''' Move the class from the `source`
+    """ Move the class from the `source`
     to the `target` name.
 
     Both arguments need to be Modelica class names
@@ -635,7 +635,7 @@ def move_class(source, target):
         >>> r.move_class("Buildings.Fluid.Movers.FlowControlled_dp", \
         >>>              "Buildings.Fluid.Movers.Flow_dp") #doctest: +SKIP
 
-    '''
+    """
     ##############################################################
     # Check if it is a directory with a package.mo file
     if os.path.isdir(source.replace(".", os.path.sep)):
@@ -666,11 +666,11 @@ def move_class(source, target):
 
 
 def _update_all_references(source, target):
-    ''' Updates all references in `.mo` and `.mos` files.
+    """ Updates all references in `.mo` and `.mos` files.
 
     :param source: Class name of the source.
     :param target: Class name of the target.
-    '''
+    """
 #    from multiprocessing import Pool
 
     # Update all references in the mo and mos files
@@ -691,7 +691,7 @@ def _update_all_references(source, target):
 
 
 def _updateFile(arg):
-    ''' Update all `.mo`, `package.order` and reference result file
+    """ Update all `.mo`, `package.order` and reference result file
 
         The argument `arg` is a list where the first item is
         the relative file name (e.g., `./Buildings/package.mo`),
@@ -702,7 +702,7 @@ def _updateFile(arg):
         consuming and hence this is done in parallel.
 
         :param arg: A list with the arguments.
-    '''
+    """
 
     def _getShortName(fileName, className):
         import re

@@ -23,7 +23,7 @@ import os
 
 
 def runSimulation(worDir, cmd):
-    ''' Run the simulation.
+    """ Run the simulation.
 
     :param worDir: The working directory.
     :param cmd: An array which is passed to the `args` argument of
@@ -31,7 +31,7 @@ def runSimulation(worDir, cmd):
 
     .. note:: This method is outside the class definition to
               allow parallel computing.
-    '''
+    """
 
     import subprocess
 
@@ -59,7 +59,7 @@ def runSimulation(worDir, cmd):
 
 
 class Tester(object):
-    ''' Class that runs all regression tests using Dymola.
+    """ Class that runs all regression tests using Dymola.
 
     Initiate with the following optional arguments:
 
@@ -124,11 +124,11 @@ class Tester(object):
     To run regression tests only for a single package, call :func:`setSinglePackage`
     prior to :func:`run`.
 
-    '''
+    """
 
     def __init__(self, check_html=True, executable="dymola", cleanup=True):
-        ''' Constructor.
-        '''
+        """ Constructor.
+        """
         import multiprocessing
         import buildingspy.io.reporter as rep
         import buildingspy.development.error_dictionary as e
@@ -214,7 +214,7 @@ class Tester(object):
         self._error_dict = e.ErrorDictionary()
 
     def setLibraryRoot(self, rootDir):
-        ''' Set the root directory of the library.
+        """ Set the root directory of the library.
 
         :param rootDir: The top-most directory of the library.
 
@@ -227,13 +227,13 @@ class Tester(object):
            >>> rt = r.Tester()
            >>> myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
            >>> rt.setLibraryRoot(myMoLib)
-        '''
+        """
         self._libHome = os.path.abspath(rootDir)
         self._rootPackage = os.path.join(self._libHome, 'Resources', 'Scripts', 'Dymola')
         self.isValidLibrary(self._libHome)
 
     def useExistingResults(self, dirs):
-        ''' This function allows to use existing results, as opposed to running a simulation.
+        """ This function allows to use existing results, as opposed to running a simulation.
 
         :param dirs: A non-empty list of directories that contain existing results.
 
@@ -249,7 +249,7 @@ class Tester(object):
         >>> rt.useExistingResults(l)
         >>> rt.run() # doctest: +SKIP
 
-        '''
+        """
         if len(dirs) == 0:
             raise ValueError(
                 "Argument 'dirs' of function 'useExistingResults(dirs)' must have at least one element.")
@@ -260,25 +260,25 @@ class Tester(object):
         self._useExistingResults = True
 
     def setNumberOfThreads(self, number):
-        ''' Set the number of parallel threads that are used to run the regression tests.
+        """ Set the number of parallel threads that are used to run the regression tests.
 
         :param number: The number of parallel threads that are used to run the regression tests.
 
         By default, the number of parallel threads are set to be equal to the number of
         processors of the computer.
-        '''
+        """
         self._nPro = number
 
     def showGUI(self, show=True):
-        ''' Call this function to show the GUI of the simulator.
+        """ Call this function to show the GUI of the simulator.
 
         By default, the simulator runs without GUI
-        '''
+        """
         self._showGUI = show
         return
 
     def batchMode(self, batchMode):
-        ''' Set the batch mode flag.
+        """ Set the batch mode flag.
 
         :param batchMode: Set to ``True`` to run without interactive prompts
                           and without plot windows.
@@ -294,11 +294,11 @@ class Tester(object):
         >>> r.batchMode(True)
         >>> r.run() # doctest: +SKIP
 
-        '''
+        """
         self._batch = batchMode
 
     def pedanticModelica(self, pedanticModelica):
-        ''' Set the pedantic Modelica mode flag.
+        """ Set the pedantic Modelica mode flag.
 
         :param pedanticModelica: Set to ``True`` to run the unit tests in the pedantic Modelica mode.
 
@@ -311,11 +311,11 @@ class Tester(object):
         >>> r.pedanticModelica(True)
         >>> r.run() # doctest: +SKIP
 
-        '''
+        """
         self._pedanticModelica = pedanticModelica
 
     def include_fmu_tests(self, fmu_export):
-        ''' Sets a flag that, if ``False``, does not test the export of FMUs.
+        """ Sets a flag that, if ``False``, does not test the export of FMUs.
 
         :param fmu_export: Set to ``True`` to test the export of FMUs (default), or ``False``
                            to not test the FMU export.
@@ -328,15 +328,15 @@ class Tester(object):
         >>> r.include_fmu_tests(False)
         >>> r.run() # doctest: +SKIP
 
-        '''
+        """
         self._include_fmu_test = fmu_export
 
     def getModelicaCommand(self):
-        ''' Return the name of the modelica executable.
+        """ Return the name of the modelica executable.
 
         :return: The name of the modelica executable.
 
-        '''
+        """
         return self._modelicaCmd
 
     def isExecutable(self, program):
@@ -363,12 +363,12 @@ class Tester(object):
 
     @staticmethod
     def isValidLibrary(library_home):
-        ''' Returns true if the regression tester points to a valid library
+        """ Returns true if the regression tester points to a valid library
             that implements the scripts for the regression tests.
 
         :param library_home: top-level directory of the library, such as ``Buildings``.
         :return: ``True`` if the library implements regression tests, ``False`` otherwise.
-        '''
+        """
         topPackage = os.path.abspath(os.path.join(library_home, "package.mo"))
         if not os.path.isfile(topPackage):
             raise ValueError("Directory %s is not a Modelica library.\n    Expected file '%s'."
@@ -382,17 +382,17 @@ class Tester(object):
         return os.path.exists(os.path.join(library_home, "Resources", "Scripts"))
 
     def getLibraryName(self):
-        ''' Return the name of the library that will be run by this regression test.
+        """ Return the name of the library that will be run by this regression test.
 
         :return: The name of the library that will be run by this regression test.
-        '''
+        """
         return os.path.basename(self._libHome)
 
     def checkPythonModuleAvailability(self):
-        ''' Check whether all required python modules are installed.
+        """ Check whether all required python modules are installed.
 
             If some modules are missing, then an `ImportError` is raised.
-        '''
+        """
         requiredModules = ['buildingspy', 'matplotlib.pyplot', 'numpy', 'scipy.io']
         if self._checkHtml:
             requiredModules.append('tidylib')
@@ -411,11 +411,11 @@ class Tester(object):
             raise ImportError(msg)
 
     def _checkKey(self, key, fileName, counter):
-        ''' Checks whether ``key`` is contained in the header of the file ``fileName``
+        """ Checks whether ``key`` is contained in the header of the file ``fileName``
             If the first line starts with ``within``
             and the second line starts with ``key``
             the counter is increased by one.
-        '''
+        """
 
         with open(fileName, mode="rt", encoding="utf-8-sig") as filObj:
             # filObj is an iterable object, so we can use next(filObj)
@@ -427,10 +427,10 @@ class Tester(object):
         return counter
 
     def setExcludeTest(self, excludeFile):
-        ''' Exclude from the regression tests all tests specified in ``excludeFile``.
+        """ Exclude from the regression tests all tests specified in ``excludeFile``.
 
         :param excludeFile: The text file with files that shall be excluded from regression tests
-        '''
+        """
         if os.path.isfile(excludeFile):
             with open(excludeFile, mode="r", encoding="utf-8-sig") as f:
                 for line in f:
@@ -442,7 +442,7 @@ class Tester(object):
             self._reporter.writeError("Could not find file {!s}".format(excludeFile))
 
     def _includeFile(self, fileName):
-        ''' Returns true if the file need to be included in the list of scripts to run
+        """ Returns true if the file need to be included in the list of scripts to run
 
         :param fileName: The name of the ``*.mos`` file.
 
@@ -452,7 +452,7 @@ class Tester(object):
         This function checks if ``fileName`` exists in the global list
         ``self._exclude_tests``. For checking, ``fileName`` will be normalized (strip
         whitespace, convert backslash to slash, strip path).
-        '''
+        """
         if fileName.rstrip().endswith('.mos'):
             # This is a mos file, normalize the name
             filNamTup = fileName.rpartition(self.getLibraryName())
@@ -470,11 +470,11 @@ class Tester(object):
 
     @staticmethod
     def expand_packages(packages):
-        '''
+        """
         Expand the ``packages`` from the form
         ``A.{B,C}`` and return ``A.B,A.C``
         :param: packages: A list of packages
-        '''
+        """
         ids = packages.find('{')
         if ids < 0:
             # This has no curly bracket notation
@@ -499,7 +499,7 @@ class Tester(object):
         return ret.replace(' ', '')
 
     def setSinglePackage(self, packageName):
-        '''
+        """
         Set the name of one or multiple Modelica package(s) to be tested.
 
         :param packageName: The name of the package(s) to be tested.
@@ -517,7 +517,7 @@ class Tester(object):
           then a test of the ``Annex60`` library will run all examples in
           ``Annex60.Controls.Continous.Examples`` and in ``Annex60.Controls.Continous.Validation``.
 
-        '''
+        """
 
         # Create a list of packages, unless packageName is already a list
         packages = list()
@@ -554,7 +554,7 @@ class Tester(object):
             self.setDataDictionary(rooPat)
 
     def writeOpenModelicaResultDictionary(self):
-        ''' Write in ``Resources/Scripts/OpenModelica/compareVars`` files whose
+        """ Write in ``Resources/Scripts/OpenModelica/compareVars`` files whose
         name are the name of the example model, and whose content is::
 
             compareVars :=
@@ -567,7 +567,7 @@ class Tester(object):
         These files are then used in the regression testing that is done by the
         OpenModelica development team.
 
-        '''
+        """
         # Create the data dictionary.
         if len(self._data) == 0:
             self.setDataDictionary(self._rootPackage)
@@ -597,7 +597,7 @@ class Tester(object):
 
     @staticmethod
     def get_plot_variables(line):
-        ''' For a string of the form `*y={aa,bb,cc}*`, optionally with whitespace characters,
+        """ For a string of the form `*y={aa,bb,cc}*`, optionally with whitespace characters,
         return the list `[aa, bb, cc]`.
         If the string does not contain `y = ...`, return `None`.
 
@@ -612,7 +612,7 @@ class Tester(object):
           >>> r.Tester.get_plot_variables("y=abc") is None
           True
 
-        '''
+        """
         import re
         import shlex
 
@@ -645,16 +645,16 @@ class Tester(object):
         return y
 
     def setDataDictionary(self, root_package=None):
-        ''' Build the data structures that are needed to parse the output files.
+        """ Build the data structures that are needed to parse the output files.
 
            :param: root_package The name of the top-level package for which the files need to be parsed.
                                 Separate package names with a period.
 
-        '''
+        """
         import re
 
         def _get_attribute_value(line, keyword, dat):
-            ''' Get the value of an attribute in the `.mos` file.
+            """ Get the value of an attribute in the `.mos` file.
 
                 This function will remove leading and ending quotes.
 
@@ -662,7 +662,7 @@ class Tester(object):
                 :param keyword: The keyword
                 :param dat: The data dictionary to which dat[keyword] = value will be written.
 
-            '''
+            """
 
             pos = lin.find(keyword)
             if pos > -1:
@@ -822,7 +822,7 @@ class Tester(object):
         return
 
     def _checkDataDictionary(self):
-        ''' Check if the data used to run the regression tests do not have duplicate ``*.fmu`` files
+        """ Check if the data used to run the regression tests do not have duplicate ``*.fmu`` files
             and ``*.mat`` names.
 
             Since Dymola writes all ``*.fmu`` and ``*.mat`` files to the current working directory,
@@ -833,7 +833,7 @@ class Tester(object):
             If there are duplicate ``.fmu`` and ``*.mat`` file names used, then this method raises
             a ``ValueError`` exception.
 
-        '''
+        """
         s_fmu = set()
         s_mat = set()
         errMes = ""
@@ -859,17 +859,17 @@ class Tester(object):
             raise ValueError(errMes)
 
     def _getTimeGrid(self, tMin, tMax, nPoi):
-        '''
+        """
         Return the time grid for the output result interpolation
 
         :param tMin: Minimum time of the results.
         :param tMax: Maximum time of the results.
         :param nPoi: Number of result points.
-        '''
+        """
         return [tMin + float(i) / (nPoi - 1) * (tMax - tMin) for i in range(nPoi)]
 
     def _getSimulationResults(self, data, warnings, errors):
-        '''
+        """
         Get the simulation results for a single unit test.
 
         :param data: The class that contains the data structure for the simulation results.
@@ -879,7 +879,7 @@ class Tester(object):
         Extracts and returns the simulation results from the `*.mat` file as
         a list of dictionaries. Each element of the list contains a dictionary
         of results that need to be printed together.
-        '''
+        """
         from buildingspy.io.outputfile import Reader
         from buildingspy.io.postprocess import Plotter
 
@@ -950,7 +950,7 @@ class Tester(object):
         return ret
 
     def _getTranslationStatistics(self, data, warnings, errors):
-        '''
+        """
         Get the translation statistics for a single unit test.
 
         :param data: The class that contains the data structure for the simulation results.
@@ -962,7 +962,7 @@ class Tester(object):
         Extracts and returns the translation log from the `*.translation.log` file as
         a list of dictionaries.
         In case of an error, this method returns `None`.
-        '''
+        """
         import buildingspy.io.outputfile as of
 
         # Get the working directory that contains the ".log" file
@@ -971,7 +971,7 @@ class Tester(object):
         return of.get_model_statistics(fulFilNam, "dymola")
 
     def areResultsEqual(self, tOld, yOld, tNew, yNew, varNam, filNam):
-        ''' Return `True` if the data series are equal within a tolerance.
+        """ Return `True` if the data series are equal within a tolerance.
 
         :param tOld: List of old time values.
         :param yOld: Old simulation results.
@@ -982,7 +982,7 @@ class Tester(object):
         :return: A list with ``False`` if the results are not equal, and the time
                  of the maximum error, and a warning message or `None`.
                  In case of errors, the time of the maximum error may by `None`.
-        '''
+        """
         import numpy as np
         from buildingspy.io.postprocess import Plotter
 
@@ -1109,8 +1109,8 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             return (True, timMaxErr, None)
 
     def _isParameter(self, dataSeries):
-        ''' Return `True` if `dataSeries` is from a parameter.
-        '''
+        """ Return `True` if `dataSeries` is from a parameter.
+        """
         import numpy as np
         if not (isinstance(dataSeries, np.ndarray) or isinstance(dataSeries, list)):
             raise TypeError("Program error: dataSeries must be a numpy.ndarr or a list. Received type " +
@@ -1118,22 +1118,22 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         return (len(dataSeries) == 2)
 
     def format_float(self, value):
-        ''' Return the argument in exponential notation, with
+        """ Return the argument in exponential notation, with
             non-significant zeros removed.
-        '''
+        """
         import re
         return re.sub(re.compile('\.e'), 'e',
                       re.sub(re.compile('0*e'), 'e', "{0:.15e}".format(value)))
 
     def _writeReferenceResults(self, refFilNam, y_sim, y_tra):
-        ''' Write the reference results.
+        """ Write the reference results.
 
         :param refFilNam: The name of the reference file.
         :param y_sim: The data points to be written to the file.
         :param y_tra: The dictionary with the translation log.
 
         This method writes the results in the form ``key=value``, with one line per entry.
-        '''
+        """
         from datetime import date
         import json
 
@@ -1164,7 +1164,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                             f.write('\n')
 
     def _readReferenceResults(self, refFilNam):
-        ''' Read the reference results.
+        """ Read the reference results.
 
         :param refFilNam: The name of the reference file.
         :return: A dictionary with the reference results.
@@ -1174,7 +1174,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         `statistics-simulation={'numerical Jacobians': '0', 'nonlinear': ' ', 'linear': ' '}`,
         where the value is a dictionary. Otherwise, this key is not present.
 
-        '''
+        """
         import numpy
         import ast
 
@@ -1226,7 +1226,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         return d
 
     def _askNoReferenceResultsFound(self, yS, refFilNam, ans):
-        ''' Ask user what to do if no reference data were found
+        """ Ask user what to do if no reference data were found
            :param yS: A list where each element is a dictionary of variable names and simulation
                       results that are to be plotted together.
            :param refFilNam: Name of reference file (used for reporting only).
@@ -1234,7 +1234,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
            :return: A triple ``(updateReferenceData, foundError, ans)`` where ``updateReferenceData``
                     and ``foundError`` are booleans, and ``ans`` is ``y``, ``Y``, ``n`` or ``N``.
 
-        '''
+        """
         updateReferenceData = False
         foundError = False
 
@@ -1251,9 +1251,9 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         return (updateReferenceData, foundError, ans)
 
     def _check_statistics(self, old_res, y_tra, stage, foundError, newStatistics, mat_file_name):
-        ''' Checks the simulation or translation statistics and return
+        """ Checks the simulation or translation statistics and return
             `True` if there is a new statistics, or a statistics is no longer present, or if `newStatistics == True`.
-        '''
+        """
         r = newStatistics
         if 'statistics-%s' % stage in old_res:
             # Found old statistics.
@@ -1293,7 +1293,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         return r
 
     def _compareResults(self, matFilNam, oldRefFulFilNam, y_sim, y_tra, refFilNam, ans):
-        ''' Compares the new and the old results.
+        """ Compares the new and the old results.
 
             :param matFilNam: Matlab file name.
             :param oldRefFilFilNam: File name including path of old reference files.
@@ -1305,7 +1305,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             :return: A triple ``(updateReferenceData, foundError, ans)`` where ``updateReferenceData``
                      and ``foundError`` are booleans, and ``ans`` is ``y``, ``Y``, ``n`` or ``N``.
 
-        '''
+        """
         import matplotlib.pyplot as plt
 
         # Reset answer, unless it is set to Y or N
@@ -1471,10 +1471,10 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         return (updateReferenceData, foundError, ans)
 
     def are_statistics_equal(self, s1, s2):
-        ''' Compare the simulation statistics `s1` and `s2` and
+        """ Compare the simulation statistics `s1` and `s2` and
             return `True` if they are equal, or `False` otherwise.
 
-        '''
+        """
         x = s1.strip()
         y = s2.strip()
         if x == y:
@@ -1501,7 +1501,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             reference_file_path,
             reference_file_name,
             ans):
-        ''' Compares whether the ``.fmu`` dependencies have been changed.
+        """ Compares whether the ``.fmu`` dependencies have been changed.
             If they are the same, this function does nothing.
             If they do not exist in the reference results, it askes to generate them.
             If they differ from the reference results, it askes whether to accept the new ones.
@@ -1512,7 +1512,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             :param ans: A previously entered answer, either ``y``, ``Y``, ``n`` or ``N``.
             :return: A tuple consisting of a boolean ``updated_reference_data`` and the value of ``ans``.
 
-        '''
+        """
         # Absolute path to the reference file
         abs_ref_fil_nam = os.path.join(reference_file_path, reference_file_name)
         # Put dependencies in data format needed to write to the reference result file
@@ -1570,7 +1570,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             return [True, ans]
 
     def _check_fmu_statistics(self, ans):
-        ''' Check the fmu statistics from each regression test and compare it with the previously
+        """ Check the fmu statistics from each regression test and compare it with the previously
             saved statistics stored in the library home folder.
             If the statistics differs,
             show a warning message containing the file name and path.
@@ -1579,7 +1579,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
 
             This function returns 1 if the statistics differ, or if the ``.fmu`` file
             is not found. The function returns 0 if there were no problems.
-        '''
+        """
         import buildingspy.fmi as fmi
 
         retVal = 0
@@ -1629,7 +1629,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         return retVal
 
     def _checkReferencePoints(self, ans):
-        ''' Check reference points from each regression test and compare it with the previously
+        """ Check reference points from each regression test and compare it with the previously
             saved reference points of the same test stored in the library home folder.
             If all the reference points are not within a certain tolerance with the previous results,
             show a warning message containing the file name and path.
@@ -1641,7 +1641,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             further processing. The function returns 0 if there were no problems. In
             case of wrong simulation results, this function also returns 0, as this is
             not considered an error in executing this function.
-        '''
+        """
         # Check if the directory
         # "self._libHome\\Resources\\ReferenceResults\\Dymola" exists, if not
         # create it.
@@ -1716,9 +1716,9 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         return 0
 
     def _checkSimulationError(self, errorFile):
-        ''' Check whether the simulation had any errors, and
+        """ Check whether the simulation had any errors, and
             write the error messages to ``self._reporter``.
-        '''
+        """
         import json
 
         # Read the json file with the statistics
@@ -1790,14 +1790,14 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             return 0
 
     def get_number_of_tests(self):
-        ''' Returns the number of regression tests that will be run for the current library and configuration.
-        '''
+        """ Returns the number of regression tests that will be run for the current library and configuration.
+        """
         return len(self._data)
 
     def printNumberOfClasses(self):
-        ''' Print the number of models, blocks and functions to the
+        """ Print the number of models, blocks and functions to the
             standard output stream
-        '''
+        """
 
         iMod = 0
         iBlo = 0
@@ -1821,13 +1821,13 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         print("          functions: {!s}".format(iFun))
 
     def _getModelCheckCommand(self, mosFilNam):
-        ''' Return lines that conduct a model check in pedantic mode.
+        """ Return lines that conduct a model check in pedantic mode.
 
         :param mosFilNam: The name of the ``*.mos`` file
 
         This function return a command of the form
         ``checkModel("Buildings.Controls.Continuous.Examples.LimPID")``
-        '''
+        """
 
         def getModelName(mosFil, line):
             try:
@@ -1852,14 +1852,14 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         return retVal
 
     def _removePlotCommands(self, mosFilNam):
-        ''' Remove all plot commands from the mos file.
+        """ Remove all plot commands from the mos file.
 
         :param mosFilNam: The name of the ``*.mos`` file
 
         This function removes all plot commands from the file ``mosFilNam``.
         This allows to work around a bug in Dymola 2012 which can cause an exception
         from the Windows operating system, or which can cause Dymola to hang on Linux.
-        '''
+        """
         with open(mosFilNam, mode="r+", encoding="utf-8-sig") as fil:
             lines = fil.readlines()
         linWri = []
@@ -2176,14 +2176,14 @@ getErrorString();
         print("Generated {} regression tests.\n".format(nUniTes))
 
     def deleteTemporaryDirectories(self, delete):
-        ''' Flag, if set to ``False``, then the temporary directories will not be deleted
+        """ Flag, if set to ``False``, then the temporary directories will not be deleted
         after the regression tests are run.
 
         :param delete: Flag, set to ``False`` to avoid the temporary directories to be deleted.
 
         Unless this method is called prior to running the regression tests with ``delete=False``,
         all temporary directories will be deleted after the regression tests.
-        '''
+        """
         self._deleteTemporaryDirectories = delete
 
     # Create the list of temporary directories that will be used to run the unit tests
@@ -2210,7 +2210,7 @@ getErrorString();
         return
 
     def run(self):
-        ''' Run all regression tests and checks the results.
+        """ Run all regression tests and checks the results.
 
         :return: 0 if no errros occurred during the regression tests,
                  otherwise a non-zero value.
@@ -2231,7 +2231,7 @@ getErrorString();
           if no error occured,
         - returns 0 if no errors occurred, or non-zero otherwise.
 
-        '''
+        """
         import buildingspy.development.validator as v
 
         import multiprocessing

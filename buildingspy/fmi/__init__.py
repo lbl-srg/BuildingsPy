@@ -1,7 +1,7 @@
-'''
+"""
 This module provides functions to analyse FMUs.
 
-'''
+"""
 #
 # import from future to make Python2 behave like Python3
 from __future__ import absolute_import
@@ -16,7 +16,7 @@ from io import open
 
 
 def get_dependencies(fmu_file_name):
-    '''Return the input and state dependencies of an FMU as a dictionary.
+    """Return the input and state dependencies of an FMU as a dictionary.
 
     :fmu_file_name: Name of the FMU file.
 
@@ -83,7 +83,7 @@ def get_dependencies(fmu_file_name):
          }
        }
 
-    '''
+    """
     import tempfile
     import os
     import zipfile

@@ -24,10 +24,10 @@ class Test_io_Reader(unittest.TestCase):
     """
 
     def test_get_simulation_statistics(self):
-        '''
+        """
         Tests the :mod:`buildingspy.io.Reader.get_simulation_statistics`
         function.
-        '''
+        """
         import os
 
         # Name of temporary file

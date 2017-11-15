@@ -21,16 +21,16 @@ from io import open
 
 
 class ErrorDictionary(object):
-    ''' Class that contains data fields needed for the
+    """ Class that contains data fields needed for the
         error checking of the regression tests.
 
         If additional error messages need to be checked,
         then they should be added to the constructor of this class.
-    '''
+    """
 
     def __init__(self):
-        ''' Constructor.
-        '''
+        """ Constructor.
+        """
         self._error_dict = dict()
         # Set the error dictionaries.
         # Note that buildingspy_var needs to be a unique variable name.
