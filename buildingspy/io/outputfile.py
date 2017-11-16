@@ -179,7 +179,7 @@ class Reader(object):
         self._data_ = DyMatFile(fileName)
 
     def varNames(self, pattern=None):
-        '''
+        """
            :pattern: A regular expression that will be used to filter the variable names.
 
            Scan through all variable names and return the variables
@@ -207,7 +207,7 @@ class Reader(object):
               >>> r.varNames('u$')
               [u'PID.gainPID.u', u'PID.limiter.u', u'PID.gainTrack.u', u'PID.P.u', u'PID.I.u', u'gain.u']
 
-        '''
+        """
         import re
 
         AllNames = self._data_.names()
@@ -221,7 +221,7 @@ class Reader(object):
             return AllNamesFilt
 
     def values(self, varName):
-        '''Get the time and data series.
+        """Get the time and data series.
 
         :param varName: The name of the variable.
         :return: An array where the first column is time and the second
@@ -233,13 +233,13 @@ class Reader(object):
            >>> resultFile = os.path.join("buildingspy", "examples", "dymola", "PlotDemo.mat")
            >>> r=Reader(resultFile, "dymola")
            >>> (time, heatFlow) = r.values('preHea.port.Q_flow')
-        '''
+        """
         d = self._data_.data(varName)
         a = self._data_.abscissa(blockOrName=varName, valuesOnly=True)
         return a, d
 
     def integral(self, varName):
-        '''Get the integral of the data series.
+        """Get the integral of the data series.
 
         :param varName: The name of the variable.
         :return: The integral of ``varName``.
@@ -256,7 +256,7 @@ class Reader(object):
            >>> r=Reader(resultFile, "dymola")
            >>> r.integral('preHea.port.Q_flow')
            -21.589191160164773
-        '''
+        """
         (t, v) = self.values(varName)
         val = 0.0
         for i in range(len(t) - 1):
@@ -264,7 +264,7 @@ class Reader(object):
         return val
 
     def mean(self, varName):
-        '''Get the mean of the data series.
+        """Get the mean of the data series.
 
         :param varName: The name of the variable.
         :return: The mean value of ``varName``.
@@ -286,13 +286,13 @@ class Reader(object):
            >>> r=Reader(resultFile, "dymola")
            >>> r.mean('preHea.port.Q_flow')
            -21.589191160164773
-        '''
+        """
         t = self.values(varName)[0]
         r = self.integral(varName) / (max(t) - min(t))
         return r
 
     def min(self, varName):
-        '''Get the minimum of the data series.
+        """Get the minimum of the data series.
 
         :param varName: The name of the variable.
         :return: The minimum value of ``varName``.
@@ -307,12 +307,12 @@ class Reader(object):
            >>> r=Reader(resultFile, "dymola")
            >>> r.min('preHea.port.Q_flow')
            -50.0
-        '''
+        """
         v = self.values(varName)[1]
         return min(v)
 
     def max(self, varName):
-        '''Get the maximum of the data series.
+        """Get the maximum of the data series.
 
         :param varName: The name of the variable.
         :return: The maximum value of ``varName``.
@@ -327,6 +327,6 @@ class Reader(object):
            >>> r=Reader(resultFile, "dymola")
            >>> r.max('preHea.port.Q_flow')
            -11.284342
-        '''
+        """
         v = self.values(varName)[1]
         return max(v)

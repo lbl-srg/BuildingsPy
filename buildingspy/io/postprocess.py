@@ -21,7 +21,7 @@ class Plotter(object):
     """
 
     def interpolate(tSup, t, y):
-        ''' Interpolate the values of ``(t,y)`` at the support points ``tSup``.
+        """ Interpolate the values of ``(t,y)`` at the support points ``tSup``.
 
         :param tSup: Support points.
         :param t: Time stamps of variables ``y``.
@@ -45,7 +45,7 @@ class Plotter(object):
            [<matplotlib.lines.Line2D object at ...>]
            >>> plt.show() # doctest: +SKIP
 
-        '''
+        """
         import numpy as np
 
         if ((np.isnan(tSup)).any()):
@@ -100,7 +100,7 @@ class Plotter(object):
     interpolate = staticmethod(interpolate)
 
     def convertToPeriodic(tPeriod, t, y):
-        '''Convert the data series ``(t, y)`` such that ``t`` is periodic
+        """Convert the data series ``(t, y)`` such that ``t`` is periodic
         with periodicity ``tPeriod``.
 
         :param tPeriod: Period to which ``t`` needs to be converted.
@@ -116,7 +116,7 @@ class Plotter(object):
 
         if ``t`` spans one year and the data are hourly (hence, ``t[0]=0`` and ``t[-1]=86399``).
 
-        '''
+        """
         import numpy as np
 
         # Check input
@@ -145,7 +145,7 @@ class Plotter(object):
     def boxplot(t, y, increment=3600, nIncrement=24,
                 notch=0, sym='b+', vert=1, whis=1.5,
                 positions=None, widths=None, patch_artist=False, bootstrap=None, hold=None):
-        ''' Create a boxplot of time data.
+        """ Create a boxplot of time data.
 
         :param t: The support points in time as received from the *Reader*.
         :param y: The function values at ``t`` as received from the *Reader*.
@@ -196,7 +196,7 @@ class Plotter(object):
            :width: 560 px
            :align: center
 
-        '''
+        """
         import numpy as np
         import matplotlib.pyplot as plt
 

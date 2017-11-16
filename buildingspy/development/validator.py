@@ -25,8 +25,8 @@ import re
 
 
 class Validator(object):
-    ''' Class that validates ``.mo`` files for the correct html syntax.
-    '''
+    """ Class that validates ``.mo`` files for the correct html syntax.
+    """
 
     def __init__(self):
 
@@ -36,7 +36,7 @@ class Validator(object):
         self._writeHTML = False
 
     def validateHTMLInPackage(self, rootDir):
-        '''
+        """
         This function recursively validates all ``.mo`` files
         in a package.
 
@@ -61,7 +61,7 @@ class Validator(object):
             >>> # Get a list whose elements are the error strings
             >>> errStr = val.validateHTMLInPackage(myMoLib)
 
-        '''
+        """
         import os
         errMsg = list()
 
@@ -85,7 +85,7 @@ Modelica package. Expected file '%s'."
         return errMsg
 
     def _getInfoRevisionsHTML(self, moFile):
-        '''
+        """
         This function returns a list that contain the html code of the
         info and revision sections. Each element of the list
         is a string.
@@ -93,7 +93,7 @@ Modelica package. Expected file '%s'."
         :param moFile: The name of a Modelica source file.
         :return: list The list of strings of the info and revisions
                  section.
-        '''
+        """
         # Open file.
         with open(moFile, mode="r", encoding="utf-8-sig") as f:
             lines = f.readlines()
@@ -134,7 +134,7 @@ Modelica package. Expected file '%s'."
         return entries
 
     def _validateHTML(self, moFile):
-        '''
+        """
         This function validates the file ``moFile`` for correct html syntax.
 
         :param moFile: The name of a Modelica source file.
@@ -142,7 +142,7 @@ Modelica package. Expected file '%s'."
                  messages[1]. Warnings and errors are returned
                  just as tidylib returns them.
 
-        '''
+        """
         from tidylib import tidy_document
 
         entries = self._getInfoRevisionsHTML(moFile)

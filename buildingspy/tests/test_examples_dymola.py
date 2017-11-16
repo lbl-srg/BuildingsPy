@@ -35,9 +35,9 @@ class Test_example_dymola_runSimulation(unittest.TestCase):
         self._temDir = None
 
     def setUp(self):
-        ''' Ensure that environment variables that are needed to run
+        """ Ensure that environment variables that are needed to run
             the tests are set
-        '''
+        """
         # Set MODELICALIBRARY which is required to run
         # runSimulationTranslated.py
         from git import Repo
@@ -62,8 +62,8 @@ class Test_example_dymola_runSimulation(unittest.TestCase):
                         os.path.join(os.getcwd()))
 
     def tearDown(self):
-        ''' Method called after all the tests.
-        '''
+        """ Method called after all the tests.
+        """
         # Delete temporary directory
         import shutil
         import os
@@ -71,10 +71,10 @@ class Test_example_dymola_runSimulation(unittest.TestCase):
         shutil.rmtree(os.path.join(os.getcwd(), "tmp"))
 
     def test_runSimulation(self):
-        '''
+        """
         Tests the :mod:`buildingspy/examples/dymola/runSimulation`
         function.
-        '''
+        """
         import os
         import buildingspy.examples.dymola.runSimulation as s
 
@@ -83,10 +83,10 @@ class Test_example_dymola_runSimulation(unittest.TestCase):
         os.chdir("..")
 
     def test_runSimulationTranslated(self):
-        '''
+        """
         Tests the :mod:`buildingspy/examples/dymola/runSimulationTranslated`
         function.
-        '''
+        """
         import os
         import buildingspy.examples.dymola.runSimulationTranslated as s
 
@@ -95,10 +95,10 @@ class Test_example_dymola_runSimulation(unittest.TestCase):
         os.chdir("..")
 
     def test_plotResult(self):
-        '''
+        """
         Tests the :mod:`buildingspy/examples/dymola/plotResult`
         function.
-        '''
+        """
         import os
         import buildingspy.examples.dymola.plotResult as s
         s.main()

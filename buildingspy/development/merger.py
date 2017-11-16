@@ -20,7 +20,7 @@ from io import open
 
 
 class IBPSA(object):
-    ''' Class that merges a Modelica library with the `IBPSA` library.
+    """ Class that merges a Modelica library with the `IBPSA` library.
 
         Both libraries need to have the same package structure.
 
@@ -29,14 +29,14 @@ class IBPSA(object):
         This can be overwritten with the function
         :meth:`~set_excluded_packages`.
 
-    '''
+    """
 
     def __init__(self, ibpsa_dir, dest_dir):
-        ''' Constructor.
+        """ Constructor.
 
         :param ibpsa_dir: Directory where the `IBPSA` library is located.
         :param dest_dir: Directory where the library to be updated is located.
-        '''
+        """
         import os
 
         # Check arguments
@@ -77,11 +77,11 @@ class IBPSA(object):
                                 os.path.join(ibpsa_dir, "legal.html")]
 
     def set_excluded_packages(self, packages):
-        ''' Set the packages that are excluded from the merge.
+        """ Set the packages that are excluded from the merge.
 
         :param packages: A list of packages to be excluded.
 
-        '''
+        """
         if not isinstance(packages, list):
             raise ValueError("Argument must be a list.")
         self._excluded_packages = packages
