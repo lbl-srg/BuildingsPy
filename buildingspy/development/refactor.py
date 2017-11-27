@@ -637,6 +637,10 @@ def move_class(source, target):
 
     '''
     ##############################################################
+    # First, remove empty subdirectories
+    _remove_empty_folders(source.replace(".", os.path.sep),
+                          removeRoot=False)
+    ##############################################################
     # Check if it is a directory with a package.mo file
     if os.path.isdir(source.replace(".", os.path.sep)):
         _move_class_directory(source, target)
@@ -664,6 +668,25 @@ def move_class(source, target):
 
     _update_all_references(source, target)
 
+
+def _remove_empty_folders(path, removeRoot=True):
+    ''' Remove empty directories
+    '''
+    if not os.path.isdir(path):
+        return
+
+    # remove empty subfolders
+    files = os.listdir(path)
+    if len(files):
+        for f in files:
+            fullpath = os.path.join(path, f)
+            if os.path.isdir(fullpath):
+                _remove_empty_folders(fullpath)
+
+    # if folder empty, delete it
+    files = os.listdir(path)
+    if len(files) == 0 and removeRoot:
+        os.rmdir(path)
 
 def _update_all_references(source, target):
     ''' Updates all references in `.mo` and `.mos` files.
