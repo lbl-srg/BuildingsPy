@@ -138,6 +138,13 @@ class ErrorDictionary(object):
             'model_message': "\"inner Modelica.StateGraph.StateGraphRoot\" is missing in '{}'.\n",
             'summary_message': "Number of models with missing StateGraphRoot                 : {}\n"}
 
+        self._error_dict["mismatched displayUnits"] = {
+            'tool_message': "Mismatched displayUnit",
+            'counter': 0,
+            'buildingspy_var': "iMisDisUni",
+            'model_message': "\"Mismatched displayUnit in '{}'.\n",
+            'summary_message': "Number of models with mismatched displayUnit                 : {}\n"}
+
     def get_dictionary(self):
         """ Return the dictionary with all error data
         """
