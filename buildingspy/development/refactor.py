@@ -688,6 +688,7 @@ def _remove_empty_folders(path, removeRoot=True):
     if len(files) == 0 and removeRoot:
         os.rmdir(path)
 
+
 def _update_all_references(source, target):
     """ Updates all references in `.mo` and `.mos` files.
 

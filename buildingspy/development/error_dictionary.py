@@ -145,7 +145,6 @@ class ErrorDictionary(object):
             'model_message': "\"Mismatched displayUnit in '{}'.\n",
             'summary_message': "Number of models with mismatched displayUnit                 : {}\n"}
 
-
     def get_dictionary(self):
         """ Return the dictionary with all error data
         """
