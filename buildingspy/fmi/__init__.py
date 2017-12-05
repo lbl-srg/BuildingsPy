@@ -58,8 +58,6 @@ def get_dependencies(fmu_file_name):
            ]
          },
          "InitialUnknowns": {
-           "CPUtime": [],
-           "EventCounter": [],
            "der(x)": [
              "u"
            ],
@@ -72,8 +70,6 @@ def get_dependencies(fmu_file_name):
            ]
          },
          "Outputs": {
-           "CPUtime": [],
-           "EventCounter": [],
            "y1": [
              "x"
            ],
