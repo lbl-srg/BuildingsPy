@@ -120,8 +120,13 @@ def get_dependencies(fmu_file_name):
             #this_root = outputs
             for child in children:
                 variable = variable_names[int(child.attrib['index'])]
-                dependencies[typ][variable] = []
-                for ind_var in child.attrib['dependencies'].split(' '):
-                    if ind_var.strip() != "":  # If variables depend on nothing, there will be an empty string
-                        dependencies[typ][variable].append(variable_names[int(ind_var)])
+                # Exclude CPUtime and EventCounter, which are written
+                # depending on the Dymola 2018FD01 configuration.
+                if variable not in ["CPUtime", "EventCounter"]:
+                    dependencies[typ][variable] = []
+                    for ind_var in child.attrib['dependencies'].split(' '):
+                        # If variables depend on nothing, there will be an empty string, these
+                        # are therefore excluded.
+                        if ind_var.strip() != "":
+                            dependencies[typ][variable].append(variable_names[int(ind_var)])
     return dependencies
