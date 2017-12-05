@@ -28,8 +28,10 @@ nosetests.xml
 # Translations
 
 
-# Mr Developer
+# IDE settings and files
 .mr.developer.cfg
 .project
 .pydevproject
 org.eclipse.core.resources.prefs
+.vs/
+.idea/

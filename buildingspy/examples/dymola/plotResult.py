@@ -14,8 +14,8 @@ from io import open
 
 
 def main():
-    ''' Main method that plots the results
-    '''
+    """ Main method that plots the results
+    """
     from buildingspy.io.outputfile import Reader
     import matplotlib.pyplot as plt
     import os

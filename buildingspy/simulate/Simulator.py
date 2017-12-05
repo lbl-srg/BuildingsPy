@@ -85,14 +85,14 @@ class Simulator(object):
         self._exitSimulator = True
 
     def setPackagePath(self, packagePath):
-        ''' Set the path specified by ``packagePath``.
+        """ Set the path specified by ``packagePath``.
 
         :param packagePath: The path where the Modelica package to be loaded is located.
 
         It first checks whether the path exists and whether it is a directory.
         If both conditions are satisfied, the path is set.
         Otherwise, a ``ValueError`` is raised.
-        '''
+        """
         import os
 
         # Check whether the package Path parameter is correct
@@ -116,14 +116,14 @@ class Simulator(object):
         self._packagePath = packagePath
 
     def _createDirectory(self, directoryName):
-        ''' Creates the directory *directoryName*
+        """ Creates the directory *directoryName*
 
         :param directoryName: The name of the directory
 
         This method validates the directory *directoryName* and if the
         argument is valid and write permissions exists, it creates the
         directory. Otherwise, a *ValueError* is raised.
-        '''
+        """
         import os
 
         if directoryName != '.':
@@ -138,7 +138,7 @@ class Simulator(object):
                 raise ValueError("Write permission to '" + directoryName + "' denied.")
 
     def addPreProcessingStatement(self, command):
-        '''Adds a pre-processing statement to the simulation script.
+        """Adds a pre-processing statement to the simulation script.
 
         :param command: A script statement.
 
@@ -150,23 +150,23 @@ class Simulator(object):
 
         This will execute the two statements after the ``openModel`` and
         before the ``simulateModel`` statement.
-        '''
+        """
         self._preProcessing_.append(command)
         return
 
     def addPostProcessingStatement(self, command):
-        '''Adds a post-processing statement to the simulation script.
+        """Adds a post-processing statement to the simulation script.
 
         :param statement: A script statement.
 
         This will execute ``command`` after the simulation, and before
         the log file is written.
-        '''
+        """
         self._postProcessing_.append(command)
         return
 
     def addParameters(self, dictionary):
-        '''Adds parameter declarations to the simulator.
+        """Adds parameter declarations to the simulator.
 
         :param dictionary: A dictionary with the parameter values
 
@@ -189,12 +189,12 @@ class Simulator(object):
         ``s.addParameters({'const1.k' : {2, 3}})``
         as Python converts this entry to ``{'const1.k': set([2, 3])}``.
 
-        '''
+        """
         self._parameters_.update(dictionary)
         return
 
     def getParameters(self):
-        '''Returns a list of parameters as (key, value)-tuples.
+        """Returns a list of parameters as (key, value)-tuples.
 
         :return: A list of parameters as (key, value)-tuples.
 
@@ -204,36 +204,36 @@ class Simulator(object):
            >>> s.addParameters({'PID.k': 1.0, 'valve.m_flow_nominal' : 0.1})
            >>> s.getParameters()
            [(u'valve.m_flow_nominal', 0.1), (u'PID.k', 1.0)]
-        '''
+        """
         return list(self._parameters_.items())
 
     def getOutputDirectory(self):
-        '''Returns the name of the output directory.
+        """Returns the name of the output directory.
 
         :return: The name of the output directory.
 
-        '''
+        """
         return self._outputDir_
 
     def setOutputDirectory(self, outputDirectory):
-        '''Sets the name of the output directory.
+        """Sets the name of the output directory.
 
         :return: The name of the output directory.
 
-        '''
+        """
         self._outputDir_ = outputDirectory
         return self._outputDir_
 
     def getPackagePath(self):
-        '''Returns the path of the directory containing the Modelica package.
+        """Returns the path of the directory containing the Modelica package.
 
         :return: The path of the Modelica package directory.
 
-        '''
+        """
         return self._packagePath
 
     def addModelModifier(self, modelModifier):
-        '''Adds a model modifier.
+        """Adds a model modifier.
 
         :param dictionary: A model modifier.
 
@@ -247,89 +247,89 @@ class Simulator(object):
         command
         ``simulateModel(myPackage.myModel(redeclare package MediumA = Buildings.Media.IdealGases.SimpleAir), startTime=...``
 
-        '''
+        """
         self._modelModifiers_.append(modelModifier)
         return
 
     def getSimulatorSettings(self):
-        '''Returns a list of settings for the parameter as (key, value)-tuples.
+        """Returns a list of settings for the parameter as (key, value)-tuples.
 
         :return: A list of parameters (key, value) pairs, as 2-tuples.
 
         This method is deprecated. Use :meth:`~Simulator.getParameters` instead.
 
-        '''
+        """
         raise DeprecationWarning(
             "The method Simulator.getSimulatorSettings() is deprecated. Use Simulator.getParameters() instead.")
         return self.getParameters()
 
     def setStartTime(self, t0):
-        '''Sets the start time.
+        """Sets the start time.
 
         :param t0: The start time of the simulation in seconds.
 
         The default start time is 0.
-        '''
+        """
         self._simulator_.update(t0=t0)
         return
 
     def setStopTime(self, t1):
-        '''Sets the start time.
+        """Sets the start time.
 
         :param t1: The stop time of the simulation in seconds.
 
         The default stop time is 1.
-        '''
+        """
         self._simulator_.update(t1=t1)
         return
 
     def setTimeOut(self, sec):
-        '''Sets the time out after which the simulation will be killed.
+        """Sets the time out after which the simulation will be killed.
 
         :param sec: The time out after which the simulation will be killed.
 
         The default value is -1, which means that the simulation will
         never be killed.
-        '''
+        """
         self._simulator_.update(timeout=sec)
         return
 
     def setTolerance(self, eps):
-        '''Sets the solver tolerance.
+        """Sets the solver tolerance.
 
         :param eps: The solver tolerance.
 
         The default solver tolerance is 1E-6.
-        '''
+        """
         self._simulator_.update(eps=eps)
         return
 
     def setSolver(self, solver):
-        '''Sets the solver.
+        """Sets the solver.
 
         :param solver: The name of the solver.
 
         The default solver is *radau*.
-        '''
+        """
         self._simulator_.update(solver=solver)
         return
 
     def setNumberOfIntervals(self, n):
-        '''Sets the number of output intervals.
+        """Sets the number of output intervals.
 
         :param n: The number of output intervals.
 
         The default is unspecified, which defaults by Dymola to 500.
-        '''
+        """
         self._simulator_.update(numberOfIntervals=n)
         return
 
     def setResultFile(self, resultFile):
-        '''Sets the name of the result file (without extension).
+        """Sets the name of the result file (without extension).
 
         :param resultFile: The name of the result file (without extension).
 
-        '''
+        """
         # If resultFile=aa.bb.cc, then split returns [aa, bb, cc]
         # This is needed to get the short model name
         rs = resultFile.split(".")
@@ -337,7 +337,7 @@ class Simulator(object):
         return
 
     def exitSimulator(self, exitAfterSimulation=True):
-        ''' This function allows avoiding that the simulator terminates.
+        """ This function allows avoiding that the simulator terminates.
 
         :param exit: Set to ``False`` to avoid the simulator from terminating
                      after the simulation.
@@ -346,18 +346,18 @@ class Simulator(object):
         keep the simulator open after the simulation in order to
         inspect results or log messages.
 
-        '''
+        """
         self._exitSimulator = exitAfterSimulation
         return
 
     def _get_dymola_commands(self, working_directory, log_file, model_name, translate_only=False):
-        ''' Returns a string that contains all the commands required
+        """ Returns a string that contains all the commands required
             to run or translate the model.
 
         :param working_directory: The working directory for the simulation or translation.
         :param log_file: The name of the log file that will be written by Dymola.
         :param translate_only: Set to ```True``` to only translate the model without a simulation.
-        '''
+        """
         s = """
 // File autogenerated by _get_dymola_commands
 // Do not edit.
@@ -400,7 +400,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         return s
 
     def simulate(self):
-        '''Simulates the model.
+        """Simulates the model.
 
         This method
           1. Deletes dymola output files
@@ -416,7 +416,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         is on the system PATH variable. If it is not found, the function returns with
         an error message.
 
-        '''
+        """
         import os
         import shutil
 
@@ -462,7 +462,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
             self._reporter.writeError(em)
 
     def translate(self):
-        '''Translates the model. Usually followed by the command :func:`simulate_translated`.
+        """Translates the model. Usually followed by the command :func:`simulate_translated`.
 
         This method
           1. Deletes dymola output files
@@ -478,7 +478,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         is on the system PATH variable. If it is not found, the function returns with
         an error message.
 
-        '''
+        """
         import os
         import shutil
 
@@ -520,7 +520,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
             raise
 
     def simulate_translated(self):
-        '''
+        """
         Simulates a translated model or a copy of it, which is especially
         useful for a large amount of simulations of the same model. This method is usually called
         after the translate() command.
@@ -543,7 +543,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
            >>> s.simulate_translated()
            >>> s.deleteTranslateDirectory()
 
-        '''
+        """
         import os
         import shutil
 
@@ -624,8 +624,8 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
             raise
 
     def deleteOutputFiles(self):
-        ''' Deletes the output files of the simulator.
-        '''
+        """ Deletes the output files of the simulator.
+        """
         filLis = ['buildlog.txt', 'dsfinal.txt', 'dsin.txt', 'dslog.txt',
                   'dsmodel*', 'dymosim', 'dymosim.exe',
                   str(self._simulator_.get('resultFile')) + '.mat',
@@ -633,19 +633,19 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         self._deleteFiles(filLis)
 
     def deleteLogFiles(self):
-        ''' Deletes the log files of the Python simulator, e.g. the
+        """ Deletes the log files of the Python simulator, e.g. the
             files ``BuildingsPy.log``, ``run.mos`` and ``simulator.log``.
-        '''
+        """
         filLis = ['BuildingsPy.log', 'run.mos', 'run_simulate.mos',
                   'run_translate.mos', 'simulator.log', 'translator.log']
         self._deleteFiles(filLis)
 
     def _deleteFiles(self, fileList):
-        ''' Deletes the output files of the simulator.
+        """ Deletes the output files of the simulator.
 
         :param fileList: List of files to be deleted.
 
-        '''
+        """
         import os
 
         for fil in fileList:
@@ -656,18 +656,18 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
                 self._reporter.writeError("Failed to delete '" + fil + "' : " + e.strerror)
 
     def showGUI(self, show=True):
-        ''' Call this function to show the GUI of the simulator.
+        """ Call this function to show the GUI of the simulator.
 
         By default, the simulator runs without GUI
-        '''
+        """
         self._showGUI = show
         return
 
     def printModelAndTime(self):
-        ''' Prints the current time and the model name to the standard output.
+        """ Prints the current time and the model name to the standard output.
 
         This method may be used to print logging information.
-        '''
+        """
         import time
         self._reporter.writeOutput("Model name       = " + self.modelName + '\n' +
                                    "Output directory = " + self._outputDir_ + '\n' +
@@ -675,11 +675,11 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         return
 
     def _copyResultFiles(self, srcDir):
-        ''' Copies the output files of the simulator.
+        """ Copies the output files of the simulator.
 
         :param srcDir: The source directory of the files
 
-        '''
+        """
         import shutil
         import os
 
@@ -699,12 +699,12 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
                                           "; : " + e.strerror)
 
     def _deleteTemporaryDirectory(self, worDir):
-        ''' Deletes the working directory.
+        """ Deletes the working directory.
             If this function is invoked with `worDir=None`, then it immediately returns.
 
         :param srcDir: The name of the working directory.
 
-        '''
+        """
         import shutil
         import os
 
@@ -729,13 +729,13 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
                                           worDir + ": " + e.strerror)
 
     def deleteTranslateDirectory(self):
-        ''' Deletes the translate directory. Called after simulate_translated
-        '''
+        """ Deletes the translate directory. Called after simulate_translated
+        """
         self._deleteTemporaryDirectory(self._translateDir_)
 
     def deleteSimulateDirectory(self):
-        ''' Deletes the simulate directory. Can be called when simulation failed.
-        '''
+        """ Deletes the simulate directory. Can be called when simulation failed.
+        """
         self._deleteTemporaryDirectory(self._simulateDir_)
 
     def _isExecutable(self, program):
@@ -760,13 +760,13 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         return False
 
     def _runSimulation(self, mosFile, timeout, directory):
-        '''Runs a model translation or simulation.
+        """Runs a model translation or simulation.
 
         :param mosFile: The Modelica *mos* file name, including extension
         :param timeout: Time out in seconds
         :param directory: The working directory
 
-        '''
+        """
 
         import sys
         import subprocess
@@ -848,21 +848,21 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
             print(("Execution of ", cmd, " failed:", e))
 
     def showProgressBar(self, show=True):
-        ''' Enables or disables the progress bar.
+        """ Enables or disables the progress bar.
 
         :param show: Set to *false* to disable the progress bar.
 
         If this function is not called, then a progress bar will be shown as the simulation runs.
-        '''
+        """
         self._showProgressBar = show
         return
 
     def _printProgressBar(self, fractionComplete):
-        '''Prints a progress bar to the console.
+        """Prints a progress bar to the console.
 
         :param fractionComplete: The fraction of the time that is completed.
 
-        '''
+        """
         import sys
         nInc = 50
         count = int(nInc * fractionComplete)
@@ -877,8 +877,8 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         sys.stdout.flush()
 
     def _declare_parameters(self):
-        ''' Declare list of parameters
-        '''
+        """ Declare list of parameters
+        """
         def to_modelica(arg):
             """ Convert to Modelica array.
             """
@@ -907,8 +907,8 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         return dec
 
     def _create_worDir(self):
-        ''' Create working directory
-        '''
+        """ Create working directory
+        """
         import os
         import tempfile
         import getpass
@@ -921,10 +921,10 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         return worDir
 
     def _check_model_parametrization(self):
-        ''' Method that checks if the parameters set by addParameters function
+        """ Method that checks if the parameters set by addParameters function
         for an already translated model are actually overriding the original
         values at compilation time.
-        '''
+        """
         import os
         import numpy as np
         from buildingspy.io.outputfile import Reader
@@ -952,8 +952,8 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
                 _compare(actual_res, key_string, value)
 
     def _check_simulation_errors(self, worDir):
-        ''' Method that checks if errors occured during simulation.
-        '''
+        """ Method that checks if errors occured during simulation.
+        """
         import os
         from buildingspy.io.outputfile import get_errors_and_warnings
         path_to_logfile = os.path.join(worDir, 'simulator.log')

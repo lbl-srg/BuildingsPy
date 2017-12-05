@@ -24,18 +24,18 @@ class Test_simulate_Simulator(unittest.TestCase):
     """
 
     def setUp(self):
-        '''
+        """
         This method creates a variable that points to an existing folder
         that contains a Modelica package.
-        '''
+        """
         self._packagePath = os.path.abspath(os.path.join(
             "buildingspy", "tests", "MyModelicaLibrary"))
 
     def test_Constructor(self):
-        '''
+        """
         Tests the :mod:`buildingspy.simulate.Simulator`
         constructor.
-        '''
+        """
         self.assertRaises(
             ValueError,
             Simulator,
@@ -53,9 +53,9 @@ class Test_simulate_Simulator(unittest.TestCase):
                           "myModelicaLibrary.myModel", "notSupported", path)
 
     def test_setPackagePath(self):
-        '''
+        """
         Tests the ``setPackagePath'' method.
-        '''
+        """
         s = Simulator("MyModelicaLibrary.MyModel", "dymola", packagePath=self._packagePath)
 
         # Try to load an existing path.
@@ -66,17 +66,17 @@ class Test_simulate_Simulator(unittest.TestCase):
         self.assertRaises(ValueError, s.setPackagePath, "ThisIsAWrongPath")
 
     def test_wrong_package_path_simulation(self):
-        '''
+        """
         Tests reporting the exception if a simulation fails.
-        '''
+        """
         self.failUnlessRaises(
             ValueError, Simulator, "MyModelicaLibrary.MyModel"
             "dymola", "THIS IS NOT A VALID PACKAGE PATH")
 
     def test_addMethods(self):
-        '''
+        """
         Tests the various add methods.
-        '''
+        """
         import numpy as np
 
         from buildingspy.io.outputfile import Reader
@@ -112,11 +112,11 @@ class Test_simulate_Simulator(unittest.TestCase):
         s.deleteLogFiles()
 
     def test_addGetParameters(self):
-        '''
+        """
         Tests the :mod:`buildingspy.simulate.Simulator.addParameters`
         and the :mod:`buildingspy.simulate.Simulator.getParameters`
         functions.
-        '''
+        """
         s = Simulator("myPackage.myModel", "dymola", packagePath=self._packagePath)
         # Make sure values are added correctly
         s.addParameters({'PID.k': 1.0, 'valve.m_flow_nominal': 0.1})
@@ -129,11 +129,11 @@ class Test_simulate_Simulator(unittest.TestCase):
         self.assertRaises(ValueError, s.addParameters, ["aaa", "bbb"])
 
     def test_addVectorOfParameterValues(self):
-        '''
+        """
         Tests the :mod:`buildingspy.simulate.Simulator.addParameters`
         function for the situation where values for a parameter that is
         a vector is added.
-        '''
+        """
         import numpy as np
         from buildingspy.io.outputfile import Reader
         # Delete output file
@@ -166,10 +166,10 @@ class Test_simulate_Simulator(unittest.TestCase):
         s.deleteLogFiles()
 
     def test_setBooleanParameterValues(self):
-        '''
+        """
         Tests the :mod:`buildingspy.simulate.Simulator.addParameters`
         function for boolean parameters.
-        '''
+        """
 
         from buildingspy.io.outputfile import Reader
         # Delete output file
@@ -195,11 +195,11 @@ class Test_simulate_Simulator(unittest.TestCase):
         s.deleteLogFiles()
 
     def test_translate_simulate(self):
-        '''
+        """
         Tests the :mod:`buildingspy.simulate.Simulator.translate` and
         the :mod:`buildingspy.simulate.Simulator.simulate_translated`
         method.
-        '''
+        """
         import numpy as np
 
         from buildingspy.io.outputfile import Reader
@@ -247,13 +247,13 @@ class Test_simulate_Simulator(unittest.TestCase):
         s.deleteTranslateDirectory()
 
     def test_translate_simulate_exception_parameter(self):
-        '''
+        """
         Tests the :mod:`buildingspy.simulate.Simulator.translate` and
         the :mod:`buildingspy.simulate.Simulator.simulate_translated`
         method.
         This tests whether an exception is thrown if
         one attempts to change a parameter that is fixed after compilation
-        '''
+        """
         import numpy as np
         from buildingspy.io.outputfile import Reader
 
@@ -289,13 +289,13 @@ class Test_simulate_Simulator(unittest.TestCase):
         s.deleteSimulateDirectory()
 
     def test_translate_simulate_exception_error(self):
-        '''
+        """
         Tests the :mod:`buildingspy.simulate.Simulator.translate` and
         the :mod:`buildingspy.simulate.Simulator.simulate_translated`
         method.
         This tests whether an exception is thrown if
         the simulation settings are not appropriate.
-        '''
+        """
 
         s = Simulator("MyModelicaLibrary.Examples.ParameterEvaluation",
                       "dymola", packagePath=self._packagePath)
