@@ -1643,7 +1643,8 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
     def _check_jmodelica_runs(self):
         """ Check the results of the JModelica tests.
 
-            This function returns 0 if no errors occurred.
+            This function returns 0 if no errors occurred,
+            or a positive non-zero number otherwise.
         """
         import os
         import glob
