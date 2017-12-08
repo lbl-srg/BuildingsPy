@@ -80,6 +80,10 @@ class Test_regressiontest_Tester(unittest.TestCase):
         os.remove('unitTests.log')
 
     def test_regressiontest(self):
+        import buildingspy.development.regressiontest as r
+        rt = r.Tester(check_html=False)
+        myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
+        rt.setLibraryRoot(myMoLib)
         # Verify that invalid packages raise a ValueError.
         self.assertRaises(ValueError, rt.setSinglePackage, "this.package.does.not.exist")
 
