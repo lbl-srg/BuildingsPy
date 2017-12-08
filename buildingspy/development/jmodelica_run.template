@@ -1,0 +1,54 @@
+# Script to test the model {{ model }}
+def run():
+    import os
+    import json
+    import traceback
+
+    from pymodelica import compile_fmu
+    # from pyfmi import load_fmu
+    import pymodelica
+
+    # Increase memory
+    pymodelica.environ['JVM_ARGS'] = '-Xmx2048m'
+
+    model = "{{ model }}"
+    result = {"model": model,
+              "compilation": {"result": False}}
+
+    # Compile model
+    log_file = "{}_run.json".format(model.replace(".", "_"))
+    try:
+        os.remove(log_file)
+    except OSError:
+        pass
+
+    try:
+        fmu_name = compile_fmu(model, compiler_log_level='error')
+        result["compilation"]["result"] = True
+
+    except Exception as e:
+        result["compilation"]["exception"] = e.message
+        result["compilation"]["traceback"] = traceback.format_exc()
+
+##        # Load model
+##        mod = load_fmu(fmu_name)
+##        with open(log_file, "a") as log:
+##            log.write("Loaded\n")
+##
+##        opts = mod.simulate_options() #Retrieve the default options
+##        opts['logging'] = True
+##        opts['solver'] = 'CVode'
+##        opts['CVode_options']['atol'] = 1.0e-6 #Options specific for CVode
+##        opts['CVode_options']['rtol'] = 1.0e-6 #Options specific for CVode
+##
+##        res = mod.simulate(options=opts)
+##        with open(log_file, "a") as log:
+##            log.write("Simulated\n")
+
+
+    with open(log_file, "a") as log:
+            log.write("{}\n".format(json.dumps(result, indent=4, sort_keys=True)) )
+
+
+if __name__=="__main__":
+    run()

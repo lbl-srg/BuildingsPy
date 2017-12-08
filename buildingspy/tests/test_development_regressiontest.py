@@ -58,7 +58,7 @@ class Test_regressiontest_Tester(unittest.TestCase):
         self.assertEqual(["const1[1].y", "const2[1, 1].y"],
                          r.Tester.get_plot_variables(' y={"const1[1].y", "const2[1, 1].y"} '))
 
-    def test_regressiontest(self):
+    def test_regressiontest_dymola(self):
         import buildingspy.development.regressiontest as r
         rt = r.Tester(check_html=False)
         myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
@@ -69,6 +69,17 @@ class Test_regressiontest_Tester(unittest.TestCase):
         # Delete temporary files
         os.remove('unitTests.log')
 
+    def test_regressiontest_jmodelica(self):
+        import buildingspy.development.regressiontest as r
+        rt = r.Tester(check_html=False, tool="jmodelica")
+        myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
+        rt.deleteTemporaryDirectories(True)
+        rt.setLibraryRoot(myMoLib)
+        rt.run()
+        # Delete temporary files
+        os.remove('unitTests.log')
+
+    def test_regressiontest(self):
         # Verify that invalid packages raise a ValueError.
         self.assertRaises(ValueError, rt.setSinglePackage, "this.package.does.not.exist")
 
