@@ -35,8 +35,11 @@ addons:
 before_install:
   - sudo cp buildingspy/tests/MyModelicaLibrary/Resources/Scripts/travis/usr/local/bin/dymola /usr/local/bin/
   - sudo chmod +x /usr/local/bin/dymola
+  - sudo cp buildingspy/tests/MyModelicaLibrary/Resources/Scripts/travis/usr/local/bin/jm_ipython.sh /usr/local/bin/
+  - sudo chmod +x /usr/local/bin/jm_ipython.sh
   - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
   - docker pull "$DOCKER_USERNAME"/travis_ubuntu-1604_dymola-2017fd01-x86-64
+  - docker pull "$DOCKER_USERNAME"/ubuntu-1604_jmodelica_trunk
 
 install:
   - pip install --upgrade pip setuptools wheel
