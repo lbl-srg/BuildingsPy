@@ -112,10 +112,10 @@ class Tester(object):
 
        >>> import os
        >>> import buildingspy.development.regressiontest as r
-       >>> rt = r.Tester()
+       >>> rt = r.Tester(tool="dymola")
        >>> myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
        >>> rt.setLibraryRoot(myMoLib)
-       >>> rt.run(tool="dymola") # doctest: +ELLIPSIS
+       >>> rt.run() # doctest: +ELLIPSIS
        Using ... of ... processors to run unit tests for dymola.
        Number of models   : ...
                  blocks   : 0
