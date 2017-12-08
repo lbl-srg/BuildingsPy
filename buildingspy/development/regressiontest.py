@@ -37,7 +37,7 @@ def runSimulation(worDir, cmd):
     import os
 
     # JModelica requires the working directory to be part of MODELICAPATH
-    if os.environ.has_key('MODELICAPATH'):
+    if 'MODELICAPATH' in os.environ:
         os.environ['MODELICAPATH'] = "{}:{}".format(os.environ['MODELICAPATH'], worDir)
     else:
         os.environ['MODELICAPATH'] = worDir
@@ -349,7 +349,6 @@ class Tester(object):
             return 'jm_ipython.sh'
         else:
             return self._modelica_tool
-
 
     def isExecutable(self, program):
         """ Return ``True`` if the ``program`` is an executable
@@ -1700,7 +1699,6 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             self._reporter.writeOutput("Unit tests completed successfully.\n")
             return 0
 
-
     def _checkReferencePoints(self, ans):
         """ Check reference points from each regression test and compare it with the previously
             saved reference points of the same test stored in the library home folder.
@@ -2018,7 +2016,6 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
         if nTes < self._nPro:
             self.setNumberOfThreads(nTes)
 
-
         # For files that do not require a simulation, we need to set the path of the result files.
         for dat in self._data:
 
@@ -2264,7 +2261,6 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
                     nUniTes = nUniTes + 1
                 self._write_jmodelica_runfile(self._temDir[iPro], data)
 
-
         print("Generated {} regression tests.\n".format(nUniTes))
 
     def _write_jmodelica_runfile(self, directory, data):
@@ -2286,7 +2282,6 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
             template = env.get_template("jmodelica_run_all.template")
             txt = template.render(models_underscore=sorted(models_underscore))
             fil.write(txt)
-
 
         tem_mod = env.get_template("jmodelica_run.template")
 
