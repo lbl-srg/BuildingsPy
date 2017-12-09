@@ -74,7 +74,7 @@ class Tester(object):
     :param check_html: bool (default=True). Specify whether to load tidylib and
         perform validation of html documentation
     :param tool: {'dymola', 'omc', 'jmodelica'}.  Default is 'dymola', specifies the
-        executable to use for running the regression test with :func:`~buildingspy.development.Tester.run`.
+        tool to use for running the regression test with :func:`~buildingspy.development.Tester.run`.
     :param cleanup: bool (default=True).  Specify whether to delete temporary directories.
 
     This class can be used to run all regression tests.
@@ -159,7 +159,7 @@ class Tester(object):
             self._modelica_tool = tool
         else:
             raise ValueError(
-                "Value of 'executable' of constructor 'Tester' must be 'dymola', 'omc' or 'jmodelica'. Received '{}'.".format(executable))
+                "Value of 'tool' of constructor 'Tester' must be 'dymola', 'omc' or 'jmodelica'. Received '{}'.".format(tool))
         # File to which the console output of the simulator is written to
         self._simulator_log_file = "simulator.log"
         # File to which statistics is written to
@@ -1955,7 +1955,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         """
         Create the runAll.mos scripts, one per processor (self._nPro)
 
-        The commands in the script depend on the executable: 'dymola' or 'omc'
+        The commands in the script depend on the tool: 'dymola', 'jmodelica' or 'omc'
         """
 
         def _write_translation_checks(runFil, values):
