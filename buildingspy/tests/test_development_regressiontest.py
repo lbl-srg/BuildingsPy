@@ -134,6 +134,7 @@ class Test_regressiontest_Tester(unittest.TestCase):
 
     def test_setExcludeTest(self):
         import buildingspy.development.regressiontest as r
+        print("*** Running test_setExcludeTest that excludes files from unit test.\n")
         rt = r.Tester(check_html=False)
         myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
         skpFil = os.path.join(myMoLib, "Resources", "Scripts", "skipUnitTestList.txt")
@@ -141,6 +142,7 @@ class Test_regressiontest_Tester(unittest.TestCase):
         rt.setExcludeTest(skpFil)
         rt.run()
         self.assertEqual(1, rt.get_number_of_tests())
+        print("*** Finished test_setExcludeTest.\n")
 
     def test_runSimulation(self):
         import buildingspy.development.regressiontest as r
