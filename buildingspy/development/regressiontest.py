@@ -1317,8 +1317,6 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                      and ``foundError`` are booleans, and ``ans`` is ``y``, ``Y``, ``n`` or ``N``.
 
         """
-        import matplotlib
-        matplotlib.use('Agg')
         import matplotlib.pyplot as plt
 
         # Reset answer, unless it is set to Y or N
