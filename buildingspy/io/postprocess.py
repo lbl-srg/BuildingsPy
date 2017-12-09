@@ -31,10 +31,13 @@ class Plotter(object):
         Usage: Type
 
            >>> import os
+           >>> import numpy as np
+           >>> import matplotlib
+           >>> matplotlib.use('Agg')
+           >>> import matplotlib.pyplot as plt
+           >>>
            >>> from buildingspy.io.outputfile import Reader
            >>> from buildingspy.io.postprocess import Plotter
-           >>> import numpy as np
-           >>> import matplotlib.pyplot as plt
            >>>
            >>> resultFile = os.path.join("buildingspy", "examples", "dymola", "PlotDemo.mat")
            >>> r=Reader(resultFile, "dymola")
@@ -169,9 +172,12 @@ class Plotter(object):
         Usage: Type
 
            >>> import os
+           >>> import matplotlib
+           >>> matplotlib.use('Agg')
+           >>> import matplotlib.pyplot as plt
+           >>>
            >>> from buildingspy.io.outputfile import Reader
            >>> from buildingspy.io.postprocess import Plotter
-           >>> import matplotlib.pyplot as plt
            >>>
            >>> # Read data
            >>> resultFile = os.path.join("buildingspy", "examples", "dymola", "TwoRoomsWithStorage.mat")
@@ -197,8 +203,11 @@ class Plotter(object):
            :align: center
 
         """
-        import numpy as np
+        import matplotlib
+        matplotlib.use('Agg')
         import matplotlib.pyplot as plt
+
+        import numpy as np
 
         # Make sure that input is periodic
         tPeriod = increment * nIncrement
