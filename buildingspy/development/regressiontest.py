@@ -471,7 +471,7 @@ class Tester(object):
             # Check whether the file is in the exclude list
             if filNam in self._exclude_tests:
                 self._reporter.writeWarning(
-                    "*** Warning: Excluded file {} from the regression tests.".format(filNam))
+                    "Excluded file {} from the regression tests.".format(filNam))
                 return False
             else:
                 return True
