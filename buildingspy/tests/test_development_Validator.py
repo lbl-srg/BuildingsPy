@@ -96,6 +96,10 @@ class Test_development_Validator(unittest.TestCase):
                     os.remove(path)
             self.assertTrue(err_msg in str(context.exception))
 
+        # Delete created files
+        os.remove(path_mo)
+        os.remove(path_mos)
+
     def test_validateExperimentSetup(self):
 
         import buildingspy.development.validator as v
