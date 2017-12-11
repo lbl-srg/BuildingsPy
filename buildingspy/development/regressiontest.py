@@ -561,7 +561,6 @@ class Tester(object):
                 msg = """Requested to test only package '%s', but directory
 '%s' does not exist.""" % (pac, rooPat)
                 raise ValueError(msg)
-
             self.setDataDictionary(rooPat)
 
     def writeOpenModelicaResultDictionary(self):
@@ -2018,7 +2017,6 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
 
         # For files that do not require a simulation, we need to set the path of the result files.
         for dat in self._data:
-
             if not dat['mustSimulate'] and not dat['mustExportFMU']:
                 matFil = dat['ResultFile']
                 for allDat in self._data:
