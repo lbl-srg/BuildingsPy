@@ -32,6 +32,8 @@ setup(
                 'buildingspy/thirdParty.dymat',
                 'buildingspy/thirdParty.dymat.DyMat',
                 'buildingspy/thirdParty.dymat.DyMat.Export'],
+    package_data={'': ['*.template']},
+    include_package_data=True,
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Environment :: Console",

@@ -58,7 +58,7 @@ class Test_regressiontest_Tester(unittest.TestCase):
         self.assertEqual(["const1[1].y", "const2[1, 1].y"],
                          r.Tester.get_plot_variables(' y={"const1[1].y", "const2[1, 1].y"} '))
 
-    def test_regressiontest(self):
+    def test_regressiontest_dymola(self):
         import buildingspy.development.regressiontest as r
         rt = r.Tester(check_html=False)
         myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
@@ -69,6 +69,21 @@ class Test_regressiontest_Tester(unittest.TestCase):
         # Delete temporary files
         os.remove('unitTests.log')
 
+    def test_regressiontest_jmodelica(self):
+        import buildingspy.development.regressiontest as r
+        rt = r.Tester(check_html=False, tool="jmodelica")
+        myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
+        rt.deleteTemporaryDirectories(True)
+        rt.setLibraryRoot(myMoLib)
+        rt.run()
+        # Delete temporary files
+        os.remove('unitTests.log')
+
+    def test_regressiontest(self):
+        import buildingspy.development.regressiontest as r
+        rt = r.Tester(check_html=False)
+        myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
+        rt.setLibraryRoot(myMoLib)
         # Verify that invalid packages raise a ValueError.
         self.assertRaises(ValueError, rt.setSinglePackage, "this.package.does.not.exist")
 
@@ -119,6 +134,7 @@ class Test_regressiontest_Tester(unittest.TestCase):
 
     def test_setExcludeTest(self):
         import buildingspy.development.regressiontest as r
+        print("*** Running test_setExcludeTest that excludes files from unit test.\n")
         rt = r.Tester(check_html=False)
         myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
         skpFil = os.path.join(myMoLib, "Resources", "Scripts", "skipUnitTestList.txt")
@@ -126,6 +142,7 @@ class Test_regressiontest_Tester(unittest.TestCase):
         rt.setExcludeTest(skpFil)
         rt.run()
         self.assertEqual(1, rt.get_number_of_tests())
+        print("*** Finished test_setExcludeTest.\n")
 
     def test_runSimulation(self):
         import buildingspy.development.regressiontest as r
