@@ -2588,6 +2588,8 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
         """
         Test the library compliance with JModelica.org.
 
+        *This is deprecated. Use `run()` instead with jmodelica as a tool.*
+
         This is the high-level method to test a complete library, even if there
         are no specific ``.mos`` files in the library for regression testing.
 
