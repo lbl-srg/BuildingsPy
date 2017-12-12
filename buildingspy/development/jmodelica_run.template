@@ -1,6 +1,7 @@
 # Script to test the model {{ model }}
 def run():
     import os
+    import timeit
     import json
     import traceback
 
@@ -10,6 +11,22 @@ def run():
 
     # Increase memory
     pymodelica.environ['JVM_ARGS'] = '-Xmx2048m'
+
+    def _template_func(setup, func):
+        """Create a timer function to be able to retrieve the return value.
+        """
+        def inner(_it, _timer, _func=func):
+            setup()
+            _t0 = _timer()
+            for _i in _it:
+                retval = _func()
+            _t1 = _timer()
+            return _t1 - _t0, retval
+        return inner
+    timeit._template_func = _template_func
+
+    def _compile():
+        return compile_fmu(model, compiler_log_level='error')
 
     model = "{{ model }}"
     result = {"model": model,
@@ -23,7 +40,9 @@ def run():
         pass
 
     try:
-        fmu_name = compile_fmu(model, compiler_log_level='error')
+        t = timeit.Timer(_compile)
+        (cpu_time, fmu_name) = t.timeit(number=1)
+        result["compilation"]["cpu_time"] = "{}".format(float('%.3g' % cpu_time))
         result["compilation"]["result"] = True
 
     except Exception as e:
@@ -48,7 +67,6 @@ def run():
 
     with open(log_file, "a") as log:
             log.write("{}\n".format(json.dumps(result, indent=4, sort_keys=True)) )
-
 
 if __name__=="__main__":
     run()
