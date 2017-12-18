@@ -10,7 +10,7 @@ def run():
     import pymodelica
 
     # Increase memory
-    pymodelica.environ['JVM_ARGS'] = '-Xmx2048m'
+    pymodelica.environ['JVM_ARGS'] = '-Xmx4096m'
 
     def _template_func(setup, func):
         """Create a timer function to be able to retrieve the return value.
