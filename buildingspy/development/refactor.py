@@ -495,7 +495,7 @@ def _get_package_list_for_file(directory, file_name):
             lines = fil.read()
             # Constants can be 'constant Real n = ..." or "constant someClass n(..."
             con = re.findall(
-                r";\s*constant\s+[a-zA-Z0-9_\.]+\s+(\w+)\s*[=\(]", lines, re.MULTILINE)
+                r"\s*constant\s+[a-zA-Z0-9_\.]+\s+(\w+)\s*[=\(]", lines, re.MULTILINE)
 #                        con=re.search(r"constant\s+\w+\s+(\w+)\s*=", lines, re.MULTILINE);
             for ele in con:
                 # Found a constant whose name is in con.group(1)

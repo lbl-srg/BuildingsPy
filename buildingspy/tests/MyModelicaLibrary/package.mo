@@ -1,6 +1,9 @@
 within ;
 package MyModelicaLibrary "My Modelica library"
 
+  constant Real one = 1 "A constant that is set to 1";
+  constant Real two = 2 "A constant that is set to 2";
+
   type Reset = enumeration(
     Disabled   "Disabled",
     Parameter   "Use parameter value",
