@@ -63,9 +63,10 @@ class Test_development_refactor(unittest.TestCase):
 
         pac_lis = list()
         # The digit 3 is the enumeration for package, e.g, __PAC in refactor
-        correct = [[3, "Reset"]]
+        correct = [[3, u'one'], [3, u'two'], [3, u'Reset']]
 
         pac_lis = r._get_package_list_for_file(package_path, "package.mo")
+
         self.assertEqual(pac_lis, correct, "Parsing package.order failed.")
 
     def test_get_modelica_file_name(self):
