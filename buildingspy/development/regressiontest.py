@@ -1002,20 +1002,20 @@ class Tester(object):
             elif len(t) == nPoi:
                 return t
             else:
-                s = "The new time grid has %d points, but it must have 2 or %d points.\n\
-            Stop processing %s\n" % (len(tNew), nPoi, filNam)
+                s = "%s: The new time grid has %d points, but it must have 2 or %d points.\n\
+            Stop processing.\n" % (filNam, len(tNew), nPoi)
                 raise ValueError(s)
 
         if (abs(tOld[-1] - tNew[-1]) > 1E-5):
-            msg = """The new results and the reference results have a different end time.
+            msg = """%s: The new results and the reference results have a different end time.
             tNew = [%d, %d]
-            tOld = [%d, %d]""" % (tNew[0], tNew[-1], tOld[0], tOld[-1])
+            tOld = [%d, %d]""" % (filNam, tNew[0], tNew[-1], tOld[0], tOld[-1])
             return (False, min(tOld[-1], tNew[-1]), msg)
 
         if (abs(tOld[0] - tNew[0]) > 1E-5):
-            msg = """The new results and the reference results have a different start time.
+            msg = """%s: The new results and the reference results have a different start time.
             tNew = [%d, %d]
-            tOld = [%d, %d]""" % (tNew[0], tNew[-1], tOld[0], tOld[-1])
+            tOld = [%d, %d]""" % (filNam, tNew[0], tNew[-1], tOld[0], tOld[-1])
             return (False, min(tOld[0], tNew[0]), msg)
 
         timMaxErr = 0
