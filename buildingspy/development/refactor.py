@@ -105,7 +105,7 @@ def _sh(cmd, directory):
 def create_modelica_package(directory):
     """ Create in `directory` a Modelica package.
 
-    If `directory` exists, this method returns and does
+    If `directory/package.mo` exists, this method returns and does
     nothing. Otherwise, it creates the directory and populates
     it with a `package.mo` and `package.order` file.
 
@@ -118,9 +118,12 @@ def create_modelica_package(directory):
         fd = os.path.join(fd, d)
         if not os.path.exists(fd):
             os.makedirs(fd)
-            parentPackage = fd[:fd.rfind(os.path.sep)].replace(os.path.sep, ".")
+        parentPackage = fd[:fd.rfind(os.path.sep)].replace(os.path.sep, ".")
+        package_mo = os.path.join(fd, "package.mo")
+        # If package.mo does not exist, create it
+        if not os.path.exists(package_mo):
+            f = open(package_mo, mode="w", encoding="utf-8")
             if d == "Examples":
-                f = open(os.path.join(fd, "package.mo"), mode="w", encoding="utf-8")
                 s = '''
 within %s;
 package Examples "Collection of models that illustrate model use and test models"
@@ -134,10 +137,7 @@ This package contains examples for the use of models that can be found in
 </html>"));
 end Examples;
 ''' % (parentPackage, parentPackage, parentPackage)
-                f.write(s)
-                f.close()
             elif d == "Validation":
-                f = open(os.path.join(fd, "package.mo"), mode="w", encoding="utf-8")
                 s = '''
 within %s;
 package Validation "Collection of validation models"
@@ -160,10 +160,7 @@ used for continuous validation whenever models in the library change.
 </html>"));
 end Validation;
 ''' % (parentPackage, parentPackage, parentPackage)
-                f.write(s)
-                f.close()
             elif d == "BaseClasses":
-                f = open(os.path.join(fd, "package.mo"), mode="w", encoding="utf-8")
                 s = '''
 within %s;
 package BaseClasses "Package with base classes for %s"
@@ -177,10 +174,7 @@ This package contains base classes that are used to construct the models in
 </html>"));
 end BaseClasses;
 ''' % (parentPackage, parentPackage, parentPackage, parentPackage)
-                f.write(s)
-                f.close()
             else:
-                f = open(os.path.join(fd, "package.mo"), mode="w", encoding="utf-8")
                 s = '''
 within %s;
 package %s "fixme: add brief description"
@@ -192,15 +186,15 @@ fixme: add a package description.
 </html>"));
 end %s;
 ''' % (parentPackage, d, d)
-                f.write(s)
-                f.close()
+            f.write(s)
+            f.close()
 
             # If the parent directory has no package.order, create it.
             parentPackageOrder = os.path.join(
                 parentPackage.replace(".", os.path.sep), 'package.order')
             if not os.path.isfile(parentPackageOrder):
                 f = open(parentPackageOrder, mode="w", encoding="utf-8")
-                f.write("d")
+                f.write(d)
                 f.close()
 
 
@@ -582,6 +576,15 @@ def _move_class_directory(source, target):
     if not os.path.exists(os.path.join(target_dir, "package.mo")):
         _git_move(os.path.join(source_dir, "package.mo"),
                   os.path.join(target_dir, "package.mo"))
+
+        # If a directory is moved from A/package.mo to A/B/C/package.mo, and B and C are new packages,
+        # then A/package.mo and B/package.mo may not exist.
+        # Check if they need to be created by calling create_modelica_package for directories
+        # A and A/B (A/B/C/package.mo was already copied)
+        rec = ""
+        for di in target_dir.split(os.path.sep)[:-1]:
+            rec = os.path.join(rec, di)
+            create_modelica_package(rec)
 
         # The targetFile may have `within Buildings.Fluid;`
         # Update this if needed.

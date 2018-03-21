@@ -1,8 +1,11 @@
 BuildingsPy Changelog
 ---------------------
 
-Version 1.7.0, April 14, 2017 -- Release 1.7
+Version 1.7.0, March 20, 2018 -- Release 1.7
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- Updated buildingspy.development.refactor.move_class() to
+  correct a bug that caused package.mo to not be generated
+  if the new class is deeper in the class hierarchy.
 - Updated buildingspy.development.refactor.write_package_order() to
   correct a bug in generating package.order file for package-level
   constants.
