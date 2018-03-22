@@ -278,6 +278,8 @@ def _move_mo_file(source, target):
     :param sourceFile: Name of the source file.
     :param targetFile: Name of the target file.
     """
+    import glob
+
     sourceFile = get_modelica_file_name(source)
     targetFile = get_modelica_file_name(target)
 
@@ -285,8 +287,11 @@ def _move_mo_file(source, target):
     # The targetFile may have `within Buildings.Fluid;`
     # Update this if needed.
 
-    write_package_order(directory=os.path.dirname(sourceFile), recursive=False)
-    write_package_order(directory=os.path.dirname(targetFile), recursive=False)
+    for fi in [sourceFile, targetFile]:
+        di = os.path.dirname(fi)
+        # Do not create package.order if there are no .mo files
+        if len(glob.glob('*.mo')) > 0:
+            write_package_order(directory=di, recursive=False)
 
     def sd(s): return "within " + s[:s.rfind('.')] + ";"
     replace_text_in_file(targetFile, sd(source), sd(target))
@@ -454,13 +459,11 @@ def write_package_order(directory=".", recursive=False):
                         pacLis.append([__PAC, f])
                         break
 
-        # If there are no more files in this directory, then don't write the package.order file.
-        if len(pacLis) > 0:
-            pacLis = _sort_package_order(pacLis)
-            # Write the new package.order file
-            with open(os.path.join(directory, 'package.order'), mode="w", encoding="utf-8") as filPac:
-                for p in pacLis:
-                    filPac.write(p[1] + "\n")
+        pacLis = _sort_package_order(pacLis)
+        # Write the new package.order file
+        with open(os.path.join(directory, 'package.order'), mode="w", encoding="utf-8") as filPac:
+            for p in pacLis:
+                filPac.write(p[1] + "\n")
 
 
 def _get_package_list_for_file(directory, file_name):
