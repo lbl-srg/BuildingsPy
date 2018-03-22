@@ -290,7 +290,7 @@ def _move_mo_file(source, target):
     for fi in [sourceFile, targetFile]:
         di = os.path.dirname(fi)
         # Do not create package.order if there are no .mo files
-        if len(glob.glob('*.mo')) > 0:
+        if len(glob.glob(os.path.join(di, '*.mo'))) > 0:
             write_package_order(directory=di, recursive=False)
 
     def sd(s): return "within " + s[:s.rfind('.')] + ";"
