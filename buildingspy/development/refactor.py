@@ -291,6 +291,9 @@ def _move_mo_file(source, target):
         di = os.path.dirname(fi)
         write_package_order(directory=di, recursive=False)
 
+    _remove_empty_folders(os.path.dirname(sourceFile),
+                          removeRoot=False)
+
     def sd(s): return "within " + s[:s.rfind('.')] + ";"
     replace_text_in_file(targetFile, sd(source), sd(target))
     # Update the class name
@@ -332,6 +335,9 @@ def _move_mos_file(source, target):
         # its new name.
         _git_move(sourceMosFile,
                   targetMosFile)
+
+        _remove_empty_folders(os.path.dirname(sourceMosFile), removeRoot=False)
+
         # Replace the Modelica class name that may be used in simulate.
         replace_text_in_file(targetMosFile, source, target)
         # The result file name is typically the model name.
