@@ -188,6 +188,7 @@ end %s;
             # Create the package.order file
             write_package_order(directory=directory, recursive=False)
 
+
 def _git_move(source, target):
     """ Moves `source` to `target` using `git mv`.
 
@@ -278,7 +279,7 @@ def _move_mo_file(source, target):
     :param sourceFile: Name of the source file.
     :param targetFile: Name of the target file.
     """
-    import glob
+    import os
 
     sourceFile = get_modelica_file_name(source)
     targetFile = get_modelica_file_name(target)
@@ -291,8 +292,8 @@ def _move_mo_file(source, target):
         di = os.path.dirname(fi)
         write_package_order(directory=di, recursive=False)
 
-    _remove_empty_folders(os.path.dirname(sourceFile),
-                          removeRoot=False)
+    if not os.listdir(os.path.dirname(sourceFile)):
+            os.rmdir(os.path.dirname(sourceFile))
 
     def sd(s): return "within " + s[:s.rfind('.')] + ";"
     replace_text_in_file(targetFile, sd(source), sd(target))
@@ -336,7 +337,8 @@ def _move_mos_file(source, target):
         _git_move(sourceMosFile,
                   targetMosFile)
 
-        _remove_empty_folders(os.path.dirname(sourceMosFile), removeRoot=False)
+        if not os.listdir(os.path.dirname(sourceMosFile)):
+            os.rmdir(os.path.dirname(sourceMosFile))
 
         # Replace the Modelica class name that may be used in simulate.
         replace_text_in_file(targetMosFile, source, target)
