@@ -289,9 +289,7 @@ def _move_mo_file(source, target):
 
     for fi in [sourceFile, targetFile]:
         di = os.path.dirname(fi)
-        # Do not create package.order if there are no .mo files
-        if len(glob.glob(os.path.join(di, '*.mo'))) > 0:
-            write_package_order(directory=di, recursive=False)
+        write_package_order(directory=di, recursive=False)
 
     def sd(s): return "within " + s[:s.rfind('.')] + ";"
     replace_text_in_file(targetFile, sd(source), sd(target))
@@ -427,6 +425,11 @@ def write_package_order(directory=".", recursive=False):
         >>> r.write_package_order(".") #doctest: +ELLIPSIS
 
     """
+    # If there is no package.mo file in this directory, then it is not
+    # a Modelica package, and neither are its subdirectories.
+    if not os.path.exists(os.path.join(directory, 'package.mo')):
+        return
+
     if recursive:
         s = set()
         for root, _, files in os.walk(directory):
