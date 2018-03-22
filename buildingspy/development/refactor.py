@@ -619,11 +619,11 @@ def _move_class_directory(source, target):
         move_class(source + "." + fil[len(source_dir) + 1:-3],
                    target + "." + fil[len(source_dir) + 1:-3])
     # Iterate through directories
-    dirs = [f for f in os.listdir(source_dir) if os.path.isdir(os.path.join(source_dir, f))]
-    for di in dirs:
-        src = ".".join([source, di])
-        tar = ".".join([target, di])
-        move_class(src, tar)
+    if os.path.exists(source_dir):
+        for di in next(os.walk(source_dir))[1]:
+            src = ".".join([source, di])
+            tar = ".".join([target, di])
+            move_class(src, tar)
 
     # Move the Resources/Images directory
     _move_images_directory(source, target)
