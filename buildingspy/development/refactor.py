@@ -124,8 +124,7 @@ def create_modelica_package(directory):
         if not os.path.exists(package_mo):
             f = open(package_mo, mode="w", encoding="utf-8")
             if d == "Examples":
-                s = '''
-within %s;
+                s = '''within %s;
 package Examples "Collection of models that illustrate model use and test models"
   extends Modelica.Icons.ExamplesPackage;
 annotation (preferredView="info", Documentation(info="<html>
@@ -138,8 +137,7 @@ This package contains examples for the use of models that can be found in
 end Examples;
 ''' % (parentPackage, parentPackage, parentPackage)
             elif d == "Validation":
-                s = '''
-within %s;
+                s = '''within %s;
 package Validation "Collection of validation models"
   extends Modelica.Icons.ExamplesPackage;
 
@@ -161,8 +159,7 @@ used for continuous validation whenever models in the library change.
 end Validation;
 ''' % (parentPackage, parentPackage, parentPackage)
             elif d == "BaseClasses":
-                s = '''
-within %s;
+                s = '''within %s;
 package BaseClasses "Package with base classes for %s"
   extends Modelica.Icons.BasesPackage;
 annotation (preferredView="info", Documentation(info="<html>
@@ -175,8 +172,7 @@ This package contains base classes that are used to construct the models in
 end BaseClasses;
 ''' % (parentPackage, parentPackage, parentPackage, parentPackage)
             else:
-                s = '''
-within %s;
+                s = '''within %s;
 package %s "fixme: add brief description"
   extends Modelica.Icons.Package;
 annotation (preferredView="info", Documentation(info="<html>
@@ -189,14 +185,8 @@ end %s;
             f.write(s)
             f.close()
 
-            # If the parent directory has no package.order, create it.
-            parentPackageOrder = os.path.join(
-                parentPackage.replace(".", os.path.sep), 'package.order')
-            if not os.path.isfile(parentPackageOrder):
-                f = open(parentPackageOrder, mode="w", encoding="utf-8")
-                f.write(d)
-                f.close()
-
+            # Create the package.order file
+            write_package_order(directory=directory, recursive=False)
 
 def _git_move(source, target):
     """ Moves `source` to `target` using `git mv`.
@@ -294,6 +284,9 @@ def _move_mo_file(source, target):
     _git_move(sourceFile, targetFile)
     # The targetFile may have `within Buildings.Fluid;`
     # Update this if needed.
+
+    write_package_order(directory=os.path.dirname(sourceFile), recursive=False)
+    write_package_order(directory=os.path.dirname(targetFile), recursive=False)
 
     def sd(s): return "within " + s[:s.rfind('.')] + ";"
     replace_text_in_file(targetFile, sd(source), sd(target))
@@ -461,11 +454,13 @@ def write_package_order(directory=".", recursive=False):
                         pacLis.append([__PAC, f])
                         break
 
-        pacLis = _sort_package_order(pacLis)
-        # Write the new package.order file
-        with open(os.path.join(directory, 'package.order'), mode="w", encoding="utf-8") as filPac:
-            for p in pacLis:
-                filPac.write(p[1] + "\n")
+        # If there are no more files in this directory, then don't write the package.order file.
+        if len(pacLis) > 0:
+            pacLis = _sort_package_order(pacLis)
+            # Write the new package.order file
+            with open(os.path.join(directory, 'package.order'), mode="w", encoding="utf-8") as filPac:
+                for p in pacLis:
+                    filPac.write(p[1] + "\n")
 
 
 def _get_package_list_for_file(directory, file_name):
