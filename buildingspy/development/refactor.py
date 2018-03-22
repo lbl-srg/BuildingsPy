@@ -293,7 +293,7 @@ def _move_mo_file(source, target):
         write_package_order(directory=di, recursive=False)
 
     if not os.listdir(os.path.dirname(sourceFile)):
-            os.rmdir(os.path.dirname(sourceFile))
+        os.rmdir(os.path.dirname(sourceFile))
 
     def sd(s): return "within " + s[:s.rfind('.')] + ";"
     replace_text_in_file(targetFile, sd(source), sd(target))
