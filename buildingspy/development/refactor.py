@@ -124,8 +124,7 @@ def create_modelica_package(directory):
         if not os.path.exists(package_mo):
             f = open(package_mo, mode="w", encoding="utf-8")
             if d == "Examples":
-                s = '''
-within %s;
+                s = '''within %s;
 package Examples "Collection of models that illustrate model use and test models"
   extends Modelica.Icons.ExamplesPackage;
 annotation (preferredView="info", Documentation(info="<html>
@@ -138,8 +137,7 @@ This package contains examples for the use of models that can be found in
 end Examples;
 ''' % (parentPackage, parentPackage, parentPackage)
             elif d == "Validation":
-                s = '''
-within %s;
+                s = '''within %s;
 package Validation "Collection of validation models"
   extends Modelica.Icons.ExamplesPackage;
 
@@ -161,8 +159,7 @@ used for continuous validation whenever models in the library change.
 end Validation;
 ''' % (parentPackage, parentPackage, parentPackage)
             elif d == "BaseClasses":
-                s = '''
-within %s;
+                s = '''within %s;
 package BaseClasses "Package with base classes for %s"
   extends Modelica.Icons.BasesPackage;
 annotation (preferredView="info", Documentation(info="<html>
@@ -175,8 +172,7 @@ This package contains base classes that are used to construct the models in
 end BaseClasses;
 ''' % (parentPackage, parentPackage, parentPackage, parentPackage)
             else:
-                s = '''
-within %s;
+                s = '''within %s;
 package %s "fixme: add brief description"
   extends Modelica.Icons.Package;
 annotation (preferredView="info", Documentation(info="<html>
@@ -189,13 +185,8 @@ end %s;
             f.write(s)
             f.close()
 
-            # If the parent directory has no package.order, create it.
-            parentPackageOrder = os.path.join(
-                parentPackage.replace(".", os.path.sep), 'package.order')
-            if not os.path.isfile(parentPackageOrder):
-                f = open(parentPackageOrder, mode="w", encoding="utf-8")
-                f.write(d)
-                f.close()
+            # Create the package.order file
+            write_package_order(directory=directory, recursive=False)
 
 
 def _git_move(source, target):
@@ -288,12 +279,21 @@ def _move_mo_file(source, target):
     :param sourceFile: Name of the source file.
     :param targetFile: Name of the target file.
     """
+    import os
+
     sourceFile = get_modelica_file_name(source)
     targetFile = get_modelica_file_name(target)
 
     _git_move(sourceFile, targetFile)
     # The targetFile may have `within Buildings.Fluid;`
     # Update this if needed.
+
+    for fi in [sourceFile, targetFile]:
+        di = os.path.dirname(fi)
+        write_package_order(directory=di, recursive=False)
+
+    if not os.listdir(os.path.dirname(sourceFile)):
+        os.rmdir(os.path.dirname(sourceFile))
 
     def sd(s): return "within " + s[:s.rfind('.')] + ";"
     replace_text_in_file(targetFile, sd(source), sd(target))
@@ -336,6 +336,10 @@ def _move_mos_file(source, target):
         # its new name.
         _git_move(sourceMosFile,
                   targetMosFile)
+
+        if not os.listdir(os.path.dirname(sourceMosFile)):
+            os.rmdir(os.path.dirname(sourceMosFile))
+
         # Replace the Modelica class name that may be used in simulate.
         replace_text_in_file(targetMosFile, source, target)
         # The result file name is typically the model name.
@@ -429,6 +433,11 @@ def write_package_order(directory=".", recursive=False):
         >>> r.write_package_order(".") #doctest: +ELLIPSIS
 
     """
+    # If there is no package.mo file in this directory, then it is not
+    # a Modelica package, and neither are its subdirectories.
+    if not os.path.exists(os.path.join(directory, 'package.mo')):
+        return
+
     if recursive:
         s = set()
         for root, _, files in os.walk(directory):
@@ -610,11 +619,11 @@ def _move_class_directory(source, target):
         move_class(source + "." + fil[len(source_dir) + 1:-3],
                    target + "." + fil[len(source_dir) + 1:-3])
     # Iterate through directories
-    dirs = [f for f in os.listdir(source_dir) if os.path.isdir(os.path.join(source_dir, f))]
-    for di in dirs:
-        src = ".".join([source, di])
-        tar = ".".join([target, di])
-        move_class(src, tar)
+    if os.path.exists(source_dir):
+        for di in next(os.walk(source_dir))[1]:
+            src = ".".join([source, di])
+            tar = ".".join([target, di])
+            move_class(src, tar)
 
     # Move the Resources/Images directory
     _move_images_directory(source, target)
