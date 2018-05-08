@@ -211,7 +211,6 @@ class IBPSA(object):
                 for f in exclude_files:
                     files.remove(f)
 
-
             files = [f for f in list(files) if f not in self._excluded_files]
 
             # Location of reference results
