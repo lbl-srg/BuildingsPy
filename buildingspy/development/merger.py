@@ -64,8 +64,13 @@ class IBPSA(object):
         self.set_excluded_packages(["Experimental",
                                     "Obsolete"])
         self._excluded_files = [os.path.join(ibpsa_dir, "package.mo"),
-                                os.path.join(ibpsa_dir, "simulator.log"),
-                                os.path.join(ibpsa_dir, "unitTests.log"),
+                                os.path.join(ibpsa_dir, "dymosim"),
+                                os.path.join(ibpsa_dir, "ds*.txt"),
+                                os.path.join(ibpsa_dir, "*.c"),
+                                os.path.join(ibpsa_dir, "*.log"),
+                                os.path.join(ibpsa_dir, "*.mat"),
+                                os.path.join(ibpsa_dir, "*.fmu"),
+                                os.path.join(ibpsa_dir, "*.mos"),
                                 os.path.join(ibpsa_dir, "Fluid", "package.mo"),
                                 os.path.join(ibpsa_dir, "Resources",
                                              "Scripts", "travis", "Makefile"),
@@ -170,6 +175,7 @@ class IBPSA(object):
         """
         import os
         import shutil
+        import fnmatch
 
         import buildingspy.development.refactor as r
 
@@ -198,8 +204,13 @@ class IBPSA(object):
             dirs[:] = [d for d in dirs if d not in self._excluded_packages]
             dirs[:] = [os.path.join(root, d) for d in dirs]
 
-            # Exclude certain files
             files = [os.path.join(root, f) for f in files]
+            # Exclude certain files
+            for pattern in self._excluded_files:
+                exclude_files = fnmatch.filter(files, pattern)
+                for f in exclude_files:
+                    files.remove(f)
+
             files = [f for f in list(files) if f not in self._excluded_files]
 
             # Location of reference results
