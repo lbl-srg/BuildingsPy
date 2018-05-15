@@ -234,10 +234,8 @@ class IBPSA(object):
                     if desFil.endswith(".mo") or desFil.endswith(".mos"):
                         copiedFiles.append(desFil)
                         self._copy_mo_and_mos(srcFil, desFil)
-                    # Only copy reference results if no such file exists.
-                    # If a reference file already exists, then don't change it.
-                    # This requires to replace
-                    # the name of the library in names of the result file
+                    # Only copy reference results if it corresponds
+                    # to a package that is not excluded
                     elif desFil.startswith(ref_res):
                         dir_name = os.path.dirname(desFil)
                         base_name = os.path.basename(desFil)
@@ -251,9 +249,8 @@ class IBPSA(object):
                             new_file = os.path.join(dir_name,
                                                     base_name.replace(self._src_library_name,
                                                                       self._new_library_name))
-                            if not os.path.isfile(new_file):
-                                copiedFiles.append(new_file)
-                                shutil.copy2(srcFil, new_file)
+                            copiedFiles.append(new_file)
+                            shutil.copy2(srcFil, new_file)
 
                     # Copy all other files. This may be images, C-source, libraries etc.
                     else:
