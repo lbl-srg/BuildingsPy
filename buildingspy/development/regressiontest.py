@@ -870,6 +870,8 @@ class Tester(object):
                     if modelName in s_tra:
                         errMes += "*** Error: Model name %s is used by more than one script.\n" \
                             "           You need to make sure that all scripts use each model only once.\n" % modelName
+                    else:
+                        s_tra.add(modelName)
 
         for data in self._data:
             if 'FMUName' in data:
