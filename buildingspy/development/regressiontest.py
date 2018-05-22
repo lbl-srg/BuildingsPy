@@ -2042,6 +2042,10 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
                 if self._modelica_tool == 'dymola':
                     # Disable parallel computing as this can give slightly different results.
                     runFil.write('Advanced.ParallelizeCode = false;\n')
+                    # Default values for options that can give slightly different results.
+                    runFil.write('Evaluate=false;\n')
+                    runFil.write('Advanced.CompileWith64=2;\n')
+                    runFil.write('Advanced.EfficientMinorEvents=false;\n')
                     # Set the pedantic Modelica mode
                     if self._pedanticModelica:
                         runFil.write('Advanced.PedanticModelica = true;\n')
