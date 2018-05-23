@@ -373,6 +373,8 @@ Modelica package. Expected file '%s'."
 
         if (name + "=" == "tolerance=" and float(value) > 1e-6):
             return self._wrong_parameter(mos_file, name, value)
+        else:
+            return ""
 
     def _wrong_parameter(self, mos_file, name, value):
         """
