@@ -67,6 +67,7 @@ class IBPSA(object):
                                 os.path.join(ibpsa_dir, "dymosim"),
                                 os.path.join(ibpsa_dir, "ds*.txt"),
                                 os.path.join(ibpsa_dir, "*.c"),
+                                os.path.join(ibpsa_dir, "*.csv"),
                                 os.path.join(ibpsa_dir, "*.log"),
                                 os.path.join(ibpsa_dir, "*.mat"),
                                 os.path.join(ibpsa_dir, "*.fmu"),
