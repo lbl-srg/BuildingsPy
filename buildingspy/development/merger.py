@@ -154,9 +154,9 @@ class IBPSA(object):
             if len(pat) is not 2:
                 ValueError("Pattern {} is not supported.".format(pattern))
             # Make sure it has the same number of directories
-            ret = filter(lambda x: (x.count(os.path.sep) == pattern.count(os.path.sep)) \
-              and x.startswith(pat[0]) \
-              and x.endswith(pat[1]), \
+            ret = filter(lambda x: (x.count(os.path.sep) == pattern.count(os.path.sep)) and
+                         x.startswith(pat[0]) and
+                         x.endswith(pat[1]),
               file_list)
             return list(ret)
         else:
@@ -239,7 +239,7 @@ class IBPSA(object):
         for root, dirs, files in os.walk(self._ibpsa_home, topdown=True):
             dirs[:] = [d for d in dirs if d not in self._excluded_packages]
             for file in files:
-                filesToCopy.append(os.path.join(root,file))
+                filesToCopy.append(os.path.join(root, file))
 
         for pattern in self._excluded_files:
             exclude_files = IBPSA.filter_files(filesToCopy, pattern)
