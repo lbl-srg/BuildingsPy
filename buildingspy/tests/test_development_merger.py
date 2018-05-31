@@ -18,7 +18,7 @@ import unittest
 class Test_development_merger_IBPSA(unittest.TestCase):
     """
        This class contains the unit tests for
-       :mod:`buildingspy.development.sync.IBPSA`.
+       :mod:`buildingspy.development.merger`.
     """
 
     needs_initial = True
