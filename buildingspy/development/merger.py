@@ -157,7 +157,7 @@ class IBPSA(object):
             ret = filter(lambda x: (x.count(os.path.sep) == pattern.count(os.path.sep)) and
                          x.startswith(pat[0]) and
                          x.endswith(pat[1]),
-              file_list)
+                         file_list)
             return list(ret)
         else:
             # We don't have wild cards
