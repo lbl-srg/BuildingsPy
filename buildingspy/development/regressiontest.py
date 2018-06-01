@@ -2250,7 +2250,7 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
                         self._removePlotCommands(absMosFilNam)
                         nUniTes = nUniTes + 1
                         iItem = iItem + 1
-                runFil.write("Modelica.Utilities.System.exit();\n")
+                runFil.write("exit();\n")
                 runFil.close()
             ###################################################################################
             # Case for jmodelica
