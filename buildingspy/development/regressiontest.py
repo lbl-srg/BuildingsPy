@@ -626,12 +626,18 @@ class Tester(object):
         import re
         import shlex
 
+        # Make sure line has no "y = {..." that is not closed, e.g., it spans multiple lines
+        incomplete = re.search("y\s*=\s*{.*\n", line)
         # This evaluates for example
         #   re.search("y.*=.*{.*}", "aay = {aa, bb, cc}aa").group()
         #   'y = {aa, bb, cc}'
         var = re.search("y\s*=\s*{.*}", line)
-        if var is None:
+        if var is None and incomplete is None:
             return None
+        if var is None and incomplete is not None:
+            msg = "Malformed line '{}'".format(line)
+            raise ValueError(msg)
+
         s = var.group()
         s = re.search('{.*?}', s).group()
         s = s.strip('{}')
@@ -779,14 +785,14 @@ class Tester(object):
                                     y = self.get_plot_variables(lin)
                                     if y is not None:
                                         plotVars.append(y)
-                                except AttributeError:
+                                except (AttributeError, ValueError) as e:
                                     s = "%s, line %s, could not be parsed.\n" % (mosFil, iLin)
                                     s += "The problem occurred at the line below:\n"
                                     s += "%s\n" % lin
                                     s += "Make sure that each assignment of the plot command is on one line.\n"
-                                    s += "Regression tests failed with error.\n"
                                     self._reporter.writeError(s)
-                                    raise
+                                    # Store the error, but keep going to check other lines and files
+                                    pass
 
                             if len(plotVars) == 0:
                                 s = "%s does not contain any plot command.\n" % mosFil
@@ -826,9 +832,12 @@ class Tester(object):
         # Make sure we found at least one unit test
         if self.get_number_of_tests() == old_len:
             msg = """Did not find any regression tests in '%s'.""" % root_package
-            raise ValueError(msg)
+            self._reporter.writeError(msg)
 
         self._checkDataDictionary()
+        # Raise an error if there was any error reported.
+        if self._reporter.getNumberOfErrors() > 0:
+            raise ValueError("Error when setting up unit tests.")
         return
 
     def _checkDataDictionary(self):

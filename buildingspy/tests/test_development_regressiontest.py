@@ -58,6 +58,11 @@ class Test_regressiontest_Tester(unittest.TestCase):
         self.assertEqual(["const1[1].y", "const2[1, 1].y"],
                          r.Tester.get_plot_variables(' y={"const1[1].y", "const2[1, 1].y"} '))
 
+        # Make sure line breaks are raising an error, as they are not parsed
+        self.assertRaises(ValueError, r.Tester.get_plot_variables,
+            """y = {"a", "b",
+                    "c"}""")
+
     def test_regressiontest_dymola(self):
         import buildingspy.development.regressiontest as r
         rt = r.Tester(check_html=False)
