@@ -60,8 +60,8 @@ class Test_regressiontest_Tester(unittest.TestCase):
 
         # Make sure line breaks are raising an error, as they are not parsed
         self.assertRaises(ValueError, r.Tester.get_plot_variables,
-            """y = {"a", "b",
-                    "c"}""")
+                          """y = {"a", "b",
+                          "c"}""")
 
     def test_regressiontest_dymola(self):
         import buildingspy.development.regressiontest as r
