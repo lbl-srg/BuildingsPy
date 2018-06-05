@@ -1,0 +1,72 @@
+# Script to test the model {{ model }}
+def run():
+    import os
+    import timeit
+    import json
+    import traceback
+
+    from pymodelica import compile_fmu
+    # from pyfmi import load_fmu
+    import pymodelica
+
+    # Increase memory
+    pymodelica.environ['JVM_ARGS'] = '-Xmx4096m'
+
+    def _template_func(setup, func):
+        """Create a timer function to be able to retrieve the return value.
+        """
+        def inner(_it, _timer, _func=func):
+            setup()
+            _t0 = _timer()
+            for _i in _it:
+                retval = _func()
+            _t1 = _timer()
+            return _t1 - _t0, retval
+        return inner
+    timeit._template_func = _template_func
+
+    def _compile():
+        return compile_fmu(model, compiler_log_level='error')
+
+    model = "{{ model }}"
+    result = {"model": model,
+              "compilation": {"result": False}}
+
+    # Compile model
+    log_file = "{}_run.json".format(model.replace(".", "_"))
+    try:
+        os.remove(log_file)
+    except OSError:
+        pass
+
+    try:
+        t = timeit.Timer(_compile)
+        (cpu_time, fmu_name) = t.timeit(number=1)
+        result["compilation"]["cpu_time"] = "{}".format(float('%.3g' % cpu_time))
+        result["compilation"]["result"] = True
+
+    except Exception as e:
+        result["compilation"]["exception"] = e.message
+        result["compilation"]["traceback"] = traceback.format_exc()
+
+##        # Load model
+##        mod = load_fmu(fmu_name)
+##        with open(log_file, "a") as log:
+##            log.write("Loaded\n")
+##
+##        opts = mod.simulate_options() #Retrieve the default options
+##        opts['logging'] = True
+##        opts['solver'] = 'CVode'
+##        opts['CVode_options']['atol'] = 1.0e-6 #Options specific for CVode
+##        opts['CVode_options']['rtol'] = 1.0e-6 #Options specific for CVode
+##
+##        res = mod.simulate(options=opts)
+##        with open(log_file, "a") as log:
+##            log.write("Simulated\n")
+
+
+    with open(log_file, "a") as log:
+            log.write("{}\n".format(json.dumps(result, indent=4, sort_keys=True)) )
+
+if __name__=="__main__":
+    run()

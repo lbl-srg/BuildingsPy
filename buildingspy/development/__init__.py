@@ -1,4 +1,4 @@
-'''
+"""
 This module contains the classes
 
 - *refactor*, a module that assists in refactoring Modelica classes,
@@ -7,4 +7,4 @@ This module contains the classes
 - *Annex60* that synchronizes Modelica libraries with the `Annex60` library.
 - *ErrorDictionary* that contains information about possible error strings.
 
-'''
+"""

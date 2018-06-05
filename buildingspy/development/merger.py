@@ -20,7 +20,7 @@ from io import open
 
 
 class IBPSA(object):
-    ''' Class that merges a Modelica library with the `IBPSA` library.
+    """ Class that merges a Modelica library with the `IBPSA` library.
 
         Both libraries need to have the same package structure.
 
@@ -29,14 +29,14 @@ class IBPSA(object):
         This can be overwritten with the function
         :meth:`~set_excluded_packages`.
 
-    '''
+    """
 
     def __init__(self, ibpsa_dir, dest_dir):
-        ''' Constructor.
+        """ Constructor.
 
         :param ibpsa_dir: Directory where the `IBPSA` library is located.
         :param dest_dir: Directory where the library to be updated is located.
-        '''
+        """
         import os
 
         # Check arguments
@@ -64,8 +64,14 @@ class IBPSA(object):
         self.set_excluded_packages(["Experimental",
                                     "Obsolete"])
         self._excluded_files = [os.path.join(ibpsa_dir, "package.mo"),
-                                os.path.join(ibpsa_dir, "simulator.log"),
-                                os.path.join(ibpsa_dir, "unitTests.log"),
+                                os.path.join(ibpsa_dir, "dymosim"),
+                                os.path.join(ibpsa_dir, "ds*.txt"),
+                                os.path.join(ibpsa_dir, "*.c"),
+                                os.path.join(ibpsa_dir, "*.csv"),
+                                os.path.join(ibpsa_dir, "*.log"),
+                                os.path.join(ibpsa_dir, "*.mat"),
+                                os.path.join(ibpsa_dir, "*.fmu"),
+                                os.path.join(ibpsa_dir, "*.mos"),
                                 os.path.join(ibpsa_dir, "Fluid", "package.mo"),
                                 os.path.join(ibpsa_dir, "Resources",
                                              "Scripts", "travis", "Makefile"),
@@ -77,11 +83,11 @@ class IBPSA(object):
                                 os.path.join(ibpsa_dir, "legal.html")]
 
     def set_excluded_packages(self, packages):
-        ''' Set the packages that are excluded from the merge.
+        """ Set the packages that are excluded from the merge.
 
         :param packages: A list of packages to be excluded.
 
-        '''
+        """
         if not isinstance(packages, list):
             raise ValueError("Argument must be a list.")
         self._excluded_packages = packages
@@ -121,6 +127,41 @@ class IBPSA(object):
         # Write the lines to the new file
         with open(destination_file, mode="w", encoding="utf-8") as f_des:
             f_des.writelines(lines)
+
+    @staticmethod
+    def filter_files(file_list, pattern):
+        """ Return ``file_list`` for those that match ``pattern``
+
+            Currently, pattern can contain at most one wildchar ('*') character.
+
+            :param file_list: List of files.
+            :param pattern: Pattern that is used to match files.
+
+            A typical usage is
+            >>> import buildingspy.development.merger as m
+            >>> m.IBPSA.filter_files(['a.txt', 'aa/b.txt', 'aa/bb/c.txt'], '*.txt')
+            [u'a.txt']
+            >>> m.IBPSA.filter_files(['a.txt', 'aa/b.txt', 'aa/bb/c.txt'], 'aa/*.txt')
+            [u'aa/b.txt']
+            >>> m.IBPSA.filter_files(['a.txt', 'aa/b1.txt', 'aa/b2.txt', 'aa/bb/c.txt'], 'aa/*.txt')
+            [u'aa/b1.txt', u'aa/b2.txt']
+        """
+        import fnmatch
+        import os
+        if '*' in pattern:
+            pat = pattern.split('*')
+            # Currently, we only support one wild card character
+            if len(pat) is not 2:
+                ValueError("Pattern {} is not supported.".format(pattern))
+            # Make sure it has the same number of directories
+            ret = filter(lambda x: (x.count(os.path.sep) == pattern.count(os.path.sep)) and
+                         x.startswith(pat[0]) and
+                         x.endswith(pat[1]),
+                         file_list)
+            return list(ret)
+        else:
+            # We don't have wild cards
+            return fnmatch.filter(file_list, pattern)
 
     def merge(self):
         """ Merge all files except the license file and the top-level ``package.mo``
@@ -170,6 +211,7 @@ class IBPSA(object):
         """
         import os
         import shutil
+        import fnmatch
 
         import buildingspy.development.refactor as r
 
@@ -191,63 +233,64 @@ class IBPSA(object):
                         if os.path.isfile(absFil):
                             previouslyCopiedFiles.append(fil)
 
-        copiedFiles = list()
+        # Build list of files to copy, and store them in filesToCopy
+        filesToCopy = list()
 
         for root, dirs, files in os.walk(self._ibpsa_home, topdown=True):
-            # Exclude certain folders
             dirs[:] = [d for d in dirs if d not in self._excluded_packages]
-            dirs[:] = [os.path.join(root, d) for d in dirs]
+            for file in files:
+                filesToCopy.append(os.path.join(root, file))
 
-            # Exclude certain files
-            files = [os.path.join(root, f) for f in files]
-            files = [f for f in list(files) if f not in self._excluded_files]
+        for pattern in self._excluded_files:
+            exclude_files = IBPSA.filter_files(filesToCopy, pattern)
+            for f in exclude_files:
+                filesToCopy.remove(f)
 
-            # Location of reference results
-            ref_res = os.path.join(self._target_home, "Resources", "ReferenceResults", "Dymola")
+        # Location of reference results
+        ref_res = os.path.join(self._target_home, "Resources", "ReferenceResults", "Dymola")
 
-            for fil in files:
-                srcFil = os.path.join(root, fil)
-                # Loop over all
-                # - .mo files except for top-level .mo file
-                # - .mos files
-                # - ReferenceResults
-                # - OpenModelica/compareVars, as they are autogenerated
-                if os.path.join("OpenModelica", "compareVars") not in srcFil:
-
-                    desFil = srcFil.replace(self._ibpsa_home, self._target_home)
-                    desPat = os.path.dirname(desFil)
-                    if not os.path.exists(desPat):
-                        os.makedirs(desPat)
-                    # Process file.
-                    # Copy mo and mos files, and replace the library name
-                    if desFil.endswith(".mo") or desFil.endswith(".mos"):
-                        copiedFiles.append(desFil)
-                        self._copy_mo_and_mos(srcFil, desFil)
-                    # Only copy reference results if no such file exists.
-                    # If a reference file already exists, then don't change it.
-                    # This requires to replace
-                    # the name of the library in names of the result file
-                    elif desFil.startswith(ref_res):
-                        dir_name = os.path.dirname(desFil)
-                        base_name = os.path.basename(desFil)
-
-                        # Check if the file needs be skipped because it is from an excluded package.
-                        skip = False
-                        for pac in self._excluded_packages:
-                            if "{}_{}".format(self._src_library_name, pac) in base_name:
-                                skip = True
-                        if not skip:
-                            new_file = os.path.join(dir_name,
-                                                    base_name.replace(self._src_library_name,
-                                                                      self._new_library_name))
-                            if not os.path.isfile(new_file):
-                                copiedFiles.append(new_file)
-                                shutil.copy2(srcFil, new_file)
-
-                    # Copy all other files. This may be images, C-source, libraries etc.
-                    else:
-                        copiedFiles.append(desFil)
-                        shutil.copy2(srcFil, desFil)
+        # Iterate over the list of files to be copied.
+        copiedFiles = list()
+        for fil in filesToCopy:
+            srcFil = os.path.join(root, fil)
+            # Loop over all
+            # - .mo files except for top-level .mo file
+            # - .mos files
+            # - ReferenceResults
+            # - OpenModelica/compareVars, as they are autogenerated
+            if os.path.join("OpenModelica", "compareVars") not in srcFil:
+                desFil = srcFil.replace(self._ibpsa_home, self._target_home)
+                desPat = os.path.dirname(desFil)
+                if not os.path.exists(desPat):
+                    os.makedirs(desPat)
+                # Process file.
+                # Copy mo and mos files, and replace the library name
+                if desFil.endswith(".mo") or desFil.endswith(".mos"):
+                    copiedFiles.append(desFil)
+                    self._copy_mo_and_mos(srcFil, desFil)
+                # Only copy reference results if no such file exists.
+                # If a reference file already exists, then don't change it.
+                # This requires to replace
+                # the name of the library in names of the result file
+                elif desFil.startswith(ref_res):
+                    dir_name = os.path.dirname(desFil)
+                    base_name = os.path.basename(desFil)
+                    # Check if the file needs be skipped because it is from an excluded package.
+                    skip = False
+                    for pac in self._excluded_packages:
+                        if "{}_{}".format(self._src_library_name, pac) in base_name:
+                            skip = True
+                    if not skip:
+                        new_file = os.path.join(dir_name,
+                                                base_name.replace(self._src_library_name,
+                                                                  self._new_library_name))
+                        if not os.path.isfile(new_file):
+                            copiedFiles.append(new_file)
+                            shutil.copy2(srcFil, new_file)
+                # Copy all other files. This may be images, C-source, libraries etc.
+                else:
+                    copiedFiles.append(desFil)
+                    shutil.copy2(srcFil, desFil)
 
         # Delete the files that were previously merged, but are no longer in IBPSA.
         # First, remove from the list the files that were copied just now

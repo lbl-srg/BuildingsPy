@@ -3,7 +3,10 @@ BPDOC=doc
 
 PEP8_ARGS=--recursive --max-line-length=100 \
   --exclude="*/thirdParty/*" \
-  --ignore="E402,F401,F403,F405" buildingspy
+  --ignore="E402,F401,F403,F405" \
+  --aggressive --aggressive --aggressive \
+  buildingspy
+
 
 .PHONY: doc clean
 

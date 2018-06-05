@@ -1,9 +1,17 @@
 BuildingsPy Changelog
 ---------------------
 
-Version 1.7.0, April 14, 2017 -- Release 1.7
+Version 1.7.0, March 20, 2018 -- Release 1.7
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-- Extend class buildingspy.development.validator 
+- Updated buildingspy.development.merger to filter out certain files,
+  such as the top-level *.c and *.mat files.
+- Updated buildingspy.development.refactor.move_class() to
+  correct a bug that caused package.mo to not be generated
+  if the new class is deeper in the class hierarchy.
+- Updated buildingspy.development.refactor.write_package_order() to
+  correct a bug in generating package.order file for package-level
+  constants.
+- Extend class buildingspy.development.validator
   to check the consistency and correctness of .mos and .mo files.
 - Added validation of .mos/.mo files to unit test script.
 

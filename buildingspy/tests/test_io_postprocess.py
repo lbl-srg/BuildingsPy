@@ -24,10 +24,10 @@ class Test_io_Plotter(unittest.TestCase):
     """
 
     def test_interpolate(self):
-        '''
+        """
         Tests the :mod:`buildingspy.io.Plotter.interpolate`
         function.
-        '''
+        """
         t10 = list(range(10))
         t100 = list(range(100))
 
@@ -44,10 +44,10 @@ class Test_io_Plotter(unittest.TestCase):
         numpy.testing.assert_allclose(y10, y10Int)
 
     def test_convertToPeriodic(self):
-        '''
+        """
         Test the :mod:`buildingspy.io.Plotter.convertToPeriodic`
         function.
-        '''
+        """
         import numpy as np
         import random
         import copy
@@ -68,10 +68,10 @@ class Test_io_Plotter(unittest.TestCase):
 # fixme        self.assertRaises(ValueError, Plotter.convertToPeriodic(100, range(10), range(10)))
 
     def test_boxplot(self):
-        '''
+        """
         Test the :mod:`buildingspy.io.Plotter.boxplot`
         function.
-        '''
+        """
         import numpy as np
         # Construct 3 days of data with 1/2 hour time interval
         # The first time stamp is 0, the last time stamp is 72

@@ -5,7 +5,7 @@
 #
 # MWetter@lbl.gov                            2014-11-23
 #######################################################
-'''
+"""
   This module provides functions to
 
   * create Modelica packages and autopopulate for example the
@@ -14,7 +14,7 @@
     reference results and images, and
   * rewrite the `package.order` file.
 
-'''
+"""
 #
 # import from future to make Python2 behave like Python3
 from __future__ import absolute_import
@@ -89,11 +89,11 @@ def _sort_package_order(package_order):
 
 
 def _sh(cmd, directory):
-    ''' Run the command ```cmd``` command in the directory ```directory```
+    """ Run the command ```cmd``` command in the directory ```directory```
 
     :param cmd: List with the commands as is used in `subprocess.Popen()`.
     :param directory: Directory in which the command is executed.
-    '''
+    """
     import subprocess
 
     p = subprocess.Popen(cmd, cwd=directory)
@@ -103,26 +103,28 @@ def _sh(cmd, directory):
 
 
 def create_modelica_package(directory):
-    ''' Create in `directory` a Modelica package.
+    """ Create in `directory` a Modelica package.
 
-    If `directory` exists, this method returns and does
+    If `directory/package.mo` exists, this method returns and does
     nothing. Otherwise, it creates the directory and populates
     it with a `package.mo` and `package.order` file.
 
     :param directory: The directory in which the package is created.
 
-    '''
+    """
     dirs = directory.split(os.path.sep)
     fd = ""
     for d in dirs:
         fd = os.path.join(fd, d)
         if not os.path.exists(fd):
             os.makedirs(fd)
-            parentPackage = fd[:fd.rfind(os.path.sep)].replace(os.path.sep, ".")
+        parentPackage = fd[:fd.rfind(os.path.sep)].replace(os.path.sep, ".")
+        package_mo = os.path.join(fd, "package.mo")
+        # If package.mo does not exist, create it
+        if not os.path.exists(package_mo):
+            f = open(package_mo, mode="w", encoding="utf-8")
             if d == "Examples":
-                f = open(os.path.join(fd, "package.mo"), mode="w", encoding="utf-8")
-                s = '''
-within %s;
+                s = '''within %s;
 package Examples "Collection of models that illustrate model use and test models"
   extends Modelica.Icons.ExamplesPackage;
 annotation (preferredView="info", Documentation(info="<html>
@@ -134,12 +136,8 @@ This package contains examples for the use of models that can be found in
 </html>"));
 end Examples;
 ''' % (parentPackage, parentPackage, parentPackage)
-                f.write(s)
-                f.close()
             elif d == "Validation":
-                f = open(os.path.join(fd, "package.mo"), mode="w", encoding="utf-8")
-                s = '''
-within %s;
+                s = '''within %s;
 package Validation "Collection of validation models"
   extends Modelica.Icons.ExamplesPackage;
 
@@ -160,14 +158,10 @@ used for continuous validation whenever models in the library change.
 </html>"));
 end Validation;
 ''' % (parentPackage, parentPackage, parentPackage)
-                f.write(s)
-                f.close()
             elif d == "BaseClasses":
-                f = open(os.path.join(fd, "package.mo"), mode="w", encoding="utf-8")
-                s = '''
-within %s;
+                s = '''within %s;
 package BaseClasses "Package with base classes for %s"
-  extends Modelica.Icons.ExamplesPackage;
+  extends Modelica.Icons.BasesPackage;
 annotation (preferredView="info", Documentation(info="<html>
 <p>
 This package contains base classes that are used to construct the models in
@@ -177,12 +171,8 @@ This package contains base classes that are used to construct the models in
 </html>"));
 end BaseClasses;
 ''' % (parentPackage, parentPackage, parentPackage, parentPackage)
-                f.write(s)
-                f.close()
             else:
-                f = open(os.path.join(fd, "package.mo"), mode="w", encoding="utf-8")
-                s = '''
-within %s;
+                s = '''within %s;
 package %s "fixme: add brief description"
   extends Modelica.Icons.Package;
 annotation (preferredView="info", Documentation(info="<html>
@@ -192,20 +182,15 @@ fixme: add a package description.
 </html>"));
 end %s;
 ''' % (parentPackage, d, d)
-                f.write(s)
-                f.close()
+            f.write(s)
+            f.close()
 
-            # If the parent directory has no package.order, create it.
-            parentPackageOrder = os.path.join(
-                parentPackage.replace(".", os.path.sep), 'package.order')
-            if not os.path.isfile(parentPackageOrder):
-                f = open(parentPackageOrder, mode="w", encoding="utf-8")
-                f.write("d")
-                f.close()
+            # Create the package.order file
+            write_package_order(directory=directory, recursive=False)
 
 
 def _git_move(source, target):
-    ''' Moves `source` to `target` using `git mv`.
+    """ Moves `source` to `target` using `git mv`.
 
     This method calls `git mv source target` in the current directory.
     It also creates the required subdirectories.
@@ -213,9 +198,16 @@ def _git_move(source, target):
     :param source: Source file.
     :param target: Target file.
 
-    '''
+    """
+    # Due to the recursive calls, this could be invoked to git mv an empty directory.
+    # The directory would exist, but has no files in it.
+    # In this case, simply delete the empty directory and return
+    if os.path.isdir(source) and len(os.listdir(source)) == 0:
+        os.rmdir(source)
+        return
+
     # Throw an error if source is not a file that exist.
-    if not os.path.isfile(source):
+    if not (os.path.isfile(source) or os.path.isdir(source)):
         raise ValueError("Failed to move file '%s' as it does not exist." %
                          os.path.abspath(os.path.join(os.path.curdir, source)))
 
@@ -239,31 +231,30 @@ def _git_move(source, target):
             # Recursively create an populate it.
             create_modelica_package(targetDir)
         else:
-            # Directory does not exist and it is not a Modelica package.
-            # Recursively create it.
+            # Directory does not exist.
             os.makedirs(targetDir)
 
     _sh(cmd=['git', 'mv', source, target], directory=os.path.curdir)
 
 
 def get_modelica_file_name(source):
-    ''' Return for the Modelica class `source` its file name.
+    """ Return for the Modelica class `source` its file name.
 
     This method assumes the Modelica class is in a file
     with the same name.
 
     :param source: Class name of the source.
     :return: The file name of the Modelica class.
-    '''
+    """
     return os.path.join(*source.split(".")) + ".mo"
 
 
 def replace_text_in_file(file_name, old, new, isRegExp=False):
-    ''' Replace `old` with `new` in file `file_name`.
+    """ Replace `old` with `new` in file `file_name`.
 
         If `isRegExp==True`, then old must be a regular expression, and
         `re.sub(old, new, ...)` is called where `...` is each line of the file.
-    '''
+    """
     import re
     # Read source file, store the lines and update the content of the lines
     with open(file_name, mode="r", encoding="utf-8-sig") as f_sou:
@@ -281,19 +272,28 @@ def replace_text_in_file(file_name, old, new, isRegExp=False):
 
 
 def _move_mo_file(source, target):
-    ''' Move the `.mo` file `sourceFile` to `targetFile` and update its content.
+    """ Move the `.mo` file `sourceFile` to `targetFile` and update its content.
 
     :param source: Class name of the source.
     :param target: Class name of the target.
     :param sourceFile: Name of the source file.
     :param targetFile: Name of the target file.
-    '''
+    """
+    import os
+
     sourceFile = get_modelica_file_name(source)
     targetFile = get_modelica_file_name(target)
 
     _git_move(sourceFile, targetFile)
     # The targetFile may have `within Buildings.Fluid;`
     # Update this if needed.
+
+    for fi in [sourceFile, targetFile]:
+        di = os.path.dirname(fi)
+        write_package_order(directory=di, recursive=False)
+
+    if not os.listdir(os.path.dirname(sourceFile)):
+        os.rmdir(os.path.dirname(sourceFile))
 
     def sd(s): return "within " + s[:s.rfind('.')] + ";"
     replace_text_in_file(targetFile, sd(source), sd(target))
@@ -304,13 +304,13 @@ def _move_mo_file(source, target):
 
 
 def _move_mos_file(source, target):
-    ''' Move the `.mos` script `sourceFile` to `targetFile` and its content.
+    """ Move the `.mos` script `sourceFile` to `targetFile` and its content.
 
     :param source: Class name of the source.
     :param target: Class name of the target.
     :param sourceMosFile: Name of the source file.
     :param targetMosFile: Name of the target file.
-    '''
+    """
     sourceFile = get_modelica_file_name(source)
     targetFile = get_modelica_file_name(target)
 
@@ -336,6 +336,10 @@ def _move_mos_file(source, target):
         # its new name.
         _git_move(sourceMosFile,
                   targetMosFile)
+
+        if not os.listdir(os.path.dirname(sourceMosFile)):
+            os.rmdir(os.path.dirname(sourceMosFile))
+
         # Replace the Modelica class name that may be used in simulate.
         replace_text_in_file(targetMosFile, source, target)
         # The result file name is typically the model name.
@@ -346,7 +350,7 @@ def _move_mos_file(source, target):
 
 
 def _move_reference_result(source, target):
-    ''' Move the reference results from the model `source` to `target`.
+    """ Move the reference results from the model `source` to `target`.
 
         If the model `source` has no reference results, then this function
         returns doing nothing.
@@ -354,7 +358,7 @@ def _move_reference_result(source, target):
     :param source: Class name of the source.
     :param target: Class name of the target.
 
-    '''
+    """
     # Reference result file for sourceFile.
     sourceRefFile = source[:source.find(".")] + \
         os.path.sep + \
@@ -368,13 +372,36 @@ def _move_reference_result(source, target):
                                         target.replace(".", "_")))
 
 
-def _move_image_files(source, target):
-    ''' Move the image files of the model `source` to `target`.
+def _move_openmodelica_script(source, target):
+    """ Move the OpenModelica script from the model `source` to `target`.
+
+        If the model `source` has no reference results, then this function
+        returns doing nothing.
 
     :param source: Class name of the source.
     :param target: Class name of the target.
 
-    '''
+    """
+    # Reference result file for sourceFile.
+    sourceRefFile = source[:source.find(".")] + \
+        os.path.sep + \
+        os.path.join("Resources", "Scripts", "OpenModelica", "compareVars") + \
+        os.path.sep + \
+        source + ".mos"
+
+    if os.path.isfile(sourceRefFile):
+        _git_move(sourceRefFile,
+                  sourceRefFile.replace(source,
+                                        target))
+
+
+def _move_image_files(source, target):
+    """ Move the image files of the model `source` to `target`.
+
+    :param source: Class name of the source.
+    :param target: Class name of the target.
+
+    """
 
     # Name of directory that may contain the image files
     def imgDir(s): return os.path.join(os.path.curdir, "Resources",
@@ -392,7 +419,7 @@ def _move_image_files(source, target):
 
 
 def write_package_order(directory=".", recursive=False):
-    ''' Write the `package.order` file in the directory `directory`.
+    """ Write the `package.order` file in the directory `directory`.
 
         Any existing `package.order` file will be overwritten.
 
@@ -405,7 +432,12 @@ def write_package_order(directory=".", recursive=False):
         >>> import buildingspy.development.refactor as r
         >>> r.write_package_order(".") #doctest: +ELLIPSIS
 
-    '''
+    """
+    # If there is no package.mo file in this directory, then it is not
+    # a Modelica package, and neither are its subdirectories.
+    if not os.path.exists(os.path.join(directory, 'package.mo')):
+        return
+
     if recursive:
         s = set()
         for root, _, files in os.walk(directory):
@@ -446,8 +478,8 @@ def write_package_order(directory=".", recursive=False):
 
 
 def _get_package_list_for_file(directory, file_name):
-    ''' Gets the package list for the file `directory/file_name`
-    '''
+    """ Gets the package list for the file `directory/file_name`
+    """
     import re
 
     pacLis = list()
@@ -466,7 +498,7 @@ def _get_package_list_for_file(directory, file_name):
             lines = fil.read()
             # Constants can be 'constant Real n = ..." or "constant someClass n(..."
             con = re.findall(
-                r";\s*constant\s+[a-zA-Z0-9_\.]+\s+(\w+)\s*[=\(]", lines, re.MULTILINE)
+                r"\s*constant\s+[a-zA-Z0-9_\.]+\s+(\w+)\s*[=\(]", lines, re.MULTILINE)
 #                        con=re.search(r"constant\s+\w+\s+(\w+)\s*=", lines, re.MULTILINE);
             for ele in con:
                 # Found a constant whose name is in con.group(1)
@@ -504,8 +536,33 @@ def _get_package_list_for_file(directory, file_name):
     return pacLis
 
 
+def _move_images_directory(source, target):
+    """ Move the directory with the images if it exists.
+
+    Both arguments need to be package names
+    such as `Buildings.Fluid.Sensors`, which are in corresponding
+    directories, e.g., in `Buildings/Fluid/Sensors`.
+
+    :param source: Package name of the source.
+    :param target: Package name of the target.
+
+    If the package has no images, then this function does nothing
+    and returns.
+    """
+
+    # source_dir is of the form Buildings.Fluid.Sensors, but the
+    # images would be in Buildings/Resources/Images/Fluid/Sensors
+    insertion = os.path.sep + os.path.join("Resources", "Images") + os.path.sep
+
+    source_dir = source.replace(".", os.path.sep).replace(os.path.sep, insertion, 1)
+
+    if os.path.isdir(source_dir):
+        target_dir = target.replace(".", os.path.sep).replace(os.path.sep, insertion, 1)
+        _git_move(source_dir, target_dir)
+
+
 def _move_class_directory(source, target):
-    ''' Move the directory `source`, which has a file `source/package.mo`,
+    """ Move the directory `source`, which has a file `source/package.mo`,
     to the `target` name.
 
     Both arguments need to be package names
@@ -514,20 +571,29 @@ def _move_class_directory(source, target):
 
     :param source: Package name of the source.
     :param target: Package name of the target.
-    '''
+    """
     import glob
 
     source_dir = source.replace(".", os.path.sep)
     target_dir = target.replace(".", os.path.sep)
 
-    # Create the target directory if it does not yet exist
+    # Recursively create the target directory if it does not yet exist
     if not os.path.isdir(target_dir):
-        os.mkdir(target_dir)
+        os.makedirs(target_dir)
 
     # Copy the package.mo file if it does not exist in the target
     if not os.path.exists(os.path.join(target_dir, "package.mo")):
         _git_move(os.path.join(source_dir, "package.mo"),
                   os.path.join(target_dir, "package.mo"))
+
+        # If a directory is moved from A/package.mo to A/B/C/package.mo, and B and C are new packages,
+        # then A/package.mo and B/package.mo may not exist.
+        # Check if they need to be created by calling create_modelica_package for directories
+        # A and A/B (A/B/C/package.mo was already copied)
+        rec = ""
+        for di in target_dir.split(os.path.sep)[:-1]:
+            rec = os.path.join(rec, di)
+            create_modelica_package(rec)
 
         # The targetFile may have `within Buildings.Fluid;`
         # Update this if needed.
@@ -553,15 +619,18 @@ def _move_class_directory(source, target):
         move_class(source + "." + fil[len(source_dir) + 1:-3],
                    target + "." + fil[len(source_dir) + 1:-3])
     # Iterate through directories
-    dirs = [f for f in os.listdir(source_dir) if os.path.isdir(os.path.join(source_dir, f))]
-    for di in dirs:
-        src = ".".join([source, di])
-        tar = ".".join([target, di])
-        move_class(src, tar)
+    if os.path.exists(source_dir):
+        for di in next(os.walk(source_dir))[1]:
+            src = ".".join([source, di])
+            tar = ".".join([target, di])
+            move_class(src, tar)
+
+    # Move the Resources/Images directory
+    _move_images_directory(source, target)
 
 
 def move_class(source, target):
-    ''' Move the class from the `source`
+    """ Move the class from the `source`
     to the `target` name.
 
     Both arguments need to be Modelica class names
@@ -578,7 +647,11 @@ def move_class(source, target):
         >>> r.move_class("Buildings.Fluid.Movers.FlowControlled_dp", \
         >>>              "Buildings.Fluid.Movers.Flow_dp") #doctest: +SKIP
 
-    '''
+    """
+    ##############################################################
+    # First, remove empty subdirectories
+    _remove_empty_folders(source.replace(".", os.path.sep),
+                          removeRoot=False)
     ##############################################################
     # Check if it is a directory with a package.mo file
     if os.path.isdir(source.replace(".", os.path.sep)):
@@ -601,15 +674,39 @@ def move_class(source, target):
     # then these also need to be renamed
     _move_image_files(source, target)
 
+    ##############################################################
+    # Move OpenModelica script if present.
+    _move_openmodelica_script(source, target)
+
     _update_all_references(source, target)
 
 
+def _remove_empty_folders(path, removeRoot=True):
+    ''' Remove empty directories
+    '''
+    if not os.path.isdir(path):
+        return
+
+    # remove empty subfolders
+    files = os.listdir(path)
+    if len(files):
+        for f in files:
+            fullpath = os.path.join(path, f)
+            if os.path.isdir(fullpath):
+                _remove_empty_folders(fullpath)
+
+    # if folder empty, delete it
+    files = os.listdir(path)
+    if len(files) == 0 and removeRoot:
+        os.rmdir(path)
+
+
 def _update_all_references(source, target):
-    ''' Updates all references in `.mo` and `.mos` files.
+    """ Updates all references in `.mo` and `.mos` files.
 
     :param source: Class name of the source.
     :param target: Class name of the target.
-    '''
+    """
 #    from multiprocessing import Pool
 
     # Update all references in the mo and mos files
@@ -630,7 +727,7 @@ def _update_all_references(source, target):
 
 
 def _updateFile(arg):
-    ''' Update all `.mo`, `package.order` and reference result file
+    """ Update all `.mo`, `package.order` and reference result file
 
         The argument `arg` is a list where the first item is
         the relative file name (e.g., `./Buildings/package.mo`),
@@ -641,7 +738,7 @@ def _updateFile(arg):
         consuming and hence this is done in parallel.
 
         :param arg: A list with the arguments.
-    '''
+    """
 
     def _getShortName(fileName, className):
         import re

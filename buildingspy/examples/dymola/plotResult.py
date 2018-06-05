@@ -14,16 +14,20 @@ from io import open
 
 
 def main():
-    ''' Main method that plots the results
-    '''
-    from buildingspy.io.outputfile import Reader
-    import matplotlib.pyplot as plt
+    """ Main method that plots the results
+    """
     import os
 
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+
+    from buildingspy.io.outputfile import Reader
+
     # Optionally, change fonts to use LaTeX fonts
-    #from matplotlib import rc
-    #rc('text', usetex=True)
-    #rc('font', family='serif')
+    # from matplotlib import rc
+    # rc('text', usetex=True)
+    # rc('font', family='serif')
 
     # Read results
     ofr1 = Reader(os.path.join("buildingspy", "examples", "dymola",

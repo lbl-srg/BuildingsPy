@@ -21,7 +21,7 @@ class Plotter(object):
     """
 
     def interpolate(tSup, t, y):
-        ''' Interpolate the values of ``(t,y)`` at the support points ``tSup``.
+        """ Interpolate the values of ``(t,y)`` at the support points ``tSup``.
 
         :param tSup: Support points.
         :param t: Time stamps of variables ``y``.
@@ -31,10 +31,13 @@ class Plotter(object):
         Usage: Type
 
            >>> import os
+           >>> import numpy as np
+           >>> import matplotlib
+           >>> matplotlib.use('Agg')
+           >>> import matplotlib.pyplot as plt
+           >>>
            >>> from buildingspy.io.outputfile import Reader
            >>> from buildingspy.io.postprocess import Plotter
-           >>> import numpy as np
-           >>> import matplotlib.pyplot as plt
            >>>
            >>> resultFile = os.path.join("buildingspy", "examples", "dymola", "PlotDemo.mat")
            >>> r=Reader(resultFile, "dymola")
@@ -45,7 +48,7 @@ class Plotter(object):
            [<matplotlib.lines.Line2D object at ...>]
            >>> plt.show() # doctest: +SKIP
 
-        '''
+        """
         import numpy as np
 
         if ((np.isnan(tSup)).any()):
@@ -100,7 +103,7 @@ class Plotter(object):
     interpolate = staticmethod(interpolate)
 
     def convertToPeriodic(tPeriod, t, y):
-        '''Convert the data series ``(t, y)`` such that ``t`` is periodic
+        """Convert the data series ``(t, y)`` such that ``t`` is periodic
         with periodicity ``tPeriod``.
 
         :param tPeriod: Period to which ``t`` needs to be converted.
@@ -116,7 +119,7 @@ class Plotter(object):
 
         if ``t`` spans one year and the data are hourly (hence, ``t[0]=0`` and ``t[-1]=86399``).
 
-        '''
+        """
         import numpy as np
 
         # Check input
@@ -132,9 +135,9 @@ class Plotter(object):
                 break
             n = n + 1
         if n + 1 == len(t):
-            raise ValueError('tPeriod is not within t[0] and t[len(t)-1].\n'
-                             + "   Received tPeriod = " + str(tPeriod) + '\n'
-                             + "            t[-1]   = " + str(t[-1]) + '.')
+            raise ValueError('tPeriod is not within t[0] and t[len(t)-1].\n' +
+                             "   Received tPeriod = " + str(tPeriod) + '\n' +
+                             "            t[-1]   = " + str(t[-1]) + '.')
         tRet = []
         inc = t[1] - t[0]
         for i in t:
@@ -145,7 +148,7 @@ class Plotter(object):
     def boxplot(t, y, increment=3600, nIncrement=24,
                 notch=0, sym='b+', vert=1, whis=1.5,
                 positions=None, widths=None, patch_artist=False, bootstrap=None, hold=None):
-        ''' Create a boxplot of time data.
+        """ Create a boxplot of time data.
 
         :param t: The support points in time as received from the *Reader*.
         :param y: The function values at ``t`` as received from the *Reader*.
@@ -169,9 +172,12 @@ class Plotter(object):
         Usage: Type
 
            >>> import os
+           >>> import matplotlib
+           >>> matplotlib.use('Agg')
+           >>> import matplotlib.pyplot as plt
+           >>>
            >>> from buildingspy.io.outputfile import Reader
            >>> from buildingspy.io.postprocess import Plotter
-           >>> import matplotlib.pyplot as plt
            >>>
            >>> # Read data
            >>> resultFile = os.path.join("buildingspy", "examples", "dymola", "TwoRoomsWithStorage.mat")
@@ -182,10 +188,10 @@ class Plotter(object):
            >>> plt=Plotter.boxplot(t=t, y=y-273.15, increment=3600, nIncrement=24)
            >>>
            >>> # Decorate, save and show the plot
-           >>> plt.xlabel('Time [h]') #doctest: +ELLIPSIS
-           <matplotlib.text.Text object at ...>
-           >>> plt.ylabel(u'Room temperature [$^\circ$C]') #doctest: +ELLIPSIS
-           <matplotlib.text.Text object at ...>
+           >>> plt.xlabel('Time [h]')
+           Text(0.5,0,u'Time [h]')
+           >>> plt.ylabel(u'Room temperature [°C]') #doctest: +ELLIPSIS
+           Text(0,0.5,u'Room temperature [...C]')
            >>> plt.grid()
            >>> plt.savefig("roomTemperatures.png")
            >>> plt.show() # doctest: +SKIP
@@ -196,18 +202,21 @@ class Plotter(object):
            :width: 560 px
            :align: center
 
-        '''
-        import numpy as np
+        """
+        import matplotlib
+        matplotlib.use('Agg')
         import matplotlib.pyplot as plt
+
+        import numpy as np
 
         # Make sure that input is periodic
         tPeriod = increment * nIncrement
         rem = (t[-1] - t[0]) % tPeriod
         if abs(rem) > 1E-20:
-            raise ValueError('Length of time series must be a multiple of increment*nIncrement.\n'
-                             + '  Received increment  = ' + str(increment) + '\n'
-                             + '           nIncrement = ' + str(nIncrement) + '\n'
-                             + '           t[-1]-t[0] = ' + str(t[-1] - t[0]) + '.')
+            raise ValueError('Length of time series must be a multiple of increment*nIncrement.\n' +
+                             '  Received increment  = ' + str(increment) + '\n' +
+                             '           nIncrement = ' + str(nIncrement) + '\n' +
+                             '           t[-1]-t[0] = ' + str(t[-1] - t[0]) + '.')
 
         # Make equidistant grid for the whole simulation period, such as 0, 1, ... 47
         # for two days

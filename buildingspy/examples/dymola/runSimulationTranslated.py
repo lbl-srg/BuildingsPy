@@ -17,12 +17,12 @@ import buildingspy.simulate.Simulator as si
 
 # Function to set common parameters and to run the simulation
 def simulateTranslatedModel(s):
-    ''' Set common parameters and run a simulation
+    """ Set common parameters and run a simulation
         of an already translated model.
 
     :param s: A simulator object that has already been translated.
 
-    '''
+    """
     s.setStopTime(86400)
     # Kill the process if it does not finish in 1 minute
     s.setTimeOut(60)
@@ -32,8 +32,8 @@ def simulateTranslatedModel(s):
 
 
 def main():
-    ''' Main method that configures and runs all simulations
-    '''
+    """ Main method that configures and runs all simulations
+    """
     import copy
     import shutil
 

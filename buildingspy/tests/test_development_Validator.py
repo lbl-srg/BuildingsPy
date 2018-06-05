@@ -87,15 +87,18 @@ class Test_development_Validator(unittest.TestCase):
 
         with open(path_mos, mode="w", encoding="utf-8") as mos_fil:
             mos_fil.write(output_res)
-        mos_fil.close()
 
         with self.assertRaises(ValueError) as context:
             val.validateExperimentSetup(mod_lib)
 
-        for path in [path_mo, path_mos]:
-            if os.path.exists(path):
-                os.remove(path)
-        self.assertTrue(err_msg in str(context.exception))
+            for path in [path_mo, path_mos]:
+                if os.path.exists(path):
+                    os.remove(path)
+            self.assertTrue(err_msg in str(context.exception))
+
+        # Delete created files
+        os.remove(path_mo)
+        os.remove(path_mos)
 
     def test_validateExperimentSetup(self):
 
@@ -115,12 +118,12 @@ class Test_development_Validator(unittest.TestCase):
         ###########################################
         # Checking missing tolerance in mos file
         self.run_case(val, myMoLib, "experiment(Tolerance=1e-6, StopTime=1.0),",
-                      "", "A maximum tolerance of 1e-6 is required")
+                      "", "A minimum tolerance of 1e-6 is required for JModelica.")
 
         ###########################################
         # Checking missing tolerance in mo file
         self.run_case(val, myMoLib, "experiment(StopTime=1.0),",
-                      "stopTime=1.0,", "A maximum tolerance of 1e-6 is required by JModelica.")
+                      "stopTime=1.0,", "A minimum tolerance of 1e-6 is required for JModelica.")
 
         ###########################################
         # Checking tolerances mismatch

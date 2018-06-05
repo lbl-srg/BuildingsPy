@@ -957,7 +957,7 @@ class Tester(object):
                         dat['time']=timeGrid
                     if (self._isParameter(val)):
                         import numpy as np
-                        dat[var]=np.ones(len(timeGrid))*val[0]   
+                        dat[var]=np.ones(len(timeGrid))*val[0]
                     else:
                         dat[var] = val
 
@@ -1009,20 +1009,20 @@ class Tester(object):
             elif len(t) == nPoi:
                 return t
             else:
-                s = "The new time grid has %d points, but it must have 2 or %d points.\n\
-            Stop processing %s\n" % (len(tNew), nPoi, filNam)
+                s = "%s: The new time grid has %d points, but it must have 2 or %d points.\n\
+            Stop processing.\n" % (filNam, len(tNew), nPoi)
                 raise ValueError(s)
 
         if (abs(tOld[-1] - tNew[-1]) > 1E-5):
-            msg = """The new results and the reference results have a different end time.
+            msg = """%s: The new results and the reference results have a different end time.
             tNew = [%d, %d]
-            tOld = [%d, %d]""" % (tNew[0], tNew[-1], tOld[0], tOld[-1])
+            tOld = [%d, %d]""" % (filNam, tNew[0], tNew[-1], tOld[0], tOld[-1])
             return (False, min(tOld[-1], tNew[-1]), msg)
 
         if (abs(tOld[0] - tNew[0]) > 1E-5):
-            msg = """The new results and the reference results have a different start time.
+            msg = """%s: The new results and the reference results have a different start time.
             tNew = [%d, %d]
-            tOld = [%d, %d]""" % (tNew[0], tNew[-1], tOld[0], tOld[-1])
+            tOld = [%d, %d]""" % (filNam, tNew[0], tNew[-1], tOld[0], tOld[-1])
             return (False, min(tOld[0], tNew[0]), msg)
 
         timMaxErr = 0
@@ -1045,8 +1045,8 @@ Skipping error checking for this variable.""" % (filNam, varNam, len(yOld), len(
             # whereas others only contain the first and last time stamp.
             # Hence, we make sure to have the right time grid before we
             # call the interpolation.
-            
-            # Added by TSN for JModelica which requires dense outputs           
+
+            # Added by TSN for JModelica which requires dense outputs
             from scipy.interpolate import interp1d
             if(len(yNew) < len(yOld)):
                 #f2 = interp1d(t1,y1,bounds_error=False)
@@ -1056,7 +1056,7 @@ Skipping error checking for this variable.""" % (filNam, varNam, len(yOld), len(
                 yOld = interp1d(tOld,yOld)(tNew)
                 tOld = tNew
             yInt = yNew
-            
+
 #             tGriOld = getTimeGrid(tOld, len(yNew))
 #             tGriNew = getTimeGrid(tNew, min(len(yNew), self._nPoi))
 #             try:
@@ -1079,8 +1079,8 @@ Skipping error checking for this variable.""" % (filNam, varNam, len(yOld), len(
         # implementation of the heatPort. Hence, we test for this special case, and
         # store the parameter as if it were a variable so that the reference result are not
         # going to be changed.
-        if (varNam.endswith("heatPort.T") or varNam.endswith("heatPort.Q_flow")) and (len(yInt) == 2) \
-        and len(yOld) != len(yInt):
+        if (varNam.endswith("heatPort.T") or varNam.endswith("heatPort.Q_flow")) and (
+                len(yInt) == 2) and len(yOld) != len(yInt):
             yInt = np.ones(len(yOld)) * yInt[0]
 
 #         # Compute error for the variable with name varNam
@@ -1585,8 +1585,9 @@ Skipping error checking for this variable.""" % (filNam, varNam, len(yOld), len(
                 ans = "Y"
                 if ans == "y" or ans == "Y":
                     self._writeReferenceResults(abs_ref_fil_nam, None, y_tra)
-                    self._reporter.writeWarning("*** Warning: Rewrote reference file %s due to new FMU statistics." %
-                                                reference_file_name)
+                    self._reporter.writeWarning(
+                        "*** Warning: Rewrote reference file %s due to new FMU statistics." %
+                        reference_file_name)
             return [found_differences, ans]
 
 
@@ -1599,8 +1600,9 @@ Skipping error checking for this variable.""" % (filNam, varNam, len(yOld), len(
             ans = "Y"
             if ans == "y" or ans == "Y":
                 self._writeReferenceResults(abs_ref_fil_nam, None, y_tra)
-                self._reporter.writeWarning("*** Warning: Rewrote reference file %s as the old one had no FMU statistics." %
-                                            reference_file_name)
+                self._reporter.writeWarning(
+                    "*** Warning: Rewrote reference file %s as the old one had no FMU statistics." %
+                    reference_file_name)
             return [True, ans]
 
 
@@ -1780,7 +1782,7 @@ Skipping error checking for this variable.""" % (filNam, varNam, len(yOld), len(
                     # Reset answer, unless it is set to Y or N
                     if not (ans == "Y" or ans == "N"):
                         ans = "-"
-                    
+
                     # TSN changes this to be true so reference results are always overwritten
                     updateReferenceData = True
                     # check if reference results already exists in library
@@ -2067,6 +2069,10 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
                 if self._modelica_tool == 'dymola':
                     # Disable parallel computing as this can give slightly different results.
                     runFil.write('Advanced.ParallelizeCode = false;\n')
+                    # Default values for options that can give slightly different results.
+                    runFil.write('Evaluate=false;\n')
+                    runFil.write('Advanced.CompileWith64=2;\n')
+                    runFil.write('Advanced.EfficientMinorEvents=false;\n')
                     # Set the pedantic Modelica mode
                     if self._pedanticModelica:
                         runFil.write('Advanced.PedanticModelica = true;\n')
@@ -2271,7 +2277,7 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
                         self._removePlotCommands(absMosFilNam)
                         nUniTes = nUniTes + 1
                         iItem = iItem + 1
-                runFil.write("Modelica.Utilities.System.exit();\n")
+                runFil.write("exit();\n")
                 runFil.close()
             ###################################################################################
             # Case for jmodelica
