@@ -77,7 +77,6 @@ class Test_development_Validator(unittest.TestCase):
 
         with open(path_mo, mode="w", encoding="utf-8") as mo_fil:
             mo_fil.write(output_res)
-        mo_fil.close()
 
         path_mos = os.path.join(mod_lib, 'Resources', 'Scripts', 'Dymola',
                                 'Examples', model_name + '.mos')
