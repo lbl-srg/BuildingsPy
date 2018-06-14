@@ -94,8 +94,8 @@ Modelica package. Expected file '%s'."
         :return: list The list of strings of the info and revisions
                  section.
         """
-        # Open file.
-        with open(moFile, mode="r", encoding="utf-8-sig") as f:
+
+        with open(moFile, mode="r", encoding="utf-8") as f:
             lines = f.readlines()
 
         nLin = len(lines)
