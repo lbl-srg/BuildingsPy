@@ -130,7 +130,8 @@ class IBPSA(object):
 
     @staticmethod
     def filter_files(file_list, pattern):
-        """ Return ``file_list`` for those that match ``pattern``
+        """
+            Return ``file_list`` for those that match ``pattern``.
 
             Currently, pattern can contain at most one wildchar ('*') character.
 
@@ -138,13 +139,13 @@ class IBPSA(object):
             :param pattern: Pattern that is used to match files.
 
             A typical usage is
-            >>> import buildingspy.development.merger as m
-            >>> m.IBPSA.filter_files(['a.txt', 'aa/b.txt', 'aa/bb/c.txt'], '*.txt')
-            [u'a.txt']
-            >>> m.IBPSA.filter_files(['a.txt', 'aa/b.txt', 'aa/bb/c.txt'], 'aa/*.txt')
-            [u'aa/b.txt']
-            >>> m.IBPSA.filter_files(['a.txt', 'aa/b1.txt', 'aa/b2.txt', 'aa/bb/c.txt'], 'aa/*.txt')
-            [u'aa/b1.txt', u'aa/b2.txt']
+                >>> import buildingspy.development.merger as m
+                >>> m.IBPSA.filter_files(['a.txt', 'aa/b.txt', 'aa/bb/c.txt'], '*.txt')
+                [u'a.txt']
+                >>> m.IBPSA.filter_files(['a.txt', 'aa/b.txt', 'aa/bb/c.txt'], 'aa/*.txt')
+                [u'aa/b.txt']
+                >>> m.IBPSA.filter_files(['a.txt', 'aa/b1.txt', 'aa/b2.txt', 'aa/bb/c.txt'], 'aa/*.txt')
+                [u'aa/b1.txt', u'aa/b2.txt']
         """
         import fnmatch
         import os

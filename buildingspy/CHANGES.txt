@@ -7,7 +7,7 @@ Version 1.7.0, June 14, 2018 -- Release 1.7
   variables in plot statements to be ignored if the plot statement was
   longer than one line. Now, an error message will be written for this case.
 - Updated buildingspy.development.merger to filter out certain files,
-  such as the top-level *.c and *.mat files.
+  such as the top-level .c and .mat files.
 - Updated buildingspy.development.refactor.move_class() to
   correct a bug that caused package.mo to not be generated
   if the new class is deeper in the class hierarchy.
