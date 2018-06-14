@@ -3,6 +3,9 @@ BuildingsPy Changelog
 
 Version 1.7.0, March 20, 2018 -- Release 1.7
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- Corrected error in buildingspy.development.regressiontest that caused
+  variables in plot statements to be ignored if the plot statement was
+  longer than one line. Now, an error message will be written for this case.
 - Updated buildingspy.development.merger to filter out certain files,
   such as the top-level *.c and *.mat files.
 - Updated buildingspy.development.refactor.move_class() to
