@@ -13,7 +13,7 @@ from io import open
 # end of from future import
 
 from multiprocessing import Pool
-import buildingspy.simulate.Simulator as si
+from buildingspy.simulate import Simulator
 
 
 # Function to set common parameters and to run the simulation
@@ -39,11 +39,11 @@ def main():
     li = []
     # First model
     model = 'Buildings.Controls.Continuous.Examples.PIDHysteresis'
-    s = si.Simulator(model, 'dymola', 'case1')
+    s = Simulator.Simulator(model, 'dymola', 'case1')
     s.addParameters({'con.eOn': 0.1})
     li.append(s)
     # second model
-    s = si.Simulator(model, 'dymola', 'case2')
+    s = Simulator.Simulator(model, 'dymola', 'case2')
     s.addParameters({'con.eOn': 1})
     li.append(s)
 
