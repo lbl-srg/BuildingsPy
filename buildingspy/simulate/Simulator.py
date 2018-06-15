@@ -768,7 +768,6 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
 
         """
 
-        import sys
         import subprocess
         import time
         import datetime
