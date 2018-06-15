@@ -25,7 +25,7 @@ else
 endif
 
 unittest:
-	python -m unittest discover buildingspy/tests
+	python -m unittest discover -v buildingspy/tests
 
 doctest:
 	python -m doctest \
