@@ -1,5 +1,4 @@
 dist: trusty
-sudo: true
 
 language: python
 
@@ -14,9 +13,6 @@ env:
 
 notifications:
   email: false
-
-git:
-  depth: 5
 
 services:
   - docker
