@@ -1,6 +1,10 @@
 BuildingsPy Changelog
 ---------------------
 
+Version 1.7.1, xxx
+^^^^^^^^^^^^^^^^^^
+- xxx
+
 Version 1.7.0, June 14, 2018 -- Release 1.7
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 - Corrected error in buildingspy.development.regressiontest that caused
