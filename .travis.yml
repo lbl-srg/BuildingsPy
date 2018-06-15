@@ -38,14 +38,14 @@ before_install:
   - docker pull "$DOCKER_USERNAME"/ubuntu-1604_jmodelica_trunk
 
 install:
-  - pip install --upgrade pip setuptools wheel
-  - pip install --only-binary=numpy,scipy,matplotlib numpy scipy matplotlib==2.1.0
-  - pip install autopep8
-  - pip install .
+  - python -m pip install --upgrade pip setuptools wheel
+  - python -m pip install --only-binary=numpy,scipy,matplotlib numpy scipy matplotlib==2.1.0
+  - python -m pip install autopep8
+  - python -m pip install .
 
 # Execute tests
 script:
   - omc --version
   - make pep8 PEP8_CORRECT_CODE=true
-  - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then make doctest; fi
+#  - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then make doctest; fi
   - make unittest
