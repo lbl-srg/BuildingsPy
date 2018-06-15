@@ -25,6 +25,8 @@ else
 endif
 
 unittest:
+	which python
+	python -v
 	python -m unittest discover buildingspy/tests
 
 doctest:
