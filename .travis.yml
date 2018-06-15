@@ -16,7 +16,7 @@ notifications:
   email: false
 
 git:
-  depth: 3
+  depth: 5
 
 services:
   - docker
