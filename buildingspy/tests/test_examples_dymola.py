@@ -13,9 +13,8 @@ from io import open
 # end of from future import
 
 import unittest
-import os
 import sys
-sys.path.append(os.getcwd())
+print(sys.path)
 
 try:
     from test.test_support import EnvironmentVarGuard
