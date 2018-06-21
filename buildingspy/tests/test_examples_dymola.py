@@ -16,8 +16,7 @@ import unittest
 import os
 import sys
 sys.path.append(os.getcwd())
-sys.path.append('..')
-sys.path.append('../..')
+sys.path.append(os.pardir)
 print(sys.path)
 
 try:
