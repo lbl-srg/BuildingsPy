@@ -99,8 +99,8 @@ class IBPSA(object):
         :param source_file: Name of the file to be copied.
         :param destination_file: Name of the new file.
         """
-
-        rep = dict()
+        from collections import OrderedDict
+        rep = OrderedDict()
         # For the Buildings library, do these additional replacements.
         if self._new_library_name == "Buildings":
             # Update the models that we use from Buildings.HeatTransfer rather
@@ -111,22 +111,32 @@ class IBPSA(object):
                         "Buildings.HeatTransfer.Sources.FixedTemperature"})
             # The merge script updates a few names that have IBPSA in it but
             # that should not be updated. Here, we revert this renaming.
+        rep[self._src_library_name] = self._new_library_name
         rep.update({"{} Conference".format(self._new_library_name):
                     "IBPSA Conference",
                     "2013-{}-Wetter.pdf".format(self._new_library_name):
                     "2013-IBPSA-Wetter.pdf"})
-        # Read source file, store the lines and update the content of the lines
-        with open(source_file, mode="r", encoding="utf-8-sig") as f_sou:
+        self._copy_rename(source_file, destination_file, rep)
+
+
+    def _copy_rename(self, src, des, rep):
+        """ Read source file `src` and write to destination file `des` with the dictionary entries replaced in the new content of the new file.
+
+            :param src: Name of the source file.
+            :param des: Name of the destination file.
+            :param rep: Dictionary where each key is the string to be replaced in the new file with its value.
+        """
+        from collections import OrderedDict
+        with open(src, mode="r", encoding="utf-8-sig") as f_sou:
             lines = list()
             for _, lin in enumerate(f_sou):
-                # First, rename the library.
-                lin = lin.replace(self._src_library_name, self._new_library_name)
                 for ori, new in list(rep.items()):
                     lin = lin.replace(ori, new)
                 lines.append(lin)
         # Write the lines to the new file
-        with open(destination_file, mode="w", encoding="utf-8") as f_des:
+        with open(des, mode="w", encoding="utf-8") as f_des:
             f_des.writelines(lines)
+
 
     @staticmethod
     def filter_files(file_list, pattern):
@@ -250,6 +260,9 @@ class IBPSA(object):
         # Location of reference results
         ref_res = os.path.join(self._target_home, "Resources", "ReferenceResults", "Dymola")
 
+        # Location of heat pump calibration
+        hea_pum = os.path.join(self._target_home, "Resources", "src", "fluid", "heatpumps", "calibration")
+
         # Iterate over the list of files to be copied.
         copiedFiles = list()
         for fil in filesToCopy:
@@ -288,6 +301,19 @@ class IBPSA(object):
                         if not os.path.isfile(new_file):
                             copiedFiles.append(new_file)
                             shutil.copy2(srcFil, new_file)
+                #
+                elif desFil.startswith(hea_pum):
+                    dir_name = os.path.dirname(desFil)
+                    base_name = os.path.basename(desFil)
+                    new_file = os.path.join(dir_name,
+                                            base_name.replace(self._src_library_name,
+                                                              self._new_library_name))
+                    if not os.path.isfile(new_file):
+                        copiedFiles.append(new_file)
+                        rep = dict()
+                        rep[self._src_library_name] = self._new_library_name
+                        self._copy_rename(srcFil, new_file, rep)
+
                 # Copy all other files. This may be images, C-source, libraries etc.
                 else:
                     copiedFiles.append(desFil)
