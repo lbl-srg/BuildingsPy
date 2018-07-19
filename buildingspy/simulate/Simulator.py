@@ -807,9 +807,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         dirNam = ds[len(ds) - 1]
         worDir = os.path.join(tempfile.mkdtemp(
             prefix='tmp-simulator-' + getpass.getuser() + '-'), dirNam)
-
         return worDir
-
 
     def _check_simulation_errors(self, worDir):
         """ Method that checks if errors occured during simulation.
