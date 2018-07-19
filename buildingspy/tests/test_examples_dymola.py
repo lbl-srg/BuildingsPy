@@ -38,8 +38,6 @@ class Test_example_dymola_runSimulation(unittest.TestCase):
         """ Ensure that environment variables that are needed to run
             the tests are set
         """
-        # Set MODELICALIBRARY which is required to run
-        # runSimulationTranslated.py
         from git import Repo
         import tempfile
         import os
@@ -77,18 +75,6 @@ class Test_example_dymola_runSimulation(unittest.TestCase):
         """
         import os
         import buildingspy.examples.dymola.runSimulation as s
-
-        os.chdir("Buildings")
-        s.main()
-        os.chdir("..")
-
-    def test_runSimulationTranslated(self):
-        """
-        Tests the :mod:`buildingspy/examples/dymola/runSimulationTranslated`
-        function.
-        """
-        import os
-        import buildingspy.examples.dymola.runSimulationTranslated as s
 
         os.chdir("Buildings")
         s.main()

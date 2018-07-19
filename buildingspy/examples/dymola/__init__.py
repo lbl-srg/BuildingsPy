@@ -17,24 +17,6 @@ the following commands:
 This will run the two test cases and store the results in the directories
 ``case1`` and ``case2``.
 
-Simulating a model with two different parameter values but without recompilation
-================================================================================
-
-In the above example, the value of the parameter ``con.eOn`` can be
-changed after the model has been translated.
-To avoid unrequired translations, the functions
-:func:`buildingspy.simulate.Simulator.translate` and
-:func:`buildingspy.simulate.Simulator.simulate_translated` can
-be used to translate a model, and then simulate it with different
-parameter values.
-The following commands accomplish this:
-
-.. literalinclude:: ../../buildingspy/examples/dymola/runSimulationTranslated.py
-
-.. note:: If a parameter cannot be changed after
-          model translation, then
-          :func:`buildingspy.simulate.Simulator.simulate_translated`
-          will throw an exception.
 
 Plotting of Time Series
 =======================
