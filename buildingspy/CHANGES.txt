@@ -1,9 +1,13 @@
 BuildingsPy Changelog
 ---------------------
 
-Version 1.7.1, xxx
+Version 2.0.0, xxx
 ^^^^^^^^^^^^^^^^^^
-- xxx
+- Removed buildingspy.simulate.Simulator.simulate_translated
+  as it relies on non-standard Dymola functionality, and does no longer
+  work with Dymola 2019.
+  Also removed is the function buildingspy.simulate.Simulator.deleteTranslateDirectory
+  which was only needed for buildingspy.simulate.Simulator.simulate_translated
 
 Version 1.7.0, June 14, 2018 -- Release 1.7
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
