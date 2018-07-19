@@ -118,7 +118,6 @@ class IBPSA(object):
                     "2013-IBPSA-Wetter.pdf"})
         self._copy_rename(source_file, destination_file, rep)
 
-
     def _copy_rename(self, src, des, rep):
         """ Read source file `src` and write to destination file `des` with the dictionary entries replaced in the new content of the new file.
 
@@ -136,7 +135,6 @@ class IBPSA(object):
         # Write the lines to the new file
         with open(des, mode="w", encoding="utf-8") as f_des:
             f_des.writelines(lines)
-
 
     @staticmethod
     def filter_files(file_list, pattern):
@@ -261,7 +259,13 @@ class IBPSA(object):
         ref_res = os.path.join(self._target_home, "Resources", "ReferenceResults", "Dymola")
 
         # Location of heat pump calibration
-        hea_pum = os.path.join(self._target_home, "Resources", "src", "fluid", "heatpumps", "calibration")
+        hea_pum = os.path.join(
+            self._target_home,
+            "Resources",
+            "src",
+            "fluid",
+            "heatpumps",
+            "calibration")
 
         # Iterate over the list of files to be copied.
         copiedFiles = list()
