@@ -194,6 +194,7 @@ end %s;
             _sh(cmd=['git', 'add', "package.mo"], directory=fd)
             _sh(cmd=['git', 'add', "package.order"], directory=fd)
 
+
 def _git_move(source, target):
     """ Moves `source` to `target` using `git mv`.
 
