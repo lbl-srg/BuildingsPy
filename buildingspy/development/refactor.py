@@ -188,6 +188,11 @@ end %s;
             # Create the package.order file
             write_package_order(directory=directory, recursive=False)
 
+            # Add the created package.mo file and package.order file to git.
+            # This is also needed if a package is created, and then the parent package
+            # moved as otherwise, "git mv" will fail as it operates on a file that is not in git
+            _sh(cmd=['git', 'add', "package.mo"], directory=fd)
+            _sh(cmd=['git', 'add', "package.order"], directory=fd)
 
 def _git_move(source, target):
     """ Moves `source` to `target` using `git mv`.
@@ -228,7 +233,7 @@ def _git_move(source, target):
         # Directory does not exist.
         if ext == ".mo":
             # It is a Modelica package.
-            # Recursively create an populate it.
+            # Recursively create and populate it.
             create_modelica_package(targetDir)
         else:
             # Directory does not exist.
@@ -606,12 +611,13 @@ def _move_class_directory(source, target):
         # Rename references to this package
         _update_all_references(source, target)
 
-    # Delete the package.order file, as it will be recreated
+    # Move the package.order file, as it will be recreated
     if os.path.exists(os.path.join(source_dir, "package.order")):
-        os.remove(os.path.join(source_dir, "package.order"))
+        _git_move(os.path.join(source_dir, "package.order"),
+                  os.path.join(target_dir, "package.order"))
 
     # In Buildings, all classes are in their own .mo file. Hence,
-    # we iterate through these files, and also delete the package.order file
+    # we iterate through these files.
     # Iterate through files
     mo_files = [f for f in glob.glob(os.path.join(source_dir, "*.mo"))
                 if not f.endswith("package.mo")]

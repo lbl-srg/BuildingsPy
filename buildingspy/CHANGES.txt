@@ -3,6 +3,8 @@ BuildingsPy Changelog
 
 Version 2.0.0, xxx
 ^^^^^^^^^^^^^^^^^^
+- Corrected bug when creating and then renaming a package with
+  buildingspy.development.refactor
 - Removed buildingspy.simulate.Simulator.simulate_translated
   as it relies on non-standard Dymola functionality, and does no longer
   work with Dymola 2019.
