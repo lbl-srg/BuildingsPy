@@ -1,4 +1,9 @@
+###############################################################
 # Script to test the model {{ model }}
+# with JModelica.
+# This script will create a json file that contains translation
+# and simulation information.
+###############################################################
 
 def process_with_timeout(target, timeout):
     import multiprocessing
