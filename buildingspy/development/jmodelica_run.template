@@ -1,36 +1,77 @@
 # Script to test the model {{ model }}
+
+def process_with_timeout(target, timeout):
+    import multiprocessing
+    import time
+    import copy
+
+    manager = multiprocessing.Manager()
+    return_dict = manager.dict()
+    p = multiprocessing.Process(target=target, args=(0, return_dict))
+    start = time.time()
+    p.start()
+    while time.time() - start <= timeout:
+        if p.is_alive():
+            time.sleep(0.01)
+        else:
+            cpu_time = time.time()-start
+            ret = copy.copy(return_dict[0])
+            ret.update({'cpu_time': cpu_time})
+            return ret
+    else:
+        # Entered if there was a timeout
+        p.terminate()
+        p.join()
+        raise RuntimeError("Process timeout")
+
+
+def _translate(proc_num, return_dict):
+  from pymodelica import compile_fmu
+
+  try:
+    fmu_name = compile_fmu("{{ model }}", compiler_log_level='error')
+    return_dict[proc_num] = {'success': True, 'fmu_name': str(fmu_name)}
+  except Exception as e:
+    return_dict[proc_num] = {'success': False,
+                             'exception': '{}: {}'.format(type(e).__name__, e.message)}
+  return
+
+def _simulate(proc_num, return_dict):
+  from pyfmi import load_fmu
+
+  try:
+    fmu_name = "{{ model }}".replace(".", "_") + ".fmu"
+    mod = load_fmu(fmu_name)
+    opts = mod.simulate_options() #Retrieve the default options
+    opts['logging'] = False
+    opts['solver'] = 'CVode'
+    opts['ncp'] = 500
+    opts['CVode_options']['atol'] = 1.0e-6
+    opts['CVode_options']['rtol'] = 1.0e-6
+    res = mod.simulate(options=opts)
+    start_time = res['time'][0]
+    final_time = res['time'][-1]
+    return_dict[proc_num] = {'success': True, 'start_time': start_time, 'final_time': final_time}
+  except Exception as e:
+    return_dict[proc_num] = {'success': False,
+                             'exception': '{}: {}'.format(type(e).__name__, e.message)}
+  return return_dict
+
 def run():
     import os
     import timeit
     import json
     import traceback
 
-    from pymodelica import compile_fmu
-    # from pyfmi import load_fmu
     import pymodelica
-
     # Increase memory
     pymodelica.environ['JVM_ARGS'] = '-Xmx4096m'
 
-    def _template_func(setup, func):
-        """Create a timer function to be able to retrieve the return value.
-        """
-        def inner(_it, _timer, _func=func):
-            setup()
-            _t0 = _timer()
-            for _i in _it:
-                retval = _func()
-            _t1 = _timer()
-            return _t1 - _t0, retval
-        return inner
-    timeit._template_func = _template_func
-
-    def _compile():
-        return compile_fmu(model, compiler_log_level='error')
-
+    time_out = {{ time_out }}
     model = "{{ model }}"
     result = {"model": model,
-              "compilation": {"result": False}}
+              "translation": {"success": False},
+              "simulation": {"success": False}}
 
     # Compile model
     log_file = "{}_run.json".format(model.replace(".", "_"))
@@ -40,33 +81,25 @@ def run():
         pass
 
     try:
-        t = timeit.Timer(_compile)
-        (cpu_time, fmu_name) = t.timeit(number=1)
-        result["compilation"]["cpu_time"] = "{}".format(float('%.3g' % cpu_time))
-        result["compilation"]["result"] = True
+        ret_dic = process_with_timeout(target=_translate, timeout=time_out)
+        result["translation"] = ret_dic
 
     except Exception as e:
-        result["compilation"]["exception"] = e.message
-        result["compilation"]["traceback"] = traceback.format_exc()
+        result["translation"]["exception"] = "{}: {}".format(type(e).__name__, e.message)
+        result["translation"]["traceback"] = traceback.format_exc()
 
-##        # Load model
-##        mod = load_fmu(fmu_name)
-##        with open(log_file, "a") as log:
-##            log.write("Loaded\n")
-##
-##        opts = mod.simulate_options() #Retrieve the default options
-##        opts['logging'] = True
-##        opts['solver'] = 'CVode'
-##        opts['CVode_options']['atol'] = 1.0e-6 #Options specific for CVode
-##        opts['CVode_options']['rtol'] = 1.0e-6 #Options specific for CVode
-##
-##        res = mod.simulate(options=opts)
-##        with open(log_file, "a") as log:
-##            log.write("Simulated\n")
+    # Load model if translation was successful
+    if result["translation"]["success"]:
+        try:
+            ret_dic = process_with_timeout(target=_simulate, timeout=time_out)
+            result["simulation"] = ret_dic
 
+        except Exception as e:
+            result["simulation"]["exception"] = "{}: {}".format(type(e).__name__, e.message)
+            result["simulation"]["traceback"] = traceback.format_exc()
 
     with open(log_file, "a") as log:
-            log.write("{}\n".format(json.dumps(result, indent=4, sort_keys=True)) )
+            log.write("{}\n".format(json.dumps(result, indent=4, sort_keys=False)) )
 
 if __name__=="__main__":
     run()

@@ -1657,7 +1657,8 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         import glob
         import json
 
-        iCom = 0
+        iTra = 0
+        iSim = 0
         # Iterate over directories
         all_res = []
         for d in self._temDir:
@@ -1669,18 +1670,25 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                 if not os.path.exists(json_name):
                     em = "Did not find {}. Is JModelica properly installed?".format(json_name)
                     self._reporter.writeError(em)
-                    iCom = iCom + 1
+                    iTra = iTra + 1
                 else:
                     with open(json_name, 'r', encoding="utf-8-sig") as json_file:
                         res = json.load(json_file)
                         all_res.append(res)
-                        if not res['compilation']['result']:
-                            em = "Compilation of {} failed.".format(res['model'])
+                        if not res['translation']['success']:
+                            em = "Translation of {} failed.".format(res['model'])
                             self._reporter.writeError(em)
-                            iCom = iCom + 1
+                            iTra = iTra + 1
+                        elif not res['simulation']['success']:
+                            em = "Simulation of {} failed with {}.".format(res['model'], res["simulation"]["exception"])
+                            self._reporter.writeError(em)
+                            iSim = iSim + 1
 
-        if iCom > 0:
-            print("\nNumber of models that failed compilation                     : {}".format(iCom))
+
+        if iTra > 0:
+            print("\nNumber of models that failed translation                     : {}".format(iTra))
+        if iSim > 0:
+            print("\nNumber of models that translated but failed simulation       : {}".format(iSim))
 
         # Write all results to simulator.log
         with open(self._simulator_log_file, 'w', encoding="utf-8-sig") as sim_log:
@@ -2298,7 +2306,7 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
 
         for dat in data:
             model = dat['modelName']
-            txt = tem_mod.render(model=model)
+            txt = tem_mod.render(model=model, time_out=1200)
             file_name = os.path.join(directory, "{}.py".format(model.replace(".", "_")))
             with open(file_name, mode="w", encoding="utf-8") as fil:
                 fil.write(txt)
