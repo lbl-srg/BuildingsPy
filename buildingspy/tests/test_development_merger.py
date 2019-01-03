@@ -18,7 +18,7 @@ import unittest
 class Test_development_merger_IBPSA(unittest.TestCase):
     """
        This class contains the unit tests for
-       :mod:`buildingspy.development.sync.IBPSA`.
+       :mod:`buildingspy.development.merger`.
     """
 
     needs_initial = True
@@ -45,7 +45,7 @@ class Test_development_merger_IBPSA(unittest.TestCase):
             Repo.clone_from("https://github.com/lbl-srg/modelica-buildings",
                             os.path.join(self._repDir, "modelica-buildings"), depth=5)
             print("Cloning IBPSA repository. This may take a while.")
-            Repo.clone_from("https://github.com/ibpsa/modelica",
+            Repo.clone_from("https://github.com/ibpsa/modelica-ibpsa",
                             os.path.join(self._repDir, "modelica"), depth=5)
             print("Finished cloning.")
 

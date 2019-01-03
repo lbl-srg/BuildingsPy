@@ -1,14 +1,14 @@
 Install and Uninstall BuildingsPy
 =================================
 
-To install the *BuildingsPy* module, install 
+To install the *BuildingsPy* module, install
 `pip <https://pip.pypa.io/en/latest/>`_ and run from a console
 
 .. parsed-literal::
 
    pip install buildingspy
 
-On Linux or Mac OS X, run 
+On Linux or Mac OS X, run
 
 .. parsed-literal::
 
@@ -35,8 +35,5 @@ To run regression tests with *BuildingsPy*,
    sudo apt-get install tidy
 
 For other operating systems, see the instructions at the
-`PyTidyLib <http://countergram.com/open-source/pytidylib/docs/index.html>`_
+`PyTidyLib <https://pythonhosted.org/pytidylib/>`_
 site.
-
-
-

@@ -26,7 +26,6 @@ endif
 
 unittest:
 	python -m unittest discover buildingspy/tests
-#	python buildingspy/tests/test_development_error_dictionary.py
 
 doctest:
 	python -m doctest \
@@ -42,7 +41,7 @@ doctest:
 dist:	clean doctest unittest doc
 	@# Make sure README.rst are consistent
 	cmp -s README.rst buildingspy/README.rst
-	python setup.py sdist --formats=gztar,zip
+	python setup.py sdist --formats=zip
 	python setup.py bdist_egg
 	rm -rf build
 	rm -rf buildingspy.egg-info

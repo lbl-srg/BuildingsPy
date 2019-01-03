@@ -16,13 +16,13 @@ package that can be used
    `OpenModelica <https://www.openmodelica.org/>`_,
  - to run unit tests as part of the library development,
  - to refactor Modelica libraries, and
- - to merge the `IBPSA <https://github.com/ibpsa/modelica>`_ library to other
+ - to merge the `IBPSA <https://github.com/ibpsa/modelica-ibpsa>`_ library to other
    Modelica libraries.
 
 The package provides functions
 to extract data series from the output file for
 further use in the python packages
-`matplotlib <http://matplotlib.org/>`_
+`matplotlib <https://matplotlib.org/>`_
 for plotting and
 `SciPy <https://www.scipy.org/>`_ for scientific computing.
 
