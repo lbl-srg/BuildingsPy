@@ -62,7 +62,7 @@ def get_model_statistics(log_file, simulator):
         dicIni = {}
         dicSim = {}
 
-        reg = re.compile('\{(.*?)\}')
+        reg = re.compile(r'\{(.*?)\}')
 
         CONSTA = "Continuous time states:"
         NONLIN = "Sizes after manipulation of the nonlinear systems:"
