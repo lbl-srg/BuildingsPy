@@ -3,6 +3,7 @@ BuildingsPy Changelog
 
 Version 2.0.0, xxx
 ^^^^^^^^^^^^^^^^^^
+- Improved error reporting when running regression tests in batch mode.
 - Corrected bug when creating and then renaming a package with
   buildingspy.development.refactor
 - Removed buildingspy.simulate.Simulator.simulate_translated
