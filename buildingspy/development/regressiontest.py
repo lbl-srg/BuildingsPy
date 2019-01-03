@@ -861,7 +861,7 @@ class Tester(object):
                         s_mat.add(resFil)
 
         # Using the same model for multiple unit tests can lead to a conflict when writing the translation log file
-        # on a multicore test setup. This is therefore not allowed. 
+        # on a multicore test setup. This is therefore not allowed.
         # See https://github.com/lbl-srg/BuildingsPy/issues/202 for a discussion.
         for data in self._data:
             if 'modelName' in data:
