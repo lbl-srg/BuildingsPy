@@ -808,7 +808,7 @@ def _updateFile(arg):
         if "." in shortSource:
             replace_text_in_file(srcFil, shortSource, shortTarget, isRegExp=False)
         else:
-            regExp = "(?!\w)" + shortTarget
+            regExp = r"(?!\w)" + shortTarget
             replace_text_in_file(srcFil, regExp, shortTarget, isRegExp=True)
 
         # Replace the hyperlinks, without the top-level library name.
