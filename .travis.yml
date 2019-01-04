@@ -43,8 +43,8 @@ before_install:
 
 install:
   - pip install --upgrade pip setuptools wheel
-  - pip install --only-binary=numpy,scipy,matplotlib numpy scipy matplotlib==2.1.0
-  - pip install autopep8
+  - pip install --only-binary=numpy,scipy,matplotlib numpy==1.13.3 scipy==0.19.1 matplotlib==2.1.0
+  - pip install autopep8==1.4.3
   - pip install .
 
 # Execute tests
