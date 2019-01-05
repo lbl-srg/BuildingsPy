@@ -77,17 +77,17 @@ class Test_regressiontest_Tester(unittest.TestCase):
     def test_unit_test_log_file_jmodelica(self):
         import buildingspy.development.regressiontest as r
         rt = r.Tester(check_html=False, tool="jmodelica")
-        self.assertEqual('unitTests-jmodelica.log', rt.get_unit_test_log_file()
+        self.assertEqual('unitTests-jmodelica.log', rt.get_unit_test_log_file())
 
     def test_unit_test_log_file_dymola(self):
         import buildingspy.development.regressiontest as r
         rt = r.Tester(check_html=False, tool="dymola")
-        self.assertEqual('unitTests-dymola.log', rt.get_unit_test_log_file()
+        self.assertEqual('unitTests-dymola.log', rt.get_unit_test_log_file())
 
     def test_unit_test_log_file_omc(self):
         import buildingspy.development.regressiontest as r
         rt = r.Tester(check_html=False, tool="omc")
-        self.assertEqual('unitTests-omc.log', rt.get_unit_test_log_file()
+        self.assertEqual('unitTests-omc.log', rt.get_unit_test_log_file())
 
     def test_regressiontest_jmodelica(self):
         import buildingspy.development.regressiontest as r
