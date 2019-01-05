@@ -139,7 +139,10 @@ class Tester(object):
         """
         import multiprocessing
         import buildingspy.io.reporter as rep
-        import buildingspy.development.error_dictionary as e
+        if tool == 'jmodelica':
+            import buildingspy.development.error_dictionary_jmodelica as e
+        else:
+            import buildingspy.development.error_dictionary_dymola as e
 
         # --------------------------
         # Class variables
@@ -218,7 +221,11 @@ class Tester(object):
         """ Initialize the error dictionary.
 
         """
-        import buildingspy.development.error_dictionary as e
+        if self._modelica_tool == 'jmodelica':
+            import buildingspy.development.error_dictionary_jmodelica as e
+        else:
+            import buildingspy.development.error_dictionary_dymola as e
+
         self._error_dict = e.ErrorDictionary()
 
     def setLibraryRoot(self, rootDir):
@@ -1647,6 +1654,23 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                     self._reporter.writeError(em)
         return retVal
 
+    def _getJModelicaWarnings(self, error_text, model):
+        """ Return a dictionary with all JModelica warnings
+        """
+        lis = list()
+        # Search for all warnings
+        for k, v in list(self._error_dict.get_dictionary().items()):
+            # Search in each line of the error file
+            for lin in error_text:
+               if v['tool_message'] in lin:
+                  # Found a warning. Report it to the reporter, and add it to the list that will be written to
+                  # the json file.
+                  self._reporter.writeWarning(v["model_message"].format(model))
+                  lis.append(v["tool_message"].format(model))
+                  self._error_dict.increment_counter(k)
+        # Return a dictionary with all warnings
+        return {'warnings': lis}
+
     def _check_jmodelica_runs(self):
         """ Check the results of the JModelica tests.
 
@@ -1674,6 +1698,13 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                 else:
                     with open(json_name, 'r', encoding="utf-8-sig") as json_file:
                         res = json.load(json_file)
+                        # Open log file
+                        log_file = os.path.join(fil.replace(".py", "_html_diagnostics"), "errors.html")
+                        with open(log_file, "r") as f:
+                            res['translation']['warnings'] = self._getJModelicaWarnings(
+                                  error_text = f.readlines(),
+                                  model = res['model'])
+
                         all_res.append(res)
                         if not res['translation']['success']:
                             em = "Translation of {} failed.".format(res['model'])
@@ -2516,6 +2547,7 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
             self._analyseOMStats(filename=self._simulator_log_file,
                                  nModels=self.get_number_of_tests())
 
+
         # Check reference results
         if self._batch:
             ans = "N"
@@ -2538,10 +2570,13 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
             else:
                 self._check_jmodelica_runs()
 
-        # Delete temporary directories
-        if self._deleteTemporaryDirectories:
-            for d in self._temDir:
+        # Delete temporary directories, or write message that they are not deleted
+
+        for d in self._temDir:
+            if self._deleteTemporaryDirectories:
                 shutil.rmtree(d)
+            else:
+                print("Did not delete temporary directory {}".format(d))
 
         # Check for errors
         if self._modelica_tool == 'dymola':
@@ -2604,191 +2639,6 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
         # remove the '.mo' at the end
         return model[:-3]
 
-    def test_JModelica(self, cmpl=True, load=False, simulate=False,
-                       packages=['Examples'], number=-1):
-        """
-        Test the library compliance with JModelica.org.
-
-        *This is deprecated. Use `run()` instead with jmodelica as a tool.*
-
-        This is the high-level method to test a complete library, even if there
-        are no specific ``.mos`` files in the library for regression testing.
-
-        This method sets self._nPro to 1 as it only works on a single core.
-        It also executes self.setTemporaryDirectories()
-
-        :param cpml: Set to ``True`` for the model to be compiled.
-        :param load: Set to ``True`` to load the model from the FMU.
-        :param simulate: Set to ``True`` to cause the model to be simulated.
-        :param packages: Set to an array whose elements are the packages
-                         that contain the test models of the library.
-        :param number: Number of models to test. Set to ``-1`` to test
-                       all models.
-
-        Usage:
-
-          1. Open a JModelica environment
-             (ipython or pylab with JModelica environment variables set).
-          2. cd to the root folder of the library
-          3. type the following commands:
-
-             >>> t = Tester() # doctest: +SKIP
-             >>> t.testJmodelica(...) # doctest: +SKIP
-
-        """
-
-        from pymodelica import compile_fmu
-        from pyfmi import load_fmu
-        import shutil
-        import sys
-
-        from io import StringIO
-
-        if number < 0:
-            number = 1e15
-        old_stdout = sys.stdout
-
-        self.setNumberOfThreads(1)
-        self._setTemporaryDirectories()
-
-        tempdir = self._temDir[0]
-
-        # return a list with pathnames of the .mo files to be tested
-        tests = self._get_test_models(packages=['Examples'])
-        compiler_options = {'extra_lib_dirs': [tempdir]}
-
-        # statistics
-        stats = {}
-        for mo_file in tests:
-            if len(stats) >= number:
-                break
-            # we keep all results for this model in a dictionary
-            stats[mo_file] = {}
-            model = self._model_from_mo(mo_file)
-            if cmpl:
-                sys.stdout = mystdout = StringIO()
-                try:
-                    fmu = compile_fmu(model,
-                                      mo_file,
-                                      compiler_options=compiler_options,
-                                      compile_to=tempdir)
-                except Exception as e:
-                    stats[mo_file]['compilation_ok'] = False
-                    stats[mo_file]['compilation_log'] = mystdout.getvalue()
-                    stats[mo_file]['compilation_err'] = str(e)
-                else:
-                    stats[mo_file]['compilation_ok'] = True
-                    stats[mo_file]['compilation_log'] = mystdout.getvalue()
-
-                sys.stdout = old_stdout
-                mystdout.close()
-            else:
-                # cmpl = False
-                stats[mo_file]['compilation_ok'] = False
-                stats[mo_file]['compilation_log'] = 'Not attempted'
-
-            if load and stats[mo_file]['compilation_ok']:
-                sys.stdout = mystdout = StringIO()
-                try:
-                    loaded_fmu = load_fmu(fmu)
-                except Exception as e:
-                    stats[mo_file]['load_ok'] = False
-                    stats[mo_file]['load_log'] = mystdout.getvalue()
-                    stats[mo_file]['load_err'] = str(e)
-                else:
-                    stats[mo_file]['load_ok'] = True
-                    stats[mo_file]['load_log'] = mystdout.getvalue()
-                    if simulate:
-                        try:
-                            loaded_fmu.simulate()
-                        except Exception as e:
-                            stats[mo_file]['sim_ok'] = False
-                            stats[mo_file]['sim_log'] = mystdout.getvalue()
-                            stats[mo_file]['sim_err'] = str(e)
-                        else:
-                            stats[mo_file]['sim_ok'] = True
-                            stats[mo_file]['sim_log'] = mystdout.getvalue()
-
-                    else:
-                        stats[mo_file]['sim_ok'] = False
-                        stats[mo_file]['sim_log'] = 'Not attempted'
-
-                sys.stdout = old_stdout
-                mystdout.close()
-            else:
-                # no loading attempted
-                stats[mo_file]['load_ok'] = False
-                stats[mo_file]['load_log'] = 'Not attempted'
-                stats[mo_file]['sim_ok'] = False
-                stats[mo_file]['sim_log'] = 'Not attempted'
-
-        # Delete temporary directories
-        if self._deleteTemporaryDirectories:
-            for d in self._temDir:
-                shutil.rmtree(d)
-
-        self._jmstats = stats
-        self._analyseJMStats(load=load, simulate=simulate)
-
-    def _analyseJMStats(self, load=False, simulate=False):
-        """
-        Analyse the statistics dictionary resulting from
-        a _test_Jmodelica() call.
-
-        :param load: Set to ``True`` to load the model from the FMU.
-        :param simulate: Set to ``True`` to cause the model to be simulated.
-        """
-
-        def count_cmpl(x):
-            return [True for _, v in list(x.items()) if v['compilation_ok']]
-
-        def list_failed_cmpl(x):
-            return [k for k, v in list(x.items()) if not v['compilation_ok']]
-
-        def count_load(x):
-            return [True for _, v in list(x.items()) if v['load_ok']]
-
-        def list_failed_load(x): return [k for k, v in list(x.items()) if not v['load_ok']]
-
-        def count_sim(x):
-            return [True for _, v in list(x.items()) if v['sim_ok']]
-
-        def list_failed_sim(x):
-            return [k for k, v in list(x.items()) if not v['sim_ok']]
-
-        nbr_tot = len(self._jmstats)
-        nbr_cmpl = len(count_cmpl(self._jmstats))
-        nbr_load = len(count_load(self._jmstats))
-        nbr_sim = len(count_sim(self._jmstats))
-
-        print('\n')
-        print(70 * '#')
-        print("Tested {} models:\n  * {} compiled \
-successfully (={:.1%})"
-              .format(nbr_tot,
-                      nbr_cmpl, float(nbr_cmpl) / float(nbr_tot)))
-        if load:
-            print("  * {} loaded successfully (={:.1%})".format(nbr_load, float(nbr_load) / float(nbr_tot)))
-
-        if simulate:
-            print("  * {} simulated successfully (={:.1%})".format(nbr_sim, float(nbr_sim) / float(nbr_tot)))
-
-        print("\nFailed compilation for the following models:")
-        for p in list_failed_cmpl(self._jmstats):
-            print("  * {}".format(p.split(os.sep)[-1].split('.mo')[0]))
-
-        if load:
-            print("\nFailed loading for the following models:")
-            for p in list_failed_load(self._jmstats):
-                print("  * {}".format(p.split(os.sep)[-1].split('.mo')[0]))
-
-        if simulate:
-            print("\nFailed simulation for the following models:")
-            for p in list_failed_sim(self._jmstats):
-                print("  * {}".format(p.split(os.sep)[-1].split('.mo')[0]))
-
-        print("\nMore detailed information is stored in self._jmstats")
-        print(70 * '#')
 
     def _writeOMRunScript(self, worDir, models, cmpl, simulate):
         """
@@ -2945,6 +2795,7 @@ successfully (={:.1%})"
             if self._deleteTemporaryDirectories:
                 for d in self._temDir:
                     shutil.rmtree(d)
+
 
     def _analyseOMStats(self, lines=None, models=None, simulate=False):
         """
