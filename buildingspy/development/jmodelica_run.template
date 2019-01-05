@@ -38,9 +38,6 @@ def _translate(proc_num, return_dict):
                            version="2.0",
                            compiler_log_level='warning',
                            compiler_options = {"generate_html_diagnostics" : True})
-    # Check log file for warnings.
-
-
     return_dict[proc_num] = {'success': True, 'fmu_name': str(fmu_name)}
   except Exception as e:
     return_dict[proc_num] = {'success': False,

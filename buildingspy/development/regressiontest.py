@@ -1654,8 +1654,8 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                     self._reporter.writeError(em)
         return retVal
 
-    def _getJModelicaWarnings(self, error_text, model):
-        """ Return a dictionary with all JModelica warnings
+    def _get_jmodelica_warnings(self, error_text, model):
+        """ Return a list with all JModelica warnings
         """
         lis = list()
         # Search for all warnings
@@ -1665,11 +1665,13 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                if v['tool_message'] in lin:
                   # Found a warning. Report it to the reporter, and add it to the list that will be written to
                   # the json file.
-                  self._reporter.writeWarning(v["model_message"].format(model))
-                  lis.append(v["tool_message"].format(model))
+#                  self._reporter.writeWarning(v["model_message"].format(model))
+                  msg = lin.strip(' \n')
+                  self._reporter.writeWarning("{}: {}".format(model, msg))
+                  lis.append(msg)
                   self._error_dict.increment_counter(k)
         # Return a dictionary with all warnings
-        return {'warnings': lis}
+        return lis
 
     def _check_jmodelica_runs(self):
         """ Check the results of the JModelica tests.
@@ -1701,9 +1703,10 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                         # Open log file
                         log_file = os.path.join(fil.replace(".py", "_html_diagnostics"), "errors.html")
                         with open(log_file, "r") as f:
-                            res['translation']['warnings'] = self._getJModelicaWarnings(
+                            warnings = self._get_jmodelica_warnings(
                                   error_text = f.readlines(),
                                   model = res['model'])
+                            res['translation']['warnings'] = warnings
 
                         all_res.append(res)
                         if not res['translation']['success']:
