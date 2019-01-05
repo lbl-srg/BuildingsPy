@@ -124,7 +124,7 @@ class Tester(object):
        <BLANKLINE>
        Script that runs unit tests had 0 warnings and 0 errors.
        <BLANKLINE>
-       See 'simulator.log' for details.
+       See 'simulator-....log' for details.
        Unit tests completed successfully.
        <BLANKLINE>
        Execution time = ...
@@ -164,7 +164,7 @@ class Tester(object):
             raise ValueError(
                 "Value of 'tool' of constructor 'Tester' must be 'dymola', 'omc' or 'jmodelica'. Received '{}'.".format(tool))
         # File to which the console output of the simulator is written to
-        self._simulator_log_file = "simulator.log"
+        self._simulator_log_file = "simulator-{}.log".format(tool)
         # File to which statistics is written to
         self._statistics_log = "statistics.json"
         self._nPro = multiprocessing.cpu_count()
@@ -200,7 +200,7 @@ class Tester(object):
                  mos file plots `a.x` versus `a.y` and `b.x` versus `(b.y1, b.y2)`.
         '''
         self._data = []
-        self._reporter = rep.Reporter(os.path.join(os.getcwd(), "unitTests.log"))
+        self._reporter = rep.Reporter(os.path.join(os.getcwd(), "unitTests-{}.log".format(tool)))
 
         # By default, include export of FMUs.
         self._include_fmu_test = True
@@ -216,6 +216,11 @@ class Tester(object):
 
         # By default, do not show the GUI of the simulator
         self._showGUI = False
+
+    def get_unit_test_log_file(self):
+        """ Return the name of the log file of the unit tests, such as ``unitTests-jmodelica.log`` or ``unitTests-dymola.log``.
+        """
+        return "unitTests-{}.log".format(self._modelica_tool)
 
     def _initialize_error_dict(self):
         """ Initialize the error dictionary.
@@ -1724,7 +1729,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         if iSim > 0:
             print("\nNumber of models that translated but failed simulation       : {}".format(iSim))
 
-        # Write all results to simulator.log
+        # Write all results to simulator log file
         with open(self._simulator_log_file, 'w', encoding="utf-8-sig") as sim_log:
             sim_log.write("{}\n".format(json.dumps(all_res, indent=2, sort_keys=True)))
 
@@ -2316,6 +2321,14 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
 
         print("Generated {} regression tests.\n".format(nUniTes))
 
+    @staticmethod
+    def _get_set_of_result_variables(list_of_result_variables):
+        s = set()
+        for ent in list_of_result_variables:
+            for ele in ent:
+                s.add(ele)
+        return s
+
     def _write_jmodelica_runfile(self, directory, data):
         """ Write the JModelica runfile for all experiments in data.
 
@@ -2325,6 +2338,7 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
         import inspect
         import buildingspy.development.regressiontest as r
         import jinja2
+        import itertools
 
         path_to_template = os.path.dirname(inspect.getfile(r))
         env = jinja2.Environment(loader=jinja2.FileSystemLoader(path_to_template))
@@ -2340,7 +2354,12 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
 
         for dat in data:
             model = dat['modelName']
-            txt = tem_mod.render(model=model, time_out=1200)
+            # Filter the result variables
+            if dat.has_key('ResultVariables'):
+                result_variables = list(self._get_set_of_result_variables(dat['ResultVariables']))
+            else:
+                result_variables = list()
+            txt = tem_mod.render(model=model, filter=result_variables, time_out=1200)
             file_name = os.path.join(directory, "{}.py".format(model.replace(".", "_")))
             with open(file_name, mode="w", encoding="utf-8") as fil:
                 fil.write(txt)

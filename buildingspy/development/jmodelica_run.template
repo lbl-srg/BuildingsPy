@@ -56,6 +56,7 @@ def _simulate(proc_num, return_dict):
     opts['ncp'] = 500
     opts['CVode_options']['atol'] = 1.0e-6
     opts['CVode_options']['rtol'] = 1.0e-6
+    opts['filter'] = {{ filter }}
     res = mod.simulate(options=opts)
     start_time = res['time'][0]
     final_time = res['time'][-1]
