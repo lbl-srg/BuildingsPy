@@ -29,6 +29,25 @@ def process_with_timeout(target, timeout):
         p.join()
         raise RuntimeError("Process timeout")
 
+def _reduce_translation_output(fmu_name):
+   import os
+   model = os.path.splitext(fmu_name)[0]
+   file_list = [
+            "alias.html", \
+            "blt.html", \
+            "bltTable.html", \
+            "connections.html", \
+            "flattened.html", \
+            "initBlt.html", \
+            "iv.html", \
+            "transformed.html"]
+
+   for fil in file_list:
+     full_name = os.path.join(model + "_html_diagnostics", fil)
+     if os.path.exists(full_name):
+       os.remove(full_name)
+     else:
+       raise RuntimeError("Did not find file {}.".format(full_name))
 
 def _translate(proc_num, return_dict):
   from pymodelica import compile_fmu
@@ -38,6 +57,9 @@ def _translate(proc_num, return_dict):
                            version="2.0",
                            compiler_log_level='warning',
                            compiler_options = {"generate_html_diagnostics" : True})
+    # Reduce size of output
+    _reduce_translation_output(fmu_name)
+
     return_dict[proc_num] = {'success': True, 'fmu_name': str(fmu_name)}
   except Exception as e:
     return_dict[proc_num] = {'success': False,
@@ -47,15 +69,22 @@ def _translate(proc_num, return_dict):
 def _simulate(proc_num, return_dict):
   from pyfmi import load_fmu
 
+  r_tol = 1.0e-6
+
   try:
     fmu_name = "{{ model }}".replace(".", "_") + ".fmu"
     mod = load_fmu(fmu_name)
+    x_nominal = mod.nominal_continuous_states
+
     opts = mod.simulate_options() #Retrieve the default options
     opts['logging'] = False
     opts['solver'] = 'CVode'
     opts['ncp'] = 500
-    opts['CVode_options']['atol'] = 1.0e-6
-    opts['CVode_options']['rtol'] = 1.0e-6
+    opts['CVode_options']['rtol'] = r_tol
+    if len(x_nominal) > 0:
+      opts['CVode_options']['atol'] =  r_tol*x_nominal
+    else:
+      opts['CVode_options']['atol'] =  r_tol
     opts['filter'] = {{ filter }}
     res = mod.simulate(options=opts)
     start_time = res['time'][0]
