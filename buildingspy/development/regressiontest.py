@@ -1705,13 +1705,14 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                 else:
                     with open(json_name, 'r', encoding="utf-8-sig") as json_file:
                         res = json.load(json_file)
-                        # Open log file
-                        log_file = os.path.join(fil.replace(".py", "_html_diagnostics"), "errors.html")
-                        with open(log_file, "r") as f:
+                        # Get warnings from stdout that was captured from the compilation
+                        if res['translation'].has_key('stdout'):
                             warnings = self._get_jmodelica_warnings(
-                                  error_text = f.readlines(),
+                                  error_text = res['translation']['stdout'],
                                   model = res['model'])
                             res['translation']['warnings'] = warnings
+                            # We don't need the stdout anymore, which can be long.
+                            del res['translation']['stdout']
 
                         all_res.append(res)
                         if not res['translation']['success']:
