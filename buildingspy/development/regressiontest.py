@@ -1667,14 +1667,18 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         for k, v in list(self._error_dict.get_dictionary().items()):
             # Search in each line of the error file
             for lin in error_text:
-               if v['tool_message'] in lin:
-                  # Found a warning. Report it to the reporter, and add it to the list that will be written to
-                  # the json file.
+                # JModelica/ThirdParty/MSL/Modelica/Media/package.mo has errorneous each which we skip in our testing
+                if "Ignoring erroneous 'each' for the modification ' = reference_X'" or
+                   "Ignoring erroneous 'each' for the modification ' = fill(0,0)'" in lin:
+                    break
+                if v['tool_message'] in lin:
+                    # Found a warning. Report it to the reporter, and add it to the list that will be written to
+	            # the json file.
 #                  self._reporter.writeWarning(v["model_message"].format(model))
-                  msg = lin.strip(' \n')
-                  self._reporter.writeWarning("{}: {}".format(model, msg))
-                  lis.append(msg)
-                  self._error_dict.increment_counter(k)
+                    msg = lin.strip(' \n')
+                    self._reporter.writeWarning("{}: {}".format(model, msg))
+                    lis.append(msg)
+                    self._error_dict.increment_counter(k)
         # Return a dictionary with all warnings
         return lis
 

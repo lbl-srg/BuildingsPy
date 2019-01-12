@@ -28,14 +28,28 @@ class ErrorDictionary(ed.ErrorDictionary):
         self._error_dict["each applied to scalar"] = {
             'tool_message': "The 'each' keyword should not be applied to a modification of a scalar component",
             'counter': 0,
-            'buildingspy_var': "iEacSca",
+#            'buildingspy_var': "iEacSca",
 #            'model_message': "Keyword 'each' applied to scalar in '{}'.",
             'summary_message': "Number of models with 'each' keyword applied to scalar          : {}\n"}
+
+        self._error_dict["errorneous each"] = {
+            'tool_message': "Ignoring erroneous 'each' for the modification",
+            'counter': 0,
+#            'buildingspy_var': "iEacIgn",
+#            'model_message': "Keyword 'each' applied to scalar in '{}'.",
+            'summary_message': "Number of models with erroneous 'each'                          : {}\n"}
+
+        self._error_dict["assuming each"] = {
+            'tool_message': "Assuming 'each' for the modification",
+            'counter': 0,
+#            'buildingspy_var': "iEacAss",
+#            'model_message': "Keyword 'each' applied to scalar in '{}'.",
+            'summary_message': "Number of models with assuming 'each'                           : {}\n"}
 
         # Search for strings such as Iteration variable "chi_y.QCon_flow" is missing start value!
         self._error_dict["iteration variable missing start value"] = {
             'tool_message': "is missing start value",
             'counter': 0,
-            'buildingspy_var': "iIteMis",
+#            'buildingspy_var': "iIteMis",
 #            'model_message': "Keyword 'each' applied to scalar in '{}'.",
             'summary_message': "Number of models with missing start value for iteration variable: {}\n"}
