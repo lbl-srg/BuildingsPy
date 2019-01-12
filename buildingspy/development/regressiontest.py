@@ -1669,12 +1669,12 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             for lin in error_text:
                 # JModelica/ThirdParty/MSL/Modelica/Media/package.mo has errorneous each
                 # which we skip in our testing
-                if "Ignoring erroneous 'each' for the modification ' = reference_X'" or
-                "Ignoring erroneous 'each' for the modification ' = fill(0,0)'" in lin:
-                        break
+                if ("Ignoring erroneous 'each' for the modification ' = reference_X'" in lin) or \
+                        ("Ignoring erroneous 'each' for the modification ' = fill(0,0)'") in lin:
+                    break
                 if v['tool_message'] in lin:
-                        # Found a warning. Report it to the reporter, and add it to the list that will be written to
-                        # the json file.
+                    # Found a warning. Report it to the reporter, and add it to the list that will be written to
+                    # the json file.
                     #                  self._reporter.writeWarning(v["model_message"].format(model))
                     msg = lin.strip(' \n')
                     self._reporter.writeWarning("{}: {}".format(model, msg))
@@ -1711,7 +1711,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                     with open(json_name, 'r', encoding="utf-8-sig") as json_file:
                         res = json.load(json_file)
                         # Get warnings from stdout that was captured from the compilation
-                        if res['translation'].has_key('stdout'):
+                        if 'stdout' in res['translation']:
                             warnings = self._get_jmodelica_warnings(
                                 error_text=res['translation']['stdout'],
                                 model=res['model'])
@@ -2361,7 +2361,7 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
         for dat in data:
             model = dat['modelName']
             # Filter the result variables
-            if dat.has_key('ResultVariables'):
+            if 'ResultVariables' in dat:
                 result_variables = list(self._get_set_of_result_variables(dat['ResultVariables']))
             else:
                 result_variables = list()
