@@ -25,6 +25,8 @@ else
 endif
 
 unittest:
+	# To run a single test, use
+	# python buildingspy/tests/test_development_regressiontest.py Test_regressiontest_Tester.test_regressiontest_jmodelica_diagnostics
 	python -m unittest discover buildingspy/tests
 
 doctest:
