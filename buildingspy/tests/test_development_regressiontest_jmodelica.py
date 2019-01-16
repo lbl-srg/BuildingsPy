@@ -114,8 +114,8 @@ createPlot(id=1, y={"Test.x"});
                                     equation
                                       Modelica.Math.exp(x)=-1;""",
                    'description': "Model that has no solution."}
-
-]
+        ]
+        # Run all test cases
         for test in tests:
             des = test['description']
             print("*** Running test for '{}'".format(des))
@@ -127,9 +127,8 @@ createPlot(id=1, y={"Test.x"});
             # Delete temporary files
             # Get parent dir of dir_name, because dir_name contains the Modelica library name
             par = os.path.split(dir_name)[0]
-            print("******* {}".format(par))
-            shutil.rmtree(par)
             os.remove(rt.get_unit_test_log_file())
+            shutil.rmtree(par)
             # Check return value to see if test suceeded
             self.assertEqual(test['retVal'], retVal, "Test for '{}' failed, return value {}".format(des, retVal))
 
