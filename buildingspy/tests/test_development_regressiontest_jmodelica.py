@@ -75,21 +75,16 @@ createPlot(id=1, y={"Test.x"});
         return dir_name
 
 
-    @staticmethod
-    def _delete_test(dir_name):
-        """ Delete the test directory `dir_name`.
-        """
-        import shutil
-        shutil.rmtree(dir_name)
-
     def test_regressiontest_diagnostics(self):
         """ Test that warnings and errors reported by JModelica are reported.
         """
+        import shutil
         import buildingspy.development.regressiontest as r
+
         tests = [ \
                   {'retVal': 0,
-                   'mo_content': """parameter Real[2] x(each unit="m") = {0, 0};""",
-                   'description': "Corrected model."},
+                   'mo_content': """parameter Real x = 0;""",
+                   'description': "Correct model."},
                   {'retVal': 2,
                    'mo_content': """parameter Real[2] x(unit="m") = {0, 0};""",
                    'description': "Missing each on variable."},
@@ -130,7 +125,10 @@ createPlot(id=1, y={"Test.x"});
             rt.setLibraryRoot(dir_name)
             retVal = rt.run()
             # Delete temporary files
-            self._delete_test(dir_name)
+            # Get parent dir of dir_name, because dir_name contains the Modelica library name
+            par = os.path.split(dir_name)[0]
+            print("******* {}".format(par))
+            shutil.rmtree(par)
             os.remove(rt.get_unit_test_log_file())
             # Check return value to see if test suceeded
             self.assertEqual(test['retVal'], retVal, "Test for '{}' failed, return value {}".format(des, retVal))
