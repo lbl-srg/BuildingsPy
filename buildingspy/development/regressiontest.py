@@ -454,6 +454,9 @@ class Tester(object):
 
         :param excludeFile: The text file with files that shall be excluded from regression tests
         """
+        self._reporter.writeWarning(
+            "The function setExcludeTest will be removed in future releases.")
+
         if os.path.isfile(excludeFile):
             with open(excludeFile, mode="r", encoding="utf-8-sig") as f:
                 for line in f:
@@ -600,7 +603,7 @@ class Tester(object):
             os.makedirs(desDir)
         # Loop over all experiments and write the files.
         for experiment in self._data:
-            if 'modelName' in experiment and experiment['mustSimulate']:
+            if 'model_name' in experiment and experiment['mustSimulate']:
                 if 'ResultVariables' in experiment:
                     # For OpenModelica, don't group variables into those
                     # who should be plotted together, as all are plotted in
@@ -612,7 +615,7 @@ class Tester(object):
                     # Content of the file.
                     filCon = "compareVars :=\n  {\n    \"%s\"\n  };\n" % ("\",\n    \"".join(res))
                     # File name.
-                    filNam = os.path.join(desDir, experiment['modelName'] + ".mos")
+                    filNam = os.path.join(desDir, experiment['model_name'] + ".mos")
                     # Write the file
                     with open(filNam, mode="w", encoding="utf-8") as fil:
                         fil.write(filCon)
@@ -747,7 +750,7 @@ class Tester(object):
                                 modNam = re.sub(r'simulateModel\(\s*"', '', simCom.string)
                                 modNam = modNam[0:modNam.index('"')]
                                 dat['mustSimulate'] = True
-                                dat['modelName'] = modNam
+                                dat['model_name'] = modNam
                                 dat['TranslationLogFile'] = modNam + ".translation.log"
                             # parse startTime and stopTime, if any
                             if dat['mustSimulate']:
@@ -758,27 +761,27 @@ class Tester(object):
                             if (self._include_fmu_test and "translateModelFMU" in lin):
                                 dat['mustExportFMU'] = True
                             if dat['mustExportFMU']:
-                                for attr in ["modelToOpen", "modelName"]:
+                                for attr in ["modelToOpen", "model_name"]:
                                     _get_attribute_value(lin, attr, dat)
-                                # The .mos script allows modelName="", in which case
+                                # The .mos script allows model_name="", in which case
                                 # we set the model name to be the entry of modelToOpen
-                                if "modelName" in dat and dat["modelName"] == "" or (
-                                        "modelName" in dat):
+                                if "model_name" in dat and dat["model_name"] == "" or (
+                                        "model_name" in dat):
                                     if "modelToOpen" in dat:
-                                        dat["modelName"] = dat["modelToOpen"]
+                                        dat["model_name"] = dat["modelToOpen"]
 
                         # We are finished iterating over all lines of the .mos
-                        # For FMU export, if modelName="", then Dymola uses the
+                        # For FMU export, if model_name="", then Dymola uses the
                         # Modelica class name, with "." replaced by "_".
                         # If the Modelica class name consists of "_", then they
                         # are replaced by "_0".
-                        # Hence, we update dat['modelName'] if needed.
+                        # Hence, we update dat['model_name'] if needed.
                         if dat['mustExportFMU']:
-                            # Strip quotes from modelName and modelToOpen
-                            dat['FMUName'] = dat['modelName'].strip('"')
+                            # Strip quotes from model_name and modelToOpen
+                            dat['FMUName'] = dat['model_name'].strip('"')
                             dat['modelToOpen'] = dat['modelToOpen'].strip('"')
 
-                            # Update the name of the FMU if modelName is "" in .mos file.
+                            # Update the name of the FMU if model_name is "" in .mos file.
                             if len(dat["FMUName"]) == 0:
                                 dat['FMUName'] = dat['modelToOpen']
                             # Update the FMU name, for example to change
@@ -850,7 +853,59 @@ class Tester(object):
         # Raise an error if there was any error reported.
         if self._reporter.getNumberOfErrors() > 0:
             raise ValueError("Error when setting up unit tests.")
+
+        # Add the experiment specifications to the data
+        self._add_experiment_specifications()
         return
+
+    def _add_experiment_specifications(self):
+        """ Add the experiment specification to the data structure.
+
+            This method reads the `Resources/Scripts/BuildingsPy/conf.json` file
+            and adds it to the data structure.
+        """
+        import re
+        import copy
+        import json
+
+        def_dic = {\
+          'jmodelica': {
+            'solver': 'CVode',
+            'rtol': 1E-6,
+            'simulate': True,
+            'ncp': 500,
+            'time_out': 1200
+            }
+        }
+        #fixme: To be removed
+        dic = [
+        {'model_name': 'IBPSA.Fluid.Examples.FlowSystem.Basic', 'jmodelica': { 'rtol': 1E-7 }},
+        {'model_name': 'IBPSA.Fluid.Examples.FlowSystem.Simplified1', 'jmodelica': { 'rtol': 1E-7 }},
+        {'model_name': 'IBPSA.Fluid.Examples.FlowSystem.Simplified2', 'jmodelica': { 'rtol': 1E-7 }}
+        ]
+        conf_file = os.path.join(self._libHome, 'Resources', 'Scripts', 'BuildingsPy', 'conf.json')
+
+        json.dump(dic, open(conf_file, 'wb'), indent=2, sort_keys=True)
+
+        with open(conf_file, 'r') as f:
+            conf_data = json.load(f)
+
+        for all_dat in self._data:
+            # Add default
+            for key in def_dic.keys():
+                all_dat[key] = copy.deepcopy(def_dic[key])
+            # Add model specific data
+            for con_dat in conf_data:
+                pattern = re.compile(con_dat['model_name'])
+                if pattern.match(all_dat['model_name']) is not None:
+                    # Add all elements of the configuration data
+                    for key in con_dat.keys():
+                        # Have dictionary in dictionary
+                        if key == 'jmodelica':
+                            for s in con_dat[key]:
+                                all_dat[key][s] = con_dat[key][s]
+                        else:
+                            all_dat[key] = con_dat[key]
 
     def _checkDataDictionary(self):
         """ Check if the data used to run the regression tests do not have duplicate ``*.fmu`` files
@@ -1696,6 +1751,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
 
         iTra = 0
         iSim = 0
+        iOmiSim = 0
         # Iterate over directories
         all_res = []
         for d in self._temDir:
@@ -1726,15 +1782,23 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                             self._reporter.writeError(em)
                             iTra = iTra + 1
                         elif not res['simulation']['success']:
-                            em = "Simulation of {} failed with {}.".format(
-                                res['model'], res["simulation"]["exception"])
-                            self._reporter.writeError(em)
-                            iSim = iSim + 1
+                            # Check if simulation was omitted based configuration.
+                            if res['simulation'].has_key('message') and \
+                               res['simulation']['message'] == 'No simulation requested.':
+                               print("*** Did not simulate {}".format(res['model']))
+                               iOmiSim = iOmiSim + 1
+                            else:
+                                em = "Simulation of {} failed with {}.".format(
+                                    res['model'], res["simulation"]["exception"])
+                                self._reporter.writeError(em)
+                                iSim = iSim + 1
 
         if iTra > 0:
             print("\nNumber of models that failed translation                     : {}".format(iTra))
         if iSim > 0:
             print("\nNumber of models that translated but failed simulation       : {}".format(iSim))
+        if iOmiSim > 0:
+            print("\nNumber of models that configuration excluded from simulation : {}".format(iOmiSim))
 
         # Write all results to simulator log file
         with open(self._simulator_log_file, 'w', encoding="utf-8-sig") as sim_log:
@@ -1964,7 +2028,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         ``checkModel("Buildings.Controls.Continuous.Examples.LimPID")``
         """
 
-        def getModelName(mosFil, line):
+        def get_model_name(mosFil, line):
             try:
                 iSta = line.index('\"') + 1
                 iEnd = line.index('\"', iSta)
@@ -1980,9 +2044,9 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             for lin in fil:
                 if "simulateModel" in lin or "modelToOpen" in lin:
                     if self._modelica_tool == 'dymola':
-                        retVal = 'checkModel("{}")'.format(getModelName(mosFilNam, lin))
+                        retVal = 'checkModel("{}")'.format(get_model_name(mosFilNam, lin))
                     elif self._modelica_tool == 'omc':
-                        retVal = "checkModel({})".format(getModelName(mosFilNam, lin))
+                        retVal = "checkModel({})".format(get_model_name(mosFilNam, lin))
                     break
         return retVal
 
@@ -2022,10 +2086,10 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
 
         def _write_translation_checks(runFil, values):
             template = r"""
-if Modelica.Utilities.Files.exist("{modelName}.translation.log") then
-  lines=Modelica.Utilities.Streams.readFile("{modelName}.translation.log");
+if Modelica.Utilities.Files.exist("{model_name}.translation.log") then
+  lines=Modelica.Utilities.Streams.readFile("{model_name}.translation.log");
 else
-  Modelica.Utilities.Streams.print("{modelName}.translation.log was not generated.", "{modelName}.log");
+  Modelica.Utilities.Streams.print("{model_name}.translation.log was not generated.", "{model_name}.log");
   lines=String();
 end if;
 
@@ -2167,10 +2231,10 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
                             "scriptFile": self._data[i]['ScriptFile'].replace(
                                 "\\",
                                 "/"),
-                            "modelName": self._data[i]['modelName'].replace(
+                            "model_name": self._data[i]['model_name'].replace(
                                 "\\",
                                 "/"),
-                            "modelName_underscore": self._data[i]['modelName'].replace(
+                            "model_name_underscore": self._data[i]['model_name'].replace(
                                 ".",
                                 "_"),
                             "statisticsLog": self._statistics_log.replace(
@@ -2184,10 +2248,10 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
                             values["FMUName"] = self._data[i]['FMUName']
 
                         if self._modelica_tool == 'dymola':
-                            # Delete command log, modelName.simulation.log and dslog.txt
+                            # Delete command log, model_name.simulation.log and dslog.txt
                             runFil.write(
                                 "Modelica.Utilities.Files.remove(\"%s.translation.log\");\n" %
-                                values["modelName"])
+                                values["model_name"])
                             runFil.write("Modelica.Utilities.Files.remove(\"dslog.txt\");\n")
                             runFil.write("clearlog();\n")
 
@@ -2200,7 +2264,7 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
                             template = r"""
     rCheck = {checkCommand};
     Modelica.Utilities.Streams.print("    {{ \"file\" :  \"{mosWithPath}\",", "{statisticsLog}");
-    Modelica.Utilities.Streams.print("      \"model\" : \"{modelName}\",", "{statisticsLog}");
+    Modelica.Utilities.Streams.print("      \"model\" : \"{model_name}\",", "{statisticsLog}");
     Modelica.Utilities.Streams.print("      \"check\" : {{", "{statisticsLog}");
     Modelica.Utilities.Streams.print("        \"command\" : \"{checkCommandString};\",", "{statisticsLog}");
     Modelica.Utilities.Streams.print("        \"result\"  : " + String(rCheck), "{statisticsLog}");
@@ -2222,22 +2286,22 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
                             # Modelica.Utilities.Streams.readFile
                             template = r"""
     rScript=RunScript("Resources/Scripts/Dymola/{scriptFile}");
-    savelog("{modelName}.translation.log");
+    savelog("{model_name}.translation.log");
     if Modelica.Utilities.Files.exist("dslog.txt") then
-      Modelica.Utilities.Files.move("dslog.txt", "{modelName}.dslog.log");
+      Modelica.Utilities.Files.move("dslog.txt", "{model_name}.dslog.log");
     end if;
     iSuc=0;
-    if Modelica.Utilities.Files.exist("{modelName}.dslog.log") then
+    if Modelica.Utilities.Files.exist("{model_name}.dslog.log") then
       iLin=1;
       endOfFile=false;
       while (not endOfFile) loop
-        (_line, endOfFile)=Modelica.Utilities.Streams.readLine("{modelName}.dslog.log", iLin);
+        (_line, endOfFile)=Modelica.Utilities.Streams.readLine("{model_name}.dslog.log", iLin);
         iLin=iLin+1;
         iSuc=iSuc+Modelica.Utilities.Strings.count(_line, "Integration terminated successfully");
       end while;
-      Modelica.Utilities.Streams.close("{modelName}.dslog.log");
+      Modelica.Utilities.Streams.close("{model_name}.dslog.log");
     else
-      Modelica.Utilities.Streams.print("{modelName}.dslog.log was not generated.", "{modelName}.log");
+      Modelica.Utilities.Streams.print("{model_name}.dslog.log was not generated.", "{model_name}.log");
     end if;
     """
                             runFil.write(template.format(**values))
@@ -2263,22 +2327,22 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
                             template = r"""
     Modelica.Utilities.Files.removeFile("{FMUName}");
     RunScript("Resources/Scripts/Dymola/{scriptFile}");
-    savelog("{modelName}.translation.log");
+    savelog("{model_name}.translation.log");
     if Modelica.Utilities.Files.exist("dslog.txt") then
-      Modelica.Utilities.Files.move("dslog.txt", "{modelName}.dslog.log");
+      Modelica.Utilities.Files.move("dslog.txt", "{model_name}.dslog.log");
     end if;
     iSuc=0;
-    if Modelica.Utilities.Files.exist("{modelName}.dslog.log") then
+    if Modelica.Utilities.Files.exist("{model_name}.dslog.log") then
       iLin=1;
       endOfFile=false;
       while (not endOfFile) loop
-        (_line, endOfFile)=Modelica.Utilities.Streams.readLine("{modelName}.dslog.log", iLin);
+        (_line, endOfFile)=Modelica.Utilities.Streams.readLine("{model_name}.dslog.log", iLin);
         iLin=iLin+1;
         iSuc=iSuc+Modelica.Utilities.Strings.count(_line, "Created {FMUName}");
       end while;
-      Modelica.Utilities.Streams.close("{modelName}.dslog.log");
+      Modelica.Utilities.Streams.close("{model_name}.dslog.log");
     else
-      Modelica.Utilities.Streams.print("{modelName}.dslog.log was not generated.", "{modelName}.log");
+      Modelica.Utilities.Streams.print("{model_name}.dslog.log was not generated.", "{model_name}.log");
     end if;
     """
                             runFil.write(template.format(**values))
@@ -2346,13 +2410,14 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
         import buildingspy.development.regressiontest as r
         import jinja2
         import itertools
+        from pprint import pprint
 
         path_to_template = os.path.dirname(inspect.getfile(r))
         env = jinja2.Environment(loader=jinja2.FileSystemLoader(path_to_template))
         with open(os.path.join(directory, "run.py"), mode="w", encoding="utf-8") as fil:
             models_underscore = []
             for dat in data:
-                models_underscore.append(dat['modelName'].replace(".", "_"))
+                models_underscore.append(dat['model_name'].replace(".", "_"))
             template = env.get_template("jmodelica_run_all.template")
             txt = template.render(models_underscore=sorted(models_underscore))
             fil.write(txt)
@@ -2360,13 +2425,20 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
         tem_mod = env.get_template("jmodelica_run.template")
 
         for dat in data:
-            model = dat['modelName']
+            model = dat['model_name']
             # Filter the result variables
             if 'ResultVariables' in dat:
                 result_variables = list(self._get_set_of_result_variables(dat['ResultVariables']))
             else:
                 result_variables = list()
-            txt = tem_mod.render(model=model, filter=result_variables, time_out=1200)
+            txt = tem_mod.render(\
+                model=model,
+                ncp=dat['jmodelica']['ncp'],
+                rtol =dat['jmodelica']['rtol'],
+                solver=dat['jmodelica']['solver'],
+                simulate=dat['jmodelica']['simulate'],
+                time_out=dat['jmodelica']['time_out'],
+                filter=result_variables)
             file_name = os.path.join(directory, "{}.py".format(model.replace(".", "_")))
             with open(file_name, mode="w", encoding="utf-8") as fil:
                 fil.write(txt)
