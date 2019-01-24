@@ -805,8 +805,11 @@ class Tester(object):
                                         dat["model_name"] = dat["modelToOpen"]
 
                         # Get tolerance from mo file. This is used to set the tolerance
-                        # for JModelica
-                        dat['tolerance'] = self.get_tolerance(self._libHome, dat['model_name'])
+                        # for JModelica.
+                        # Only get the tolerance for the models that need to be simulated,
+                        # because those that are only exported as FMU don't need this setting.
+                        if dat['mustSimulate']:
+                            dat['tolerance'] = self.get_tolerance(self._libHome, dat['model_name'])
 
 
                         # We are finished iterating over all lines of the .mos
@@ -881,7 +884,17 @@ class Tester(object):
                                 raise ValueError('Did not find *.mat file in ' + mosFil)
 
                             dat['ResultFile'] = matFil
-                    if dat not in self._data:
+                    # Avoid adding duplicate, which can happen if a user specifies
+                    # -s Buildings.Fluid,Buildings
+                    duplicate = False
+                    for exi_dat in self._data:
+                        if dat.has_key('model_name') and dat['model_name'] == exi_dat['model_name']:
+                            duplicate = True
+                            # Decrement old_len, otherwise the test if self.get_number_of_tests() == old_len:
+                            # may be true
+                            old_len = old_len - 1
+
+                    if not duplicate:
                         # Some files like plotFan.mos has neither a simulateModel
                         # nor a translateModelFMU command.
                         # These there must not be added to the data array.
@@ -923,8 +936,10 @@ class Tester(object):
         dic = [
         {'model_name': 'IBPSA.Fluid.Examples.FlowSystem.Simplified2', 'jmodelica': { 'time_out': 600 }}
         ]
-        conf_file = os.path.join(self._libHome, 'Resources', 'Scripts', 'BuildingsPy', 'conf.json')
-
+        conf_dir = os.path.join(self._libHome, 'Resources', 'Scripts', 'BuildingsPy')
+        conf_file = os.path.join(conf_dir, 'conf.json')
+        if not os.path.exists(conf_dir):
+            os.makedirs(conf_dir)
         json.dump(dic, open(conf_file, 'wb'), indent=2, sort_keys=True)
 
         with open(conf_file, 'r') as f:
@@ -2474,7 +2489,10 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
             # Set relative tolerance
             if not dat['jmodelica'].has_key('rtol'):
                 # User did not set tolerance, use the one from the .mo file
-                dat['jmodelica']['rtol'] = dat['tolerance']
+                if dat.has_key('tolerance'):
+                    dat['jmodelica']['rtol'] = dat['tolerance']
+                else:
+                    dat['jmodelica']['rtol'] = 1E-6
             # Note that if dat['mustSimulate'] == false, then only the FMU export is tested, but no
             # simulation should be done
 

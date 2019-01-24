@@ -44,6 +44,7 @@ class Test_regressiontest_jmodelica_Tester(unittest.TestCase):
         mo_content = """within TestLib;
           model Test
             {}
+            annotation (experiment(Tolerance=1e-6, StopTime=3600));
           end Test;
         """.format(content)
 
