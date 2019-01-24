@@ -886,20 +886,20 @@ class Tester(object):
                             dat['ResultFile'] = matFil
                     # Avoid adding duplicate, which can happen if a user specifies
                     # -s Buildings.Fluid,Buildings
-                    duplicate = False
-                    for exi_dat in self._data:
-                        if 'model_name' in dat and dat['model_name'] == exi_dat['model_name']:
-                            duplicate = True
+#                    duplicate = False
+#                    for exi_dat in self._data:
+#                        if 'model_name' in dat and dat['model_name'] == exi_dat['model_name']:
+#                            duplicate = True
                             # Decrement old_len, otherwise the test if self.get_number_of_tests() == old_len:
                             # may be true
-                            old_len = old_len - 1
+#                            old_len = old_len - 1
 
-                    if not duplicate:
-                        # Some files like plotFan.mos has neither a simulateModel
-                        # nor a translateModelFMU command.
-                        # These there must not be added to the data array.
-                        if dat['mustSimulate'] or dat['mustExportFMU']:
-                            self._data.append(dat)
+#                    if not duplicate:
+                    # Some files like plotFan.mos has neither a simulateModel
+                    # nor a translateModelFMU command.
+                    # These there must not be added to the data array.
+                    if dat['mustSimulate'] or dat['mustExportFMU']:
+                        self._data.append(dat)
         # Make sure we found at least one unit test
         if self.get_number_of_tests() == old_len:
             msg = """Did not find any regression tests in '%s'.""" % root_package
