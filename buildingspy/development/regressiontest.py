@@ -524,6 +524,26 @@ class Tester(object):
         ret = ",".join(pac)
         return ret.replace(' ', '')
 
+    def _remove_duplicate_packages(self, packages):
+        """ Remove duplicate packages in the list of packages.
+
+            For example, if packages = [A.B.C, A.B, A.F], or packages = [A.B, A.B.C, A.F],
+            then this function returns [A.B, A.F] because A.B.C is already contained in A.B
+        """
+        sor = sorted(packages) # This sets sor = [A.B, A.B.C, A.F]
+        ret = list()
+        for i in range(len(sor)):
+            add = True
+            for j in range(len(ret)):
+                if sor[i].startswith(ret[j]):
+                    # The parent package is already in the list
+                    add = False
+                    self._reporter.writeWarning(
+                        "Found package that is contained in other package in test configuration '{}' and '{}'".format(sor[i], ret[j]))
+            if add:
+                ret.append(sor[i])
+        return ret
+
     def setSinglePackage(self, packageName):
         """
         Set the name of one or multiple Modelica package(s) to be tested.
@@ -553,6 +573,7 @@ class Tester(object):
             packages = expanded_packages.split(',')
         else:
             packages.append(packageName)
+        packages = self._remove_duplicate_packages(packages)
         # Inform the user that not all tests are run, but don't add to warnings
         # as this would flag the test to have failed
         self._reporter.writeOutput(
@@ -884,22 +905,13 @@ class Tester(object):
                                 raise ValueError('Did not find *.mat file in ' + mosFil)
 
                             dat['ResultFile'] = matFil
-                    # Avoid adding duplicate, which can happen if a user specifies
-                    # -s Buildings.Fluid,Buildings
-#                    duplicate = False
-#                    for exi_dat in self._data:
-#                        if 'model_name' in dat and dat['model_name'] == exi_dat['model_name']:
-#                            duplicate = True
-                            # Decrement old_len, otherwise the test if self.get_number_of_tests() == old_len:
-                            # may be true
-#                            old_len = old_len - 1
 
-#                    if not duplicate:
                     # Some files like plotFan.mos has neither a simulateModel
                     # nor a translateModelFMU command.
                     # These there must not be added to the data array.
                     if dat['mustSimulate'] or dat['mustExportFMU']:
                         self._data.append(dat)
+
         # Make sure we found at least one unit test
         if self.get_number_of_tests() == old_len:
             msg = """Did not find any regression tests in '%s'.""" % root_package
