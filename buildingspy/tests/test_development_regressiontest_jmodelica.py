@@ -75,46 +75,45 @@ createPlot(id=1, y={"Test.x"});
             fil.write(mo)
         return dir_name
 
-
     def test_regressiontest_diagnostics(self):
         """ Test that warnings and errors reported by JModelica are reported.
         """
         import shutil
         import buildingspy.development.regressiontest as r
 
-        tests = [ \
-                  {'retVal': 0,
-                   'mo_content': """parameter Real x = 0;""",
-                   'description': "Correct model."},
-                  {'retVal': 2,
-                   'mo_content': """parameter Real[2] x(unit="m") = {0, 0};""",
-                   'description': "Missing each on variable."},
-                  {'retVal': 2,
-                   'mo_content': """parameter Real x(each unit="m") = 0;""",
-                   'description': "Wrong each on scalar."},
-                  {'retVal': 2,
-                   'mo_content': """Modelica.Blocks.Sources.Constant b(each k=0) ;""",
-                   'description': "Wrong each on scalar component."},
-                  {'retVal': 2,
-                   'mo_content': """Modelica.Blocks.Sources.Constant b[2](k=0) ;""",
-                   'description': "Missing each on array of components."},
-                  {'retVal': 2,
-                   'mo_content': """Real x;
+        tests = [
+            {'retVal': 0,
+             'mo_content': """parameter Real x = 0;""",
+             'description': "Correct model."},
+            {'retVal': 2,
+             'mo_content': """parameter Real[2] x(unit="m") = {0, 0};""",
+             'description': "Missing each on variable."},
+            {'retVal': 2,
+             'mo_content': """parameter Real x(each unit="m") = 0;""",
+             'description': "Wrong each on scalar."},
+            {'retVal': 2,
+             'mo_content': """Modelica.Blocks.Sources.Constant b(each k=0) ;""",
+             'description': "Wrong each on scalar component."},
+            {'retVal': 2,
+             'mo_content': """Modelica.Blocks.Sources.Constant b[2](k=0) ;""",
+             'description': "Missing each on array of components."},
+            {'retVal': 2,
+             'mo_content': """Real x;
                                     equation
                                       Modelica.Math.exp(x)=1;""",
-                   'description': "Missing start value."},
-                  {'retVal': 2,
-                   'mo_content': """parameter Real[2] x(unit="m") = {0, 0};
+             'description': "Missing start value."},
+            {'retVal': 2,
+             'mo_content': """parameter Real[2] x(unit="m") = {0, 0};
                                     parameter Real y(each unit="m") = 0;""",
-                   'description': "Two errors."},
-                  {'retVal': 1,
-                   'mo_content': """x; """,
-                   'description': "Syntax error that should cause a failure in translation."},
-                  {'retVal': 1,
-                   'mo_content': """Real x(start=0);
+             'description': "Two errors."},
+            {'retVal': 1,
+             'mo_content': """x; """,
+             'description': "Syntax error that should cause a failure in translation."},
+            {'retVal': 1,
+             'mo_content': """Real x(start=0);
                                     equation
                                       Modelica.Math.exp(x)=-1;""",
-                   'description': "Model that has no solution."}
+             'description': "Model that has no solution."}
         ]
         # Run all test cases
         for test in tests:
@@ -131,7 +130,12 @@ createPlot(id=1, y={"Test.x"});
             os.remove(rt.get_unit_test_log_file())
             shutil.rmtree(par)
             # Check return value to see if test suceeded
-            self.assertEqual(test['retVal'], retVal, "Test for '{}' failed, return value {}".format(des, retVal))
+            self.assertEqual(
+                test['retVal'],
+                retVal,
+                "Test for '{}' failed, return value {}".format(
+                    des,
+                    retVal))
 
     def test_regressiontest(self):
         import buildingspy.development.regressiontest as r

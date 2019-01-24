@@ -30,7 +30,6 @@ class Test_regressiontest_openmodelica_Tester(unittest.TestCase):
         rt = r.Tester(check_html=False, tool="omc")
         self.assertEqual('unitTests-omc.log', rt.get_unit_test_log_file())
 
-
     def test_test_OpenModelica(self):
         import buildingspy.development.regressiontest as r
         rt = r.Tester(check_html=False)
@@ -39,6 +38,7 @@ class Test_regressiontest_openmodelica_Tester(unittest.TestCase):
         myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
         rt.setLibraryRoot(myMoLib)
         rt.test_OpenModelica(simulate=True)
+
 
 if __name__ == '__main__':
     unittest.main()

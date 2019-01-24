@@ -58,8 +58,8 @@ def runSimulation(worDir, cmd):
             else:
                 return 0
         except OSError as e:
-            sys.stderr.write("Execution of '" + " ".join(map(str, cmd)) + " failed.\n"
-                             + "Working directory is '" + worDir + "'.")
+            sys.stderr.write("Execution of '" + " ".join(map(str, cmd)) + " failed.\n" +
+                             "Working directory is '" + worDir + "'.")
             raise(e)
         except KeyboardInterrupt as e:
             pro.kill()
@@ -694,7 +694,7 @@ class Tester(object):
         tols = list()
         with open(file_name, 'r') as fil:
             for lin in fil:
-                tol=re.findall(p_number, lin)
+                tol = re.findall(p_number, lin)
                 if len(tol) > 0:
                     tols.append(tol)
 
@@ -702,7 +702,8 @@ class Tester(object):
         if len(tols) == 0:
             raise RuntimeError("Failed to find Tolerance in '{}'.".format(file_name))
         if len(tols) > 1:
-            raise RuntimeError("Found multiple entries for Tolerance in '{}', but require exactly one entry.".format(file_name))
+            raise RuntimeError(
+                "Found multiple entries for Tolerance in '{}', but require exactly one entry.".format(file_name))
         return tols[0][0]
 
     def setDataDictionary(self, root_package=None):
@@ -795,7 +796,7 @@ class Tester(object):
                                     _get_attribute_value(lin, attr, dat)
                                     # Dymola uses in translateModelFMU the syntax
                                     # modelName=... but our dictionary uses model_name
-                                    if attr == "modelName" and dat.has_key("modelName"):
+                                    if attr == "modelName" and "modelName" in dat:
                                         dat["model_name"] = dat["modelName"]
                                         del dat["modelName"]
                                 # The .mos script allows modelName="", hence
@@ -810,7 +811,6 @@ class Tester(object):
                         # because those that are only exported as FMU don't need this setting.
                         if dat['mustSimulate']:
                             dat['tolerance'] = self.get_tolerance(self._libHome, dat['model_name'])
-
 
                         # We are finished iterating over all lines of the .mos
 
@@ -888,7 +888,7 @@ class Tester(object):
                     # -s Buildings.Fluid,Buildings
                     duplicate = False
                     for exi_dat in self._data:
-                        if dat.has_key('model_name') and dat['model_name'] == exi_dat['model_name']:
+                        if 'model_name' in dat and dat['model_name'] == exi_dat['model_name']:
                             duplicate = True
                             # Decrement old_len, otherwise the test if self.get_number_of_tests() == old_len:
                             # may be true
@@ -924,18 +924,17 @@ class Tester(object):
         import copy
         import json
 
-        def_dic = {\
-          'jmodelica': {
-            'solver': 'CVode',
-            'simulate': True,
-            'ncp': 500,
-            'time_out': 1200
+        def_dic = {
+            'jmodelica': {
+                'solver': 'CVode',
+                'simulate': True,
+                'ncp': 500,
+                'time_out': 1200
             }
         }
-        #fixme: To be removed
-        dic = [
-        {'model_name': 'IBPSA.Fluid.Examples.FlowSystem.Simplified2', 'jmodelica': { 'time_out': 600 }}
-        ]
+        # fixme: To be removed
+        dic = [{'model_name': 'IBPSA.Fluid.Examples.FlowSystem.Simplified2',
+                'jmodelica': {'time_out': 600}}]
         conf_dir = os.path.join(self._libHome, 'Resources', 'Scripts', 'BuildingsPy')
         conf_file = os.path.join(conf_dir, 'conf.json')
         if not os.path.exists(conf_dir):
@@ -1221,9 +1220,9 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         for i in range(len(yInt)):
             errAbs[i] = abs(yOld[i] - yInt[i])
             if np.isnan(errAbs[i]):
-                raise ValueError('NaN in errAbs ' + varNam + " " + str(yOld[i])
-                                 + "  " + str(yInt[i]) + " i, N " + str(i) + " --:" + str(yInt[i - 1])
-                                 + " ++:", str(yInt[i + 1]))
+                raise ValueError('NaN in errAbs ' + varNam + " " + str(yOld[i]) +
+                                 "  " + str(yInt[i]) + " i, N " + str(i) + " --:" + str(yInt[i - 1]) +
+                                 " ++:", str(yInt[i + 1]))
             if (abs(yOld[i]) > 10 * tol):
                 errRel[i] = errAbs[i] / abs(yOld[i])
             else:
@@ -1254,8 +1253,8 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         """
         import numpy as np
         if not (isinstance(dataSeries, np.ndarray) or isinstance(dataSeries, list)):
-            raise TypeError("Program error: dataSeries must be a numpy.ndarr or a list. Received type "
-                            + str(type(dataSeries)) + ".\n")
+            raise TypeError("Program error: dataSeries must be a numpy.ndarr or a list. Received type " +
+                            str(type(dataSeries)) + ".\n")
         return (len(dataSeries) == 2)
 
     def format_float(self, value):
@@ -1838,10 +1837,10 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                             iTra = iTra + 1
                         elif not res['simulation']['success']:
                             # Check if simulation was omitted based configuration.
-                            if res['simulation'].has_key('message') and \
+                            if 'message' in res['simulation'] and \
                                res['simulation']['message'] == 'No simulation requested.':
-                               print("*** Did not simulate {}".format(res['model']))
-                               iOmiSim = iOmiSim + 1
+                                print("*** Did not simulate {}".format(res['model']))
+                                iOmiSim = iOmiSim + 1
                             else:
                                 em = "Simulation of {} failed with {}.".format(
                                     res['model'], res["simulation"]["exception"])
@@ -1865,11 +1864,11 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             if counter > 0:
                 print(v['summary_message'].format(counter))
 
-        self._reporter.writeOutput("Script that runs unit tests had "
-                                   + str(self._reporter.getNumberOfWarnings())
-                                   + " warnings and "
-                                   + str(self._reporter.getNumberOfErrors())
-                                   + " errors.\n")
+        self._reporter.writeOutput("Script that runs unit tests had " +
+                                   str(self._reporter.getNumberOfWarnings()) +
+                                   " warnings and " +
+                                   str(self._reporter.getNumberOfErrors()) +
+                                   " errors.\n")
         sys.stdout.write("See '{}' for details.\n".format(self._simulator_log_file))
 
         if self._reporter.getNumberOfErrors() > 0:
@@ -2028,11 +2027,11 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             if counter > 0:
                 print(v['summary_message'].format(counter))
 
-        self._reporter.writeOutput("Script that runs unit tests had "
-                                   + str(self._reporter.getNumberOfWarnings())
-                                   + " warnings and "
-                                   + str(self._reporter.getNumberOfErrors())
-                                   + " errors.\n")
+        self._reporter.writeOutput("Script that runs unit tests had " +
+                                   str(self._reporter.getNumberOfWarnings()) +
+                                   " warnings and " +
+                                   str(self._reporter.getNumberOfErrors()) +
+                                   " errors.\n")
         sys.stdout.write("See '{}' for details.\n".format(self._simulator_log_file))
 
         if self._reporter.getNumberOfErrors() > 0:
@@ -2175,8 +2174,8 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
             runFil.write(template.format(**values))
 
             # Close the bracket for the JSON object
-            runFil.write("""Modelica.Utilities.Streams.print("      }", """
-                         + '"' + values['statisticsLog'] + '"' + ");\n")
+            runFil.write("""Modelica.Utilities.Streams.print("      }", """ +
+                         '"' + values['statisticsLog'] + '"' + ");\n")
 
         def _print_end_of_json(isLastItem, fileHandle, logFileName):
             if isLastItem:
@@ -2487,19 +2486,19 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
             else:
                 result_variables = list()
             # Set relative tolerance
-            if not dat['jmodelica'].has_key('rtol'):
+            if 'rtol' not in dat['jmodelica']:
                 # User did not set tolerance, use the one from the .mo file
-                if dat.has_key('tolerance'):
+                if 'tolerance' in dat:
                     dat['jmodelica']['rtol'] = dat['tolerance']
                 else:
                     dat['jmodelica']['rtol'] = 1E-6
             # Note that if dat['mustSimulate'] == false, then only the FMU export is tested, but no
             # simulation should be done
 
-            txt = tem_mod.render(\
+            txt = tem_mod.render(
                 model=model,
                 ncp=dat['jmodelica']['ncp'],
-                rtol = dat['jmodelica']['rtol'],
+                rtol=dat['jmodelica']['rtol'],
                 solver=dat['jmodelica']['solver'],
                 simulate=dat['jmodelica']['simulate'] and dat['mustSimulate'],
                 time_out=dat['jmodelica']['time_out'],
@@ -2945,8 +2944,8 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
                 return retcode
 
         except OSError as e:
-            raise OSError("Execution of omc +d=initialization " + mosfile + " failed.\n"
-                          + "Working directory is '" + worDir + "'.")
+            raise OSError("Execution of omc +d=initialization " + mosfile + " failed.\n" +
+                          "Working directory is '" + worDir + "'.")
         else:
             # process the log file
             print("Logfile created: {}".format(logFilNam))
