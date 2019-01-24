@@ -1831,7 +1831,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                     em = "Did not find {}. Is JModelica properly installed?".format(json_name)
                     dirs = os.listdir( d ) #fixme
                     for file in dirs: #fixme
-                        em = em + "*** Files are: {}".format(file)) #fixme
+                        em = em + "*** Files are: {}".format(file) #fixme
 #                    with open(fil, 'r', encoding="utf-8-sig") as tem:
 #                        for lin in tem:
 #                            print("**** mo file: {}".format(lin))
