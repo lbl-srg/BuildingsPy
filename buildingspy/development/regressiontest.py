@@ -1829,6 +1829,9 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                 json_name = fil.replace(".py", "_run.json")
                 if not os.path.exists(json_name):
                     em = "Did not find {}. Is JModelica properly installed?".format(json_name)
+                    dirs = os.listdir( d ) #fixme
+                    for file in dirs: #fixme
+                        print("*** Files are: {}".format(file)) #fixme
                     self._reporter.writeError(em)
                     iTra = iTra + 1
                 else:
