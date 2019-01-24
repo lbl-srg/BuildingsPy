@@ -177,6 +177,7 @@ def run():
     import timeit
     import json
     import traceback
+    import sys
 
     import pymodelica
     # Increase memory
@@ -213,7 +214,8 @@ def run():
             result["simulation"]["exception"] = "{}: {}".format(type(e).__name__, e.message)
             result["simulation"]["traceback"] = traceback.format_exc()
 
-    with open(log_file, "a") as log:
+    with open(log_file, "w") as log:
+            sys.stderr.write("****** fixme: writing log file {}\n".format(log_file))
             log.write("{}\n".format(json.dumps(result, indent=4, sort_keys=False)) )
 
 if __name__=="__main__":
