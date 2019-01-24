@@ -675,6 +675,36 @@ class Tester(object):
             y[i] = re.sub(r',\W*', ', ', y[i])
         return y
 
+    @staticmethod
+    def get_tolerance(library_home, model_name):
+        """ Return the tolerance as read from the `.mo` file.
+
+            :param library_home: Home directory of the library.
+            :param model_name: Name of the model.
+        """
+        import os
+        import re
+        import io
+
+        file_name = os.path.join(library_home, '..', model_name.replace('.', os.path.sep) + ".mo")
+        if not os.path.exists(file_name):
+            raise IOError("Failed to find file '{}' for model '{}'".format(file_name, model_name))
+
+        p_number = re.compile(r'Tolerance*=(-?\ *[0-9]+\.?[0-9]*(?:[Ee]\ *-?\ *[0-9]+)?)')
+        tols = list()
+        with open(file_name, 'r') as fil:
+            for lin in fil:
+                tol=re.findall(p_number, lin)
+                if len(tol) > 0:
+                    tols.append(tol)
+
+        # Make sure we found exactly one entry
+        if len(tols) == 0:
+            raise RuntimeError("Failed to find Tolerance in '{}'.".format(file_name))
+        if len(tols) > 1:
+            raise RuntimeError("Found multiple entries for Tolerance in '{}', but require exactly one entry.".format(file_name))
+        return tols[0][0]
+
     def setDataDictionary(self, root_package=None):
         """ Build the data structures that are needed to parse the output files.
 
@@ -761,16 +791,26 @@ class Tester(object):
                             if (self._include_fmu_test and "translateModelFMU" in lin):
                                 dat['mustExportFMU'] = True
                             if dat['mustExportFMU']:
-                                for attr in ["modelToOpen", "model_name"]:
+                                for attr in ["modelToOpen", "modelName"]:
                                     _get_attribute_value(lin, attr, dat)
-                                # The .mos script allows model_name="", in which case
+                                    # Dymola uses in translateModelFMU the syntax
+                                    # modelName=... but our dictionary uses model_name
+                                    if attr == "modelName" and dat.has_key("modelName"):
+                                        dat["model_name"] = dat["modelName"]
+                                        del dat["modelName"]
+                                # The .mos script allows modelName="", hence
                                 # we set the model name to be the entry of modelToOpen
-                                if "model_name" in dat and dat["model_name"] == "" or (
-                                        "model_name" in dat):
+                                if "model_name" in dat and dat["model_name"] == "":
                                     if "modelToOpen" in dat:
                                         dat["model_name"] = dat["modelToOpen"]
 
+                        # Get tolerance from mo file. This is used to set the tolerance
+                        # for JModelica
+                        dat['tolerance'] = self.get_tolerance(self._libHome, dat['model_name'])
+
+
                         # We are finished iterating over all lines of the .mos
+
                         # For FMU export, if model_name="", then Dymola uses the
                         # Modelica class name, with "." replaced by "_".
                         # If the Modelica class name consists of "_", then they
@@ -842,8 +882,11 @@ class Tester(object):
 
                             dat['ResultFile'] = matFil
                     if dat not in self._data:
-                        self._data.append(dat)
-
+                        # Some files like plotFan.mos has neither a simulateModel
+                        # nor a translateModelFMU command.
+                        # These there must not be added to the data array.
+                        if dat['mustSimulate'] or dat['mustExportFMU']:
+                            self._data.append(dat)
         # Make sure we found at least one unit test
         if self.get_number_of_tests() == old_len:
             msg = """Did not find any regression tests in '%s'.""" % root_package
@@ -871,7 +914,6 @@ class Tester(object):
         def_dic = {\
           'jmodelica': {
             'solver': 'CVode',
-            'rtol': 1E-6,
             'simulate': True,
             'ncp': 500,
             'time_out': 1200
@@ -879,9 +921,7 @@ class Tester(object):
         }
         #fixme: To be removed
         dic = [
-        {'model_name': 'IBPSA.Fluid.Examples.FlowSystem.Basic', 'jmodelica': { 'rtol': 1E-7 }},
-        {'model_name': 'IBPSA.Fluid.Examples.FlowSystem.Simplified1', 'jmodelica': { 'rtol': 1E-7 }},
-        {'model_name': 'IBPSA.Fluid.Examples.FlowSystem.Simplified2', 'jmodelica': { 'rtol': 1E-7 }}
+        {'model_name': 'IBPSA.Fluid.Examples.FlowSystem.Simplified2', 'jmodelica': { 'time_out': 600 }}
         ]
         conf_file = os.path.join(self._libHome, 'Resources', 'Scripts', 'BuildingsPy', 'conf.json')
 
@@ -2431,12 +2471,19 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
                 result_variables = list(self._get_set_of_result_variables(dat['ResultVariables']))
             else:
                 result_variables = list()
+            # Set relative tolerance
+            if not dat['jmodelica'].has_key('rtol'):
+                # User did not set tolerance, use the one from the .mo file
+                dat['jmodelica']['rtol'] = dat['tolerance']
+            # Note that if dat['mustSimulate'] == false, then only the FMU export is tested, but no
+            # simulation should be done
+
             txt = tem_mod.render(\
                 model=model,
                 ncp=dat['jmodelica']['ncp'],
-                rtol =dat['jmodelica']['rtol'],
+                rtol = dat['jmodelica']['rtol'],
                 solver=dat['jmodelica']['solver'],
-                simulate=dat['jmodelica']['simulate'],
+                simulate=dat['jmodelica']['simulate'] and dat['mustSimulate'],
                 time_out=dat['jmodelica']['time_out'],
                 filter=result_variables)
             file_name = os.path.join(directory, "{}.py".format(model.replace(".", "_")))

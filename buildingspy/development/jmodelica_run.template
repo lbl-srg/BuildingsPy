@@ -141,7 +141,7 @@ def _simulate(proc_num, return_dict):
     return return_dict
 
   # Simulate the model
-  r_tol = {{ rtol }}
+#
 
   try:
     fmu_name = "{{ model }}".replace(".", "_") + ".fmu"
@@ -154,6 +154,8 @@ def _simulate(proc_num, return_dict):
     opts['ncp'] = {{ ncp }}
 
     if opts['solver'].lower() == 'cvode':
+      # Set user-specified tolerance if it is smaller than the tolerance in the .mo file
+      r_tol = {{ rtol }}
       opts['CVode_options']['rtol'] = r_tol
       if len(x_nominal) > 0:
         opts['CVode_options']['atol'] = r_tol*x_nominal
