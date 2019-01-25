@@ -750,7 +750,7 @@ class Tester(object):
         if not os.path.exists(file_name):
             raise IOError("Failed to find file '{}' for model '{}'".format(file_name, model_name))
 
-        p_number = re.compile(r'Tolerance*=(-?\ *[0-9]+\.?[0-9]*(?:[Ee]\ *-?\ *[0-9]+)?)')
+        p_number = re.compile(r'Tolerance\s*=\s*(-?\ *[0-9]+\.?[0-9]*(?:[Ee]\ *-?\ *[0-9]+)?)')
         tols = list()
         with open(file_name, 'r') as fil:
             for lin in fil:
