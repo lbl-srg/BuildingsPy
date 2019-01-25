@@ -8,7 +8,7 @@
 # MWetter@lbl.gov                            2015-11-17
 #######################################################
 #
-import error_dictionary as ed
+import buildingspy.development.error_dictionary as ed
 
 
 class ErrorDictionary(ed.ErrorDictionary):
