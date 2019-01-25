@@ -215,7 +215,6 @@ def run():
             result["simulation"]["traceback"] = traceback.format_exc()
 
     with open(log_file, "w") as log:
-            sys.stderr.write("****** fixme: writing log file {}\n".format(log_file))
             log.write("{}\n".format(json.dumps(result, indent=4, sort_keys=False)) )
 
 if __name__=="__main__":

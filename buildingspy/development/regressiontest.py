@@ -1829,10 +1829,6 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                 json_name = fil.replace(".py", "_run.json")
                 if not os.path.exists(json_name):
                     em = "Did not find {}. Is JModelica properly installed?".format(json_name)
-                    dirs = os.listdir( d ) #fixme
-                    for file in dirs: #fixme
-                        em = em + "*** Files are: {}\n".format(file) #fixme
-                    em = em + "**** stdout file:\n"
                     with open('stdout', 'r', encoding="utf-8-sig") as tem:
                         for lin in tem:
                             em = em + "**** stdout file: {}\n".format(lin)
