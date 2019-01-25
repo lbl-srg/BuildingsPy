@@ -2597,7 +2597,7 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
     def run(self):
         """ Run all regression tests and checks the results.
 
-        :return: 0 if no errros occurred during the regression tests,
+        :return: 0 if no errros and no warnings occurred during the regression tests,
                  otherwise a non-zero value.
 
         This method
@@ -2614,7 +2614,7 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
           reference results that are stored in ``Resources/ReferenceResults``,
         - writes the message `Regression tests completed successfully.`
           if no error occured,
-        - returns 0 if no errors occurred, or non-zero otherwise.
+        - returns 0 if no errors and no warnings occurred, or non-zero otherwise.
 
         """
         import buildingspy.development.validator as v
