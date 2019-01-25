@@ -82,34 +82,34 @@ createPlot(id=1, y={"Test.x"});
         import buildingspy.development.regressiontest as r
 
         tests = [
-            {'retVal': 0,
+            {'ret_val': 0,
              'mo_content': """parameter Real x = 0;""",
              'description': "Correct model."},
-            {'retVal': 2,
+            {'ret_val': 2,
              'mo_content': """parameter Real[2] x(unit="m") = {0, 0};""",
              'description': "Missing each on variable."},
-            {'retVal': 2,
+            {'ret_val': 2,
              'mo_content': """parameter Real x(each unit="m") = 0;""",
              'description': "Wrong each on scalar."},
-            {'retVal': 2,
+            {'ret_val': 2,
              'mo_content': """Modelica.Blocks.Sources.Constant b(each k=0) ;""",
              'description': "Wrong each on scalar component."},
-            {'retVal': 2,
+            {'ret_val': 2,
              'mo_content': """Modelica.Blocks.Sources.Constant b[2](k=0) ;""",
              'description': "Missing each on array of components."},
-            {'retVal': 2,
+            {'ret_val': 2,
              'mo_content': """Real x;
                                     equation
                                       Modelica.Math.exp(x)=1;""",
              'description': "Missing start value."},
-            {'retVal': 2,
+            {'ret_val': 2,
              'mo_content': """parameter Real[2] x(unit="m") = {0, 0};
                                     parameter Real y(each unit="m") = 0;""",
              'description': "Two errors."},
-            {'retVal': 1,
+            {'ret_val': 1,
              'mo_content': """x; """,
              'description': "Syntax error that should cause a failure in translation."},
-            {'retVal': 1,
+            {'ret_val': 1,
              'mo_content': """Real x(start=0);
                                     equation
                                       Modelica.Math.exp(x)=-1;""",
@@ -123,19 +123,19 @@ createPlot(id=1, y={"Test.x"});
             dir_name = self._write_test(mo_content)
             rt = r.Tester(check_html=False, tool="jmodelica")
             rt.setLibraryRoot(dir_name)
-            retVal = rt.run()
-            # Delete temporary files
+            ret_val = rt.run()
+            # Check return value to see if test suceeded
+            self.assertEqual(
+                test['ret_val'],
+                ret_val,
+                "Test for '{}' failed, return value {}".format(
+                    des,
+                    ret_val))            # Delete temporary files
             # Get parent dir of dir_name, because dir_name contains the Modelica library name
             par = os.path.split(dir_name)[0]
             os.remove(rt.get_unit_test_log_file())
             shutil.rmtree(par)
-            # Check return value to see if test suceeded
-            self.assertEqual(
-                test['retVal'],
-                retVal,
-                "Test for '{}' failed, return value {}".format(
-                    des,
-                    retVal))
+
 
     def test_regressiontest(self):
         import buildingspy.development.regressiontest as r
@@ -143,7 +143,9 @@ createPlot(id=1, y={"Test.x"});
         myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
         rt.deleteTemporaryDirectories(True)
         rt.setLibraryRoot(myMoLib)
-        rt.run()
+        ret_val = rt.run()
+        # Check return value to see if test suceeded
+        self.assertEqual(0, ret_val, "Test failed with return value {}".format(ret_val))
         # Delete temporary files
         os.remove(rt.get_unit_test_log_file())
 

@@ -15,10 +15,6 @@ from io import open
 import unittest
 import os
 
-# To run this test, navigate to the BuildingsPy folder, then type
-# python buildingspy/tests/test_development_regressiontest.py
-
-
 class Test_regressiontest_openmodelica_Tester(unittest.TestCase):
     """
        This class contains the unit tests for

@@ -70,7 +70,9 @@ class Test_regressiontest_Tester(unittest.TestCase):
         rt.setLibraryRoot(myMoLib)
         rt.include_fmu_tests(True)
         rt.writeOpenModelicaResultDictionary()
-        rt.run()
+        ret_val = rt.run()
+        # Check return value to see if test suceeded
+        self.assertEqual(0, ret_val, "Test failed with return value {}".format(ret_val))
         # Delete temporary files
         os.remove(rt.get_unit_test_log_file())
 
@@ -139,9 +141,12 @@ class Test_regressiontest_Tester(unittest.TestCase):
         skpFil = os.path.join(myMoLib, "Resources", "Scripts", "skipUnitTestList.txt")
         rt.setLibraryRoot(myMoLib)
         rt.setExcludeTest(skpFil)
-        rt.run()
+        ret_val = rt.run()
+        # Check return value to see if test suceeded
+        # ret_val must be two because excluding files triggers a warning.
+        self.assertEqual(2, ret_val, "Test failed with return value {}, expected 2.".format(ret_val))
+        # Check for correct number of tests
         self.assertEqual(1, rt.get_number_of_tests())
-        print("*** Finished test_setExcludeTest.\n")
 
     def test_areResultsEqual(self):
         import buildingspy.development.regressiontest as r
