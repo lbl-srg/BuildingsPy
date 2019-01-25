@@ -1000,15 +1000,16 @@ class Tester(object):
             # Add model specific data
             for con_dat in conf_data:
                 pattern = re.compile(con_dat['model_name'])
-                if pattern.match(all_dat['model_name']) is not None:
-                    # Add all elements of the configuration data
-                    for key in con_dat.keys():
-                        # Have dictionary in dictionary
-                        if key == 'jmodelica':
-                            for s in con_dat[key]:
-                                all_dat[key][s] = con_dat[key][s]
-                        else:
-                            all_dat[key] = con_dat[key]
+                for all_dat in self._data:
+                    if pattern.match(all_dat['model_name']) is not None:
+                        # Add all elements of the configuration data
+                        for key in con_dat.keys():
+                            # Have dictionary in dictionary
+                            if key == 'jmodelica':
+                                for s in con_dat[key]:
+                                    all_dat[key][s] = con_dat[key][s]
+                            else:
+                                all_dat[key] = con_dat[key]
 
     def _checkDataDictionary(self):
         """ Check if the data used to run the regression tests do not have duplicate ``*.fmu`` files
