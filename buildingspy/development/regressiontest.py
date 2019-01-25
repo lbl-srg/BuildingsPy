@@ -78,7 +78,12 @@ class Tester(object):
     :param cleanup: bool (default=True).  Specify whether to delete temporary directories.
 
     This class can be used to run all regression tests.
-    It searches the directory ``CURRENT_DIRECTORY\Resources\Scripts\Dymola`` for
+
+    Regression testing using Dymola
+    -------------------------------
+
+    For Dymola, this module searches the directory
+    ``CURRENT_DIRECTORY\Resources\Scripts\Dymola`` for
     all ``*.mos`` files that contain the string ``simulate``,
     where ``CURRENT_DIRECTORY`` is the name of the directory in which the Python
     script is started, as returned by the function :func:`getLibraryName`.
@@ -131,6 +136,39 @@ class Tester(object):
 
     To run regression tests only for a single package, call :func:`setSinglePackage`
     prior to :func:`run`.
+
+    Regression testing using JModelica
+    ----------------------------------
+
+    For JModelica, the selection of test cases is done the same
+    way as for Dymola. However, the solver tolerance is obtained
+    from the `.mo` file by reading the annotation
+    `Tolerance="value"`.
+
+    For JModelica, a JSON file stored as
+    ``Resources\Scripts\BuildingsPy\conf.json`` can be used
+    to further configure tests. The file has the syntax
+
+    ```
+    [
+      {
+        "jmodelica": {
+          "ncp": 500,
+          "rtol": 1E-6,
+          "solver": "CVode",
+          "simulate": True,
+          "time_out": 600
+        },
+        "model_name": "Buildings.Fluid.Examples.FlowSystem.Simplified2"
+      }
+    ]
+    ```
+
+    Any JSON elements are optional, and the entries shown above
+    are the default values, except for the relative tolerance `rtol`
+    which is read from the `.mo` file. However, with `rtol`, this
+    value can be overwritten.
+    Note that this syntax is still experimental and may be changed.
 
     """
 
@@ -945,22 +983,20 @@ class Tester(object):
                 'time_out': 1200
             }
         }
-        # fixme: To be removed
-        dic = [{'model_name': 'IBPSA.Fluid.Examples.FlowSystem.Simplified2',
-                'jmodelica': {'time_out': 600}}]
-        conf_dir = os.path.join(self._libHome, 'Resources', 'Scripts', 'BuildingsPy')
-        conf_file = os.path.join(conf_dir, 'conf.json')
-        if not os.path.exists(conf_dir):
-            os.makedirs(conf_dir)
-        json.dump(dic, open(conf_file, 'wb'), indent=2, sort_keys=True)
-
-        with open(conf_file, 'r') as f:
-            conf_data = json.load(f)
 
         for all_dat in self._data:
-            # Add default
+            # Add default data
             for key in def_dic.keys():
                 all_dat[key] = copy.deepcopy(def_dic[key])
+
+        # Get configuration data from file, if present
+        conf_dir = os.path.join(self._libHome, 'Resources', 'Scripts', 'BuildingsPy')
+        conf_file = os.path.join(conf_dir, 'conf.json')
+
+        if os.path.exists(conf_file):
+            with open(conf_file, 'r') as f:
+                conf_data = json.load(f)
+
             # Add model specific data
             for con_dat in conf_data:
                 pattern = re.compile(con_dat['model_name'])
