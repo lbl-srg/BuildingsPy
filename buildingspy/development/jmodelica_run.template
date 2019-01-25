@@ -43,7 +43,7 @@ def _translate(proc_num, return_dict):
 #    out.stop()
     # The standard output is returned as a list, with each line being an element
 #    return_dict[proc_num] = {'success': True, 'fmu_name': str(fmu_name), 'stdout': out.capturedtext.split('\n')}
-    return_dict[proc_num] = {'success': True, 'fmu_name': str(fmu_name), 'stdout': ""}
+    return_dict[proc_num] = {'success': True, 'fmu_name': str(fmu_name)}
 
   except Exception as e:
     return_dict[proc_num] = {'success': False,

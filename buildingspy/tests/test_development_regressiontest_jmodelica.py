@@ -143,9 +143,11 @@ class Test_regressiontest_jmodelica_Tester(unittest.TestCase):
         myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
         rt.deleteTemporaryDirectories(False)
         rt.setLibraryRoot(myMoLib)
-        rt.run()
+        retVal = rt.run()
         # Delete temporary files
         os.remove(rt.get_unit_test_log_file())
+        self.assertEqual(0, retVal,
+          "test_regressiontest for jmodelica failed. Expected 0 as return value, received {}.".format(retVal))
 
 
 if __name__ == '__main__':
