@@ -144,7 +144,10 @@ class Test_regressiontest_Tester(unittest.TestCase):
         ret_val = rt.run()
         # Check return value to see if test suceeded
         # ret_val must be two because excluding files triggers a warning.
-        self.assertEqual(2, ret_val, "Test failed with return value {}, expected 2.".format(ret_val))
+        self.assertEqual(
+            2,
+            ret_val,
+            "Test failed with return value {}, expected 2.".format(ret_val))
         # Check for correct number of tests
         self.assertEqual(1, rt.get_number_of_tests())
 

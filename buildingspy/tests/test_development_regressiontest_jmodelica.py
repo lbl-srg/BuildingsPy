@@ -136,7 +136,6 @@ createPlot(id=1, y={"Test.x"});
             os.remove(rt.get_unit_test_log_file())
             shutil.rmtree(par)
 
-
     def test_regressiontest(self):
         import buildingspy.development.regressiontest as r
         rt = r.Tester(check_html=False, tool="jmodelica")
