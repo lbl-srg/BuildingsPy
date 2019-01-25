@@ -114,6 +114,9 @@ def run():
     except OSError:
         pass
 
+    with open(log_file, 'w') as log:
+        log.write("{}\n".format(json.dumps(result, indent=4, sort_keys=False)) )
+
     try:
         ret_dic = process_with_timeout(target=_translate, timeout=time_out)
         result["translation"] = ret_dic
@@ -121,6 +124,9 @@ def run():
     except Exception as e:
         result["translation"]["exception"] = "{}: {}".format(type(e).__name__, e.message)
         result["translation"]["traceback"] = traceback.format_exc()
+
+    with open(log_file, 'w') as log:
+        log.write("{}\n".format(json.dumps(result, indent=4, sort_keys=False)) )
 
     # Load model if translation was successful
     if result["translation"]["success"]:
@@ -132,7 +138,7 @@ def run():
             result["simulation"]["exception"] = "{}: {}".format(type(e).__name__, e.message)
             result["simulation"]["traceback"] = traceback.format_exc()
 
-    with open(log_file, 'a') as log:
+    with open(log_file, 'w') as log:
             log.write("{}\n".format(json.dumps(result, indent=4, sort_keys=False)) )
 
 if __name__=="__main__":
