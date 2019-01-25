@@ -143,11 +143,6 @@ class Test_regressiontest_Tester(unittest.TestCase):
         self.assertEqual(1, rt.get_number_of_tests())
         print("*** Finished test_setExcludeTest.\n")
 
-    def test_runSimulation(self):
-        import buildingspy.development.regressiontest as r
-        self.assertRaises(OSError,
-                          r.runSimulation, ".", "this_command_does_not_exist")
-
     def test_areResultsEqual(self):
         import buildingspy.development.regressiontest as r
         rt = r.Tester()
