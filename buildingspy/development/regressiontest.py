@@ -157,6 +157,7 @@ class Tester(object):
           "rtol": 1E-6,
           "solver": "CVode",
           "simulate": True,
+          "translate": True,
           "time_out": 600
         },
         "model_name": "Buildings.Fluid.Examples.FlowSystem.Simplified2"
@@ -1006,8 +1007,20 @@ class Tester(object):
                         for key in con_dat.keys():
                             # Have dictionary in dictionary
                             if key == 'jmodelica':
-                                for s in con_dat[key]:
-                                    all_dat[key][s] = con_dat[key][s]
+                                for s in con_dat['jmodelica']:
+                                    val = con_dat['jmodelica'][s]
+                                    if s == 'simulate':
+                                        all_dat['jmodelica'][s] = val
+                                        # Write a warning if a model is not simulated
+                                        if not val:
+                                            self._reporter.writeOutput("{}: Requested to be excluded from simulation".format(all_dat['model_name']))
+                                    elif s == 'translate':
+                                        all_dat['jmodelica'][s] = val
+                                        # Write a warning if a model is not simulated
+                                        if not val:
+                                            self._reporter.writeOutput("{}: Requested to be excluded from simulation".format(all_dat['model_name']))
+                                    else:
+                                        all_dat['jmodelica'][s] = val
                             else:
                                 all_dat[key] = con_dat[key]
 
@@ -2517,8 +2530,6 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
         import inspect
         import buildingspy.development.regressiontest as r
         import jinja2
-        import itertools
-        from pprint import pprint
 
         path_to_template = os.path.dirname(inspect.getfile(r))
         env = jinja2.Environment(loader=jinja2.FileSystemLoader(path_to_template))
@@ -2548,7 +2559,6 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
                     dat['jmodelica']['rtol'] = 1E-6
             # Note that if dat['mustSimulate'] == false, then only the FMU export is tested, but no
             # simulation should be done
-
             txt = tem_mod.render(
                 model=model,
                 ncp=dat['jmodelica']['ncp'],
