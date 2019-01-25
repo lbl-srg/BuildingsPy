@@ -117,15 +117,16 @@ def _translate(proc_num, return_dict):
 
   try:
     # Grab the stdoutput
-    out = OutputGrabber()
-    out.start()
+#    out = OutputGrabber()
+#    out.start()
     fmu_name = compile_fmu("{{ model }}",
                            version="2.0",
                            compiler_log_level='warning',
                            compiler_options = {"generate_html_diagnostics" : False})
-    out.stop()
+#    out.stop()
     # The standard output is returned as a list, with each line being an element
-    return_dict[proc_num] = {'success': True, 'fmu_name': str(fmu_name), 'stdout': out.capturedtext.split('\n')}
+#    return_dict[proc_num] = {'success': True, 'fmu_name': str(fmu_name), 'stdout': out.capturedtext.split('\n')}
+    return_dict[proc_num] = {'success': True, 'fmu_name': str(fmu_name), 'stdout': ""}
 
   except Exception as e:
     return_dict[proc_num] = {'success': False,
