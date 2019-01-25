@@ -57,14 +57,13 @@ def runSimulation(worDir, cmd):
                 return retcode
             else:
                 return 0
-        except OSError as e:
-            sys.stderr.write("Execution of '" + " ".join(map(str, cmd)) + " failed.\n"
-                             + "Working directory is '" + worDir + "'.")
-            raise(e)
         except KeyboardInterrupt as e:
             pro.kill()
             sys.stderr.write("Users stopped simulation in %s.\n" % worDir)
-
+        except:
+            sys.stderr.write("Execution of '" + " ".join(map(str, cmd)) + " failed.\n"
+                             + "Working directory is '" + worDir + "'.")
+            raise
 
 class Tester(object):
     """ Class that runs all regression tests using Dymola.
@@ -2523,7 +2522,6 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
                 solver=dat['jmodelica']['solver'],
                 simulate=dat['jmodelica']['simulate'] and dat['mustSimulate'],
                 time_out=dat['jmodelica']['time_out'],
-                tmp_dir=directory,
                 filter=result_variables)
             file_name = os.path.join(directory, "{}.py".format(model.replace(".", "_")))
             with open(file_name, mode="w", encoding="utf-8") as fil:

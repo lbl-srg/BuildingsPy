@@ -190,7 +190,7 @@ def run():
               "simulation": {"success": False}}
 
     # Compile model
-    log_file = os.path.join("{{ tmp_dir }}", "{}_run.json".format(model.replace(".", "_")))
+    log_file = "{}_run.json".format(model.replace(".", "_"))
     try:
         os.remove(log_file)
     except OSError:
@@ -214,8 +214,7 @@ def run():
             result["simulation"]["exception"] = "{}: {}".format(type(e).__name__, e.message)
             result["simulation"]["traceback"] = traceback.format_exc()
 
-    with open(log_file, "w") as log:
-            sys.stderr.write("****** fixme: writing log file {}\n".format(log_file))
+    with open(log_file, 'a') as log:
             log.write("{}\n".format(json.dumps(result, indent=4, sort_keys=False)) )
 
 if __name__=="__main__":

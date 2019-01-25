@@ -141,7 +141,7 @@ class Test_regressiontest_jmodelica_Tester(unittest.TestCase):
         import buildingspy.development.regressiontest as r
         rt = r.Tester(check_html=False, tool="jmodelica")
         myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
-        rt.deleteTemporaryDirectories(True)
+        rt.deleteTemporaryDirectories(False)
         rt.setLibraryRoot(myMoLib)
         rt.run()
         # Delete temporary files
