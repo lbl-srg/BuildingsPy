@@ -2523,6 +2523,7 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
                 solver=dat['jmodelica']['solver'],
                 simulate=dat['jmodelica']['simulate'] and dat['mustSimulate'],
                 time_out=dat['jmodelica']['time_out'],
+                tmp_dir=directory,
                 filter=result_variables)
             file_name = os.path.join(directory, "{}.py".format(model.replace(".", "_")))
             with open(file_name, mode="w", encoding="utf-8") as fil:
