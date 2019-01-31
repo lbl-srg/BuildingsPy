@@ -58,8 +58,8 @@ def runSimulation(worDir, cmd):
             else:
                 return 0
         except OSError as e:
-            sys.stderr.write("Execution of '" + " ".join(map(str, cmd)) + " failed.\n" +
-                             "Working directory is '" + worDir + "'.")
+            sys.stderr.write("Execution of '" + " ".join(map(str, cmd)) + " failed.\n"
+                             + "Working directory is '" + worDir + "'.")
             raise(e)
         except KeyboardInterrupt as e:
             pro.kill()
@@ -999,9 +999,9 @@ class Tester(object):
 
             # Add model specific data
             for con_dat in conf_data:
-#                pattern = re.compile(con_dat['model_name'])
+                #                pattern = re.compile(con_dat['model_name'])
                 for all_dat in self._data:
-#                    if pattern.match(all_dat['model_name']) is not None:
+                    #                    if pattern.match(all_dat['model_name']) is not None:
                     if con_dat['model_name'] == all_dat['model_name']:
                         # Add all elements of the configuration data
                         for key in con_dat.keys():
@@ -1287,9 +1287,9 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         for i in range(len(yInt)):
             errAbs[i] = abs(yOld[i] - yInt[i])
             if np.isnan(errAbs[i]):
-                raise ValueError('NaN in errAbs ' + varNam + " " + str(yOld[i]) +
-                                 "  " + str(yInt[i]) + " i, N " + str(i) + " --:" + str(yInt[i - 1]) +
-                                 " ++:", str(yInt[i + 1]))
+                raise ValueError('NaN in errAbs ' + varNam + " " + str(yOld[i])
+                                 + "  " + str(yInt[i]) + " i, N " + str(i) + " --:" + str(yInt[i - 1])
+                                 + " ++:", str(yInt[i + 1]))
             if (abs(yOld[i]) > 10 * tol):
                 errRel[i] = errAbs[i] / abs(yOld[i])
             else:
@@ -1320,8 +1320,8 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         """
         import numpy as np
         if not (isinstance(dataSeries, np.ndarray) or isinstance(dataSeries, list)):
-            raise TypeError("Program error: dataSeries must be a numpy.ndarr or a list. Received type " +
-                            str(type(dataSeries)) + ".\n")
+            raise TypeError("Program error: dataSeries must be a numpy.ndarr or a list. Received type "
+                            + str(type(dataSeries)) + ".\n")
         return (len(dataSeries) == 2)
 
     def format_float(self, value):
@@ -1935,11 +1935,11 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             if counter > 0:
                 print(v['summary_message'].format(counter))
 
-        self._reporter.writeOutput("Script that runs unit tests had " +
-                                   str(self._reporter.getNumberOfWarnings()) +
-                                   " warnings and " +
-                                   str(self._reporter.getNumberOfErrors()) +
-                                   " errors.\n")
+        self._reporter.writeOutput("Script that runs unit tests had "
+                                   + str(self._reporter.getNumberOfWarnings())
+                                   + " warnings and "
+                                   + str(self._reporter.getNumberOfErrors())
+                                   + " errors.\n")
         sys.stdout.write("See '{}' for details.\n".format(self._simulator_log_file))
 
         if self._reporter.getNumberOfErrors() > 0:
@@ -2098,11 +2098,11 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             if counter > 0:
                 print(v['summary_message'].format(counter))
 
-        self._reporter.writeOutput("Script that runs unit tests had " +
-                                   str(self._reporter.getNumberOfWarnings()) +
-                                   " warnings and " +
-                                   str(self._reporter.getNumberOfErrors()) +
-                                   " errors.\n")
+        self._reporter.writeOutput("Script that runs unit tests had "
+                                   + str(self._reporter.getNumberOfWarnings())
+                                   + " warnings and "
+                                   + str(self._reporter.getNumberOfErrors())
+                                   + " errors.\n")
         sys.stdout.write("See '{}' for details.\n".format(self._simulator_log_file))
 
         if self._reporter.getNumberOfErrors() > 0:
@@ -2245,8 +2245,8 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
             runFil.write(template.format(**values))
 
             # Close the bracket for the JSON object
-            runFil.write("""Modelica.Utilities.Streams.print("      }", """ +
-                         '"' + values['statisticsLog'] + '"' + ");\n")
+            runFil.write("""Modelica.Utilities.Streams.print("      }", """
+                         + '"' + values['statisticsLog'] + '"' + ");\n")
 
         def _print_end_of_json(isLastItem, fileHandle, logFileName):
             if isLastItem:
@@ -3012,8 +3012,8 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
                 return retcode
 
         except OSError as e:
-            raise OSError("Execution of omc +d=initialization " + mosfile + " failed.\n" +
-                          "Working directory is '" + worDir + "'.")
+            raise OSError("Execution of omc +d=initialization " + mosfile + " failed.\n"
+                          + "Working directory is '" + worDir + "'.")
         else:
             # process the log file
             print("Logfile created: {}".format(logFilNam))
