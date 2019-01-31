@@ -98,10 +98,17 @@ createPlot(id=1, y={"Test.x"});
              'mo_content': """Modelica.Blocks.Sources.Constant b[2](k=0) ;""",
              'description': "Missing each on array of components."},
             {'ret_val': 2,
-             'mo_content': """Real x;
-                                    equation
-                                      Modelica.Math.exp(x)=1;""",
+             'mo_content': """
+                              Real x;
+                              equation
+                              Modelica.Math.exp(x)=1;""",
              'description': "Missing start value."},
+            {'ret_val': 0,
+             'mo_content': """
+                              Real x(start=0);
+                              equation
+                              der(x)^3 = 0;""",
+             'description': "Missing start value for der(x), which should be ignored."},
             {'ret_val': 2,
              'mo_content': """parameter Real[2] x(unit="m") = {0, 0};
                                     parameter Real y(each unit="m") = 0;""",
