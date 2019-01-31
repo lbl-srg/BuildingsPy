@@ -53,3 +53,11 @@ class ErrorDictionary(ed.ErrorDictionary):
             #            'buildingspy_var': "iIteMis",
             #            'model_message': "Keyword 'each' applied to scalar in '{}'.",
             'summary_message': "Number of models with missing start value for iteration variable: {}\n"}
+
+        # Search for strings such as Iteration variable "chi_y.QCon_flow" is missing start value!
+        self._error_dict["redeclare of non-replaceable"] = {
+            'tool_message': "can't be redeclared since it has already been redeclared without 'replaceable'",
+            'counter': 0,
+            #            'buildingspy_var': "iIteMis",
+            #            'model_message': "Keyword 'each' applied to scalar in '{}'.",
+            'summary_message': "Number of models with redeclare of no longer replaceable class  : {}\n"}
