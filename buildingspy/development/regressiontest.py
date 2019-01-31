@@ -972,7 +972,6 @@ class Tester(object):
             This method reads the `Resources/Scripts/BuildingsPy/conf.json` file
             and adds it to the data structure.
         """
-        import re
         import copy
         import json
 
@@ -1000,9 +999,10 @@ class Tester(object):
 
             # Add model specific data
             for con_dat in conf_data:
-                pattern = re.compile(con_dat['model_name'])
+#                pattern = re.compile(con_dat['model_name'])
                 for all_dat in self._data:
-                    if pattern.match(all_dat['model_name']) is not None:
+#                    if pattern.match(all_dat['model_name']) is not None:
+                    if con_dat['model_name'] == all_dat['model_name']:
                         # Add all elements of the configuration data
                         for key in con_dat.keys():
                             # Have dictionary in dictionary
