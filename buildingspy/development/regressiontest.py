@@ -2026,7 +2026,8 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                                 data['ResultFile'], oldRefFulFilNam, y_sim, y_tra, refFilNam, ans)
                         else:
                             # Reference file does not exist
-                            print("*** Warning: Reference file {} does not yet exist.".format(refFilNam))
+                            print(
+                                "*** Warning: Reference file {} does not yet exist.".format(refFilNam))
                             while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
                                 print("             Create new file?")
                                 ans = input(
