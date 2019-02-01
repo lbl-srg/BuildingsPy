@@ -79,18 +79,17 @@ class Tester(object):
 
     This class can be used to run all regression tests.
 
-    Regression testing using Dymola
-    -------------------------------
+    *Regression testing using Dymola*
 
     For Dymola, this module searches the directory
-    ``CURRENT_DIRECTORY\Resources\Scripts\Dymola`` for
+    ``CURRENT_DIRECTORY/Resources/Scripts/Dymola`` for
     all ``*.mos`` files that contain the string ``simulate``,
     where ``CURRENT_DIRECTORY`` is the name of the directory in which the Python
     script is started, as returned by the function :func:`getLibraryName`.
     All these files will be executed as part of the regression tests.
     Any variables or parameters that are plotted by these ``*.mos`` files
     will be compared to previous results that are stored in
-    ``CURRENT_DIRECTORY\Resources\ReferenceResults\Dymola``.
+    ``CURRENT_DIRECTORY/Resources/ReferenceResults/Dymola``.
     If no reference results exist, then they will be created.
     Otherwise, the accuracy of the new results is compared to the
     reference results. If they differ by more than a prescibed
@@ -137,8 +136,7 @@ class Tester(object):
     To run regression tests only for a single package, call :func:`setSinglePackage`
     prior to :func:`run`.
 
-    Regression testing using JModelica
-    ----------------------------------
+    *Regression testing using JModelica*
 
     For JModelica, the selection of test cases is done the same
     way as for Dymola. However, the solver tolerance is obtained
@@ -146,24 +144,24 @@ class Tester(object):
     `Tolerance="value"`.
 
     For JModelica, a JSON file stored as
-    ``Resources\Scripts\BuildingsPy\conf.json`` can be used
+    ``Resources/Scripts/BuildingsPy/conf.json`` can be used
     to further configure tests. The file has the syntax
 
-    ```
-    [
-      {
-        "jmodelica": {
-          "ncp": 500,
-          "rtol": 1E-6,
-          "solver": "CVode",
-          "simulate": True,
-          "translate": True,
-          "time_out": 600
-        },
-        "model_name": "Buildings.Fluid.Examples.FlowSystem.Simplified2"
-      }
-    ]
-    ```
+    .. code-block:: javascript
+
+       [
+         {
+           "jmodelica": {
+             "ncp": 500,
+             "rtol": 1E-6,
+             "solver": "CVode",
+             "simulate": True,
+             "translate": True,
+             "time_out": 600
+           },
+           "model_name": "Buildings.Fluid.Examples.FlowSystem.Simplified2"
+         }
+       ]
 
     Any JSON elements are optional, and the entries shown above
     are the default values, except for the relative tolerance `rtol`
@@ -1006,11 +1004,11 @@ class Tester(object):
                         # Add all elements of the configuration data
                         for key in con_dat.keys():
                             # Have dictionary in dictionary
-                            if key == 'jmodelica':
-                                for s in con_dat['jmodelica']:
-                                    val = con_dat['jmodelica'][s]
+                            if key == self._modelica_tool:
+                                for s in con_dat[self._modelica_tool]:
+                                    val = con_dat[self._modelica_tool][s]
                                     if s == 'simulate':
-                                        all_dat['jmodelica'][s] = val
+                                        all_dat[self._modelica_tool][s] = val
                                         # Write a warning if a model is not simulated
                                         if not val:
                                             self._reporter.writeOutput(
@@ -1024,7 +1022,7 @@ class Tester(object):
                                                 "{}: Requested to be excluded from simulation".format(
                                                     all_dat['model_name']))
                                     else:
-                                        all_dat['jmodelica'][s] = val
+                                        all_dat[self._modelica_tool][s] = val
                             else:
                                 all_dat[key] = con_dat[key]
 
@@ -2628,9 +2626,10 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
         - creates run scripts that run all regression tests,
         - runs these regression tests,
         - collects the dymola log files from each process,
-        - writes the combined log file ``dymola.log``
-          to the current directory,
-        - compares the results of the new simulations with
+        - writes the combined log file ``unitTests-x.log``
+          to the current directory, where `x` is the name of the
+          Modelica tool,
+        - for Dymola, compares the results of the new simulations with
           reference results that are stored in ``Resources/ReferenceResults``,
         - writes the message `Regression tests completed successfully.`
           if no error occured,
