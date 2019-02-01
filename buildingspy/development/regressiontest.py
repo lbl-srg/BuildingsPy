@@ -1974,11 +1974,12 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         if not os.path.exists(refDir):
             os.makedirs(refDir)
 
+        ret_val = 0
         for data in self._data:
-            # Name of the reference file, which is the same as that matlab file name but with another extension.
             # Only check data that need to be simulated. This excludes the FMU export
             # from this test.
             if self._includeFile(data['ScriptFile']) and data['mustSimulate']:
+                get_user_prompt = True
                 # Convert 'aa/bb.mos' to 'aa_bb.txt'
                 mosFulFilNam = os.path.join(self.getLibraryName(), data['ScriptFile'])
                 mosFulFilNam = mosFulFilNam.replace(os.sep, '_')
@@ -1998,7 +1999,8 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                         self._reporter.writeError(entry)
                         # If there were errors when getting the results or translation statistics,
                         # then return
-                        return 1
+                        ret_val = 1
+                        get_user_prompt = False
                 except UnicodeDecodeError as e:
                     em = "UnicodeDecodeError({0}): {1}".format(e.errno, e)
                     em += "Output file of " + data['ScriptFile'] + " is excluded from unit tests.\n"
@@ -2007,38 +2009,40 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                     em += "Check " + data['ScriptFile'] + " and the classes it instanciates.\n"
                     self._reporter.writeError(em)
                 else:
-                    # Reset answer, unless it is set to Y or N
-                    if not (ans == "Y" or ans == "N"):
-                        ans = "-"
+                    # if there was no error for this test case, check user feedback for result
+                    if get_user_prompt:
+                        # Reset answer, unless it is set to Y or N
+                        if not (ans == "Y" or ans == "N"):
+                            ans = "-"
 
-                    updateReferenceData = False
-                    # check if reference results already exists in library
-                    oldRefFulFilNam = os.path.join(refDir, refFilNam)
-                    # If the reference file exists, and if the reference file contains
-                    # results, compare the results.
-                    if os.path.exists(oldRefFulFilNam):
-                        # compare the new reference data with the old one
-                        [updateReferenceData, _, ans] = self._compareResults(
-                            data['ResultFile'], oldRefFulFilNam, y_sim, y_tra, refFilNam, ans)
-                    else:
-                        # Reference file does not exist
-                        print("*** Warning: Reference file {} does not yet exist.".format(refFilNam))
-                        while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
-                            print("             Create new file?")
-                            ans = input(
-                                "             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
-                        if ans == "y" or ans == "Y":
-                            updateReferenceData = True
-                    if updateReferenceData:    # If the reference data of any variable was updated
-                        # Make dictionary to save the results and the svn information
-                        self._writeReferenceResults(oldRefFulFilNam, y_sim, y_tra)
+                        updateReferenceData = False
+                        # check if reference results already exists in library
+                        oldRefFulFilNam = os.path.join(refDir, refFilNam)
+                        # If the reference file exists, and if the reference file contains
+                        # results, compare the results.
+                        if os.path.exists(oldRefFulFilNam):
+                            # compare the new reference data with the old one
+                            [updateReferenceData, _, ans] = self._compareResults(
+                                data['ResultFile'], oldRefFulFilNam, y_sim, y_tra, refFilNam, ans)
+                        else:
+                            # Reference file does not exist
+                            print("*** Warning: Reference file {} does not yet exist.".format(refFilNam))
+                            while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
+                                print("             Create new file?")
+                                ans = input(
+                                    "             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
+                            if ans == "y" or ans == "Y":
+                                updateReferenceData = True
+                        if updateReferenceData:    # If the reference data of any variable was updated
+                            # Make dictionary to save the results and the svn information
+                            self._writeReferenceResults(oldRefFulFilNam, y_sim, y_tra)
             else:
                 # Tests that export FMUs do not have an output file. Hence, we do not warn
                 # about these cases.
                 if not data['mustExportFMU']:
                     self._reporter.writeWarning(
                         "Output file of " + data['ScriptFile'] + " is excluded from result test.")
-        return 0
+        return ret_val
 
     def _checkSimulationError(self, errorFile):
         """ Check whether the simulation had any errors, and
