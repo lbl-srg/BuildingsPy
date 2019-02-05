@@ -146,21 +146,32 @@ def _simulate(proc_num, return_dict):
   try:
     fmu_name = "{{ model }}".replace(".", "_") + ".fmu"
     mod = load_fmu(fmu_name)
-    x_nominal = mod.nominal_continuous_states
 
     opts = mod.simulate_options() #Retrieve the default options
-    opts['logging'] = False
+
     opts['solver'] = '{{ solver }}'
-    opts['ncp'] = {{ ncp }}
 
     if opts['solver'].lower() == 'cvode':
       # Set user-specified tolerance if it is smaller than the tolerance in the .mo file
-      r_tol = {{ rtol }}
-      opts['CVode_options']['rtol'] = r_tol
+      rtol = {{ rtol }}
+      x_nominal = mod.nominal_continuous_states
+
       if len(x_nominal) > 0:
-        opts['CVode_options']['atol'] = r_tol*x_nominal
+        atol = rtol*x_nominal
       else:
-        opts['CVode_options']['atol'] = r_tol
+        atol = rtol
+
+      opts['CVode_options'] = {
+        'external_event_detection': False,
+        'iter': 'Newton',
+        'discr': 'BDF',
+        'rtol': rtol ,
+        'atol': atol,
+        'store_event_points': True
+        }
+
+    opts['logging'] = False
+    opts['ncp'] = 500
 
     opts['filter'] = {{ filter }}
     res = mod.simulate(options=opts)
