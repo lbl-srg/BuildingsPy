@@ -1009,10 +1009,10 @@ class Tester(object):
                                     val = con_dat[self._modelica_tool][s]
                                     if s == 'simulate':
                                         all_dat[self._modelica_tool][s] = val
-                                        # Write a warning if a model is not simulated
+                                        # Write a warning if a model is not translated
                                         if not val:
                                             self._reporter.writeOutput(
-                                                "{}: Requested to be excluded from simulation".format(
+                                                "{}: Requested to be excluded from translation".format(
                                                     all_dat['model_name']))
                                     elif s == 'translate':
                                         all_dat['jmodelica'][s] = val
@@ -1913,8 +1913,20 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                             # Check if simulation was omitted based configuration.
                             if 'message' in res['simulation'] and \
                                res['simulation']['message'] == 'No simulation requested.':
-                                print("*** Did not simulate {}".format(res['model']))
-                                iOmiSim = iOmiSim + 1
+                                # Write a message, except if this model is for FMU export only
+                                # Get the info from the data structure that has the experiment specification.
+                                mustExportFMU = False
+                                model_name = res['model']
+                                for ele in self._data:
+                                    if ele['model_name'] == model_name:
+                                        if ele['mustExportFMU']:
+                                            mustExportFMU = True
+                                            break
+                                if not mustExportFMU:
+                                    # This is a model that usually should be simulated,
+                                    # and not only a model that need to be exported as an FMU
+                                    print("*** Did not simulate {}".format(res['model']))
+                                    iOmiSim = iOmiSim + 1
                             else:
                                 em = "Simulation of {} failed with {}.".format(
                                     res['model'], res["simulation"]["exception"])
