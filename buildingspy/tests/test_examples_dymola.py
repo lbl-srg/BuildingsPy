@@ -33,6 +33,7 @@ class Test_example_dymola_runSimulation(unittest.TestCase):
         super(Test_example_dymola_runSimulation, self).__init__(*args, **kwargs)
 
         self._temDir = None
+        self._buiDir = None
 
     def setUp(self):
         """ Ensure that environment variables that are needed to run
@@ -46,18 +47,21 @@ class Test_example_dymola_runSimulation(unittest.TestCase):
         self.env = EnvironmentVarGuard()
 
         self._temDir = tempfile.mkdtemp(prefix='tmp-BuildingsPy-Modelica-Lib-')
+        self._buiDir = os.path.join(os.getcwd(), "Buildings")
 
-        if not os.path.exists(os.path.join(os.getcwd(), "tmp")):
-            clo_dir = os.path.join(os.getcwd(), "tmp")
-            if os.path.exists(clo_dir):
-                shutil.rmtree(clo_dir)
-            Repo.clone_from("https://github.com/lbl-srg/modelica-buildings.git",
-                            clo_dir, depth=1)
+        clo_dir = os.path.join(os.getcwd(), "tmp")
 
-            if os.path.exists(os.path.join(os.getcwd(), "Buildings")):
-                shutil.rmtree(os.path.join(os.getcwd(), "Buildings"))
-            shutil.move(os.path.join(os.getcwd(), "tmp", "Buildings"),
-                        os.path.join(os.getcwd()))
+        if os.path.exists(clo_dir):
+            shutil.rmtree(clo_dir)
+
+        Repo.clone_from("https://github.com/lbl-srg/modelica-buildings.git",
+                        clo_dir, depth=1)
+
+        if os.path.exists(os.path.join(os.getcwd(), "Buildings")):
+            shutil.rmtree(os.path.join(os.getcwd(), "Buildings"))
+        shutil.move(os.path.join(os.getcwd(), "tmp", "Buildings"),
+                    self._buiDir)
+        shutil.rmtree(clo_dir)
 
     def tearDown(self):
         """ Method called after all the tests.
@@ -65,8 +69,7 @@ class Test_example_dymola_runSimulation(unittest.TestCase):
         # Delete temporary directory
         import shutil
         import os
-        shutil.rmtree(os.path.join(os.getcwd(), "Buildings"))
-        shutil.rmtree(os.path.join(os.getcwd(), "tmp"))
+        shutil.rmtree(self._buiDir)
 
     def test_runSimulation(self):
         """
@@ -75,7 +78,6 @@ class Test_example_dymola_runSimulation(unittest.TestCase):
         """
         import os
         import buildingspy.examples.dymola.runSimulation as s
-
         os.chdir("Buildings")
         s.main()
         os.chdir("..")

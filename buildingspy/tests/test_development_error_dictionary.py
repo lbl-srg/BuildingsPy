@@ -22,7 +22,7 @@ class Test_development_error_dictionary(unittest.TestCase):
     """
 
     def test_keys(self):
-        import buildingspy.development.error_dictionary as e
+        import buildingspy.development.error_dictionary_dymola as e
         err_dic = e.ErrorDictionary()
         k = sorted(err_dic.keys())
 
@@ -48,7 +48,7 @@ class Test_development_error_dictionary(unittest.TestCase):
                              "Wrong key, expected \"{}\".".format(k_expected[i]))
 
     def test_tool_messages(self):
-        import buildingspy.development.error_dictionary as e
+        import buildingspy.development.error_dictionary_dymola as e
         err_dic = e.ErrorDictionary()
         k = sorted(err_dic.tool_messages())
         k_expected = sorted(['Differentiating (if',

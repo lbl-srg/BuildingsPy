@@ -63,26 +63,23 @@ class Test_regressiontest_Tester(unittest.TestCase):
                           """y = {"a", "b",
                           "c"}""")
 
-    def test_regressiontest_dymola(self):
+    def test_regressiontest(self):
         import buildingspy.development.regressiontest as r
         rt = r.Tester(check_html=False)
         myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
         rt.setLibraryRoot(myMoLib)
         rt.include_fmu_tests(True)
         rt.writeOpenModelicaResultDictionary()
-        rt.run()
+        ret_val = rt.run()
+        # Check return value to see if test suceeded
+        self.assertEqual(0, ret_val, "Test failed with return value {}".format(ret_val))
         # Delete temporary files
-        os.remove('unitTests.log')
+        os.remove(rt.get_unit_test_log_file())
 
-    def test_regressiontest_jmodelica(self):
+    def test_unit_test_log_file(self):
         import buildingspy.development.regressiontest as r
-        rt = r.Tester(check_html=False, tool="jmodelica")
-        myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
-        rt.deleteTemporaryDirectories(True)
-        rt.setLibraryRoot(myMoLib)
-        rt.run()
-        # Delete temporary files
-        os.remove('unitTests.log')
+        rt = r.Tester(check_html=False, tool="dymola")
+        self.assertEqual('unitTests-dymola.log', rt.get_unit_test_log_file())
 
     def test_regressiontest(self):
         import buildingspy.development.regressiontest as r
@@ -133,9 +130,8 @@ class Test_regressiontest_Tester(unittest.TestCase):
         myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
         rt.setLibraryRoot(myMoLib)
         rt.include_fmu_tests(True)
-        # No new tests should be found as FMUs is a subdirectory of Examples.
-        self.assertRaises(ValueError, rt.setSinglePackage,
-                          "MyModelicaLibrary.Examples,MyModelicaLibrary.Examples.FMUs")
+        rt.setSinglePackage("MyModelicaLibrary.Examples,MyModelicaLibrary.Examples.FMUs")
+        self.assertEqual(6, rt.get_number_of_tests())
 
     def test_setExcludeTest(self):
         import buildingspy.development.regressiontest as r
@@ -145,14 +141,15 @@ class Test_regressiontest_Tester(unittest.TestCase):
         skpFil = os.path.join(myMoLib, "Resources", "Scripts", "skipUnitTestList.txt")
         rt.setLibraryRoot(myMoLib)
         rt.setExcludeTest(skpFil)
-        rt.run()
+        ret_val = rt.run()
+        # Check return value to see if test suceeded
+        # ret_val must be two because excluding files triggers a warning.
+        self.assertEqual(
+            2,
+            ret_val,
+            "Test failed with return value {}, expected 2.".format(ret_val))
+        # Check for correct number of tests
         self.assertEqual(1, rt.get_number_of_tests())
-        print("*** Finished test_setExcludeTest.\n")
-
-    def test_runSimulation(self):
-        import buildingspy.development.regressiontest as r
-        self.assertRaises(OSError,
-                          r.runSimulation, ".", "this_command_does_not_exist")
 
     def test_areResultsEqual(self):
         import buildingspy.development.regressiontest as r
@@ -232,15 +229,6 @@ class Test_regressiontest_Tester(unittest.TestCase):
         self.assertRaises(ValueError,
                           rt.setLibraryRoot, "this_is_not_the_root_dir_of_a_library")
 
-    def test_test_OpenModelica(self):
-        import buildingspy.development.regressiontest as r
-        rt = r.Tester(check_html=False)
-        rt._deleteTemporaryDirectories = False
-
-        myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
-        rt.setLibraryRoot(myMoLib)
-        rt.test_OpenModelica(simulate=True)
-
     def test_setDataDictionary(self):
         import buildingspy.development.regressiontest as r
         rt = r.Tester(check_html=False)
@@ -280,6 +268,3 @@ class Test_regressiontest_Tester(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-    #selection = unittest.TestSuite()
-    # selection.addTest(Test_regressiontest_Tester('test_test_OpenModelica'))
-    # unittest.TextTestRunner().run(selection)
