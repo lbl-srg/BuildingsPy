@@ -1585,7 +1585,8 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                     else:
                         # There is no old data series for this variable name
                         self._reporter.writeWarning(
-                            "Did not find variable " + varNam + " in old results.")
+                            "{}: Did not find variable {} in old results.".format(
+                                refFilNam, varNam))
                         foundError = True
                         noOldResults.append(varNam)
 
