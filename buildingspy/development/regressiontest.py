@@ -78,14 +78,18 @@ class Tester(object):
     :param cleanup: bool (default=True).  Specify whether to delete temporary directories.
 
     This class can be used to run all regression tests.
-    It searches the directory ``CURRENT_DIRECTORY\Resources\Scripts\Dymola`` for
+
+    *Regression testing using Dymola*
+
+    For Dymola, this module searches the directory
+    ``CURRENT_DIRECTORY/Resources/Scripts/Dymola`` for
     all ``*.mos`` files that contain the string ``simulate``,
     where ``CURRENT_DIRECTORY`` is the name of the directory in which the Python
     script is started, as returned by the function :func:`getLibraryName`.
     All these files will be executed as part of the regression tests.
     Any variables or parameters that are plotted by these ``*.mos`` files
     will be compared to previous results that are stored in
-    ``CURRENT_DIRECTORY\Resources\ReferenceResults\Dymola``.
+    ``CURRENT_DIRECTORY/Resources/ReferenceResults/Dymola``.
     If no reference results exist, then they will be created.
     Otherwise, the accuracy of the new results is compared to the
     reference results. If they differ by more than a prescibed
@@ -124,13 +128,46 @@ class Tester(object):
        <BLANKLINE>
        Script that runs unit tests had 0 warnings and 0 errors.
        <BLANKLINE>
-       See 'simulator.log' for details.
+       See 'simulator-....log' for details.
        Unit tests completed successfully.
        <BLANKLINE>
        Execution time = ...
 
     To run regression tests only for a single package, call :func:`setSinglePackage`
     prior to :func:`run`.
+
+    *Regression testing using JModelica*
+
+    For JModelica, the selection of test cases is done the same
+    way as for Dymola. However, the solver tolerance is obtained
+    from the `.mo` file by reading the annotation
+    `Tolerance="value"`.
+
+    For JModelica, a JSON file stored as
+    ``Resources/Scripts/BuildingsPy/conf.json`` can be used
+    to further configure tests. The file has the syntax
+
+    .. code-block:: javascript
+
+       [
+         {
+           "jmodelica": {
+             "ncp": 500,
+             "rtol": 1E-6,
+             "solver": "CVode",
+             "simulate": True,
+             "translate": True,
+             "time_out": 600
+           },
+           "model_name": "Buildings.Fluid.Examples.FlowSystem.Simplified2"
+         }
+       ]
+
+    Any JSON elements are optional, and the entries shown above
+    are the default values, except for the relative tolerance `rtol`
+    which is read from the `.mo` file. However, with `rtol`, this
+    value can be overwritten.
+    Note that this syntax is still experimental and may be changed.
 
     """
 
@@ -139,7 +176,10 @@ class Tester(object):
         """
         import multiprocessing
         import buildingspy.io.reporter as rep
-        import buildingspy.development.error_dictionary as e
+        if tool == 'jmodelica':
+            import buildingspy.development.error_dictionary_jmodelica as e
+        else:
+            import buildingspy.development.error_dictionary_dymola as e
 
         # --------------------------
         # Class variables
@@ -161,7 +201,7 @@ class Tester(object):
             raise ValueError(
                 "Value of 'tool' of constructor 'Tester' must be 'dymola', 'omc' or 'jmodelica'. Received '{}'.".format(tool))
         # File to which the console output of the simulator is written to
-        self._simulator_log_file = "simulator.log"
+        self._simulator_log_file = "simulator-{}.log".format(tool)
         # File to which statistics is written to
         self._statistics_log = "statistics.json"
         self._nPro = multiprocessing.cpu_count()
@@ -197,7 +237,7 @@ class Tester(object):
                  mos file plots `a.x` versus `a.y` and `b.x` versus `(b.y1, b.y2)`.
         '''
         self._data = []
-        self._reporter = rep.Reporter(os.path.join(os.getcwd(), "unitTests.log"))
+        self._reporter = rep.Reporter(os.path.join(os.getcwd(), "unitTests-{}.log".format(tool)))
 
         # By default, include export of FMUs.
         self._include_fmu_test = True
@@ -214,11 +254,20 @@ class Tester(object):
         # By default, do not show the GUI of the simulator
         self._showGUI = False
 
+    def get_unit_test_log_file(self):
+        """ Return the name of the log file of the unit tests, such as ``unitTests-jmodelica.log`` or ``unitTests-dymola.log``.
+        """
+        return "unitTests-{}.log".format(self._modelica_tool)
+
     def _initialize_error_dict(self):
         """ Initialize the error dictionary.
 
         """
-        import buildingspy.development.error_dictionary as e
+        if self._modelica_tool == 'jmodelica':
+            import buildingspy.development.error_dictionary_jmodelica as e
+        else:
+            import buildingspy.development.error_dictionary_dymola as e
+
         self._error_dict = e.ErrorDictionary()
 
     def setLibraryRoot(self, rootDir):
@@ -442,6 +491,9 @@ class Tester(object):
 
         :param excludeFile: The text file with files that shall be excluded from regression tests
         """
+        self._reporter.writeWarning(
+            "The function setExcludeTest will be removed in future releases.")
+
         if os.path.isfile(excludeFile):
             with open(excludeFile, mode="r", encoding="utf-8-sig") as f:
                 for line in f:
@@ -509,6 +561,27 @@ class Tester(object):
         ret = ",".join(pac)
         return ret.replace(' ', '')
 
+    def _remove_duplicate_packages(self, packages):
+        """ Remove duplicate packages in the list of packages.
+
+            For example, if packages = [A.B.C, A.B, A.F], or packages = [A.B, A.B.C, A.F],
+            then this function returns [A.B, A.F] because A.B.C is already contained in A.B
+        """
+        sor = sorted(packages)  # This sets sor = [A.B, A.B.C, A.F]
+        ret = list()
+        for i in range(len(sor)):
+            add = True
+            for j in range(len(ret)):
+                if sor[i].startswith(ret[j]):
+                    # The parent package is already in the list
+                    add = False
+                    self._reporter.writeWarning(
+                        "Found package that is contained in other package in test configuration '{}' and '{}'".format(
+                            sor[i], ret[j]))
+            if add:
+                ret.append(sor[i])
+        return ret
+
     def setSinglePackage(self, packageName):
         """
         Set the name of one or multiple Modelica package(s) to be tested.
@@ -538,6 +611,7 @@ class Tester(object):
             packages = expanded_packages.split(',')
         else:
             packages.append(packageName)
+        packages = self._remove_duplicate_packages(packages)
         # Inform the user that not all tests are run, but don't add to warnings
         # as this would flag the test to have failed
         self._reporter.writeOutput(
@@ -588,7 +662,7 @@ class Tester(object):
             os.makedirs(desDir)
         # Loop over all experiments and write the files.
         for experiment in self._data:
-            if 'modelName' in experiment and experiment['mustSimulate']:
+            if 'model_name' in experiment and experiment['mustSimulate']:
                 if 'ResultVariables' in experiment:
                     # For OpenModelica, don't group variables into those
                     # who should be plotted together, as all are plotted in
@@ -600,7 +674,7 @@ class Tester(object):
                     # Content of the file.
                     filCon = "compareVars :=\n  {\n    \"%s\"\n  };\n" % ("\",\n    \"".join(res))
                     # File name.
-                    filNam = os.path.join(desDir, experiment['modelName'] + ".mos")
+                    filNam = os.path.join(desDir, experiment['model_name'] + ".mos")
                     # Write the file
                     with open(filNam, mode="w", encoding="utf-8") as fil:
                         fil.write(filCon)
@@ -659,6 +733,37 @@ class Tester(object):
             # reading .mat is picky. For example, it refused to read a[1,1] or a[1,  1]
             y[i] = re.sub(r',\W*', ', ', y[i])
         return y
+
+    @staticmethod
+    def get_tolerance(library_home, model_name):
+        """ Return the tolerance as read from the `.mo` file.
+
+            :param library_home: Home directory of the library.
+            :param model_name: Name of the model.
+        """
+        import os
+        import re
+        import io
+
+        file_name = os.path.join(library_home, '..', model_name.replace('.', os.path.sep) + ".mo")
+        if not os.path.exists(file_name):
+            raise IOError("Failed to find file '{}' for model '{}'".format(file_name, model_name))
+
+        p_number = re.compile(r'Tolerance\s*=\s*(-?\ *[0-9]+\.?[0-9]*(?:[Ee]\ *-?\ *[0-9]+)?)')
+        tols = list()
+        with open(file_name, 'r') as fil:
+            for lin in fil:
+                tol = re.findall(p_number, lin)
+                if len(tol) > 0:
+                    tols.append(tol)
+
+        # Make sure we found exactly one entry
+        if len(tols) == 0:
+            raise RuntimeError("Failed to find Tolerance in '{}'.".format(file_name))
+        if len(tols) > 1:
+            raise RuntimeError(
+                "Found multiple entries for Tolerance in '{}', but require exactly one entry.".format(file_name))
+        return tols[0][0]
 
     def setDataDictionary(self, root_package=None):
         """ Build the data structures that are needed to parse the output files.
@@ -735,7 +840,7 @@ class Tester(object):
                                 modNam = re.sub(r'simulateModel\(\s*"', '', simCom.string)
                                 modNam = modNam[0:modNam.index('"')]
                                 dat['mustSimulate'] = True
-                                dat['modelName'] = modNam
+                                dat['model_name'] = modNam
                                 dat['TranslationLogFile'] = modNam + ".translation.log"
                             # parse startTime and stopTime, if any
                             if dat['mustSimulate']:
@@ -748,25 +853,37 @@ class Tester(object):
                             if dat['mustExportFMU']:
                                 for attr in ["modelToOpen", "modelName"]:
                                     _get_attribute_value(lin, attr, dat)
-                                # The .mos script allows modelName="", in which case
+                                    # Dymola uses in translateModelFMU the syntax
+                                    # modelName=... but our dictionary uses model_name
+                                    if attr == "modelName" and "modelName" in dat:
+                                        dat["model_name"] = dat["modelName"]
+                                        del dat["modelName"]
+                                # The .mos script allows modelName="", hence
                                 # we set the model name to be the entry of modelToOpen
-                                if "modelName" in dat and dat["modelName"] == "" or (
-                                        "modelName" in dat):
+                                if "model_name" in dat and dat["model_name"] == "":
                                     if "modelToOpen" in dat:
-                                        dat["modelName"] = dat["modelToOpen"]
+                                        dat["model_name"] = dat["modelToOpen"]
+
+                        # Get tolerance from mo file. This is used to set the tolerance
+                        # for JModelica.
+                        # Only get the tolerance for the models that need to be simulated,
+                        # because those that are only exported as FMU don't need this setting.
+                        if dat['mustSimulate']:
+                            dat['tolerance'] = self.get_tolerance(self._libHome, dat['model_name'])
 
                         # We are finished iterating over all lines of the .mos
-                        # For FMU export, if modelName="", then Dymola uses the
+
+                        # For FMU export, if model_name="", then Dymola uses the
                         # Modelica class name, with "." replaced by "_".
                         # If the Modelica class name consists of "_", then they
                         # are replaced by "_0".
-                        # Hence, we update dat['modelName'] if needed.
+                        # Hence, we update dat['model_name'] if needed.
                         if dat['mustExportFMU']:
-                            # Strip quotes from modelName and modelToOpen
-                            dat['FMUName'] = dat['modelName'].strip('"')
+                            # Strip quotes from model_name and modelToOpen
+                            dat['FMUName'] = dat['model_name'].strip('"')
                             dat['modelToOpen'] = dat['modelToOpen'].strip('"')
 
-                            # Update the name of the FMU if modelName is "" in .mos file.
+                            # Update the name of the FMU if model_name is "" in .mos file.
                             if len(dat["FMUName"]) == 0:
                                 dat['FMUName'] = dat['modelToOpen']
                             # Update the FMU name, for example to change
@@ -826,7 +943,11 @@ class Tester(object):
                                 raise ValueError('Did not find *.mat file in ' + mosFil)
 
                             dat['ResultFile'] = matFil
-                    if dat not in self._data:
+
+                    # Some files like plotFan.mos has neither a simulateModel
+                    # nor a translateModelFMU command.
+                    # These there must not be added to the data array.
+                    if dat['mustSimulate'] or dat['mustExportFMU']:
                         self._data.append(dat)
 
         # Make sure we found at least one unit test
@@ -838,7 +959,72 @@ class Tester(object):
         # Raise an error if there was any error reported.
         if self._reporter.getNumberOfErrors() > 0:
             raise ValueError("Error when setting up unit tests.")
+
+        # Add the experiment specifications to the data
+        self._add_experiment_specifications()
         return
+
+    def _add_experiment_specifications(self):
+        """ Add the experiment specification to the data structure.
+
+            This method reads the `Resources/Scripts/BuildingsPy/conf.json` file
+            and adds it to the data structure.
+        """
+        import copy
+        import json
+
+        def_dic = {
+            'jmodelica': {
+                'solver': 'CVode',
+                'simulate': True,
+                'ncp': 500,
+                'time_out': 1200
+            }
+        }
+
+        for all_dat in self._data:
+            # Add default data
+            for key in def_dic.keys():
+                all_dat[key] = copy.deepcopy(def_dic[key])
+
+        # Get configuration data from file, if present
+        conf_dir = os.path.join(self._libHome, 'Resources', 'Scripts', 'BuildingsPy')
+        conf_file = os.path.join(conf_dir, 'conf.json')
+
+        if os.path.exists(conf_file):
+            with open(conf_file, 'r') as f:
+                conf_data = json.load(f)
+
+            # Add model specific data
+            for con_dat in conf_data:
+                #                pattern = re.compile(con_dat['model_name'])
+                for all_dat in self._data:
+                    #                    if pattern.match(all_dat['model_name']) is not None:
+                    if con_dat['model_name'] == all_dat['model_name']:
+                        # Add all elements of the configuration data
+                        for key in con_dat.keys():
+                            # Have dictionary in dictionary
+                            if key == self._modelica_tool:
+                                for s in con_dat[self._modelica_tool]:
+                                    val = con_dat[self._modelica_tool][s]
+                                    if s == 'simulate':
+                                        all_dat[self._modelica_tool][s] = val
+                                        # Write a warning if a model is not translated
+                                        if not val:
+                                            self._reporter.writeOutput(
+                                                "{}: Requested to be excluded from translation".format(
+                                                    all_dat['model_name']))
+                                    elif s == 'translate':
+                                        all_dat['jmodelica'][s] = val
+                                        # Write a warning if a model is not simulated
+                                        if not val:
+                                            self._reporter.writeOutput(
+                                                "{}: Requested to be excluded from simulation".format(
+                                                    all_dat['model_name']))
+                                    else:
+                                        all_dat[self._modelica_tool][s] = val
+                            else:
+                                all_dat[key] = con_dat[key]
 
     def _checkDataDictionary(self):
         """ Check if the data used to run the regression tests do not have duplicate ``*.fmu`` files
@@ -1648,6 +1834,36 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                     self._reporter.writeError(em)
         return retVal
 
+    def _get_jmodelica_warnings(self, error_text, model):
+        """ Return a list with all JModelica warnings
+        """
+        import re
+
+        lis = list()
+        # Search for all warnings
+        for k, v in list(self._error_dict.get_dictionary().items()):
+            # Search in each line of the error file
+            for lin in error_text:
+                # JModelica/ThirdParty/MSL/Modelica/Media/package.mo has errorneous each
+                # which we skip in our testing
+                if ("Ignoring erroneous 'each' for the modification ' = reference_X'" in lin) or \
+                        ("Ignoring erroneous 'each' for the modification ' = fill(0,0)'" in lin) or \
+                        ("""Ignoring erroneous 'each' for the modification ' = {","}'""" in lin):
+                    break
+                # Ignore warnings of the form Iteration variable "der(xxx)" is missing start value!
+                if re.search(r"""Iteration variable "der\(\S|.\)" is missing start value!""", lin):
+                    break
+                if v['tool_message'] in lin:
+                    # Found a warning. Report it to the reporter, and add it to the list that will be written to
+                    # the json file.
+                    #                  self._reporter.writeWarning(v["model_message"].format(model))
+                    msg = lin.strip(' \n')
+                    self._reporter.writeWarning("{}: {}".format(model, msg))
+                    lis.append(msg)
+                    self._error_dict.increment_counter(k)
+        # Return a dictionary with all warnings
+        return lis
+
     def _check_jmodelica_runs(self):
         """ Check the results of the JModelica tests.
 
@@ -1658,7 +1874,9 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         import glob
         import json
 
-        iCom = 0
+        iTra = 0
+        iSim = 0
+        iOmiSim = 0
         # Iterate over directories
         all_res = []
         for d in self._temDir:
@@ -1669,21 +1887,62 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                 json_name = fil.replace(".py", "_run.json")
                 if not os.path.exists(json_name):
                     em = "Did not find {}. Is JModelica properly installed?".format(json_name)
+                    with open('stdout', 'r', encoding="utf-8-sig") as tem:
+                        for lin in tem:
+                            em = em + "**** stdout file: {}\n".format(lin)
+                        em = em + "**** end of stdout file\n"
                     self._reporter.writeError(em)
-                    iCom = iCom + 1
+                    iTra = iTra + 1
                 else:
                     with open(json_name, 'r', encoding="utf-8-sig") as json_file:
                         res = json.load(json_file)
+                        # Get warnings from stdout that was captured from the compilation
+                        if 'stdout' in res['translation']:
+                            warnings = self._get_jmodelica_warnings(
+                                error_text=res['translation']['stdout'],
+                                model=res['model'])
+                            res['translation']['warnings'] = warnings
+                            # We don't need the stdout anymore, which can be long.
+                            del res['translation']['stdout']
+
                         all_res.append(res)
-                        if not res['compilation']['result']:
-                            em = "Compilation of {} failed.".format(res['model'])
+                        if not res['translation']['success']:
+                            em = "Translation of {} failed.".format(res['model'])
                             self._reporter.writeError(em)
-                            iCom = iCom + 1
+                            iTra = iTra + 1
+                        elif not res['simulation']['success']:
+                            # Check if simulation was omitted based configuration.
+                            if 'message' in res['simulation'] and \
+                               res['simulation']['message'] == 'No simulation requested.':
+                                # Write a message, except if this model is for FMU export only
+                                # Get the info from the data structure that has the experiment
+                                # specification.
+                                mustExportFMU = False
+                                model_name = res['model']
+                                for ele in self._data:
+                                    if ele['model_name'] == model_name:
+                                        if ele['mustExportFMU']:
+                                            mustExportFMU = True
+                                            break
+                                if not mustExportFMU:
+                                    # This is a model that usually should be simulated,
+                                    # and not only a model that need to be exported as an FMU
+                                    print("*** Did not simulate {}".format(res['model']))
+                                    iOmiSim = iOmiSim + 1
+                            else:
+                                em = "Simulation of {} failed with {}.".format(
+                                    res['model'], res["simulation"]["exception"])
+                                self._reporter.writeError(em)
+                                iSim = iSim + 1
 
-        if iCom > 0:
-            print("\nNumber of models that failed compilation                     : {}".format(iCom))
+        if iTra > 0:
+            print("\nNumber of models that failed translation                     : {}".format(iTra))
+        if iSim > 0:
+            print("\nNumber of models that translated but failed simulation       : {}".format(iSim))
+        if iOmiSim > 0:
+            print("\nNumber of models that configuration excluded from simulation : {}".format(iOmiSim))
 
-        # Write all results to simulator.log
+        # Write all results to simulator log file
         with open(self._simulator_log_file, 'w', encoding="utf-8-sig") as sim_log:
             sim_log.write("{}\n".format(json.dumps(all_res, indent=2, sort_keys=True)))
 
@@ -1729,11 +1988,12 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         if not os.path.exists(refDir):
             os.makedirs(refDir)
 
+        ret_val = 0
         for data in self._data:
-            # Name of the reference file, which is the same as that matlab file name but with another extension.
             # Only check data that need to be simulated. This excludes the FMU export
             # from this test.
             if self._includeFile(data['ScriptFile']) and data['mustSimulate']:
+                get_user_prompt = True
                 # Convert 'aa/bb.mos' to 'aa_bb.txt'
                 mosFulFilNam = os.path.join(self.getLibraryName(), data['ScriptFile'])
                 mosFulFilNam = mosFulFilNam.replace(os.sep, '_')
@@ -1753,7 +2013,8 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                         self._reporter.writeError(entry)
                         # If there were errors when getting the results or translation statistics,
                         # then return
-                        return 1
+                        ret_val = 1
+                        get_user_prompt = False
                 except UnicodeDecodeError as e:
                     em = "UnicodeDecodeError({0}): {1}".format(e.errno, e)
                     em += "Output file of " + data['ScriptFile'] + " is excluded from unit tests.\n"
@@ -1762,38 +2023,41 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                     em += "Check " + data['ScriptFile'] + " and the classes it instanciates.\n"
                     self._reporter.writeError(em)
                 else:
-                    # Reset answer, unless it is set to Y or N
-                    if not (ans == "Y" or ans == "N"):
-                        ans = "-"
+                    # if there was no error for this test case, check user feedback for result
+                    if get_user_prompt:
+                        # Reset answer, unless it is set to Y or N
+                        if not (ans == "Y" or ans == "N"):
+                            ans = "-"
 
-                    updateReferenceData = False
-                    # check if reference results already exists in library
-                    oldRefFulFilNam = os.path.join(refDir, refFilNam)
-                    # If the reference file exists, and if the reference file contains
-                    # results, compare the results.
-                    if os.path.exists(oldRefFulFilNam):
-                        # compare the new reference data with the old one
-                        [updateReferenceData, _, ans] = self._compareResults(
-                            data['ResultFile'], oldRefFulFilNam, y_sim, y_tra, refFilNam, ans)
-                    else:
-                        # Reference file does not exist
-                        print("*** Warning: Reference file {} does not yet exist.".format(refFilNam))
-                        while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
-                            print("             Create new file?")
-                            ans = input(
-                                "             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
-                        if ans == "y" or ans == "Y":
-                            updateReferenceData = True
-                    if updateReferenceData:    # If the reference data of any variable was updated
-                        # Make dictionary to save the results and the svn information
-                        self._writeReferenceResults(oldRefFulFilNam, y_sim, y_tra)
+                        updateReferenceData = False
+                        # check if reference results already exists in library
+                        oldRefFulFilNam = os.path.join(refDir, refFilNam)
+                        # If the reference file exists, and if the reference file contains
+                        # results, compare the results.
+                        if os.path.exists(oldRefFulFilNam):
+                            # compare the new reference data with the old one
+                            [updateReferenceData, _, ans] = self._compareResults(
+                                data['ResultFile'], oldRefFulFilNam, y_sim, y_tra, refFilNam, ans)
+                        else:
+                            # Reference file does not exist
+                            print(
+                                "*** Warning: Reference file {} does not yet exist.".format(refFilNam))
+                            while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
+                                print("             Create new file?")
+                                ans = input(
+                                    "             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
+                            if ans == "y" or ans == "Y":
+                                updateReferenceData = True
+                        if updateReferenceData:    # If the reference data of any variable was updated
+                            # Make dictionary to save the results and the svn information
+                            self._writeReferenceResults(oldRefFulFilNam, y_sim, y_tra)
             else:
                 # Tests that export FMUs do not have an output file. Hence, we do not warn
                 # about these cases.
                 if not data['mustExportFMU']:
                     self._reporter.writeWarning(
                         "Output file of " + data['ScriptFile'] + " is excluded from result test.")
-        return 0
+        return ret_val
 
     def _checkSimulationError(self, errorFile):
         """ Check whether the simulation had any errors, and
@@ -1911,7 +2175,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         ``checkModel("Buildings.Controls.Continuous.Examples.LimPID")``
         """
 
-        def getModelName(mosFil, line):
+        def get_model_name(mosFil, line):
             try:
                 iSta = line.index('\"') + 1
                 iEnd = line.index('\"', iSta)
@@ -1927,9 +2191,9 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             for lin in fil:
                 if "simulateModel" in lin or "modelToOpen" in lin:
                     if self._modelica_tool == 'dymola':
-                        retVal = 'checkModel("{}")'.format(getModelName(mosFilNam, lin))
+                        retVal = 'checkModel("{}")'.format(get_model_name(mosFilNam, lin))
                     elif self._modelica_tool == 'omc':
-                        retVal = "checkModel({})".format(getModelName(mosFilNam, lin))
+                        retVal = "checkModel({})".format(get_model_name(mosFilNam, lin))
                     break
         return retVal
 
@@ -1969,10 +2233,10 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
 
         def _write_translation_checks(runFil, values):
             template = r"""
-if Modelica.Utilities.Files.exist("{modelName}.translation.log") then
-  lines=Modelica.Utilities.Streams.readFile("{modelName}.translation.log");
+if Modelica.Utilities.Files.exist("{model_name}.translation.log") then
+  lines=Modelica.Utilities.Streams.readFile("{model_name}.translation.log");
 else
-  Modelica.Utilities.Streams.print("{modelName}.translation.log was not generated.", "{modelName}.log");
+  Modelica.Utilities.Streams.print("{model_name}.translation.log was not generated.", "{model_name}.log");
   lines=String();
 end if;
 
@@ -2114,10 +2378,10 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
                             "scriptFile": self._data[i]['ScriptFile'].replace(
                                 "\\",
                                 "/"),
-                            "modelName": self._data[i]['modelName'].replace(
+                            "model_name": self._data[i]['model_name'].replace(
                                 "\\",
                                 "/"),
-                            "modelName_underscore": self._data[i]['modelName'].replace(
+                            "model_name_underscore": self._data[i]['model_name'].replace(
                                 ".",
                                 "_"),
                             "statisticsLog": self._statistics_log.replace(
@@ -2131,10 +2395,10 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
                             values["FMUName"] = self._data[i]['FMUName']
 
                         if self._modelica_tool == 'dymola':
-                            # Delete command log, modelName.simulation.log and dslog.txt
+                            # Delete command log, model_name.simulation.log and dslog.txt
                             runFil.write(
                                 "Modelica.Utilities.Files.remove(\"%s.translation.log\");\n" %
-                                values["modelName"])
+                                values["model_name"])
                             runFil.write("Modelica.Utilities.Files.remove(\"dslog.txt\");\n")
                             runFil.write("clearlog();\n")
 
@@ -2147,7 +2411,7 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
                             template = r"""
     rCheck = {checkCommand};
     Modelica.Utilities.Streams.print("    {{ \"file\" :  \"{mosWithPath}\",", "{statisticsLog}");
-    Modelica.Utilities.Streams.print("      \"model\" : \"{modelName}\",", "{statisticsLog}");
+    Modelica.Utilities.Streams.print("      \"model\" : \"{model_name}\",", "{statisticsLog}");
     Modelica.Utilities.Streams.print("      \"check\" : {{", "{statisticsLog}");
     Modelica.Utilities.Streams.print("        \"command\" : \"{checkCommandString};\",", "{statisticsLog}");
     Modelica.Utilities.Streams.print("        \"result\"  : " + String(rCheck), "{statisticsLog}");
@@ -2169,22 +2433,22 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
                             # Modelica.Utilities.Streams.readFile
                             template = r"""
     rScript=RunScript("Resources/Scripts/Dymola/{scriptFile}");
-    savelog("{modelName}.translation.log");
+    savelog("{model_name}.translation.log");
     if Modelica.Utilities.Files.exist("dslog.txt") then
-      Modelica.Utilities.Files.move("dslog.txt", "{modelName}.dslog.log");
+      Modelica.Utilities.Files.move("dslog.txt", "{model_name}.dslog.log");
     end if;
     iSuc=0;
-    if Modelica.Utilities.Files.exist("{modelName}.dslog.log") then
+    if Modelica.Utilities.Files.exist("{model_name}.dslog.log") then
       iLin=1;
       endOfFile=false;
       while (not endOfFile) loop
-        (_line, endOfFile)=Modelica.Utilities.Streams.readLine("{modelName}.dslog.log", iLin);
+        (_line, endOfFile)=Modelica.Utilities.Streams.readLine("{model_name}.dslog.log", iLin);
         iLin=iLin+1;
         iSuc=iSuc+Modelica.Utilities.Strings.count(_line, "Integration terminated successfully");
       end while;
-      Modelica.Utilities.Streams.close("{modelName}.dslog.log");
+      Modelica.Utilities.Streams.close("{model_name}.dslog.log");
     else
-      Modelica.Utilities.Streams.print("{modelName}.dslog.log was not generated.", "{modelName}.log");
+      Modelica.Utilities.Streams.print("{model_name}.dslog.log was not generated.", "{model_name}.log");
     end if;
     """
                             runFil.write(template.format(**values))
@@ -2210,22 +2474,22 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
                             template = r"""
     Modelica.Utilities.Files.removeFile("{FMUName}");
     RunScript("Resources/Scripts/Dymola/{scriptFile}");
-    savelog("{modelName}.translation.log");
+    savelog("{model_name}.translation.log");
     if Modelica.Utilities.Files.exist("dslog.txt") then
-      Modelica.Utilities.Files.move("dslog.txt", "{modelName}.dslog.log");
+      Modelica.Utilities.Files.move("dslog.txt", "{model_name}.dslog.log");
     end if;
     iSuc=0;
-    if Modelica.Utilities.Files.exist("{modelName}.dslog.log") then
+    if Modelica.Utilities.Files.exist("{model_name}.dslog.log") then
       iLin=1;
       endOfFile=false;
       while (not endOfFile) loop
-        (_line, endOfFile)=Modelica.Utilities.Streams.readLine("{modelName}.dslog.log", iLin);
+        (_line, endOfFile)=Modelica.Utilities.Streams.readLine("{model_name}.dslog.log", iLin);
         iLin=iLin+1;
         iSuc=iSuc+Modelica.Utilities.Strings.count(_line, "Created {FMUName}");
       end while;
-      Modelica.Utilities.Streams.close("{modelName}.dslog.log");
+      Modelica.Utilities.Streams.close("{model_name}.dslog.log");
     else
-      Modelica.Utilities.Streams.print("{modelName}.dslog.log was not generated.", "{modelName}.log");
+      Modelica.Utilities.Streams.print("{model_name}.dslog.log was not generated.", "{model_name}.log");
     end if;
     """
                             runFil.write(template.format(**values))
@@ -2275,6 +2539,14 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
 
         print("Generated {} regression tests.\n".format(nUniTes))
 
+    @staticmethod
+    def _get_set_of_result_variables(list_of_result_variables):
+        s = set()
+        for ent in list_of_result_variables:
+            for ele in ent:
+                s.add(ele)
+        return s
+
     def _write_jmodelica_runfile(self, directory, data):
         """ Write the JModelica runfile for all experiments in data.
 
@@ -2290,7 +2562,7 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
         with open(os.path.join(directory, "run.py"), mode="w", encoding="utf-8") as fil:
             models_underscore = []
             for dat in data:
-                models_underscore.append(dat['modelName'].replace(".", "_"))
+                models_underscore.append(dat['model_name'].replace(".", "_"))
             template = env.get_template("jmodelica_run_all.template")
             txt = template.render(models_underscore=sorted(models_underscore))
             fil.write(txt)
@@ -2298,8 +2570,29 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
         tem_mod = env.get_template("jmodelica_run.template")
 
         for dat in data:
-            model = dat['modelName']
-            txt = tem_mod.render(model=model)
+            model = dat['model_name']
+            # Filter the result variables
+            if 'ResultVariables' in dat:
+                result_variables = list(self._get_set_of_result_variables(dat['ResultVariables']))
+            else:
+                result_variables = list()
+            # Set relative tolerance
+            if 'rtol' not in dat['jmodelica']:
+                # User did not set tolerance, use the one from the .mo file
+                if 'tolerance' in dat:
+                    dat['jmodelica']['rtol'] = dat['tolerance']
+                else:
+                    dat['jmodelica']['rtol'] = 1E-6
+            # Note that if dat['mustSimulate'] == false, then only the FMU export is tested, but no
+            # simulation should be done
+            txt = tem_mod.render(
+                model=model,
+                ncp=dat['jmodelica']['ncp'],
+                rtol=dat['jmodelica']['rtol'],
+                solver=dat['jmodelica']['solver'],
+                simulate=dat['jmodelica']['simulate'] and dat['mustSimulate'],
+                time_out=dat['jmodelica']['time_out'],
+                filter=result_variables)
             file_name = os.path.join(directory, "{}.py".format(model.replace(".", "_")))
             with open(file_name, mode="w", encoding="utf-8") as fil:
                 fil.write(txt)
@@ -2341,7 +2634,7 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
     def run(self):
         """ Run all regression tests and checks the results.
 
-        :return: 0 if no errros occurred during the regression tests,
+        :return: 0 if no errros and no warnings occurred during the regression tests,
                  otherwise a non-zero value.
 
         This method
@@ -2352,13 +2645,14 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
         - creates run scripts that run all regression tests,
         - runs these regression tests,
         - collects the dymola log files from each process,
-        - writes the combined log file ``dymola.log``
-          to the current directory,
-        - compares the results of the new simulations with
+        - writes the combined log file ``unitTests-x.log``
+          to the current directory, where `x` is the name of the
+          Modelica tool,
+        - for Dymola, compares the results of the new simulations with
           reference results that are stored in ``Resources/ReferenceResults``,
         - writes the message `Regression tests completed successfully.`
           if no error occured,
-        - returns 0 if no errors occurred, or non-zero otherwise.
+        - returns 0 if no errors and no warnings occurred, or non-zero otherwise.
 
         """
         import buildingspy.development.validator as v
@@ -2531,10 +2825,13 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
             else:
                 self._check_jmodelica_runs()
 
-        # Delete temporary directories
-        if self._deleteTemporaryDirectories:
-            for d in self._temDir:
+        # Delete temporary directories, or write message that they are not deleted
+
+        for d in self._temDir:
+            if self._deleteTemporaryDirectories:
                 shutil.rmtree(d)
+            else:
+                print("Did not delete temporary directory {}".format(d))
 
         # Check for errors
         if self._modelica_tool == 'dymola':
@@ -2596,192 +2893,6 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
         model = '.'.join(splt[root:])
         # remove the '.mo' at the end
         return model[:-3]
-
-    def test_JModelica(self, cmpl=True, load=False, simulate=False,
-                       packages=['Examples'], number=-1):
-        """
-        Test the library compliance with JModelica.org.
-
-        *This is deprecated. Use `run()` instead with jmodelica as a tool.*
-
-        This is the high-level method to test a complete library, even if there
-        are no specific ``.mos`` files in the library for regression testing.
-
-        This method sets self._nPro to 1 as it only works on a single core.
-        It also executes self.setTemporaryDirectories()
-
-        :param cpml: Set to ``True`` for the model to be compiled.
-        :param load: Set to ``True`` to load the model from the FMU.
-        :param simulate: Set to ``True`` to cause the model to be simulated.
-        :param packages: Set to an array whose elements are the packages
-                         that contain the test models of the library.
-        :param number: Number of models to test. Set to ``-1`` to test
-                       all models.
-
-        Usage:
-
-          1. Open a JModelica environment
-             (ipython or pylab with JModelica environment variables set).
-          2. cd to the root folder of the library
-          3. type the following commands:
-
-             >>> t = Tester() # doctest: +SKIP
-             >>> t.testJmodelica(...) # doctest: +SKIP
-
-        """
-
-        from pymodelica import compile_fmu
-        from pyfmi import load_fmu
-        import shutil
-        import sys
-
-        from io import StringIO
-
-        if number < 0:
-            number = 1e15
-        old_stdout = sys.stdout
-
-        self.setNumberOfThreads(1)
-        self._setTemporaryDirectories()
-
-        tempdir = self._temDir[0]
-
-        # return a list with pathnames of the .mo files to be tested
-        tests = self._get_test_models(packages=['Examples'])
-        compiler_options = {'extra_lib_dirs': [tempdir]}
-
-        # statistics
-        stats = {}
-        for mo_file in tests:
-            if len(stats) >= number:
-                break
-            # we keep all results for this model in a dictionary
-            stats[mo_file] = {}
-            model = self._model_from_mo(mo_file)
-            if cmpl:
-                sys.stdout = mystdout = StringIO()
-                try:
-                    fmu = compile_fmu(model,
-                                      mo_file,
-                                      compiler_options=compiler_options,
-                                      compile_to=tempdir)
-                except Exception as e:
-                    stats[mo_file]['compilation_ok'] = False
-                    stats[mo_file]['compilation_log'] = mystdout.getvalue()
-                    stats[mo_file]['compilation_err'] = str(e)
-                else:
-                    stats[mo_file]['compilation_ok'] = True
-                    stats[mo_file]['compilation_log'] = mystdout.getvalue()
-
-                sys.stdout = old_stdout
-                mystdout.close()
-            else:
-                # cmpl = False
-                stats[mo_file]['compilation_ok'] = False
-                stats[mo_file]['compilation_log'] = 'Not attempted'
-
-            if load and stats[mo_file]['compilation_ok']:
-                sys.stdout = mystdout = StringIO()
-                try:
-                    loaded_fmu = load_fmu(fmu)
-                except Exception as e:
-                    stats[mo_file]['load_ok'] = False
-                    stats[mo_file]['load_log'] = mystdout.getvalue()
-                    stats[mo_file]['load_err'] = str(e)
-                else:
-                    stats[mo_file]['load_ok'] = True
-                    stats[mo_file]['load_log'] = mystdout.getvalue()
-                    if simulate:
-                        try:
-                            loaded_fmu.simulate()
-                        except Exception as e:
-                            stats[mo_file]['sim_ok'] = False
-                            stats[mo_file]['sim_log'] = mystdout.getvalue()
-                            stats[mo_file]['sim_err'] = str(e)
-                        else:
-                            stats[mo_file]['sim_ok'] = True
-                            stats[mo_file]['sim_log'] = mystdout.getvalue()
-
-                    else:
-                        stats[mo_file]['sim_ok'] = False
-                        stats[mo_file]['sim_log'] = 'Not attempted'
-
-                sys.stdout = old_stdout
-                mystdout.close()
-            else:
-                # no loading attempted
-                stats[mo_file]['load_ok'] = False
-                stats[mo_file]['load_log'] = 'Not attempted'
-                stats[mo_file]['sim_ok'] = False
-                stats[mo_file]['sim_log'] = 'Not attempted'
-
-        # Delete temporary directories
-        if self._deleteTemporaryDirectories:
-            for d in self._temDir:
-                shutil.rmtree(d)
-
-        self._jmstats = stats
-        self._analyseJMStats(load=load, simulate=simulate)
-
-    def _analyseJMStats(self, load=False, simulate=False):
-        """
-        Analyse the statistics dictionary resulting from
-        a _test_Jmodelica() call.
-
-        :param load: Set to ``True`` to load the model from the FMU.
-        :param simulate: Set to ``True`` to cause the model to be simulated.
-        """
-
-        def count_cmpl(x):
-            return [True for _, v in list(x.items()) if v['compilation_ok']]
-
-        def list_failed_cmpl(x):
-            return [k for k, v in list(x.items()) if not v['compilation_ok']]
-
-        def count_load(x):
-            return [True for _, v in list(x.items()) if v['load_ok']]
-
-        def list_failed_load(x): return [k for k, v in list(x.items()) if not v['load_ok']]
-
-        def count_sim(x):
-            return [True for _, v in list(x.items()) if v['sim_ok']]
-
-        def list_failed_sim(x):
-            return [k for k, v in list(x.items()) if not v['sim_ok']]
-
-        nbr_tot = len(self._jmstats)
-        nbr_cmpl = len(count_cmpl(self._jmstats))
-        nbr_load = len(count_load(self._jmstats))
-        nbr_sim = len(count_sim(self._jmstats))
-
-        print('\n')
-        print(70 * '#')
-        print("Tested {} models:\n  * {} compiled \
-successfully (={:.1%})"
-              .format(nbr_tot,
-                      nbr_cmpl, float(nbr_cmpl) / float(nbr_tot)))
-        if load:
-            print("  * {} loaded successfully (={:.1%})".format(nbr_load, float(nbr_load) / float(nbr_tot)))
-
-        if simulate:
-            print("  * {} simulated successfully (={:.1%})".format(nbr_sim, float(nbr_sim) / float(nbr_tot)))
-
-        print("\nFailed compilation for the following models:")
-        for p in list_failed_cmpl(self._jmstats):
-            print("  * {}".format(p.split(os.sep)[-1].split('.mo')[0]))
-
-        if load:
-            print("\nFailed loading for the following models:")
-            for p in list_failed_load(self._jmstats):
-                print("  * {}".format(p.split(os.sep)[-1].split('.mo')[0]))
-
-        if simulate:
-            print("\nFailed simulation for the following models:")
-            for p in list_failed_sim(self._jmstats):
-                print("  * {}".format(p.split(os.sep)[-1].split('.mo')[0]))
-
-        print("\nMore detailed information is stored in self._jmstats")
-        print(70 * '#')
 
     def _writeOMRunScript(self, worDir, models, cmpl, simulate):
         """
