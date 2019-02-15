@@ -760,6 +760,7 @@ class Tester(object):
         # Make sure we found exactly one entry
         if len(tols) == 0:
             raise RuntimeError("Failed to find Tolerance in '{}'.".format(file_name))
+
         if len(tols) > 1:
             raise RuntimeError(
                 "Found multiple entries for Tolerance in '{}', but require exactly one entry.".format(file_name))
@@ -869,7 +870,11 @@ class Tester(object):
                         # Only get the tolerance for the models that need to be simulated,
                         # because those that are only exported as FMU don't need this setting.
                         if dat['mustSimulate']:
-                            dat['tolerance'] = self.get_tolerance(self._libHome, dat['model_name'])
+                            try:
+                                dat['tolerance'] = self.get_tolerance(self._libHome, dat['model_name'])
+                            except Exception, e:
+                                self._reporter.writeError(str(e))
+                                dat['tolerance'] = None
 
                         # We are finished iterating over all lines of the .mos
 
