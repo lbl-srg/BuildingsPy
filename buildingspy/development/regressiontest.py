@@ -2068,7 +2068,6 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
     def _performTranslationErrorChecks(self, logFil, stat):
         with open(logFil, mode="rt", encoding="utf-8-sig") as fil:
             lines=fil.readlines()
-            # Do the other tests
 
         for k, v in list(self._error_dict.get_dictionary().items()):
             stat[k]=0
