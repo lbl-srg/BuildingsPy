@@ -26,7 +26,7 @@ class ErrorDictionary(ed.ErrorDictionary):
         # Set the error dictionaries.
         # Note that buildingspy_var needs to be a unique variable name.
         self._error_dict["numerical Jacobians"] = {
-            'tool_message': "Number of numerical Jacobians:",
+            'tool_message': "Number of numerical Jacobians: 0",
             'counter': 0,
             'buildingspy_var': "lJac",
             'model_message': "Numerical Jacobian in '{}'.",
