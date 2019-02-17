@@ -2073,10 +2073,16 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         for k, v in list(self._error_dict.get_dictionary().items()):
             stat[k]=0
             for line in lines:
-                if v["tool_message"] in line:
-                    stat[k]=stat[k]+1
-            if k == "numerical Jacobians":
-                stat[k]=1-stat[k]
+                # use regex to extract first group and sum them in stat
+                if 'flag' in v and v['flag']=="regex":
+                    import re
+                    m=re.search(v["tool_message"], line)
+                    if not m==None:
+                        stat[k]=stat[k]+int(m.group(1))
+                # otherwise, default: count the number of line occurences
+                else:
+                    if v["tool_message"] in line:
+                        stat[k]=stat[k]+1
 
         return stat
 
