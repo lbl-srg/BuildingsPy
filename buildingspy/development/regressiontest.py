@@ -2065,6 +2065,22 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                         "Output file of " + data['ScriptFile'] + " is excluded from result test.")
         return ret_val
 
+    def _performTranslationErrorChecks(self, logFil, stat):
+        with open(logFil, mode="rt", encoding="utf-8-sig") as fil:
+            lines=fil.readlines()
+            # Do the other tests
+
+        for k, v in list(self._error_dict.get_dictionary().items()):
+            stat[k]=0
+            for line in lines:
+                if v["tool_message"] in line:
+                    stat[k]=stat[k]+1
+            if k == "numerical Jacobians":
+                stat[k]=1-stat[k]
+
+        return stat
+
+
     def _checkSimulationError(self, errorFile):
         """ Check whether the simulation had any errors, and
             write the error messages to ``self._reporter``.
@@ -2107,11 +2123,14 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             else:
                 key = 'FMUExport'
 
-            for k, v in list(self._error_dict.get_dictionary().items()):
-                # For JModelica, we neither have simulate nor FMUExport
-                if key in ele and ele[key][k] > 0:
-                    self._reporter.writeWarning(v["model_message"].format(ele[key]["command"]))
-                    self._error_dict.increment_counter(k)
+            if key in ele:
+                logFil=ele[key]["translationLog"]
+                ele[key]=self._performTranslationErrorChecks(logFil,ele[key])
+                for k, v in list(self._error_dict.get_dictionary().items()):
+                    # For JModelica, we neither have simulate nor FMUExport
+                    if ele[key][k] > 0:
+                        self._reporter.writeWarning(v["model_message"].format(ele[key]["command"]))
+                        self._error_dict.increment_counter(k)
 
         if iChe > 0:
             print("Number of models that failed check                           : {}".format(iChe))
@@ -2237,40 +2256,8 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         The commands in the script depend on the tool: 'dymola', 'jmodelica' or 'omc'
         """
 
-        def _write_translation_checks(runFil, values):
-            template = r"""
-if Modelica.Utilities.Files.exist("{model_name}.translation.log") then
-  lines=Modelica.Utilities.Streams.readFile("{model_name}.translation.log");
-else
-  Modelica.Utilities.Streams.print("{model_name}.translation.log was not generated.", "{model_name}.log");
-  lines=String();
-end if;
-
-// Count the zero numerical Jacobians separately
-iJac=sum(Modelica.Utilities.Strings.count(lines, "Number of numerical Jacobians: 0"));
-"""
-            runFil.write(template.format(**values))
-
-            # Do the other tests
-            for _, v in list(self._error_dict.get_dictionary().items()):
-                template = r"""  {}=sum(Modelica.Utilities.Strings.count(lines, "{}"));
-"""
-                runFil.write(template.format(v["buildingspy_var"], v["tool_message"]))
 
         def _write_translation_stats(runFil, values):
-
-            for k, v in list(self._error_dict.get_dictionary().items()):
-                if k != "numerical Jacobians":
-                    template = r"""
-Modelica.Utilities.Streams.print("        \"{}\"  : " + String({}) + ",", "{}");"""
-                    runFil.write(template.format(k, v["buildingspy_var"], values['statisticsLog']))
-
-            # Write the numerical Jacobians separately as this requires subtraction of two counters.
-            # As this is the last entry, there also is no terminating comma.
-            template = r"""
-Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(lJac-iJac), "{statisticsLog}");
-"""
-            runFil.write(template.format(**values))
 
             # Close the bracket for the JSON object
             runFil.write("""Modelica.Utilities.Streams.print("      }", """
@@ -2393,6 +2380,9 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
                             "statisticsLog": self._statistics_log.replace(
                                 "\\",
                                 "/"),
+                            "translationLog": os.path.join(self._temDir[iPro],self.getLibraryName(),self._data[i]['model_name']+".translation.log").replace(
+                                "\\",
+                                "/"),
                             "simulatorLog": self._simulator_log_file.replace(
                                 "\\",
                                 "/")}
@@ -2459,12 +2449,12 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
     """
                             runFil.write(template.format(**values))
 
-                            _write_translation_checks(runFil, values)
 
                             template = r"""
     Modelica.Utilities.Streams.print("      \"simulate\" : {{", "{statisticsLog}");
     Modelica.Utilities.Streams.print("        \"command\" : \"RunScript(\\\"Resources/Scripts/Dymola/{scriptFile}\\\");\",", "{statisticsLog}");
-    Modelica.Utilities.Streams.print("        \"result\"  : " + String(iSuc > 0) + ",", "{statisticsLog}");
+    Modelica.Utilities.Streams.print("        \"translationLog\"  : \"{translationLog}\",", "{statisticsLog}");
+    Modelica.Utilities.Streams.print("        \"result\"  : " + String(iSuc > 0), "{statisticsLog}");
     """
                             runFil.write(template.format(**values))
 
@@ -2499,8 +2489,6 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
     end if;
     """
                             runFil.write(template.format(**values))
-
-                            _write_translation_checks(runFil, values)
 
                             template = r"""
     Modelica.Utilities.Streams.print("      \"FMUExport\" : {{", "{statisticsLog}");
@@ -2831,20 +2819,20 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
             else:
                 self._check_jmodelica_runs()
 
-        # Delete temporary directories, or write message that they are not deleted
-
-        for d in self._temDir:
-            if self._deleteTemporaryDirectories:
-                shutil.rmtree(d)
-            else:
-                print("Did not delete temporary directory {}".format(d))
-
         # Check for errors
         if self._modelica_tool == 'dymola':
             if retVal == 0:
                 retVal = self._checkSimulationError(self._simulator_log_file)
             else:
                 self._checkSimulationError(self._simulator_log_file)
+
+        # Delete temporary directories, or write message that they are not deleted
+
+        for d in self._temDir:
+            if self._deleteTemporaryDirectories:
+                shutil.rmtree(d)
+            else:
+                print("Did not delete temporary directory {}".format(d))                
 
         # Print list of files that may be excluded from unit tests
         if len(self._exclude_tests) > 0:
