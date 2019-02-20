@@ -55,7 +55,7 @@ class Test_development_error_dictionary(unittest.TestCase):
                              'Warning: Failed to interpret experiment annotation',
                              'which was not found',
                              'The model contained invalid connect statements.',
-                             'Number of numerical Jacobians: (\d*)',
+                             r'Number of numerical Jacobians: (\d*)',
                              "Warning: The following parameters don't have any value, only a start value",
                              "Redundant consistent initial conditions:",
                              "Redundant connection",
