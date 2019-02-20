@@ -2067,24 +2067,23 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
 
     def _performTranslationErrorChecks(self, logFil, stat):
         with open(logFil, mode="rt", encoding="utf-8-sig") as fil:
-            lines=fil.readlines()
+            lines = fil.readlines()
 
         for k, v in list(self._error_dict.get_dictionary().items()):
-            stat[k]=0
+            stat[k] = 0
             for line in lines:
                 # use regex to extract first group and sum them in stat
-                if 'flag' in v and v['flag']=="regex":
+                if 'flag' in v and v['flag'] == "regex":
                     import re
-                    m=re.search(v["tool_message"], line)
-                    if not m==None:
-                        stat[k]=stat[k]+int(m.group(1))
+                    m = re.search(v["tool_message"], line)
+                    if m is not None:
+                        stat[k] = stat[k] + int(m.group(1))
                 # otherwise, default: count the number of line occurences
                 else:
                     if v["tool_message"] in line:
-                        stat[k]=stat[k]+1
+                        stat[k] = stat[k] + 1
 
         return stat
-
 
     def _checkSimulationError(self, errorFile):
         """ Check whether the simulation had any errors, and
@@ -2129,8 +2128,8 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                 key = 'FMUExport'
 
             if key in ele:
-                logFil=ele[key]["translationLog"]
-                ele[key]=self._performTranslationErrorChecks(logFil,ele[key])
+                logFil = ele[key]["translationLog"]
+                ele[key] = self._performTranslationErrorChecks(logFil, ele[key])
                 for k, v in list(self._error_dict.get_dictionary().items()):
                     # For JModelica, we neither have simulate nor FMUExport
                     if ele[key][k] > 0:
@@ -2261,7 +2260,6 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         The commands in the script depend on the tool: 'dymola', 'jmodelica' or 'omc'
         """
 
-
         def _write_translation_stats(runFil, values):
 
             # Close the bracket for the JSON object
@@ -2385,7 +2383,11 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                             "statisticsLog": self._statistics_log.replace(
                                 "\\",
                                 "/"),
-                            "translationLog": os.path.join(self._temDir[iPro],self.getLibraryName(),self._data[i]['model_name']+".translation.log").replace(
+                            "translationLog": os.path.join(
+                                self._temDir[iPro],
+                                self.getLibraryName(),
+                                self._data[i]['model_name']
+                                + ".translation.log").replace(
                                 "\\",
                                 "/"),
                             "simulatorLog": self._simulator_log_file.replace(
@@ -2454,7 +2456,6 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
     """
                             runFil.write(template.format(**values))
 
-
                             template = r"""
     Modelica.Utilities.Streams.print("      \"simulate\" : {{", "{statisticsLog}");
     Modelica.Utilities.Streams.print("        \"command\" : \"RunScript(\\\"Resources/Scripts/Dymola/{scriptFile}\\\");\",", "{statisticsLog}");
@@ -2498,7 +2499,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                             template = r"""
     Modelica.Utilities.Streams.print("      \"FMUExport\" : {{", "{statisticsLog}");
     Modelica.Utilities.Streams.print("        \"command\" :\"RunScript(\\\"Resources/Scripts/Dymola/{scriptFile}\\\");\",", "{statisticsLog}");
-    Modelica.Utilities.Streams.print("        \"translationLog\"  : \"{translationLog}\",", "{statisticsLog}");    
+    Modelica.Utilities.Streams.print("        \"translationLog\"  : \"{translationLog}\",", "{statisticsLog}");
     Modelica.Utilities.Streams.print("        \"result\"  : " + String(iSuc > 0), "{statisticsLog}");
     """
                             runFil.write(template.format(**values))
@@ -2838,7 +2839,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             if self._deleteTemporaryDirectories:
                 shutil.rmtree(d)
             else:
-                print("Did not delete temporary directory {}".format(d))                
+                print("Did not delete temporary directory {}".format(d))
 
         # Print list of files that may be excluded from unit tests
         if len(self._exclude_tests) > 0:
