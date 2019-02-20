@@ -2073,7 +2073,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             stat[k] = 0
             for line in lines:
                 # use regex to extract first group and sum them in stat
-                if 'flag' in v and v['flag'] == "regex":
+                if 'is_regex' in v and v['is_regex'] == True:
                     import re
                     m = re.search(v["tool_message"], line)
                     if m is not None:
