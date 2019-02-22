@@ -1,0 +1,164 @@
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs-3.3.7/jq-3.3.1/jszip-2.5.0/dt-1.10.18/b-1.5.4/b-colvis-1.5.4/b-flash-1.5.4/b-html5-1.5.4/datatables.min.css"/>
+<style>
+th { font-size: 14px; }
+td { font-size: 14px; }
+.table-responsive { max-width: 90%; margin-left: auto; margin-right: auto; overflow-x: visible }
+</style>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/pdfmake.min.js"></script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/vfs_fonts.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/v/bs-3.3.7/jq-3.3.1/jszip-2.5.0/dt-1.10.18/b-1.5.4/b-colvis-1.5.4/b-flash-1.5.4/b-html5-1.5.4/datatables.min.js"></script>
+</head>
+<body>
+<div class="table-responsive">
+	<div>
+		<ul class="nav nav-tabs" role="tablist">
+			<li class="active">
+				<a href="#tab-table1" data-toggle="tab">Simulation</a>
+			</li>
+			<li>
+				<a href="#tab-table2" data-toggle="tab">Translation</a>
+			</li>
+			<li>
+				<a href="#tab-table3" data-toggle="tab">Comparison</a>
+			</li>
+		</ul>
+	</div>
+	<div>
+		<p margin-top="1em"> </p>
+	</div>
+	<div class="tab-content">
+		<div class="tab-pane active" id="tab-table1">
+			<table id="myTable1" class="table table-striped table-bordered" cellspacing="0" >
+				<thead>
+					<tr>
+						<th>Model</th>
+						<th>CPU (s)</th>
+						<th>Start (s)</th>
+						<th>Final (s)</th>
+						<th>Success</th>
+						<th>Message</th>
+					</tr>
+				</thead>
+			</table>
+		</div>
+		<div class="tab-pane" id="tab-table2">
+			<table id="myTable2" class="table table-striped table-bordered" cellspacing="0">
+				<thead>
+					<tr>
+						<th>Model</th>
+						<th>CPU (s)</th>
+						<th>Success</th>
+						<th>Warnings</th>
+					</tr>
+				</thead>
+			</table>
+		</div>
+		<div class="tab-pane" id="tab-table3">
+			<table id="myTable3" class="table table-striped table-bordered" cellspacing="0">
+				<thead>
+					<tr>
+						<th>Model</th>
+						<th>Variables</th>
+						<th>Success</th>
+						<th>Results File</th>
+						<th>comp_dirs</th>
+					</tr>
+				</thead>
+			</table>
+		</div>
+	</div>
+</div>
+</body>
+<script>
+$(document).ready(function() {
+	$.fn.dataTable.ext.errMode = function( ) {
+		console.log('Ignore datatable ajax warning.');
+	}
+	$.fn.dataTable.ext.buttons.reload = {
+		text: 'Reload',
+		action: function ( e, dt, node, config ) {
+			dt.ajax.reload();
+		}
+	};
+	var table1 = $('#myTable1').DataTable({
+		autoWidth: false,
+		ajax: {
+			url: '$SIMULATOR_LOG',
+			dataSrc: ''
+		},
+		columns: [
+			{ data: 'model' },
+			{ data: 'simulation.cpu_time',
+			  render: $.fn.dataTable.render.number( ' ', '.', 2) },
+			{ data: 'simulation.start_time',
+			  render: $.fn.dataTable.render.number( ' ', '.', 2) },
+			{ data: 'simulation.final_time',
+			  render: $.fn.dataTable.render.number( ' ', '.', 2) },
+			{ data: 'simulation.success' },
+			{ data: 'simulation.message' },
+		],
+		columnDefs: [
+			{ width: "20%", targets: 0 },
+			{ width: "30%", targets: 5 }
+		],
+	});
+	var table2 = $('#myTable2').DataTable({
+		autoWidth: false,
+		ajax: {
+			url: '$SIMULATOR_LOG',
+			dataSrc: ''
+		},
+		columns: [
+			{ data: 'model' },
+			{ data: 'translation.cpu_time',
+			  render: $.fn.dataTable.render.number( ' ', '.', 2) },
+			{ data: 'translation.success' },
+			{ data: 'translation.warnings' },
+		],
+		columnDefs: [
+			{ width: "20%", targets: 0 },
+			{ width: "30%", targets: 3 },
+		],
+	} );
+	var table3 = $('#myTable3').DataTable({
+		autoWidth: false,
+		ajax: {
+			url: '$SIMULATOR_LOG',
+			dataSrc: ''
+		},
+		columns: [
+			{ data: 'model' },
+			{ data: 'comparison.variables'},
+			{ data: 'comparison.success_rate',
+			  render: $.fn.dataTable.render.number(' ', '.', 0, '', '%') },
+			{ data: 'comparison.file_name' },
+			{ data: 'comparison.funnel_dirs' },
+		],
+		columnDefs: [
+			{ visible: false, searchable: false, targets: [3, 4] },
+		],
+		initComplete: function () {
+        var api = this.api();
+        api.$('tr').click( function () {
+					var row_idx = api.row( this ).index();
+					var dirs = api.cell(row_idx, 4).data();
+					var file = api.cell(row_idx, 3).data();
+					var dict_var_dir = {};
+					api.cell(row_idx, 1).data().forEach( function(v, idx) {
+						dict_var_dir[v] = dirs[idx]
+					});
+					$.get('$COMP_DIR/plot.html', function(data) {
+						var new_data = data.replace('$DICT_VAR_DIR', JSON.stringify(dict_var_dir));
+						new_data = new_data.replace('$TITLE', file);
+						var win = window.open();
+						win.document.write(new_data);
+						win.document.close();
+					});
+        });
+        },
+	} );
+} );
+</script>
+</html>
