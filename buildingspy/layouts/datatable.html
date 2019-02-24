@@ -132,33 +132,33 @@ $(document).ready(function() {
 			{ data: 'model' },
 			{ data: 'comparison.variables'},
 			{ data: 'comparison.success_rate',
-			  render: $.fn.dataTable.render.number(' ', '.', 0, '', '%') },
+			  render: function (data, type, full) {
+				return '<a href="#" class="myClass">' +
+					data.toLocaleString('en-US', {style: "percent"}) + '</a>';}},
 			{ data: 'comparison.file_name' },
 			{ data: 'comparison.funnel_dirs' },
 		],
 		columnDefs: [
 			{ visible: false, searchable: false, targets: [3, 4] },
 		],
-		initComplete: function () {
-        var api = this.api();
-        api.$('tr').click( function () {
-					var row_idx = api.row( this ).index();
-					var dirs = api.cell(row_idx, 4).data();
-					var file = api.cell(row_idx, 3).data();
-					var dict_var_dir = {};
-					api.cell(row_idx, 1).data().forEach( function(v, idx) {
-						dict_var_dir[v] = dirs[idx]
-					});
-					$.get('$COMP_DIR/plot.html', function(data) {
-						var new_data = data.replace('$DICT_VAR_DIR', JSON.stringify(dict_var_dir));
-						new_data = new_data.replace('$TITLE', file);
-						var win = window.open();
-						win.document.write(new_data);
-						win.document.close();
-					});
-        });
-        },
-	} );
-} );
+	});
+	$('#myTable3').on('click', '.myClass', function () {
+		var tr = $(this).closest('tr');
+		var row_idx = table3.row(tr).index();
+		var dirs = table3.cell(row_idx, 4).data();
+		var file = table3.cell(row_idx, 3).data();
+		var dict_var_dir = {};
+		table3.cell(row_idx, 1).data().forEach( function(v, idx) {
+			dict_var_dir[v] = dirs[idx]
+		});
+		$.get('$COMP_DIR/plot.html', function(data) {
+			var new_data = data.replace('$DICT_VAR_DIR', JSON.stringify(dict_var_dir));
+			new_data = new_data.replace('$TITLE', file);
+			var win = window.open();
+			win.document.write(new_data);
+			win.document.close();
+		});
+  });
+});
 </script>
 </html>

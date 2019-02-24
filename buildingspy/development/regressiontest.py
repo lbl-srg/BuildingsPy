@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 #######################################################
 # TODO
-# o funnel_plot with correct arrays
+# o funnel_plot during regression tests I/O error: send content as request
+# o Check sleeping process!
 # x Compare results JModelica to Dymola
 # x Output json with path of funnel results dir + nb variables + nb passed
 # x Integrate local server handling cf. IPython and pyfunnel
@@ -295,6 +296,10 @@ class Tester(object):
         self._comp_info = []
         self._comp_log_file = "comparison-{}.log".format(tool)
         self._comp_dir = "funnel_comp"
+        self._REPORT_TEMPLATE = os.path.join(
+            os.path.dirname(__file__), os.path.pardir, 'layouts', 'datatable.html')
+        self._PLOT_TEMPLATE = os.path.join(
+            os.path.dirname(__file__), os.path.pardir, 'layouts', 'template.html')
         # [
         #     {
         #         "model_name": "MyModelicaLibrary.Examples.BooleanParameters"
@@ -333,56 +338,40 @@ class Tester(object):
         # By default, do not show the GUI of the simulator
         self._showGUI = False
 
-    def report_html(self, browser=None, autoraise=True):
-        """Build and display HTML report."""
-        def exit_test(handler, list_files):
-            handler.seek(0)
-            content = handler.read()
-            raw_pattern = 'GET.*?{}.*?200'  # *? for non-greedy search
-            for i, l in enumerate(list_files):
-                if i == 0:
-                    pattern = raw_pattern.format(l)
-                else:
-                    pattern = '{}(.*\n)*.*{}'.format(pattern, raw_pattern.format(l))
+    def report(self, timeout=600, browser=None, autoraise=True):
+        """Build and display HTML report.
 
-            return bool(re.search(pattern, content))
-
-        list_files = [self._simulator_log_file] * 3
-        report_tmp_path = os.path.join(os.path.dirname(__file__), os.path.pardir, 'layouts', 'datatable.html')
-        plot_tmp_path = os.path.join(os.path.dirname(__file__), os.path.pardir, 'layouts', 'template.html')
+        Serve until timeout (s) or KeyboardInterrupt.
+        """
+        list_files = [self._comp_log_file] * 3
         report_file = 'report.html'
         plot_file = os.path.join(self._comp_dir, 'plot.html')
 
         try:
-            server = pyfunnel.MyHTTPServer(('', 0), pyfunnel.CORSRequestHandler)
-            server.server_launch()
             # Build HTML report file.
-            with open(report_tmp_path, 'r') as f:
+            with open(self._REPORT_TEMPLATE, 'r') as f:
                 template = f.read()
             content = re.sub('\$SIMULATOR_LOG', self._comp_log_file, template)
             content = re.sub('\$COMP_DIR', self._comp_dir, content)
-            content = re.sub('\$SERVER_PORT', str(server.server_port), content)
-            with open(report_file, 'w') as f:
-                f.write(content)
+            server = pyfunnel.MyHTTPServer(content, ('', 0), pyfunnel.CORSRequestHandler)
+            server.server_launch()
             # Pre-build HTML plot file.
-            with open(plot_tmp_path, 'r') as f:
+            with open(self._PLOT_TEMPLATE, 'r') as f:
                 template = f.read()
             content = re.sub('\$SERVER_PORT', str(server.server_port), template)
             with open(plot_file, 'w') as f:
                 f.write(content)
-            with open('plot.html', 'w') as f:
-                f.write('')
             # Open report in browser.
             webb = webbrowser.get(browser)
-            webb.open('http://localhost:{}/{}'.format(server.server_port, report_file))
-            time.sleep(120)
-            pyfunnel.wait_until(exit_test, 5, 0.1, server.logger, list_files)
-        except Exception as e:  # for KeyboardInterrupt
+            webb.open('http://localhost:{}/funnel'.format(server.server_port))
+            time.sleep(timeout)
+        except KeyboardInterrupt:  # for KeyboardInterrupt
+            print("KeyboardInterrupt")
+        except Exception as e:
             print(e)
         finally:
             server.server_close()
-            # os.remove(report_file)
-            # os.remove(plot_file)
+            os.remove(plot_file)
 
     def get_unit_test_log_file(self):
         """ Return the name of the log file of the unit tests, such as ``unitTests-jmodelica.log`` or ``unitTests-dymola.log``.
@@ -1486,7 +1475,7 @@ class Tester(object):
         self._comp_info[idx]["comparison"]["test_passed"].append(int(test_passed))  # Boolean not JSON serializable
 
         self._comp_info[idx]["comparison"]["success_rate"] = sum(self._comp_info[idx]["comparison"]["test_passed"]) /\
-            len(self._comp_info[idx]["comparison"]["variables"]) * 100  # percentage for datatable display
+            len(self._comp_info[idx]["comparison"]["variables"])
 
     def areResultsEqual(self, tOld, yOld, tNew, yNew, varNam, filNam, model_name):
         """ Return `True` if the data series are equal within a tolerance.
@@ -1853,12 +1842,12 @@ class Tester(object):
                 not ans == "N") and (not ans == "Y"):
             print("             For {},".format(refFilNam))
             print("             accept new file and update reference files?")
-
-            if 1:  # self._comp_tool == 'legacy':
+            # TODO
+            if self._comp_tool == 'legacy':
                 print("(Close plot window to continue.)")
                 self.legacy_plot(y_sim, t_ref, y_ref, noOldResults, timOfMaxErr, matFilNam)
             else:
-                self.funnel_plot(y_sim, t_ref, y_ref, noOldResults, timOfMaxErr, matFilNam)
+                self.funnel_plot(model_name)
 
             while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
                 ans = input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
@@ -1868,40 +1857,35 @@ class Tester(object):
 
         return (updateReferenceData, foundError, ans)
 
-    def funnel_plot(self, y_sim, t_ref, y_ref, noOldResults, timOfMaxErr, matFilNam):
-        def exit_test(handler):
-            handler.seek(0)
-            content = handler.read()
-            pattern = 'GET ALL DATA COMPLETED'
-            return bool(re.search(pattern, content))
-
-        #### TO MODIFY
-        dict_var_dir = {
-            'mat_const1[1].y': 'Constants.mat_const1[1].y',
-            'mat_const2[1, 1].y': 'Constants.mat_const2[1, 1].y',
-        }
-        plot_title = 'Constants'
-        #### TO MODIFY
+    def funnel_plot(self, model_name, browser=None, autoraise=True):
+        plot_file = os.path.join(self._comp_dir, 'plot.html')
+        idx = next(i for i, el in enumerate(self._comp_info) if el['model'] == model_name)
+        comp_data = self._comp_info[idx]['comparison']
+        dict_var_dir = {}
+        list_files = []
+        for iv, v in enumerate(comp_data['variables']):
+            dict_var_dir[v] = comp_data['funnel_dirs'][iv]
+        for d in dict_var_dir.values():  # performed outside previous iteration for right order
+            for el in ['reference.csv', 'test.csv', 'errors.csv']:
+                list_files.append('{}/{}'.format(d, el))
+        plot_title = comp_data['file_name']
 
         try:
-            server = pyfunnel.MyHTTPServer(('', 0), pyfunnel.CORSRequestHandler)
-            server.server_launch()
-            tmp_file = os.path.join(os.path.dirname(__file__), os.path.pardir, 'layouts', 'template.html')
-            with open(tmp_file, 'r') as f:
-                content = f.read()
+            # Build HTML plot file.
+            with open(self._PLOT_TEMPLATE, 'r') as f:
+                template = f.read()
+            content = re.sub('\$TITLE', plot_title, template)
             content = re.sub('\$DICT_VAR_DIR', json.dumps(dict_var_dir), content)
-            content = re.sub('\$SERVER_PORT', str(server.server_port), content)
-            content = re.sub('\$TITLE', plot_title, content)
-            plot_file = 'plot.html'
-            with open(plot_file, 'w') as f:
-                f.write(content)
-            webbrowser.open('http://localhost:{}/{}'.format(server.server_port, plot_file))
-            pyfunnel.wait_until(exit_test, 5, 0.1, server.logger)
-        except Exception as e:  # for KeyboardInterrupt
-            print(e)
+            server = pyfunnel.MyHTTPServer(content, ('', 0), pyfunnel.CORSRequestHandler)
+            server.server_launch()
+            # Open report in browser.
+            webb = webbrowser.get(browser)
+            webb.open('http://localhost:{}/funnel'.format(server.server_port))
+            pyfunnel.wait_until(pyfunnel.exit_test, 5, 0.1, server.logger, list_files)
+        except KeyboardInterrupt:  # for KeyboardInterrupt
+            print("KeyboardInterrupt")
         finally:
             server.server_close()
-            os.remove(plot_file)
 
     def legacy_plot(self, y_sim, t_ref, y_ref, noOldResults, timOfMaxErr, matFilNam):
         nPlo = len(y_sim)
@@ -3104,13 +3088,7 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
             # HACK: 2 log files for now, should be merged.
             with open(self._simulator_log_file, 'r') as f:
                 self._comp_info = simplejson.loads(f.read())
-            self._checkReferencePoints(ans)
-
-        # FIXME
-        with open(self._comp_log_file, 'w', encoding="utf-8-sig") as f:
-            f.write("{}\n".format(json.dumps(self._comp_info, indent=2, sort_keys=True)))
-        with open('data.log', 'w', encoding="utf-8-sig") as f:
-            f.write("{}\n".format(json.dumps(self._data, indent=2, sort_keys=True)))
+            self._checkReferencePoints(ans)  # ='N')
 
         # Delete temporary directories, or write message that they are not deleted
         for d in self._temDir:
