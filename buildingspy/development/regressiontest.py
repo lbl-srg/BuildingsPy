@@ -296,6 +296,9 @@ class Tester(object):
         self._comp_info = []
         self._comp_log_file = "comparison-{}.log".format(tool)
         self._comp_dir = "funnel_comp"
+        if comp_tool == 'funnel':
+            shutil.rmtree(self._comp_dir , ignore_errors=True)
+            os.makedirs(self._comp_dir)
         self._REPORT_TEMPLATE = os.path.join(
             os.path.dirname(__file__), os.path.pardir, 'layouts', 'datatable.html')
         self._PLOT_TEMPLATE = os.path.join(
@@ -1308,8 +1311,8 @@ class Tester(object):
                     Data series have different length:
                     File=%s,
                     variable=%s,
-                    len(tGriOld) = %d,
-                    len(tGriNew) = %d,
+                    len(tOld) = %d,
+                    len(tNew) = %d,
                     len(yNew)    = %d.""" % (filNam, varNam, len(tOld), len(tNew), len(yNew))
                 )
                 self._reporter.writeError(em)
@@ -1323,6 +1326,7 @@ class Tester(object):
         # implementation of the heatPort. Hence, we test for this special case, and
         # store the parameter as if it were a variable so that the reference result are not
         # going to be changed.
+        # (Not needed for funnel: can deal with len(yNew) != len(yOld))
         if (varNam.endswith("heatPort.T") or varNam.endswith("heatPort.Q_flow")) and (
                 len(yInt) == 2) and len(yOld) != len(yInt):
             yInt = np.ones(len(yOld)) * yInt[0]
@@ -1525,13 +1529,16 @@ class Tester(object):
             )
             return (False, None, warning)
 
-        if len(yNew) > 2:
+        if (len(yNew) > 2) and (self._comp_tool == 'legacy'):
             # Some reference results contain already a time grid,
             # whereas others only contain the first and last time stamp.
             # Hence, we make sure to have the right time grid before we
             # call the interpolation.
             tOld = getTimeGrid(tOld, len(yNew))
             tNew = getTimeGrid(tNew, min(len(yNew), self._nPoi))
+        if self._comp_tool == 'funnel':  # funnel_comp only needs len(t) = len(y) for Old and New time series
+            tOld = getTimeGrid(tOld, len(yOld))
+            tNew = getTimeGrid(tNew, len(yNew))
 
         if self._comp_tool == 'legacy':
             t_err_max, warning = self.legacy_comp(tOld, yOld, tNew, yNew, varNam, filNam, self._tol[1])
@@ -2328,6 +2335,11 @@ class Tester(object):
                 if not data['mustExportFMU']:
                     self._reporter.writeWarning(
                         "Output file of " + data['ScriptFile'] + " is excluded from result test.")
+
+        # Write all results to comparison log file
+        with open(self._comp_log_file, 'w', encoding="utf-8-sig") as comp_log:
+            comp_log.write("{}\n".format(json.dumps(self._comp_info, indent=2, sort_keys=True)))
+
         return ret_val
 
     def _checkSimulationError(self, errorFile):
@@ -3088,7 +3100,7 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
             # HACK: 2 log files for now, should be merged.
             with open(self._simulator_log_file, 'r') as f:
                 self._comp_info = simplejson.loads(f.read())
-            self._checkReferencePoints(ans)  # ='N')
+            self._checkReferencePoints(ans='N')
 
         # Delete temporary directories, or write message that they are not deleted
         for d in self._temDir:

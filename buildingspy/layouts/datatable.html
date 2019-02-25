@@ -2,8 +2,16 @@
 <head>
 <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs-3.3.7/jq-3.3.1/jszip-2.5.0/dt-1.10.18/b-1.5.4/b-colvis-1.5.4/b-flash-1.5.4/b-html5-1.5.4/datatables.min.css"/>
 <style>
+	/* TODO
+	white-space: break-word;
+	word-break: break-all;
+	use JS to pre-process your content to perhaps insert zero-width spaces after commas, or perhaps do that on the server side. */
 th { font-size: 14px; }
 td { font-size: 14px; }
+.dataTable tbody td {
+	word-break: break-word;
+	vertical-align: top;
+}
 .table-responsive { max-width: 90%; margin-left: auto; margin-right: auto; overflow-x: visible }
 </style>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/pdfmake.min.js"></script>
@@ -89,7 +97,10 @@ $(document).ready(function() {
 			dataSrc: ''
 		},
 		columns: [
-			{ data: 'model' },
+			{ data: 'model', width: "30%",
+			  render: function (data, type, full) {
+				return data.replace(/\./g, '.<wbr>');}
+			},
 			{ data: 'simulation.cpu_time',
 			  render: $.fn.dataTable.render.number( ' ', '.', 2) },
 			{ data: 'simulation.start_time',
@@ -97,11 +108,7 @@ $(document).ready(function() {
 			{ data: 'simulation.final_time',
 			  render: $.fn.dataTable.render.number( ' ', '.', 2) },
 			{ data: 'simulation.success' },
-			{ data: 'simulation.message' },
-		],
-		columnDefs: [
-			{ width: "20%", targets: 0 },
-			{ width: "30%", targets: 5 }
+			{ data: 'simulation.message', width: "40%" },
 		],
 	});
 	var table2 = $('#myTable2').DataTable({
@@ -111,15 +118,14 @@ $(document).ready(function() {
 			dataSrc: ''
 		},
 		columns: [
-			{ data: 'model' },
+			{ data: 'model', width: "30%",
+			  render: function (data, type, full) {
+				return data.replace(/\./g, '.<wbr>');}
+			},
 			{ data: 'translation.cpu_time',
 			  render: $.fn.dataTable.render.number( ' ', '.', 2) },
 			{ data: 'translation.success' },
-			{ data: 'translation.warnings' },
-		],
-		columnDefs: [
-			{ width: "20%", targets: 0 },
-			{ width: "30%", targets: 3 },
+			{ data: 'translation.warnings', width: "40%" },
 		],
 	} );
 	var table3 = $('#myTable3').DataTable({
@@ -129,12 +135,21 @@ $(document).ready(function() {
 			dataSrc: ''
 		},
 		columns: [
-			{ data: 'model' },
-			{ data: 'comparison.variables'},
+			{ data: 'model', width: "30%",
+			  render: function (data, type, full) {
+				return data.replace(/\./g, '.<wbr>');}
+			},
+			{ data: 'comparison.variables', width: "60%",
+			  render: function (data, type, full) {
+				return data.map(function(e) {return '<wbr> ' + e});}
+			},
 			{ data: 'comparison.success_rate',
 			  render: function (data, type, full) {
-				return '<a href="#" class="myClass">' +
-					data.toLocaleString('en-US', {style: "percent"}) + '</a>';}},
+				var out = "";
+				if (!(data === undefined)) {
+					out = data.toLocaleString('en-US', {style: "percent"});}
+				return '<a href="#" class="myClass">' + out + '</a>';}
+			},
 			{ data: 'comparison.file_name' },
 			{ data: 'comparison.funnel_dirs' },
 		],
@@ -156,7 +171,8 @@ $(document).ready(function() {
 			new_data = new_data.replace('$TITLE', file);
 			var win = window.open();
 			win.document.write(new_data);
-			win.document.close();
+			win.document.close();  // necessary for the scripts on the page to be executed
+			win.document.title = file;
 		});
   });
 });
