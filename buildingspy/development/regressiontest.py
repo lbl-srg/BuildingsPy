@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 #######################################################
 # TODO
-# o funnel_plot during regression tests I/O error: send content as request
-# o Check sleeping process!
+# o Grouped variable for plot see all_data (or .mos file): up to 5 plots / test case
+# x funnel_plot during regression tests I/O error: send content as request
+# x Check sleeping process!
 # x Compare results JModelica to Dymola
 # x Output json with path of funnel results dir + nb variables + nb passed
 # x Integrate local server handling cf. IPython and pyfunnel
@@ -1451,7 +1452,7 @@ class Tester(object):
         self.update_comp_info(idx, varNam, target_path, test_passed)
 
         return (t_err_max, warning)
-
+    # TODOC
     def init_comp_info(self, model_name, file_name):
         try:
             idx = next(i for i, el in enumerate(self._comp_info) if el['model'] == model_name)
@@ -1468,15 +1469,18 @@ class Tester(object):
                 "funnel_dirs": [],
                 "test_passed": [],
                 "file_name": file_name,
-                "success_rate": 0
+                "success_rate": 0,
+                "var_groups": [],  # index of the group of variables belonging to the same subplot
             }
 
         return idx
-
+    # TODOC
     def update_comp_info(self, idx, var_name, funnel_dir, test_passed):
         self._comp_info[idx]["comparison"]["variables"].append(var_name)
         self._comp_info[idx]["comparison"]["funnel_dirs"].append(funnel_dir)
         self._comp_info[idx]["comparison"]["test_passed"].append(int(test_passed))  # Boolean not JSON serializable
+        self._comp_info[idx]["comparison"]["var_groups"].append(next(iv for iv, vl in enumerate(
+            self._data[idx]["ResultVariables"]) if var_name in vl))
 
         self._comp_info[idx]["comparison"]["success_rate"] = sum(self._comp_info[idx]["comparison"]["test_passed"]) /\
             len(self._comp_info[idx]["comparison"]["variables"])
@@ -2916,7 +2920,7 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
     def run(self):
         """ Run all regression tests and checks the results.
 
-        :return: 0 if no errros and no warnings occurred during the regression tests,
+        :return: 0 if no errors and no warnings occurred during the regression tests,
                  otherwise a non-zero value.
 
         This method
@@ -3101,6 +3105,10 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
             with open(self._simulator_log_file, 'r') as f:
                 self._comp_info = simplejson.loads(f.read())
             self._checkReferencePoints(ans='N')
+
+        # HACK
+        with open('data.log', 'w', encoding="utf-8-sig") as data_log:
+            data_log.write("{}\n".format(json.dumps(self._data, indent=2, sort_keys=True)))
 
         # Delete temporary directories, or write message that they are not deleted
         for d in self._temDir:

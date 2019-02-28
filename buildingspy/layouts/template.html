@@ -4,119 +4,195 @@
   <script src="https://d3js.org/d3-queue.v3.min.js"></script>
 </head>
 <body>
-  <div id="myDiv" style="height: 100%; width: 100%;" class="plotly-graph-div"></div>
-</body>
-<script>
-    function make_plot() {
-        var srv_url = 'http://localhost:$SERVER_PORT';
-        var dict_var_dir = $DICT_VAR_DIR;
-        var dict_data = {};
-        var queue = d3.queue();
-        Object.keys(dict_var_dir).forEach(function(v) {
-            ['reference.csv', 'test.csv', 'errors.csv'].forEach(function(f) {
-                var file = [srv_url, dict_var_dir[v], f].join('/');
-                queue.defer(Plotly.d3.csv, file);
+    <div id="myDiv" style="height: 100%; width: 100%;" class="plotly-graph-div"></div>
+    <script>
+        function make_plot() {
+            var srv_url = 'http://localhost:$SERVER_PORT';
+            var dict_var_dir = $DICT_VAR_DIR;
+            var var_groups = $VAR_GROUPS;
+            var dict_data = {};
+            var queue = d3.queue();
+            Object.keys(dict_var_dir).forEach(function(v) {
+                ['reference.csv', 'test.csv', 'errors.csv'].forEach(function(f) {
+                    var file = [srv_url, dict_var_dir[v], f].join('/');
+                    queue.defer(Plotly.d3.csv, file);
+                });
             });
-        });
-        queue.awaitAll(function(error, csvDataSets) {
-            if (error) throw error;
-            // csvDataSets is an array of CSV data
-            Object.keys(dict_var_dir).forEach(function(v, idx) {
-                // Process the CSV data
-                dict_data[v] = {
-                    ref: processData(csvDataSets[idx * 3]),
-                    test: processData(csvDataSets[idx * 3 + 1]),
-                    err: processData(csvDataSets[idx * 3 + 2]),
+            queue.awaitAll(function(error, csvDataSets) {
+                if (error) throw error;
+                // csvDataSets is an array of CSV data
+                Object.keys(dict_var_dir).forEach(function(v, idx) {
+                    // Process the CSV data
+                    dict_data[v] = {
+                        ref: processData(csvDataSets[idx * 3]),
+                        test: processData(csvDataSets[idx * 3 + 1]),
+                        err: processData(csvDataSets[idx * 3 + 2]),
+                    };
+                });
+                console.log('GET ALL DATA COMPLETED');
+                plot(dict_data, var_groups);
+            });
+        }
+        function processData(allRows) {
+            var x = [], y = [];
+            for (var i=0; i<allRows.length; i++) {
+                row = allRows[i];
+                x.push(row['x']);
+                y.push(row['y']);
+            }
+            return {x: x, y:y};
+        }
+        function plot(dict_data, var_groups){
+            var plotDiv = document.getElementById("plot");
+            var d3colors = Plotly.d3.scale.category10();
+            var traces = [];
+            i = -1;
+            var max_var_groups = Math.max(...var_groups);
+            var axis_error_idx = String(max_var_groups + 2);
+            // Dummy traces for legend only.
+            traces.push(
+                    {
+                        x: [null],
+                        y: [null],
+                        legendgroup: 99,
+                        showlegend: true,
+                        name: 'Reference data',
+                        mode: 'lines',
+                        line: {
+                            dash: 'dot',
+                            color: 'rgb(211,211,211)',
+                        },
+                        xaxis: 'x' + axis_error_idx,
+                        yaxis: 'y' + axis_error_idx,
+                    },
+                    {
+                        x: [null],
+                        y: [null],
+                        legendgroup: 99,
+                        showlegend: true,
+                        name: 'Test data',
+                        mode: 'lines',
+                        line: {
+                            color: 'rgb(211,211,211)',
+                        },
+                        xaxis: 'x' + axis_error_idx,
+                        yaxis: 'y' + axis_error_idx,
+                    },
+                    {
+                        x: [null],
+                        y: [null],
+                        legendgroup: 99,
+                        showlegend: true,
+                        name: 'Errors (in lower plot)',
+                        mode: 'lines',
+                        line: {
+                            color: 'rgb(211,211,211)',
+                        },
+                        xaxis: 'x' + axis_error_idx,
+                        yaxis: 'y' + axis_error_idx,
+                    },
+            );
+            // Data traces.
+            for (var v in dict_data) {
+                i++;
+                var data = dict_data[v];
+                var axis_data_idx = var_groups[i] + 1;
+                traces.push(
+                    {
+                        x: data['ref'].x,
+                        y: data['ref'].y,
+                        legendgroup: v,
+                        showlegend: false,
+                        name: [v, 'ref'].join('_'),
+                        line: {
+                            dash: 'dot',
+                            color: d3colors(i),
+                        },
+                        xaxis: 'x' + axis_data_idx,
+                        yaxis: 'y' + axis_data_idx,
+                    }
+                );
+                traces.push(
+                    {
+                        x: data['test'].x,
+                        y: data['test'].y,
+                        legendgroup: v,
+                        name: v,
+                        line: {
+                            color: d3colors(i),
+                        },
+                        xaxis: 'x' + axis_data_idx,
+                        yaxis: 'y' + axis_data_idx,
+                    }
+                );
+                traces.push(
+                    {
+                        x: data['err'].x,
+                        y: data['err'].y,
+                        legendgroup: v,
+                        showlegend: false,
+                        name: [v, 'error'].join('_'),
+                        line: {
+                            color: d3colors(i),
+                        },
+                        xaxis: 'x' + axis_error_idx,
+                        yaxis: 'y' + axis_error_idx,
+                    }
+                );
+            };
+            // Layout.
+            var layout = {
+                title: {text: '$TITLE'},
+                grid: {rows: max_var_groups + 2, columns: 1},
+            }
+            // error domain
+            layout['yaxis' + axis_error_idx] = {
+                    domain: [0, 0.15],
+                    ticks: 'inside',
+                    showline: true,
+                    zeroline: true,
+                    title: 'error [y]',
+            };
+            layout['xaxis' + axis_error_idx] = {
+                    showline: false,
+                    zeroline: true,
+                    showticklabels: false,
+                    anchor: 'y' + axis_error_idx,
+            };
+            // ref & test domain
+            var_groups.forEach(function(el) {
+                layout['yaxis' + (el + 1)] = {
+                    domain: getDomain(el),
+                    ticks: 'inside',
+                    mirror: 'ticks',
+                    showline: true,
+                    zeroline: false,
+                    title: 'y',
+                };
+                layout['xaxis' + (el + 1)] = {
+                    ticks: 'inside',
+                    showline: true,
+                    showticklabels: false,
+                    mirror: 'ticks',
+                    zeroline: false,
+                    anchor: 'y' + (el + 1),
+                    matches: 'x' + axis_error_idx,
                 };
             });
-            console.log('GET ALL DATA COMPLETED');
-            plot(dict_data);
-        });
-    }
-    function processData(allRows) {
-        var x = [], y = [];
-        for (var i=0; i<allRows.length; i++) {
-            row = allRows[i];
-            x.push(row['x']);
-            y.push(row['y']);
+            layout['xaxis1']['showticklabels'] = true;
+            layout['xaxis1']['side'] = 'top';
+            layout['xaxis' + (max_var_groups + 1)]['showticklabels'] = true;
+            function getDomain(i, n_domain=max_var_groups+1, spacing=0.005, domain_offset=0.17) {
+                // from bottom (i = 0) to top (i = n_domain-1)
+                i = n_domain - (i + 1);
+                return [
+                    domain_offset + ((1 - domain_offset) / n_domain) * i + (i === 0 ? 0 : spacing / 2),
+                    domain_offset + ((1 - domain_offset) / n_domain) * (i + 1) - (i === (n_domain - 1) ? 0 : spacing / 2)
+                ]
+            }
+            Plotly.newPlot('myDiv', traces, layout, {responsive: true});
         }
-        return {x: x, y:y};
-    }
-    function plot(dict_data){
-        var plotDiv = document.getElementById("plot");
-        var d3colors = Plotly.d3.scale.category10();
-        var traces = [];
-        i = -1;
-        for (var v in dict_data) {
-            i++;
-            var data = dict_data[v];
-            traces.push(
-                {
-                    x: data['ref'].x,
-                    y: data['ref'].y,
-                    legendgroup: v,
-                    showlegend: false,
-                    name: [v, 'ref'].join('_'),
-                    line: {
-                        dash: 'dot',
-                        color: d3colors(i),
-                    },
-                }
-            );
-            traces.push(
-                {
-                    x: data['test'].x,
-                    y: data['test'].y,
-                    legendgroup: v,
-                    name: [v, 'test'].join('_'),
-                    line: {
-                        color: d3colors(i),
-                    },
-                }
-            );
-            traces.push(
-                {
-                    x: data['err'].x,
-                    y: data['err'].y,
-                    legendgroup: v,
-                    showlegend: false,
-                    name: [v, 'error'].join('_'),
-                    line: {
-                        color: d3colors(i),
-                    },
-                    xaxis: 'x',
-                    yaxis: 'y2',
-                }
-            );
-        };
-        var layout = {
-            title: {text: '$TITLE'},
-            grid: {rows: 2, columns: 1, subplots: [['xy1'], ['xy2']]},
-            xaxis1: {
-                ticks: 'outside',
-                showline: true,
-                zeroline: false,
-                title: 'x',
-                anchor: 'y1',
-            },
-            yaxis1: {
-                domain: [0.3, 1],
-                ticks: 'outside',
-                showline: true,
-                zeroline: false,
-                title: 'y',
-            },
-            yaxis2: {
-                domain: [0, 0.18],
-                ticks: 'outside',
-                showline: true,
-                zeroline: false,
-                title: 'error [y]',
-            },
-        };
-        Plotly.newPlot('myDiv', traces, layout);
-    }
-    make_plot();
-</script>
+        make_plot();
+    </script>
+</body>
 </html>
-/html>

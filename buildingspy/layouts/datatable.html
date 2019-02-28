@@ -22,13 +22,13 @@ td { font-size: 14px; }
 <div class="table-responsive">
 	<div>
 		<ul class="nav nav-tabs" role="tablist">
-			<li class="active">
+			<li>
 				<a href="#tab-table1" data-toggle="tab">Simulation</a>
 			</li>
 			<li>
 				<a href="#tab-table2" data-toggle="tab">Translation</a>
 			</li>
-			<li>
+			<li class="active">
 				<a href="#tab-table3" data-toggle="tab">Comparison</a>
 			</li>
 		</ul>
@@ -37,7 +37,7 @@ td { font-size: 14px; }
 		<p margin-top="1em"> </p>
 	</div>
 	<div class="tab-content">
-		<div class="tab-pane active" id="tab-table1">
+		<div class="tab-pane" id="tab-table1">
 			<table id="myTable1" class="table table-striped table-bordered" cellspacing="0" >
 				<thead>
 					<tr>
@@ -63,7 +63,7 @@ td { font-size: 14px; }
 				</thead>
 			</table>
 		</div>
-		<div class="tab-pane" id="tab-table3">
+		<div class="tab-pane active" id="tab-table3">
 			<table id="myTable3" class="table table-striped table-bordered" cellspacing="0">
 				<thead>
 					<tr>
@@ -92,6 +92,11 @@ $(document).ready(function() {
 	};
 	var table1 = $('#myTable1').DataTable({
 		autoWidth: false,
+		aLengthMenu: [
+        [10, 50, 100, -1],
+        [10, 50, 100, "All"]
+    ],
+		iDisplayLength: -1,
 		ajax: {
 			url: '$SIMULATOR_LOG',
 			dataSrc: ''
@@ -113,6 +118,11 @@ $(document).ready(function() {
 	});
 	var table2 = $('#myTable2').DataTable({
 		autoWidth: false,
+		aLengthMenu: [
+        [10, 50, 100, -1],
+        [10, 50, 100, "All"]
+    ],
+		iDisplayLength: -1,
 		ajax: {
 			url: '$SIMULATOR_LOG',
 			dataSrc: ''
@@ -130,6 +140,11 @@ $(document).ready(function() {
 	} );
 	var table3 = $('#myTable3').DataTable({
 		autoWidth: false,
+		aLengthMenu: [
+        [10, 50, 100, -1],
+        [10, 50, 100, "All"]
+    ],
+		iDisplayLength: -1,
 		ajax: {
 			url: '$SIMULATOR_LOG',
 			dataSrc: ''
@@ -152,6 +167,7 @@ $(document).ready(function() {
 			},
 			{ data: 'comparison.file_name' },
 			{ data: 'comparison.funnel_dirs' },
+			{ data: 'comparison.var_groups' },
 		],
 		columnDefs: [
 			{ visible: false, searchable: false, targets: [3, 4] },
@@ -162,6 +178,7 @@ $(document).ready(function() {
 		var row_idx = table3.row(tr).index();
 		var dirs = table3.cell(row_idx, 4).data();
 		var file = table3.cell(row_idx, 3).data();
+		var var_groups = table3.cell(row_idx, 5).data();
 		var dict_var_dir = {};
 		table3.cell(row_idx, 1).data().forEach( function(v, idx) {
 			dict_var_dir[v] = dirs[idx]
@@ -169,10 +186,12 @@ $(document).ready(function() {
 		$.get('$COMP_DIR/plot.html', function(data) {
 			var new_data = data.replace('$DICT_VAR_DIR', JSON.stringify(dict_var_dir));
 			new_data = new_data.replace('$TITLE', file);
-			var win = window.open();
+			new_data = new_data.replace('$VAR_GROUPS', JSON.stringify(var_groups));
+			var strWindowFeatures = "menubar=yes, location=yes, resizable=yes, scrollbars=yes, status=yes";
+			var win = window.open('', '_blank', strWindowFeatures);
 			win.document.write(new_data);
 			win.document.close();  // necessary for the scripts on the page to be executed
-			win.document.title = file;
+			// win.document.title = file;
 		});
   });
 });
