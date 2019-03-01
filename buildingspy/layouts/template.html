@@ -1,5 +1,6 @@
 <html>
 <head>
+  <meta charset="utf-8"/>
   <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
   <script src="https://d3js.org/d3-queue.v3.min.js"></script>
 </head>
@@ -103,6 +104,7 @@
                         y: data['ref'].y,
                         legendgroup: v,
                         showlegend: false,
+                        hoverlabel: {namelength :-1},
                         name: [v, 'ref'].join('_'),
                         line: {
                             dash: 'dot',
@@ -118,6 +120,7 @@
                         y: data['test'].y,
                         legendgroup: v,
                         name: v,
+                        hoverlabel: {namelength :-1},
                         line: {
                             color: d3colors(i),
                         },
@@ -131,6 +134,7 @@
                         y: data['err'].y,
                         legendgroup: v,
                         showlegend: false,
+                        hoverlabel: {namelength :-1},
                         name: [v, 'error'].join('_'),
                         line: {
                             color: d3colors(i),
@@ -144,6 +148,7 @@
             var layout = {
                 title: {text: '$TITLE'},
                 grid: {rows: max_var_groups + 2, columns: 1},
+                margin: {b: 40}
             }
             // error domain
             layout['yaxis' + axis_error_idx] = {
@@ -182,7 +187,7 @@
             layout['xaxis1']['showticklabels'] = true;
             layout['xaxis1']['side'] = 'top';
             layout['xaxis' + (max_var_groups + 1)]['showticklabels'] = true;
-            function getDomain(i, n_domain=max_var_groups+1, spacing=0.005, domain_offset=0.17) {
+            function getDomain(i, n_domain=max_var_groups+1, spacing=0.005, domain_offset=0.18) {
                 // from bottom (i = 0) to top (i = n_domain-1)
                 i = n_domain - (i + 1);
                 return [

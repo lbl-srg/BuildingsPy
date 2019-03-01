@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 #######################################################
 # TODO
+# O UPDATE plot function / refactoring of pyfunnel
 # o Grouped variable for plot see all_data (or .mos file): up to 5 plots / test case
 # x funnel_plot during regression tests I/O error: send content as request
 # x Check sleeping process!
@@ -351,31 +352,21 @@ class Tester(object):
         report_file = 'report.html'
         plot_file = os.path.join(self._comp_dir, 'plot.html')
 
-        try:
-            # Build HTML report file.
-            with open(self._REPORT_TEMPLATE, 'r') as f:
-                template = f.read()
-            content = re.sub('\$SIMULATOR_LOG', self._comp_log_file, template)
-            content = re.sub('\$COMP_DIR', self._comp_dir, content)
-            server = pyfunnel.MyHTTPServer(content, ('', 0), pyfunnel.CORSRequestHandler)
-            server.server_launch()
-            # Pre-build HTML plot file.
-            with open(self._PLOT_TEMPLATE, 'r') as f:
-                template = f.read()
-            content = re.sub('\$SERVER_PORT', str(server.server_port), template)
-            with open(plot_file, 'w') as f:
-                f.write(content)
-            # Open report in browser.
-            webb = webbrowser.get(browser)
-            webb.open('http://localhost:{}/funnel'.format(server.server_port))
-            time.sleep(timeout)
-        except KeyboardInterrupt:  # for KeyboardInterrupt
-            print("KeyboardInterrupt")
-        except Exception as e:
-            print(e)
-        finally:
-            server.server_close()
-            os.remove(plot_file)
+        with open(self._REPORT_TEMPLATE, 'r') as f:
+            template = f.read()
+        content = re.sub('\$SIMULATOR_LOG', self._comp_log_file, template)
+        content = re.sub('\$COMP_DIR', self._comp_dir, content)
+        server = pyfunnel.MyHTTPServer(('', 0),
+            pyfunnel.CORSRequestHandler, str_html=content, url_html='funnel', browse_dir=os.getcwd())
+
+        # Pre-build HTML plot file.
+        with open(self._PLOT_TEMPLATE, 'r') as f:
+            template = f.read()
+        content = re.sub('\$SERVER_PORT', str(server.server_port), template)
+        with open(plot_file, 'w') as f:
+            f.write(content)
+
+        server.browse(browser=browser, timeout=60*15)
 
     def get_unit_test_log_file(self):
         """ Return the name of the log file of the unit tests, such as ``unitTests-jmodelica.log`` or ``unitTests-dymola.log``.
