@@ -180,6 +180,8 @@ $(document).ready(function() {
 		var dirs = table3.cell(row_idx, 4).data();
 		var file = table3.cell(row_idx, 3).data();
 		var var_groups = table3.cell(row_idx, 5).data();
+		var max_plot_per100 = 4;
+		var height = 100 * (1 + Math.max(0, Math.max(...var_groups) - max_plot_per100) / max_plot_per100);
 		var dict_var_dir = {};
 		table3.cell(row_idx, 1).data().forEach( function(v, idx) {
 			dict_var_dir[v] = dirs[idx]
@@ -187,6 +189,7 @@ $(document).ready(function() {
 		$.get('$COMP_DIR/plot.html', function(data) {
 			var new_data = data.replace('$DICT_VAR_DIR', JSON.stringify(dict_var_dir));
 			new_data = new_data.replace('$TITLE', file);
+			new_data = new_data.replace('$HEIGHT', height + '%');
 			new_data = new_data.replace('$VAR_GROUPS', JSON.stringify(var_groups));
 			var strWindowFeatures = "menubar=yes, location=yes, resizable=yes, scrollbars=yes, status=yes";
 			var win = window.open('', '_blank', strWindowFeatures);

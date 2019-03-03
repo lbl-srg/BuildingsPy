@@ -1,9 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #######################################################
+# TMP
+# - do not delete funnel_comp
+# - import local pyfunnel
 # TODO
 # O UPDATE plot function / refactoring of pyfunnel
-# o Grouped variable for plot see all_data (or .mos file): up to 5 plots / test case
+# O Create dymola JSON log
+# O funnel as dependency in setup.py
+# x Grouped variable for plot see all_data (or .mos file): up to 5 plots / test case
 # x funnel_plot during regression tests I/O error: send content as request
 # x Check sleeping process!
 # x Compare results JModelica to Dymola
@@ -45,6 +50,7 @@ import functools
 import glob
 import json
 import multiprocessing
+import numbers
 import os
 import re
 import shutil
@@ -61,6 +67,7 @@ import numpy as np
 import simplejson
 # Code repository sub-package imports.
 ################################################################################"
+# TMP
 # FOR DEV ONLY
 import imp
 def import_from_end_sys(name, custom_name=None):
@@ -77,12 +84,12 @@ def import_from_end_sys(name, custom_name=None):
 
     return module
 
-sys.path.append('/home/agautier/Documents/BuildingsPy')
+sys.path.append('/home/agautier/BuildingsPy')
 buildingspy = import_from_end_sys('buildingspy')
 print(buildingspy)
 
 # Local version of funnel
-sys.path.append('/home/agautier/Documents/funnel/bin/')
+sys.path.append('/home/agautier/funnel/bin/')
 import pyfunnel
 print(pyfunnel)
 # FOR DEV ONLY
@@ -241,9 +248,15 @@ class Tester(object):
 
     """
 
-    def __init__(self, check_html=True, tool="dymola", cleanup=True, comp_tool='funnel', tol=[1E-3, 1E-3], html_report=True):
-        """ Constructor.
-        """
+    def __init__(
+        self,
+        check_html=True,
+        tool="dymola",
+        cleanup=True,
+        comp_tool='funnel',
+        tol=1E-3
+    ):
+        """ Constructor."""
         if tool == 'jmodelica':
             e = error_dictionary_jmodelica
         else:
@@ -294,28 +307,34 @@ class Tester(object):
         # Comparison tool, tolerance in x [0] and y [1] and object for storing results:
         # If legacy, only tol[1] is used.
         self._comp_tool = comp_tool
-        self._tol = tol
+        self._tol = {}
+        if isinstance(tol, numbers.Real):
+            self._tol['ax'] = tol
+            self._tol['ay'] = tol
+        elif isinstance(tol, dict):
+            self._tol = tol
+            for k in ['ax', 'ay', 'rx', 'ry']:  # fill with None if undefined
+                try:
+                    self._tol[k]
+                except KeyError:
+                    self._tol[k] = None
+        else:
+            raise TypeError('Parameter tol must be a number or a dict.')
         self._comp_info = []
         self._comp_log_file = "comparison-{}.log".format(tool)
         self._comp_dir = "funnel_comp"
-        if comp_tool == 'funnel':
-            shutil.rmtree(self._comp_dir , ignore_errors=True)
-            os.makedirs(self._comp_dir)
+        # TMP
+        # FOR DEV ONLY
+        # if comp_tool == 'funnel':
+        #     shutil.rmtree(self._comp_dir , ignore_errors=True)
+        #     os.makedirs(self._comp_dir)
+        # FOR DEV ONLY
         self._REPORT_TEMPLATE = os.path.join(
-            os.path.dirname(__file__), os.path.pardir, 'layouts', 'datatable.html')
+            os.path.dirname(__file__), os.path.pardir, 'templates', 'datatable.html')
         self._PLOT_TEMPLATE = os.path.join(
-            os.path.dirname(__file__), os.path.pardir, 'layouts', 'template.html')
-        # [
-        #     {
-        #         "model_name": "MyModelicaLibrary.Examples.BooleanParameters"
-        #         "ResultVariables": ['v1', 'v2', 'v3']
-        #         "funnel_comp_dirs": ['funnel_comp/v1', 'funnel_comp/v2', 'funnel_comp/v3']
-        #         "test_passed": [1, 0, 1]
-        #     }
-        # ]
+            os.path.dirname(__file__), os.path.pardir, 'templates', 'plot.html')
         # Write result dictionary that is used by OpenModelica's regression testing
 #        self.writeOpenModelicaResultDictionary()
-
         '''
         List of dicts, each dict with all meta-information about a single model to be tested.
         keys equal to the ``*.mos`` file name, and values
@@ -344,9 +363,9 @@ class Tester(object):
         self._showGUI = False
 
     def report(self, timeout=600, browser=None, autoraise=True):
-        """Build and display HTML report.
+        """Builds and displays HTML report.
 
-        Serve until timeout (s) or KeyboardInterrupt.
+        Serves until timeout (s) or KeyboardInterrupt.
         """
         list_files = [self._comp_log_file] * 3
         report_file = 'report.html'
@@ -1394,8 +1413,10 @@ class Tester(object):
                 xTest=tNew,
                 yTest=yNew,
                 outputDirectory=tmp_dir,
-                atolx=tol[0],
-                atoly=tol[1]
+                atolx=tol['ax'],
+                atoly=tol['ay'],
+                rtolx=tol['rx'],
+                rtoly=tol['ry'],
             )
         )
         p.start()
@@ -1536,7 +1557,7 @@ class Tester(object):
             tNew = getTimeGrid(tNew, len(yNew))
 
         if self._comp_tool == 'legacy':
-            t_err_max, warning = self.legacy_comp(tOld, yOld, tNew, yNew, varNam, filNam, self._tol[1])
+            t_err_max, warning = self.legacy_comp(tOld, yOld, tNew, yNew, varNam, filNam, self._tol['ay'])
         else:
             t_err_max, warning = self.funnel_comp(tOld, yOld, tNew, yNew, varNam, filNam, model_name, self._tol)
 
@@ -1859,8 +1880,7 @@ class Tester(object):
 
         return (updateReferenceData, foundError, ans)
 
-    def funnel_plot(self, model_name, browser=None, autoraise=True):
-        plot_file = os.path.join(self._comp_dir, 'plot.html')
+    def funnel_plot(self, model_name, browser=None):
         idx = next(i for i, el in enumerate(self._comp_info) if el['model'] == model_name)
         comp_data = self._comp_info[idx]['comparison']
         dict_var_dir = {}
@@ -1872,22 +1892,13 @@ class Tester(object):
                 list_files.append('{}/{}'.format(d, el))
         plot_title = comp_data['file_name']
 
-        try:
-            # Build HTML plot file.
-            with open(self._PLOT_TEMPLATE, 'r') as f:
-                template = f.read()
-            content = re.sub('\$TITLE', plot_title, template)
-            content = re.sub('\$DICT_VAR_DIR', json.dumps(dict_var_dir), content)
-            server = pyfunnel.MyHTTPServer(content, ('', 0), pyfunnel.CORSRequestHandler)
-            server.server_launch()
-            # Open report in browser.
-            webb = webbrowser.get(browser)
-            webb.open('http://localhost:{}/funnel'.format(server.server_port))
-            pyfunnel.wait_until(pyfunnel.exit_test, 5, 0.1, server.logger, list_files)
-        except KeyboardInterrupt:  # for KeyboardInterrupt
-            print("KeyboardInterrupt")
-        finally:
-            server.server_close()
+        with open(self._PLOT_TEMPLATE, 'r') as f:
+            template = f.read()
+        content = re.sub('\$TITLE', plot_title, template)
+        content = re.sub('\$DICT_VAR_DIR', json.dumps(dict_var_dir), content)
+        server = pyfunnel.MyHTTPServer(('', 0), pyfunnel.CORSRequestHandler,
+            str_html=content, url_html='funnel')
+        server.browse(list_files, browser=browser)
 
     def legacy_plot(self, y_sim, t_ref, y_ref, noOldResults, timOfMaxErr, matFilNam):
         nPlo = len(y_sim)

@@ -5,7 +5,7 @@
   <script src="https://d3js.org/d3-queue.v3.min.js"></script>
 </head>
 <body>
-    <div id="myDiv" style="height: 100%; width: 100%;" class="plotly-graph-div"></div>
+    <div id="myDiv" style="height: $HEIGHT; width: 100%;" class="plotly-graph-div"></div>
     <script>
         function make_plot() {
             var srv_url = 'http://localhost:$SERVER_PORT';
@@ -47,57 +47,57 @@
             var plotDiv = document.getElementById("plot");
             var d3colors = Plotly.d3.scale.category10();
             var traces = [];
-            i = -1;
             var max_var_groups = Math.max(...var_groups);
-            var axis_error_idx = String(max_var_groups + 2);
+            var axis_error_idx = 1;  // max_var_groups + 2;
             // Dummy traces for legend only.
             traces.push(
-                    {
-                        x: [null],
-                        y: [null],
-                        legendgroup: 99,
-                        showlegend: true,
-                        name: 'Reference data',
-                        mode: 'lines',
-                        line: {
-                            dash: 'dot',
-                            color: 'rgb(211,211,211)',
-                        },
-                        xaxis: 'x' + axis_error_idx,
-                        yaxis: 'y' + axis_error_idx,
+                {
+                    x: [null],
+                    y: [null],
+                    legendgroup: 99,
+                    showlegend: true,
+                    name: 'Errors (in upper plot)',
+                    mode: 'lines',
+                    line: {
+                        color: 'rgb(211,211,211)',
                     },
-                    {
-                        x: [null],
-                        y: [null],
-                        legendgroup: 99,
-                        showlegend: true,
-                        name: 'Test data',
-                        mode: 'lines',
-                        line: {
-                            color: 'rgb(211,211,211)',
-                        },
-                        xaxis: 'x' + axis_error_idx,
-                        yaxis: 'y' + axis_error_idx,
+                    xaxis: 'x' + axis_error_idx,
+                    yaxis: 'y' + axis_error_idx,
+                },
+                {
+                    x: [null],
+                    y: [null],
+                    legendgroup: 99,
+                    showlegend: true,
+                    name: 'Reference data',
+                    mode: 'lines',
+                    line: {
+                        dash: 'dot',
+                        color: 'rgb(211,211,211)',
                     },
-                    {
-                        x: [null],
-                        y: [null],
-                        legendgroup: 99,
-                        showlegend: true,
-                        name: 'Errors (in lower plot)',
-                        mode: 'lines',
-                        line: {
-                            color: 'rgb(211,211,211)',
-                        },
-                        xaxis: 'x' + axis_error_idx,
-                        yaxis: 'y' + axis_error_idx,
+                    xaxis: 'x' + axis_error_idx,
+                    yaxis: 'y' + axis_error_idx,
+                },
+                {
+                    x: [null],
+                    y: [null],
+                    legendgroup: 99,
+                    showlegend: true,
+                    name: 'Test data',
+                    mode: 'lines',
+                    line: {
+                        color: 'rgb(211,211,211)',
                     },
+                    xaxis: 'x' + axis_error_idx,
+                    yaxis: 'y' + axis_error_idx,
+                },
             );
             // Data traces.
+            i = -1;
             for (var v in dict_data) {
                 i++;
                 var data = dict_data[v];
-                var axis_data_idx = var_groups[i] + 1;
+                var axis_data_idx = var_groups[i] + 2;  // 1 is for error
                 traces.push(
                     {
                         x: data['ref'].x,
@@ -152,7 +152,7 @@
             }
             // error domain
             layout['yaxis' + axis_error_idx] = {
-                    domain: [0, 0.15],
+                    domain: [1 - 1 / (max_var_groups + 2), 1],
                     ticks: 'inside',
                     showline: true,
                     zeroline: true,
@@ -160,42 +160,49 @@
             };
             layout['xaxis' + axis_error_idx] = {
                     showline: false,
-                    zeroline: true,
+                    zeroline: false,
                     showticklabels: false,
                     anchor: 'y' + axis_error_idx,
+                    // scaleanchor: 'x' + (max_var_groups + 2),
+                    matches: 'x' + (max_var_groups + 2)
             };
             // ref & test domain
+            var divHeight = parseFloat(document.getElementById('myDiv').style.height).toFixed(2);
+            var spacing = 0.02 * 100 / divHeight;
+            var t_offset = 1 / (max_var_groups + 2) + 2 * spacing;
             var_groups.forEach(function(el) {
-                layout['yaxis' + (el + 1)] = {
-                    domain: getDomain(el),
+                layout['yaxis' + (el + 2)] = {
+                    domain: getDomain(el, max_var_groups+1, t_offset, 0.0, spacing),
                     ticks: 'inside',
                     mirror: 'ticks',
                     showline: true,
                     zeroline: false,
                     title: 'y',
                 };
-                layout['xaxis' + (el + 1)] = {
+                layout['xaxis' + (el + 2)] = {
                     ticks: 'inside',
                     showline: true,
                     showticklabels: false,
                     mirror: 'ticks',
                     zeroline: false,
-                    anchor: 'y' + (el + 1),
-                    matches: 'x' + axis_error_idx,
+                    anchor: 'y' + (el + 2),
+                    // scaleanchor: 'x' + (el + 1),
+                    matches: 'x' + (el + 1)
                 };
             });
-            layout['xaxis1']['showticklabels'] = true;
-            layout['xaxis1']['side'] = 'top';
-            layout['xaxis' + (max_var_groups + 1)]['showticklabels'] = true;
-            function getDomain(i, n_domain=max_var_groups+1, spacing=0.005, domain_offset=0.18) {
-                // from bottom (i = 0) to top (i = n_domain-1)
-                i = n_domain - (i + 1);
-                return [
-                    domain_offset + ((1 - domain_offset) / n_domain) * i + (i === 0 ? 0 : spacing / 2),
-                    domain_offset + ((1 - domain_offset) / n_domain) * (i + 1) - (i === (n_domain - 1) ? 0 : spacing / 2)
-                ]
-            }
+            layout['xaxis2']['showticklabels'] = true;
+            layout['xaxis2']['side'] = 'top';
+            layout['xaxis' + (max_var_groups + 2)]['showticklabels'] = true;
+            layout['xaxis' + (max_var_groups + 2)]['title'] = 'x';
             Plotly.newPlot('myDiv', traces, layout, {responsive: true});
+        }
+        function getDomain(i, n_domain, t_offset=0.0, b_offset=0.0, spacing=0.02) {
+            // from top (i = 0) to bottom (i = n_domain-1)
+            i = n_domain - i - 1;
+            return [
+                b_offset + (1 - b_offset - t_offset) / n_domain * i + (i === 0 ? 0 : spacing / 2),
+                b_offset + (1 - b_offset - t_offset) / n_domain * (i + 1) - (i === (n_domain - 1) ? 0 : spacing / 2)
+            ];
         }
         make_plot();
     </script>
