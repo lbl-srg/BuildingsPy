@@ -1,9 +1,0 @@
-# Binaries
-bin/*
-!bin/pyfunnel.py
-
-# Object files
-*.o
-
-# pdf outputs
-tests/**/*.pdf
