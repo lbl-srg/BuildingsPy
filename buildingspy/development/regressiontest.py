@@ -3066,7 +3066,7 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
                                          cmd=cmd),
                        [x for x in tem_dir])
                 po.close()
-                po.join()
+                po.join()  # so that worker processes
             else:
                 runSimulation(tem_dir[0], cmd)
 

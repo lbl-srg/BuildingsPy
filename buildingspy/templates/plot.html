@@ -27,12 +27,12 @@
             queue.awaitAll(function(error, csvDataSets) {
                 if (error) throw error;
                 var list_group_var = new Array(max_var_groups+1);  // index = group id, element = array of variable names
-                // csvDataSets is an array of CSV data
+                // csvDataSets is an array of CSV data.
                 Object.keys(dict_var_info).forEach(function(v, idx) {
                     dict_var_info[v].forEach(function(el) {
                         (list_group_var[el['group']] = list_group_var[el['group']] || []).push(v);
                     });
-                    // Process the CSV data
+                    // Process the CSV data.
                     dict_data[v] = {
                         ref: processData(csvDataSets[idx * 3]),
                         test: processData(csvDataSets[idx * 3 + 1]),
@@ -101,7 +101,7 @@
                     yaxis: 'y' + axis_error_idx,
                 },
             );
-            // Layout.
+            // Layout
             var layout = {
                 title: {text: '$TITLE'},
                 grid: {rows: nb_groups + 1, columns: 1},
@@ -126,7 +126,7 @@
                     anchor: 'y' + axis_error_idx,
                     matches: 'x' + (nb_groups + 1)
             };
-            // ref & test domain
+            // ref & test domains
             var divHeight = parseFloat(document.getElementById('myDiv').style.height).toFixed(2);
             var spacing = 0.02 * 100 / divHeight;
             var t_offset = err_plot_height + 2 * spacing;
@@ -202,13 +202,15 @@
                 });
             });
             layout['xaxis2']['showticklabels'] = true;
-            layout['xaxis2']['side'] = 'top';
+            if (nb_groups > 1) {
+                layout['xaxis2']['side'] = 'top';
+            }
             layout['xaxis' + (nb_groups + 1)]['showticklabels'] = true;
             layout['xaxis' + (nb_groups + 1)]['title'] = 'x';
             Plotly.newPlot('myDiv', traces, layout, {responsive: true});
         }
         function getDomain(i, n_domain, t_offset=0.0, b_offset=0.0, spacing=0.02) {
-            // from top (i = 0) to bottom (i = n_domain-1)
+            // From top (i = 0) to bottom (i = n_domain-1).
             i = n_domain - i - 1;
             return [
                 b_offset + (1 - b_offset - t_offset) / n_domain * i + (i === 0 ? 0 : spacing / 2),
@@ -217,7 +219,7 @@
         }
         make_plot();
 
-        // // Reposition legend when scrolling
+        // Reposition legend when scrolling.
         let last_known_scroll_position = 0;
         let ticking = false;
         function repositionLegend(scroll_pos) {
