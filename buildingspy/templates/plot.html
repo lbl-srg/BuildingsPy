@@ -9,20 +9,29 @@
     <script>
         function make_plot() {
             var srv_url = 'http://localhost:$SERVER_PORT';
-            var dict_var_dir = $DICT_VAR_DIR;
-            var var_groups = $VAR_GROUPS;
+            var dict_var_info = $DICT_VAR_INFO;
             var dict_data = {};
+            var max_var_groups = 0;
             var queue = d3.queue();
-            Object.keys(dict_var_dir).forEach(function(v) {
+            Object.keys(dict_var_info).forEach(function(v) {
+                dict_var_info[v].forEach(function(el) {
+                    max_var_groups = Math.max(max_var_groups, el['group']);
+                });
                 ['reference.csv', 'test.csv', 'errors.csv'].forEach(function(f) {
-                    var file = [srv_url, dict_var_dir[v], f].join('/');
+                    // All elements of dict_var_info[v] have the same data files.
+                    // We load only once.
+                    var file = [srv_url, dict_var_info[v][0]['dir'], f].join('/');
                     queue.defer(Plotly.d3.csv, file);
                 });
             });
             queue.awaitAll(function(error, csvDataSets) {
                 if (error) throw error;
+                var list_group_var = new Array(max_var_groups+1);  // index = group id, element = array of variable names
                 // csvDataSets is an array of CSV data
-                Object.keys(dict_var_dir).forEach(function(v, idx) {
+                Object.keys(dict_var_info).forEach(function(v, idx) {
+                    dict_var_info[v].forEach(function(el) {
+                        (list_group_var[el['group']] = list_group_var[el['group']] || []).push(v);
+                    });
                     // Process the CSV data
                     dict_data[v] = {
                         ref: processData(csvDataSets[idx * 3]),
@@ -31,7 +40,7 @@
                     };
                 });
                 console.log('GET ALL DATA COMPLETED');
-                plot(dict_data, var_groups);
+                plot(dict_data, dict_var_info, list_group_var);
             });
         }
         function processData(allRows) {
@@ -41,14 +50,14 @@
                 x.push(row['x']);
                 y.push(row['y']);
             }
-            return {x: x, y:y};
+            return {x: x, y: y};
         }
-        function plot(dict_data, var_groups){
+        function plot(dict_data, dict_var_info, list_group_var){
+            var nb_groups = list_group_var.length;
             var plotDiv = document.getElementById("plot");
             var d3colors = Plotly.d3.scale.category10();
             var traces = [];
-            var max_var_groups = Math.max(...var_groups);
-            var axis_error_idx = 1;  // max_var_groups + 2;
+            var axis_error_idx = 1;
             // Dummy traces for legend only.
             traces.push(
                 {
@@ -92,67 +101,19 @@
                     yaxis: 'y' + axis_error_idx,
                 },
             );
-            // Data traces.
-            i = -1;
-            for (var v in dict_data) {
-                i++;
-                var data = dict_data[v];
-                var axis_data_idx = var_groups[i] + 2;  // 1 is for error
-                traces.push(
-                    {
-                        x: data['ref'].x,
-                        y: data['ref'].y,
-                        legendgroup: v,
-                        showlegend: false,
-                        hoverlabel: {namelength :-1},
-                        name: [v, 'ref'].join('_'),
-                        line: {
-                            dash: 'dot',
-                            color: d3colors(i),
-                        },
-                        xaxis: 'x' + axis_data_idx,
-                        yaxis: 'y' + axis_data_idx,
-                    }
-                );
-                traces.push(
-                    {
-                        x: data['test'].x,
-                        y: data['test'].y,
-                        legendgroup: v,
-                        name: v,
-                        hoverlabel: {namelength :-1},
-                        line: {
-                            color: d3colors(i),
-                        },
-                        xaxis: 'x' + axis_data_idx,
-                        yaxis: 'y' + axis_data_idx,
-                    }
-                );
-                traces.push(
-                    {
-                        x: data['err'].x,
-                        y: data['err'].y,
-                        legendgroup: v,
-                        showlegend: false,
-                        hoverlabel: {namelength :-1},
-                        name: [v, 'error'].join('_'),
-                        line: {
-                            color: d3colors(i),
-                        },
-                        xaxis: 'x' + axis_error_idx,
-                        yaxis: 'y' + axis_error_idx,
-                    }
-                );
-            };
             // Layout.
             var layout = {
                 title: {text: '$TITLE'},
-                grid: {rows: max_var_groups + 2, columns: 1},
-                margin: {b: 40}
+                grid: {rows: nb_groups + 1, columns: 1},
+                legend: {
+                    x: 1.02,
+                    y: 1,
+                }
             }
             // error domain
+            var err_plot_height = $ERR_PLOT_HEIGHT;
             layout['yaxis' + axis_error_idx] = {
-                    domain: [1 - 1 / (max_var_groups + 2), 1],
+                    domain: [1 - err_plot_height, 1],
                     ticks: 'inside',
                     showline: true,
                     zeroline: true,
@@ -163,37 +124,87 @@
                     zeroline: false,
                     showticklabels: false,
                     anchor: 'y' + axis_error_idx,
-                    // scaleanchor: 'x' + (max_var_groups + 2),
-                    matches: 'x' + (max_var_groups + 2)
+                    matches: 'x' + (nb_groups + 1)
             };
             // ref & test domain
             var divHeight = parseFloat(document.getElementById('myDiv').style.height).toFixed(2);
             var spacing = 0.02 * 100 / divHeight;
-            var t_offset = 1 / (max_var_groups + 2) + 2 * spacing;
-            var_groups.forEach(function(el) {
-                layout['yaxis' + (el + 2)] = {
-                    domain: getDomain(el, max_var_groups+1, t_offset, 0.0, spacing),
-                    ticks: 'inside',
-                    mirror: 'ticks',
-                    showline: true,
-                    zeroline: false,
-                    title: 'y',
-                };
-                layout['xaxis' + (el + 2)] = {
-                    ticks: 'inside',
-                    showline: true,
-                    showticklabels: false,
-                    mirror: 'ticks',
-                    zeroline: false,
-                    anchor: 'y' + (el + 2),
-                    // scaleanchor: 'x' + (el + 1),
-                    matches: 'x' + (el + 1)
-                };
+            var t_offset = err_plot_height + 2 * spacing;
+            // Data traces and axis.
+            var i = -1;
+            list_group_var.forEach(function(el, group) {
+                el.forEach(function(v, idv) {
+                    i++;
+                    var data = dict_data[v];
+                    var axis_data_idx = group + 2;  // 1 is for error
+                    traces.push(
+                        {
+                            x: data['ref'].x,
+                            y: data['ref'].y,
+                            legendgroup: v + group,
+                            showlegend: false,
+                            hoverlabel: {namelength :-1},
+                            name: [v, 'ref'].join('_'),
+                            line: {
+                                dash: 'dot',
+                                color: d3colors(i),
+                            },
+                            xaxis: 'x' + axis_data_idx,
+                            yaxis: 'y' + axis_data_idx,
+                        }
+                    );
+                    traces.push(
+                        {
+                            x: data['test'].x,
+                            y: data['test'].y,
+                            legendgroup: v + group,
+                            name: v,
+                            hoverlabel: {namelength :-1},
+                            line: {
+                                color: d3colors(i),
+                            },
+                            xaxis: 'x' + axis_data_idx,
+                            yaxis: 'y' + axis_data_idx,
+                        }
+                    );
+                    traces.push(
+                        {
+                            x: data['err'].x,
+                            y: data['err'].y,
+                            legendgroup: v + group,
+                            showlegend: false,
+                            hoverlabel: {namelength :-1},
+                            name: [v, 'error'].join('_'),
+                            line: {
+                                color: d3colors(i),
+                            },
+                            xaxis: 'x' + axis_error_idx,
+                            yaxis: 'y' + axis_error_idx,
+                        }
+                    );
+                    layout['yaxis' + axis_data_idx] = {
+                        domain: getDomain(group, nb_groups, t_offset, 0.0, spacing),
+                        ticks: 'inside',
+                        mirror: 'ticks',
+                        showline: true,
+                        zeroline: false,
+                        title: 'y',
+                    };
+                    layout['xaxis' + axis_data_idx] = {
+                        ticks: 'inside',
+                        showline: true,
+                        showticklabels: false,
+                        mirror: 'ticks',
+                        zeroline: false,
+                        anchor: 'y' + axis_data_idx,
+                        matches: 'x' + (axis_data_idx - 1)
+                    };
+                });
             });
             layout['xaxis2']['showticklabels'] = true;
             layout['xaxis2']['side'] = 'top';
-            layout['xaxis' + (max_var_groups + 2)]['showticklabels'] = true;
-            layout['xaxis' + (max_var_groups + 2)]['title'] = 'x';
+            layout['xaxis' + (nb_groups + 1)]['showticklabels'] = true;
+            layout['xaxis' + (nb_groups + 1)]['title'] = 'x';
             Plotly.newPlot('myDiv', traces, layout, {responsive: true});
         }
         function getDomain(i, n_domain, t_offset=0.0, b_offset=0.0, spacing=0.02) {
@@ -205,6 +216,31 @@
             ];
         }
         make_plot();
+
+        // // Reposition legend when scrolling
+        let last_known_scroll_position = 0;
+        let ticking = false;
+        function repositionLegend(scroll_pos) {
+            var scrollMaxY = Math.max(document.body.scrollHeight, document.body.offsetHeight, document.documentElement.clientHeight,
+                document.documentElement.scrollHeight, document.documentElement.offsetHeight) - window.innerHeight;
+            var update = {
+                legend: {
+                    x: 1.02,
+                    y: (scrollMaxY - scroll_pos) / scrollMaxY
+                }
+            };
+            Plotly.relayout('myDiv', update);
+        }
+        window.addEventListener('scroll', function(e) {
+            last_known_scroll_position = window.scrollY;
+            if (!ticking) {
+                window.requestAnimationFrame(function() {
+                    repositionLegend(last_known_scroll_position);
+                    ticking = false;
+                });
+                ticking = true;
+            }
+        });
     </script>
 </body>
 </html>

@@ -5,9 +5,9 @@
 # - do not delete funnel_comp
 # - import local pyfunnel
 # TODO
-# O UPDATE plot function / refactoring of pyfunnel
 # O Create dymola JSON log
 # O funnel as dependency in setup.py
+# x Update plot function / refactoring of pyfunnel
 # x Grouped variable for plot see all_data (or .mos file): up to 5 plots / test case
 # x funnel_plot during regression tests I/O error: send content as request
 # x Check sleeping process!
@@ -43,6 +43,7 @@ from __future__ import unicode_literals
 from future import standard_library
 standard_library.install_aliases()
 from builtins import *
+from collections import defaultdict
 from io import open
 # end of from future import
 # Python standard library imports.
@@ -102,6 +103,10 @@ from buildingspy.io.postprocess import Plotter
 import buildingspy.io.outputfile as of
 import buildingspy.io.reporter as rep
 
+try:
+    input = raw_input
+except NameError: # Python 3
+    pass
 
 def runSimulation(worDir, cmd):
     """ Run the simulation.
@@ -304,31 +309,32 @@ class Tester(object):
         # Flag to use existing results instead of running a simulation
         self._useExistingResults = False
 
-        # Comparison tool, tolerance in x [0] and y [1] and object for storing results:
-        # If legacy, only tol[1] is used.
+        # Comparison tool, absolute (a) or relative (r) tolerance in x and y, data structures for storing results:
         self._comp_tool = comp_tool
         self._tol = {}
-        if isinstance(tol, numbers.Real):
+        if isinstance(tol, numbers.Real):  # if scalar, considered as absolute tolerance value for x an y.
             self._tol['ax'] = tol
             self._tol['ay'] = tol
         elif isinstance(tol, dict):
             self._tol = tol
-            for k in ['ax', 'ay', 'rx', 'ry']:  # fill with None if undefined
-                try:
-                    self._tol[k]
-                except KeyError:
-                    self._tol[k] = None
         else:
             raise TypeError('Parameter tol must be a number or a dict.')
+        for k in ['ax', 'ay', 'rx', 'ry']:  # fill with None if undefined
+            try:
+                self._tol[k]
+            except KeyError:
+                self._tol[k] = None
+        if self._comp_tool == 'legacy' and self._tol['ay'] is None:
+            raise ValueError('Using legacy comparison tool: absolute tolerance along y axis must be specified.')
         self._comp_info = []
         self._comp_log_file = "comparison-{}.log".format(tool)
         self._comp_dir = "funnel_comp"
-        # TMP
-        # FOR DEV ONLY
+        ##
+        # FOR DEV ONLY: COMMENT
         # if comp_tool == 'funnel':
         #     shutil.rmtree(self._comp_dir , ignore_errors=True)
         #     os.makedirs(self._comp_dir)
-        # FOR DEV ONLY
+        # FOR DEV ONLY: COMMENT
         self._REPORT_TEMPLATE = os.path.join(
             os.path.dirname(__file__), os.path.pardir, 'templates', 'datatable.html')
         self._PLOT_TEMPLATE = os.path.join(
@@ -367,6 +373,9 @@ class Tester(object):
 
         Serves until timeout (s) or KeyboardInterrupt.
         """
+        if self._comp_tool != 'funnel':
+            raise ValueError('Report is only available with comp_tool="funnel".')
+
         list_files = [self._comp_log_file] * 3
         report_file = 'report.html'
         plot_file = os.path.join(self._comp_dir, 'plot.html')
@@ -1437,16 +1446,10 @@ class Tester(object):
         idx_err_max = np.where(err_arr[1] == err_max)[0][0]
         t_err_max = err_arr[0][idx_err_max]
 
-        # Relative error is relative to y test value (VS reference value for legacy_comp).
-        if (abs(yNew[idx_err_max]) > 10 * tol[1]):
-            rel_max = err_max / abs(yNew[idx_err_max])
-        else:
-            rel_max = 0
-
         if err_max > 0:
             warning = textwrap.dedent("""\
-                {}: {} exceeds funnel tolerance ({:.1e}, {:.1e}) with absolute and relative error = {:.3e}, {:.3e}.
-                """.format(filNam, varNam, tol[0], tol[1], err_max, rel_max))
+                {}: {} exceeds funnel tolerance with absolute error = {:.3e}.
+                """.format(filNam, varNam, err_max))
             if self._isParameter(yOld):
                 warning += "             {} is a parameter.\n".format(varNam)
             else:
@@ -1460,12 +1463,16 @@ class Tester(object):
             shutil.rmtree(tmp_dir)
 
         test_passed = (err_max == 0)
-        idx = self.init_comp_info(model_name, filNam)
-        self.update_comp_info(idx, varNam, target_path, test_passed)
+        idx = self._init_comp_info(model_name, filNam)
+        self._update_comp_info(idx, varNam, target_path, test_passed, t_err_max, warning)
 
         return (t_err_max, warning)
-    # TODOC
-    def init_comp_info(self, model_name, file_name):
+
+    def _init_comp_info(self, model_name, file_name):
+        """Append self._comp_info with dict to store comparison results for model_name.
+
+        Returns: index of dict storing results for model_name.
+        """
         try:
             idx = next(i for i, el in enumerate(self._comp_info) if el['model'] == model_name)
         except StopIteration:  # no model_name found in self._comp_info
@@ -1474,7 +1481,7 @@ class Tester(object):
             })
             idx = len(self._comp_info) - 1
         try:
-            len(self._comp_info[idx]["comparison"])
+            self._comp_info[idx]["comparison"]
         except KeyError:  # no comparison data stored for model_name
             self._comp_info[idx]["comparison"] = {
                 "variables": [],
@@ -1483,16 +1490,25 @@ class Tester(object):
                 "file_name": file_name,
                 "success_rate": 0,
                 "var_groups": [],  # index of the group of variables belonging to the same subplot
+                "warnings": [],
+                "t_err_max": [],
             }
 
         return idx
-    # TODOC
-    def update_comp_info(self, idx, var_name, funnel_dir, test_passed):
+
+    def _update_comp_info(self, idx, var_name, funnel_dir, test_passed, t_err_max, warning, var_group=None):
+        """Store comparison info for var_name in self._comp_info."""
         self._comp_info[idx]["comparison"]["variables"].append(var_name)
         self._comp_info[idx]["comparison"]["funnel_dirs"].append(funnel_dir)
         self._comp_info[idx]["comparison"]["test_passed"].append(int(test_passed))  # Boolean not JSON serializable
-        self._comp_info[idx]["comparison"]["var_groups"].append(next(iv for iv, vl in enumerate(
-            self._data[idx]["ResultVariables"]) if var_name in vl))
+        self._comp_info[idx]["comparison"]["t_err_max"].append(t_err_max)
+        self._comp_info[idx]["comparison"]["warnings"].append(warning)
+        if var_group is None:
+            self._comp_info[idx]["comparison"]["var_groups"].append(
+                next(iv for iv, vl in enumerate(self._data[idx]["ResultVariables"]) if var_name in vl)
+            )
+        else:
+            self._comp_info[idx]["comparison"]["var_groups"].append(var_group)
 
         self._comp_info[idx]["comparison"]["success_rate"] = sum(self._comp_info[idx]["comparison"]["test_passed"]) /\
             len(self._comp_info[idx]["comparison"]["variables"])
@@ -1559,7 +1575,25 @@ class Tester(object):
         if self._comp_tool == 'legacy':
             t_err_max, warning = self.legacy_comp(tOld, yOld, tNew, yNew, varNam, filNam, self._tol['ay'])
         else:
-            t_err_max, warning = self.funnel_comp(tOld, yOld, tNew, yNew, varNam, filNam, model_name, self._tol)
+            try:
+                # Check if the variable has already been tested. (This might happen if the variable is used in several
+                # subplots of different plots.)
+                # In this case we do not want to perform the comparison again but we still want the variable to be
+                # plotted several times as it was originally intended.
+                idx = next(i for i, el in enumerate(self._comp_info) if el['model'] == model_name)
+                comp_tmp = self._comp_info[idx]['comparison']
+                var_idx = comp_tmp['variables'].index(varNam)
+                fun_dir = comp_tmp['funnel_dirs'][var_idx]
+                test_passed = comp_tmp['test_passed'][var_idx]
+                var_group_str = comp_tmp['var_groups'][var_idx]  # variable group already stored for this variable
+                # Now looking for the new variable group to be stored.
+                var_group = var_group_str + 1 + next(iv for iv, vl in enumerate(
+                    self._data[idx]["ResultVariables"][(var_group_str+1):]) if varNam in vl)
+                warning = comp_tmp['warnings'][var_idx]
+                t_err_max = comp_tmp['t_err_max'][var_idx]
+                self._update_comp_info(idx, varNam, fun_dir, test_passed, t_err_max, warning, var_group)
+            except (KeyError, StopIteration, ValueError) as e:
+                t_err_max, warning = self.funnel_comp(tOld, yOld, tNew, yNew, varNam, filNam, model_name, self._tol)
 
         test_passed = True
         if warning is not None:
@@ -1808,8 +1842,7 @@ class Tester(object):
                     foundError = True
                     while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
                         print("             Accept new results and update reference file in library?")
-                        ans = input(
-                            "             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
+                        ans = input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
                     if ans == "y" or ans == "Y":
                         # Write results to reference file
                         updateReferenceData = True
@@ -1865,7 +1898,7 @@ class Tester(object):
                 not ans == "N") and (not ans == "Y"):
             print("             For {},".format(refFilNam))
             print("             accept new file and update reference files?")
-            # TODO
+
             if self._comp_tool == 'legacy':
                 print("(Close plot window to continue.)")
                 self.legacy_plot(y_sim, t_ref, y_ref, noOldResults, timOfMaxErr, matFilNam)
@@ -1883,19 +1916,25 @@ class Tester(object):
     def funnel_plot(self, model_name, browser=None):
         idx = next(i for i, el in enumerate(self._comp_info) if el['model'] == model_name)
         comp_data = self._comp_info[idx]['comparison']
-        dict_var_dir = {}
+        dict_var_info = defaultdict(list)
         list_files = []
         for iv, v in enumerate(comp_data['variables']):
-            dict_var_dir[v] = comp_data['funnel_dirs'][iv]
-        for d in dict_var_dir.values():  # performed outside previous iteration for right order
+            dict_var_info[v].append({'group': comp_data['var_groups'][iv], 'dir': comp_data['funnel_dirs'][iv]})
+        for d in dict_var_info.values():  # performed outside previous iteration for right order
             for el in ['reference.csv', 'test.csv', 'errors.csv']:
-                list_files.append('{}/{}'.format(d, el))
+                list_files.append('{}/{}'.format(d[0]['dir'], el))  # d3.js will only load first element
+        # Custom the plot.
         plot_title = comp_data['file_name']
+        max_plot_per100 = 4
+        height = 100 * (1 + max(0, max(comp_data['var_groups']) - max_plot_per100) / max_plot_per100)
+        err_plot_height = 0.18 * 100 / height
 
         with open(self._PLOT_TEMPLATE, 'r') as f:
             template = f.read()
         content = re.sub('\$TITLE', plot_title, template)
-        content = re.sub('\$DICT_VAR_DIR', json.dumps(dict_var_dir), content)
+        content = re.sub('\$DICT_VAR_INFO', json.dumps(dict_var_info), content)
+        content = re.sub('\$HEIGHT', '{}%'.format(height), content)
+        content = re.sub('\$ERR_PLOT_HEIGHT', str(err_plot_height), content)
         server = pyfunnel.MyHTTPServer(('', 0), pyfunnel.CORSRequestHandler,
             str_html=content, url_html='funnel')
         server.browse(list_files, browser=browser)
@@ -2328,8 +2367,7 @@ class Tester(object):
                                 "*** Warning: Reference file {} does not yet exist.".format(refFilNam))
                             while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
                                 print("             Create new file?")
-                                ans = input(
-                                    "             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
+                                ans = input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
                             if ans == "y" or ans == "Y":
                                 updateReferenceData = True
                         if updateReferenceData:    # If the reference data of any variable was updated
@@ -3027,6 +3065,8 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
                 po.map(functools.partial(runSimulation,
                                          cmd=cmd),
                        [x for x in tem_dir])
+                po.close()
+                po.join()
             else:
                 runSimulation(tem_dir[0], cmd)
 
@@ -3106,7 +3146,7 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
             # HACK: 2 log files for now, should be merged.
             with open(self._simulator_log_file, 'r') as f:
                 self._comp_info = simplejson.loads(f.read())
-            self._checkReferencePoints(ans='N')
+            self._checkReferencePoints(ans)  # TODO ans='N')
 
         # HACK
         with open('data.log', 'w', encoding="utf-8-sig") as data_log:
