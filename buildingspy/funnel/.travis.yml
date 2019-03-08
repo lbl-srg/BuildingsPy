@@ -1,0 +1,24 @@
+os:
+  - linux
+  - osx
+
+language: C
+
+python:
+  - "2.7"
+
+notifications:
+  email: false
+
+git:
+  depth: 10
+
+compiler:
+  - gcc
+
+# Execute tests
+script:
+  - make build
+  - make test
+  - git status tests
+  - git diff --exit-code tests
