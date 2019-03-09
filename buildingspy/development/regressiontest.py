@@ -70,32 +70,32 @@ import simplejson
 ################################################################################"
 # TMP
 # FOR DEV ONLY
-import imp
-def import_from_end_sys(name, custom_name=None):
-    import imp, sys
+# import imp
+# def import_from_end_sys(name, custom_name=None):
+#     import imp, sys
 
-    custom_name = custom_name or name
+#     custom_name = custom_name or name
 
-    f, pathname, desc = imp.find_module(name, sys.path[-1:])
-    module = imp.load_module(custom_name, f, pathname, desc)
-    try:
-        f.close()
-    except:
-        pass
+#     f, pathname, desc = imp.find_module(name, sys.path[-1:])
+#     module = imp.load_module(custom_name, f, pathname, desc)
+#     try:
+#         f.close()
+#     except:
+#         pass
 
-    return module
+#     return module
 
-sys.path.append('/home/agautier/BuildingsPy')
-buildingspy = import_from_end_sys('buildingspy')
-print(buildingspy)
+# sys.path.append('/home/agautier/BuildingsPy')
+# buildingspy = import_from_end_sys('buildingspy')
+# print(buildingspy)
 
-# Local version of funnel
-sys.path.append('/home/agautier/funnel/bin/')
-import pyfunnel
-print(pyfunnel)
+# # Local version of funnel
+# sys.path.append('/home/agautier/funnel/bin/')
+# import pyfunnel
+# print(pyfunnel)
 # FOR DEV ONLY
 ################################################################################"
-# from buildingspy.funnel.bin import pyfunnel
+from buildingspy.funnel.bin import pyfunnel
 from buildingspy.development import error_dictionary_jmodelica
 from buildingspy.development import error_dictionary_dymola
 from buildingspy.io.outputfile import Reader
