@@ -5,8 +5,8 @@
 # - do not delete funnel_comp
 # - import local pyfunnel
 # TODO
-# O Create dymola JSON log
-# O funnel as dependency in setup.py
+# O Create dymola JSON log: needs upstream work (log file is 10 MB now...)
+# O funnel as dependency in setup.py: submodule
 # x Update plot function / refactoring of pyfunnel
 # x Grouped variable for plot see all_data (or .mos file): up to 5 plots / test case
 # x funnel_plot during regression tests I/O error: send content as request
@@ -3146,7 +3146,7 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
             # HACK: 2 log files for now, should be merged.
             with open(self._simulator_log_file, 'r') as f:
                 self._comp_info = simplejson.loads(f.read())
-            self._checkReferencePoints(ans)  # TODO ans='N')
+            self._checkReferencePoints(ans='N')
 
         # HACK
         with open('data.log', 'w', encoding="utf-8-sig") as data_log:
