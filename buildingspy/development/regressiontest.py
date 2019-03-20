@@ -3,10 +3,9 @@
 #######################################################
 # TMP
 # - do not delete funnel_comp
-# - import local pyfunnel
 # TODO
 # O Create dymola JSON log: needs upstream work (log file is 10 MB now...)
-# O funnel as dependency in setup.py: submodule
+# x funnel as git submodule
 # x Update plot function / refactoring of pyfunnel
 # x Grouped variable for plot see all_data (or .mos file): up to 5 plots / test case
 # x funnel_plot during regression tests I/O error: send content as request
@@ -18,7 +17,7 @@
 # BUG #1
 # JModelica res dir =
 # Dymola res dir = /tmp/tmp-MyModelicaLibrary-0-Oq4ZuD/MyModelicaLibrary/BooleanParameters.mat
-# Added:
+# Solved with:
 # if self._modelica_tool == 'jmodelica':
 #   matFil = '_'.join(dat['model_name'].split('.')[:-1] + [matFil])
 # BUG #2
@@ -28,6 +27,11 @@
 #   with open('simulator-jmodelica.log', 'r') as f:
 #     json.load(f)  # ValueError: No JSON object could be decoded
 # HACK simplejson.loads(f.read())
+# BUG #4
+# Sleeping processes
+# Solved with:
+# po.close()
+# po.join()  # so that worker processes
 #######################################################
 # Script that runs all regression tests.
 #
@@ -67,34 +71,6 @@ import numpy as np
 # BUG #3
 import simplejson
 # Code repository sub-package imports.
-################################################################################"
-# TMP
-# FOR DEV ONLY
-# import imp
-# def import_from_end_sys(name, custom_name=None):
-#     import imp, sys
-
-#     custom_name = custom_name or name
-
-#     f, pathname, desc = imp.find_module(name, sys.path[-1:])
-#     module = imp.load_module(custom_name, f, pathname, desc)
-#     try:
-#         f.close()
-#     except:
-#         pass
-
-#     return module
-
-# sys.path.append('/home/agautier/BuildingsPy')
-# buildingspy = import_from_end_sys('buildingspy')
-# print(buildingspy)
-
-# # Local version of funnel
-# sys.path.append('/home/agautier/funnel/bin/')
-# import pyfunnel
-# print(pyfunnel)
-# FOR DEV ONLY
-################################################################################"
 from buildingspy.funnel.bin import pyfunnel
 from buildingspy.development import error_dictionary_jmodelica
 from buildingspy.development import error_dictionary_dymola
@@ -103,10 +79,6 @@ from buildingspy.io.postprocess import Plotter
 import buildingspy.io.outputfile as of
 import buildingspy.io.reporter as rep
 
-try:
-    input = raw_input
-except NameError: # Python 3
-    pass
 
 def runSimulation(worDir, cmd):
     """ Run the simulation.
@@ -3065,6 +3037,7 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
                 po.map(functools.partial(runSimulation,
                                          cmd=cmd),
                        [x for x in tem_dir])
+                # BUG #4
                 po.close()
                 po.join()  # so that worker processes
             else:
