@@ -4,19 +4,21 @@
 # TMP
 # - do not delete funnel_comp
 # TODO
-# O Create dymola JSON log: needs upstream work (log file is 10 MB now...)
-# x funnel as git submodule
-# x Update plot function / refactoring of pyfunnel
+# O 2 log files with redundancies for now, should be merged
+# O Create Dymola JSON log: needs upstream work (log file is 10 MB now...)
 # x Grouped variable for plot see all_data (or .mos file): up to 5 plots / test case
 # x funnel_plot during regression tests I/O error: send content as request
-# x Check sleeping process!
+# x Check sleeping process
 # x Compare results JModelica to Dymola
 # x Output json with path of funnel results dir + nb variables + nb passed
 # x Integrate local server handling cf. IPython and pyfunnel
+# x Update plot function / refactoring of pyfunnel
+#
+# NOTE
+# funnel as git submodule: needs branch issue28_python3 -> to merge & update remote = master
 #
 # BUG #1
-# JModelica res dir =
-# Dymola res dir = /tmp/tmp-MyModelicaLibrary-0-Oq4ZuD/MyModelicaLibrary/BooleanParameters.mat
+# JModelica res dir path has different structure than Dymola res dir
 # Solved with:
 # if self._modelica_tool == 'jmodelica':
 #   matFil = '_'.join(dat['model_name'].split('.')[:-1] + [matFil])
@@ -28,10 +30,13 @@
 #     json.load(f)  # ValueError: No JSON object could be decoded
 # HACK simplejson.loads(f.read())
 # BUG #4
-# Sleeping processes
+# multiprocessing.Pool: the worker processes do not terminate when work has completed.
 # Solved with:
-# po.close()
-# po.join()  # so that worker processes
+#   po.close()
+#   po.join()
+# BUG #5
+# input() raises EOFError in IPython Notebook
+# Unsolved yet.
 #######################################################
 # Script that runs all regression tests.
 #
@@ -130,6 +135,10 @@ class Tester(object):
     :param tool: {'dymola', 'omc', 'jmodelica'}.  Default is 'dymola', specifies the
         tool to use for running the regression test with :func:`~buildingspy.development.Tester.run`.
     :param cleanup: bool (default=True).  Specify whether to delete temporary directories.
+    :param comp_tool: string (default='funnel'). Specify the comparison tool ('funnel' or 'legacy').
+    :param tol: float or dict (default=1E-3). Comparison tolerance: if a float is provided, it is
+        considered as an absolute tolerance along y axis (and x axis if comp_tool='funnel'). If a dict
+        is provided, keys must be ('ax', 'ay') for absolute tolerance or ('rx', 'ry') for relative tolerance.
 
     This class can be used to run all regression tests.
 
@@ -222,7 +231,6 @@ class Tester(object):
     which is read from the `.mo` file. However, with `rtol`, this
     value can be overwritten.
     Note that this syntax is still experimental and may be changed.
-
     """
 
     def __init__(
@@ -281,10 +289,12 @@ class Tester(object):
         # Flag to use existing results instead of running a simulation
         self._useExistingResults = False
 
-        # Comparison tool, absolute (a) or relative (r) tolerance in x and y, data structures for storing results:
+        # Comparison tool.
         self._comp_tool = comp_tool
+
+        # Absolute (a) or relative (r) tolerance in x and y: scalar or dict.
         self._tol = {}
-        if isinstance(tol, numbers.Real):  # if scalar, considered as absolute tolerance value for x an y.
+        if isinstance(tol, numbers.Real):  # if scalar, considered as absolute tolerance value for x an y
             self._tol['ax'] = tol
             self._tol['ay'] = tol
         elif isinstance(tol, dict):
@@ -298,19 +308,23 @@ class Tester(object):
                 self._tol[k] = None
         if self._comp_tool == 'legacy' and self._tol['ay'] is None:
             raise ValueError('Using legacy comparison tool: absolute tolerance along y axis must be specified.')
+
+        # Data structures for storing comparison data.
         self._comp_info = []
         self._comp_log_file = "comparison-{}.log".format(tool)
         self._comp_dir = "funnel_comp"
-        ##
-        # FOR DEV ONLY: COMMENT
-        # if comp_tool == 'funnel':
-        #     shutil.rmtree(self._comp_dir , ignore_errors=True)
-        #     os.makedirs(self._comp_dir)
-        # FOR DEV ONLY: COMMENT
+
+        # (Delete and) Create directory for storing funnel data.
+        if comp_tool == 'funnel':
+            shutil.rmtree(self._comp_dir , ignore_errors=True)
+            os.makedirs(self._comp_dir)
+
+        # Path of templates for HTML report and plot.
         self._REPORT_TEMPLATE = os.path.join(
             os.path.dirname(__file__), os.path.pardir, 'templates', 'datatable.html')
         self._PLOT_TEMPLATE = os.path.join(
             os.path.dirname(__file__), os.path.pardir, 'templates', 'plot.html')
+
         # Write result dictionary that is used by OpenModelica's regression testing
 #        self.writeOpenModelicaResultDictionary()
         '''
@@ -1476,9 +1490,17 @@ class Tester(object):
         self._comp_info[idx]["comparison"]["t_err_max"].append(t_err_max)
         self._comp_info[idx]["comparison"]["warnings"].append(warning)
         if var_group is None:
-            self._comp_info[idx]["comparison"]["var_groups"].append(
-                next(iv for iv, vl in enumerate(self._data[idx]["ResultVariables"]) if var_name in vl)
-            )
+            try:
+                self._comp_info[idx]["comparison"]["var_groups"].append(
+                    next(iv for iv, vl in enumerate(self._data[idx]["ResultVariables"]) if var_name in vl)
+                )
+            except StopIteration as e:
+                print('Variable {} not found in ResultVariables for model {}.\n{}'.format(
+                    var_name,
+                    self._comp_info[idx]['comparison']['model'],
+                    json.dumps(self._data[idx], indent=2, separators=(',', ': '), sort_keys=True)
+                ))
+                raise e
         else:
             self._comp_info[idx]["comparison"]["var_groups"].append(var_group)
 
@@ -1879,6 +1901,7 @@ class Tester(object):
 
             while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
                 ans = input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
+
             if ans == "y" or ans == "Y":
                 # update the flag
                 updateReferenceData = True
@@ -3039,7 +3062,7 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
                        [x for x in tem_dir])
                 # BUG #4
                 po.close()
-                po.join()  # so that worker processes
+                po.join()
             else:
                 runSimulation(tem_dir[0], cmd)
 
@@ -3116,7 +3139,7 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
                 retVal = self._check_jmodelica_runs()
             else:
                 self._check_jmodelica_runs()
-            # HACK: 2 log files for now, should be merged.
+            # TODO: 2 log files with redundancies for now, should be merged.
             with open(self._simulator_log_file, 'r') as f:
                 self._comp_info = simplejson.loads(f.read())
             self._checkReferencePoints(ans='N')
