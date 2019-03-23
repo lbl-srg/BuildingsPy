@@ -37,6 +37,12 @@
 # BUG #5
 # input() raises EOFError in IPython Notebook
 # Unsolved yet.
+# BUG #6
+# if self._modelica_tool == 'omc':
+#   self._analyseOMStats(filename=self._simulator_log_file,
+#                         nModels=self.get_number_of_tests())
+# Bad method arguments.
+# Unsolved.
 #######################################################
 # Script that runs all regression tests.
 #
@@ -1394,7 +1400,7 @@ class Tester(object):
 
         return (t_err_max, warning)
 
-    def funnel_comp(self, tOld, yOld, tNew, yNew, varNam, filNam, model_name, tol, keep_dir=True):
+    def funnel_comp(self, tOld, yOld, tNew, yNew, varNam, filNam, model_name, tol, data_idx, keep_dir=True):
         t_err_max, warning = 0, None
 
         tmp_dir = tempfile.mkdtemp()
@@ -1450,7 +1456,7 @@ class Tester(object):
 
         test_passed = (err_max == 0)
         idx = self._init_comp_info(model_name, filNam)
-        self._update_comp_info(idx, varNam, target_path, test_passed, t_err_max, warning)
+        self._update_comp_info(idx, varNam, target_path, test_passed, t_err_max, warning, data_idx)
 
         return (t_err_max, warning)
 
@@ -1482,8 +1488,11 @@ class Tester(object):
 
         return idx
 
-    def _update_comp_info(self, idx, var_name, funnel_dir, test_passed, t_err_max, warning, var_group=None):
+    def _update_comp_info(self, idx, var_name, funnel_dir, test_passed, t_err_max, warning, data_idx, var_group=None):
         """Store comparison info for var_name in self._comp_info."""
+
+        # NOTE: data_idx can differ from idx if simulation failed.
+
         self._comp_info[idx]["comparison"]["variables"].append(var_name)
         self._comp_info[idx]["comparison"]["funnel_dirs"].append(funnel_dir)
         self._comp_info[idx]["comparison"]["test_passed"].append(int(test_passed))  # Boolean not JSON serializable
@@ -1492,13 +1501,14 @@ class Tester(object):
         if var_group is None:
             try:
                 self._comp_info[idx]["comparison"]["var_groups"].append(
-                    next(iv for iv, vl in enumerate(self._data[idx]["ResultVariables"]) if var_name in vl)
+                    next(iv for iv, vl in enumerate(self._data[data_idx]["ResultVariables"]) if var_name in vl)
                 )
             except StopIteration as e:
-                print('Variable {} not found in ResultVariables for model {}.\n{}'.format(
+                print('Variable {} not found in ResultVariables for model {}.'
+                    'JSON dump of self._data[data_idx]:\n{}'.format(
                     var_name,
-                    self._comp_info[idx]['comparison']['model'],
-                    json.dumps(self._data[idx], indent=2, separators=(',', ': '), sort_keys=True)
+                    self._comp_info[idx]['model'],
+                    json.dumps(self._data[data_idx], indent=2, separators=(',', ': '), sort_keys=True)
                 ))
                 raise e
         else:
@@ -1507,7 +1517,7 @@ class Tester(object):
         self._comp_info[idx]["comparison"]["success_rate"] = sum(self._comp_info[idx]["comparison"]["test_passed"]) /\
             len(self._comp_info[idx]["comparison"]["variables"])
 
-    def areResultsEqual(self, tOld, yOld, tNew, yNew, varNam, filNam, model_name):
+    def areResultsEqual(self, tOld, yOld, tNew, yNew, varNam, filNam, model_name, data_idx):
         """ Return `True` if the data series are equal within a tolerance.
 
         :param tOld: List of old time values.
@@ -1585,9 +1595,9 @@ class Tester(object):
                     self._data[idx]["ResultVariables"][(var_group_str+1):]) if varNam in vl)
                 warning = comp_tmp['warnings'][var_idx]
                 t_err_max = comp_tmp['t_err_max'][var_idx]
-                self._update_comp_info(idx, varNam, fun_dir, test_passed, t_err_max, warning, var_group)
+                self._update_comp_info(idx, varNam, fun_dir, test_passed, t_err_max, warning, data_idx, var_group)
             except (KeyError, StopIteration, ValueError) as e:
-                t_err_max, warning = self.funnel_comp(tOld, yOld, tNew, yNew, varNam, filNam, model_name, self._tol)
+                t_err_max, warning = self.funnel_comp(tOld, yOld, tNew, yNew, varNam, filNam, model_name, self._tol, data_idx)
 
         test_passed = True
         if warning is not None:
@@ -1779,7 +1789,7 @@ class Tester(object):
                 r = True
         return r
 
-    def _compareResults(self, matFilNam, oldRefFulFilNam, y_sim, y_tra, refFilNam, ans, model_name):
+    def _compareResults(self, matFilNam, oldRefFulFilNam, y_sim, y_tra, refFilNam, ans, model_name, data_idx):
         """ Compares the new and the old results.
 
             :param matFilNam: Matlab file name.
@@ -1854,9 +1864,9 @@ class Tester(object):
                         else:
                             t = t_sim
 
-                        (res, timMaxErr, warning) = self.areResultsEqual(t_ref, y_ref[varNam],
-                                                                         t, pai[varNam],
-                                                                         varNam, matFilNam, model_name)
+                        (res, timMaxErr, warning) = self.areResultsEqual(
+                            t_ref, y_ref[varNam], t, pai[varNam], varNam, matFilNam, model_name, data_idx
+                        )
                         if warning:
                             self._reporter.writeWarning(warning)
                         if not res:
@@ -2355,7 +2365,7 @@ class Tester(object):
                             # compare the new reference data with the old one
                             [updateReferenceData, _, ans] = self._compareResults(
                                 data['ResultFile'], oldRefFulFilNam, y_sim, y_tra, refFilNam, ans,
-                                self._data[data_idx]["model_name"])
+                                self._data[data_idx]["model_name"], data_idx)
                         else:
                             # Reference file does not exist
                             print(
@@ -3143,10 +3153,6 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
             with open(self._simulator_log_file, 'r') as f:
                 self._comp_info = simplejson.loads(f.read())
             self._checkReferencePoints(ans='N')
-
-        # HACK
-        with open('data.log', 'w', encoding="utf-8-sig") as data_log:
-            data_log.write("{}\n".format(json.dumps(self._data, indent=2, sort_keys=True)))
 
         # Delete temporary directories, or write message that they are not deleted
         for d in self._temDir:
