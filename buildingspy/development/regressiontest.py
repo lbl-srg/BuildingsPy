@@ -45,7 +45,7 @@
 # Bad method arguments.
 # Unsolved.
 # BUG #7
-# Buildings/Resources/Scripts/Dymola/HeatTransfer/Windows/BaseClasses/Examples/SideFins.mos
+# In Buildings/Resources/Scripts/Dymola/HeatTransfer/Windows/BaseClasses/Examples/SideFins.mos
 # resultFile="BaseClassesSideFins"
 # JModelica simulation stores results in
 # Buildings_HeatTransfer_Windows_BaseClasses_Examples_SideFins_result.mat
@@ -55,6 +55,7 @@
 # BUG #8
 # FMU results mat files parsing: incorrect variable names
 # e.g. scipy.io.loadmat('Buildings_HeatTransfer_Examples_ConductorInitialization_result.mat')
+# => 'name': array([u't', u'i', u'm', u'e', u''], dtype='<U1')
 # UNSOLVED.
 #######################################################
 # Script that runs all regression tests.
@@ -1512,29 +1513,31 @@ class Tester(object):
 
         # NOTE: data_idx can differ from idx if simulation failed.
 
-        self._comp_info[idx]["comparison"]["variables"].append(var_name)
-        self._comp_info[idx]["comparison"]["funnel_dirs"].append(funnel_dir)
-        self._comp_info[idx]["comparison"]["test_passed"].append(int(test_passed))  # Boolean not JSON serializable
-        self._comp_info[idx]["comparison"]["t_err_max"].append(t_err_max)
-        self._comp_info[idx]["comparison"]["warnings"].append(warning)
+        update = True
+
         if var_group is None:
             try:
-                self._comp_info[idx]["comparison"]["var_groups"].append(
-                    next(iv for iv, vl in enumerate(self._data[data_idx]["ResultVariables"]) if var_name in vl)
-                )
-            except StopIteration as e:
-                print('Variable {} not found in ResultVariables for model {}.'
+                var_group = next(iv for iv, vl in enumerate(self._data[data_idx]["ResultVariables"]) if var_name in vl)
+            except StopIteration:
+                print('*** Warning: Variable {} not found in ResultVariables for model {}.'
+                    '(But found in reference results file).'
                     'JSON dump of self._data[data_idx]:\n{}'.format(
                     var_name,
                     self._comp_info[idx]['model'],
                     json.dumps(self._data[data_idx], indent=2, separators=(',', ': '), sort_keys=True)
                 ))
-                raise e
-        else:
-            self._comp_info[idx]["comparison"]["var_groups"].append(var_group)
+                update = False
 
-        self._comp_info[idx]["comparison"]["success_rate"] = sum(self._comp_info[idx]["comparison"]["test_passed"]) /\
-            len(self._comp_info[idx]["comparison"]["variables"])
+        if update:
+            self._comp_info[idx]["comparison"]["variables"].append(var_name)
+            self._comp_info[idx]["comparison"]["funnel_dirs"].append(funnel_dir)
+            self._comp_info[idx]["comparison"]["test_passed"].append(int(test_passed))  # Boolean not JSON serializable
+            self._comp_info[idx]["comparison"]["t_err_max"].append(t_err_max)
+            self._comp_info[idx]["comparison"]["warnings"].append(warning)
+            self._comp_info[idx]["comparison"]["var_groups"].append(var_group)
+            self._comp_info[idx]["comparison"]["success_rate"] = sum(
+                self._comp_info[idx]["comparison"]["test_passed"]) /\
+                len(self._comp_info[idx]["comparison"]["variables"])
 
     def areResultsEqual(self, tOld, yOld, tNew, yNew, varNam, data_idx):
         """ Return `True` if the data series are equal within a tolerance.
@@ -1605,7 +1608,7 @@ class Tester(object):
                 # Check if the variable has already been tested. (This might happen if the variable is used in several
                 # subplots of different plots.)
                 # In this case we do not want to perform the comparison again but we still want the variable to be
-                # plotted several times as it was originally intended.
+                # plotted several times as it was originally intended: update _comp_info with stored data.
                 idx = next(i for i, el in enumerate(self._comp_info) if el['model'] == model_name)
                 comp_tmp = self._comp_info[idx]['comparison']
                 var_idx = comp_tmp['variables'].index(varNam)
@@ -1618,7 +1621,7 @@ class Tester(object):
                 warning = comp_tmp['warnings'][var_idx]
                 t_err_max = comp_tmp['t_err_max'][var_idx]
                 self._update_comp_info(idx, varNam, fun_dir, test_passed, t_err_max, warning, data_idx, var_group)
-            except (KeyError, StopIteration, ValueError) as e:
+            except (KeyError, StopIteration, ValueError):
                 t_err_max, warning = self.funnel_comp(tOld, yOld, tNew, yNew, varNam, filNam, model_name, self._tol, data_idx)
 
         test_passed = True
