@@ -162,21 +162,29 @@ $(document).ready(function() {
 			},
 			{ data: 'comparison.variables', width: "60%",
 			  render: function (data, type, full) {
-				return data.map(function(e) {return '<wbr> ' + e});}
+					var out = "";
+					if (typeof data !== 'undefined') {
+						out = data.map(function(e) {return '<wbr> ' + e});
+					} else {out = 'Error: unable to retrieve simulation results.'}
+					return out;
+				}
 			},
 			{ data: 'comparison.success_rate',
 			  render: function (data, type, full) {
-				var out = "";
-				if (!(data === undefined)) {
-					out = data.toLocaleString('en-US', {style: "percent"});}
-				return '<a class="myClass">' + out + '</a>';}
+					var out = "";
+					if (typeof data !== 'undefined') {
+						out = '<a class="myClass">' + data.toLocaleString('en-US', {style: "percent"}) + '</a>';
+					} else {out = '0%'}
+					return out;
+				}
 			},
 			{ data: 'comparison.file_name' },
 			{ data: 'comparison.funnel_dirs' },
 			{ data: 'comparison.var_groups' },
+			{ data: 'comparison.warnings' },
 		],
 		columnDefs: [
-			{ visible: false, searchable: false, targets: [3, 4, 5] },
+			{ visible: false, searchable: false, targets: [3, 4, 5, 6] },
 		],
 	});
 	$('#myTable3').on('click', '.myClass', function () {
@@ -185,21 +193,25 @@ $(document).ready(function() {
 		var dirs = table3.cell(row_idx, 4).data();
 		var file = table3.cell(row_idx, 3).data();
 		var groups = table3.cell(row_idx, 5).data();
+		var avail_groups = [];
+		var navail_vars = [];
 		var dict_var_info = {};  // dict of array of dicts (to handle multiple plots for one variable)
-		var max_group = -1;
 		table3.cell(row_idx, 1).data().forEach( function(v, idx) {
 			if (dirs[idx] != null) {
-				max_group = Math.max(max_group, groups[idx]);
 				(dict_var_info[v] = dict_var_info[v] || []).push({group: groups[idx], dir: dirs[idx]});
-			}
+				avail_groups.push(groups[idx]);
+			} else {navail_vars.push(v);}
 		});
+		var uniq_groups = [...new Set(avail_groups)];
 		var max_plot_per100 = 4;
-		var height = 100 * (1 + Math.max(0, max_group - max_plot_per100) / max_plot_per100);
+		var height = 100 * (1 + Math.max(0, uniq_groups.length - max_plot_per100) / max_plot_per100);
 		var err_plot_height = 0.18 * 100 / height;
 		$.get('$COMP_DIR/plot.html', function(data) {
-			if (max_group >= 0) {
+			if (uniq_groups.length > 0) {
+				var title = file;
+				if (navail_vars.length > 0) {title = title.concat('<br />No available results for: ').concat(navail_vars.join(', '));}
 				var new_data = data.replace('$DICT_VAR_INFO', JSON.stringify(dict_var_info));
-				new_data = new_data.replace('$TITLE', file);
+				new_data = new_data.replace('$TITLE', title);
 				new_data = new_data.replace('$HEIGHT', height + '%');
 				new_data = new_data.replace('$ERR_PLOT_HEIGHT', err_plot_height);
 				var strWindowFeatures = "menubar=yes, location=yes, resizable=yes, scrollbars=yes, status=yes";
@@ -207,7 +219,10 @@ $(document).ready(function() {
 				win.document.write(new_data);
 				win.document.close();  // necessary for the scripts on the page to be executed
 				// win.document.title = file;
-			} else {alert('Funnel comparison could not be executed for this file: no plot available.');}
+			} else {alert(
+				'Funnel comparison could not be executed for this file: '.concat(
+					table3.cell(row_idx, 6).data().join(', '))
+			);}
 		});
   });
 });

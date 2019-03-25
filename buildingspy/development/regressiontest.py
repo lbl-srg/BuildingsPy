@@ -4,6 +4,7 @@
 # TMP
 # - do not delete funnel_comp
 # TODO
+# O Include funnel warnings into HTML report
 # O 2 log files with redundancies for now, should be merged
 # O Create Dymola JSON log: needs upstream work (log file is 10 MB now...)
 # x Grouped variable for plot see all_data (or .mos file): up to 5 plots / test case
@@ -43,6 +44,18 @@
 #                         nModels=self.get_number_of_tests())
 # Bad method arguments.
 # Unsolved.
+# BUG #7
+# Buildings/Resources/Scripts/Dymola/HeatTransfer/Windows/BaseClasses/Examples/SideFins.mos
+# resultFile="BaseClassesSideFins"
+# JModelica simulation stores results in
+# Buildings_HeatTransfer_Windows_BaseClasses_Examples_SideFins_result.mat
+# => *** Error: Failed to read
+# (Dymola OK: stores results in BaseClassesSideFins.mat)
+# UNSOLVED.
+# BUG #8
+# FMU results mat files parsing: incorrect variable names
+# e.g. scipy.io.loadmat('Buildings_HeatTransfer_Examples_ConductorInitialization_result.mat')
+# UNSOLVED.
 #######################################################
 # Script that runs all regression tests.
 #
@@ -1523,7 +1536,7 @@ class Tester(object):
         self._comp_info[idx]["comparison"]["success_rate"] = sum(self._comp_info[idx]["comparison"]["test_passed"]) /\
             len(self._comp_info[idx]["comparison"]["variables"])
 
-    def areResultsEqual(self, tOld, yOld, tNew, yNew, varNam, filNam, model_name, data_idx):
+    def areResultsEqual(self, tOld, yOld, tNew, yNew, varNam, data_idx):
         """ Return `True` if the data series are equal within a tolerance.
 
         :param tOld: List of old time values.
@@ -1537,6 +1550,9 @@ class Tester(object):
                  of the maximum error, and a warning message or `None`.
                  In case of errors, the time of the maximum error may by `None`.
         """
+        filNam = self._data[data_idx]['ResultFile']
+        model_name = self._data[data_idx]['model_name']
+
         def getTimeGrid(t, nPoi=self._nPoi):
             if len(t) == 2:
                 return self._getTimeGrid(t[0], t[-1], nPoi)
@@ -1544,7 +1560,7 @@ class Tester(object):
                 return t
             else:
                 s = "%s: The new time grid has %d points, but it must have 2 or %d points.\n\
-            Stop processing.\n" % (filNam, len(tNew), nPoi)
+                Stop processing.\n" % (filNam, len(tNew), nPoi)
                 raise ValueError(s)
 
         if (abs(tOld[-1] - tNew[-1]) > 1E-5):
@@ -1795,7 +1811,7 @@ class Tester(object):
                 r = True
         return r
 
-    def _compareResults(self, matFilNam, oldRefFulFilNam, y_sim, y_tra, refFilNam, ans, model_name, data_idx):
+    def _compareResults(self, data_idx, oldRefFulFilNam, y_sim, y_tra, refFilNam, ans):
         """ Compares the new and the old results.
 
             :param matFilNam: Matlab file name.
@@ -1810,6 +1826,9 @@ class Tester(object):
                      and ``foundError`` are booleans, and ``ans`` is ``y``, ``Y``, ``n`` or ``N``.
 
         """
+        matFilNam = self._data[data_idx]['ResultFile']
+        model_name = self._data[data_idx]['model_name']
+
         # Reset answer, unless it is set to Y or N
         if not (ans == "Y" or ans == "N"):
             ans = "-"
@@ -1835,6 +1854,14 @@ class Tester(object):
         # Iterate over the pairs of data that are to be plotted together
         timOfMaxErr = dict()
         noOldResults = []  # List of variables for which no old results have been found
+
+        list_var_ref = [el for el in y_ref.keys() if not re.search('time', el, re.I)]
+        list_var_sim = [el for gr in y_sim for el in gr.keys() if not re.search('time', el, re.I)]
+        for var in list_var_ref:  # log warning if reference variables not available in simulation results
+            if var not in list_var_sim:
+                idx = self._init_comp_info(model_name, matFilNam)
+                self._update_comp_info(idx, var, None, False, 0, 'Test data unavailable', data_idx)
+
         for pai in y_sim:
             t_sim = pai['time']
             if not verifiedTime:
@@ -1871,7 +1898,7 @@ class Tester(object):
                             t = t_sim
 
                         (res, timMaxErr, warning) = self.areResultsEqual(
-                            t_ref, y_ref[varNam], t, pai[varNam], varNam, matFilNam, model_name, data_idx
+                            t_ref, y_ref[varNam], t, pai[varNam], varNam, data_idx
                         )
                         if warning:
                             self._reporter.writeWarning(warning)
@@ -2368,16 +2395,9 @@ class Tester(object):
                         # results, compare the results.
                         if os.path.exists(oldRefFulFilNam):
                             print('Found results for '+oldRefFulFilNam)
-                            if len(y_sim) == 0:  # no new simulation results
-                                idx = self._init_comp_info(data["model_name"], data['ResultFile'])
-                                for v in [el for gr in data['ResultVariables'] for el in gr]:
-                                    self._update_comp_info(
-                                        idx, v, None, False, 0, 'No new data', data_idx)
-                            else:
-                                # compare the new reference data with the old one
-                                [updateReferenceData, _, ans] = self._compareResults(
-                                    data['ResultFile'], oldRefFulFilNam, y_sim, y_tra, refFilNam, ans,
-                                    data["model_name"], data_idx)
+                            [updateReferenceData, _, ans] = self._compareResults(
+                                data_idx, oldRefFulFilNam, y_sim, y_tra, refFilNam, ans,
+                            )
                         else:
                             # Reference file does not exist
                             print(

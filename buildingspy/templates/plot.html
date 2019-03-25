@@ -11,11 +11,11 @@
             var srv_url = 'http://localhost:$SERVER_PORT';
             var dict_var_info = $DICT_VAR_INFO;
             var dict_data = {};
-            var max_var_groups = 0;
+            var avail_groups = [];
             var queue = d3.queue();
             Object.keys(dict_var_info).forEach(function(v) {
                 dict_var_info[v].forEach(function(el) {
-                    max_var_groups = Math.max(max_var_groups, el['group']);
+                    avail_groups.push(el['group']);
                 });
                 ['reference.csv', 'test.csv', 'errors.csv'].forEach(function(f) {
                     // All elements of dict_var_info[v] have the same data files.
@@ -26,11 +26,16 @@
             });
             queue.awaitAll(function(error, csvDataSets) {
                 if (error) throw error;
-                var list_group_var = new Array(max_var_groups+1);  // index = group id, element = array of variable names
+                var uniq_groups = [...new Set(avail_groups)];
+                var flag_groups = [];
+                var group_reset;  // used to transform the group array e.g. [1, 3] into continuous array starting from zero i.e. [0, 1]
+                var list_group_var = new Array(uniq_groups.length);  // index = group id, element = array of variable names
                 // csvDataSets is an array of CSV data.
                 Object.keys(dict_var_info).forEach(function(v, idx) {
                     dict_var_info[v].forEach(function(el) {
-                        (list_group_var[el['group']] = list_group_var[el['group']] || []).push(v);
+                        group_reset = flag_groups.indexOf(el['group'])
+                        if (group_reset == -1) {group_reset = flag_groups.push(el['group']) - 1;}
+                        (list_group_var[group_reset] = list_group_var[group_reset] || []).push(v);
                     });
                     // Process the CSV data.
                     dict_data[v] = {
