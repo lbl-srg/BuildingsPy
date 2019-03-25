@@ -185,23 +185,29 @@ $(document).ready(function() {
 		var dirs = table3.cell(row_idx, 4).data();
 		var file = table3.cell(row_idx, 3).data();
 		var groups = table3.cell(row_idx, 5).data();
-		var max_plot_per100 = 4;
-		var height = 100 * (1 + Math.max(0, Math.max(...groups) - max_plot_per100) / max_plot_per100);
-		var err_plot_height = 0.18 * 100 / height;
 		var dict_var_info = {};  // dict of array of dicts (to handle multiple plots for one variable)
+		var max_group = -1;
 		table3.cell(row_idx, 1).data().forEach( function(v, idx) {
-			(dict_var_info[v] = dict_var_info[v] || []).push({group: groups[idx], dir: dirs[idx]});
+			if (dirs[idx] != null) {
+				max_group = Math.max(max_group, groups[idx]);
+				(dict_var_info[v] = dict_var_info[v] || []).push({group: groups[idx], dir: dirs[idx]});
+			}
 		});
+		var max_plot_per100 = 4;
+		var height = 100 * (1 + Math.max(0, max_group - max_plot_per100) / max_plot_per100);
+		var err_plot_height = 0.18 * 100 / height;
 		$.get('$COMP_DIR/plot.html', function(data) {
-			var new_data = data.replace('$DICT_VAR_INFO', JSON.stringify(dict_var_info));
-			new_data = new_data.replace('$TITLE', file);
-			new_data = new_data.replace('$HEIGHT', height + '%');
-			new_data = new_data.replace('$ERR_PLOT_HEIGHT', err_plot_height);
-			var strWindowFeatures = "menubar=yes, location=yes, resizable=yes, scrollbars=yes, status=yes";
-			var win = window.open('', '_blank', strWindowFeatures);
-			win.document.write(new_data);
-			win.document.close();  // necessary for the scripts on the page to be executed
-			// win.document.title = file;
+			if (max_group >= 0) {
+				var new_data = data.replace('$DICT_VAR_INFO', JSON.stringify(dict_var_info));
+				new_data = new_data.replace('$TITLE', file);
+				new_data = new_data.replace('$HEIGHT', height + '%');
+				new_data = new_data.replace('$ERR_PLOT_HEIGHT', err_plot_height);
+				var strWindowFeatures = "menubar=yes, location=yes, resizable=yes, scrollbars=yes, status=yes";
+				var win = window.open('', '_blank', strWindowFeatures);
+				win.document.write(new_data);
+				win.document.close();  // necessary for the scripts on the page to be executed
+				// win.document.title = file;
+			} else {alert('Funnel comparison could not be executed for this file: no plot available.');}
 		});
   });
 });

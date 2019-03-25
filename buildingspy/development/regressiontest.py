@@ -1402,6 +1402,7 @@ class Tester(object):
 
     def funnel_comp(self, tOld, yOld, tNew, yNew, varNam, filNam, model_name, tol, data_idx, keep_dir=True):
         t_err_max, warning = 0, None
+        funnel_success = False
 
         tmp_dir = tempfile.mkdtemp()
 
@@ -1422,39 +1423,44 @@ class Tester(object):
         )
         p.start()
         p.join()
+
         if p.exitcode != 0:
-            s = textwrap.dedent("""\
-                Function pyfunnel.compareAndReport returned status {} while  processing file
+            warning = textwrap.dedent("""\
+                Function pyfunnel.compareAndReport returned status {} while processing file
                 {} for variable {}.
-                Stop processing.
                 """.format(p.exitcode, filNam, varNam)
             )
-            shutil.rmtree(tmp_dir)
-            raise RuntimeError(s)
 
-        err_path = os.path.join(tmp_dir, 'errors.csv')
-        err_arr= np.genfromtxt(err_path, delimiter=',', skip_header=1).transpose()
-        err_max = np.max(err_arr[1])  # difference between y test value and funnel bounds
-        idx_err_max = np.where(err_arr[1] == err_max)[0][0]
-        t_err_max = err_arr[0][idx_err_max]
-
-        if err_max > 0:
+        try:
+            err_path = os.path.join(tmp_dir, 'errors.csv')
+            err_arr= np.genfromtxt(err_path, delimiter=',', skip_header=1).transpose()
+            err_max = np.max(err_arr[1])  # difference between y test value and funnel bounds
+            idx_err_max = np.where(err_arr[1] == err_max)[0][0]
+            t_err_max = err_arr[0][idx_err_max]
+            test_passed = (err_max == 0)
+            if err_max > 0:
+                warning = textwrap.dedent("""\
+                    {}: {} exceeds funnel tolerance with absolute error = {:.3e}.
+                    """.format(filNam, varNam, err_max))
+                if self._isParameter(yOld):
+                    warning += "             {} is a parameter.\n".format(varNam)
+                else:
+                    warning += "             Maximum error is at t = {}\n".format(t_err_max)
+            funnel_success = True
+        except IOError:
+            test_passed = False
             warning = textwrap.dedent("""\
-                {}: {} exceeds funnel tolerance with absolute error = {:.3e}.
-                """.format(filNam, varNam, err_max))
-            if self._isParameter(yOld):
-                warning += "             {} is a parameter.\n".format(varNam)
-            else:
-                warning += "             Maximum error is at t = {}\n".format(t_err_max)
+                Funnel comparison could not be executed for file {} and variable {}.
+                """.format(filNam, varNam)
+            )
 
-        if keep_dir:
+        if keep_dir and funnel_success:
             target_path = os.path.join(self._comp_dir, '{}_{}'.format(filNam, varNam))
             shutil.move(tmp_dir, target_path)
         else:
             target_path = None
             shutil.rmtree(tmp_dir)
 
-        test_passed = (err_max == 0)
         idx = self._init_comp_info(model_name, filNam)
         self._update_comp_info(idx, varNam, target_path, test_passed, t_err_max, warning, data_idx)
 
@@ -2362,10 +2368,16 @@ class Tester(object):
                         # results, compare the results.
                         if os.path.exists(oldRefFulFilNam):
                             print('Found results for '+oldRefFulFilNam)
-                            # compare the new reference data with the old one
-                            [updateReferenceData, _, ans] = self._compareResults(
-                                data['ResultFile'], oldRefFulFilNam, y_sim, y_tra, refFilNam, ans,
-                                self._data[data_idx]["model_name"], data_idx)
+                            if len(y_sim) == 0:  # no new simulation results
+                                idx = self._init_comp_info(data["model_name"], data['ResultFile'])
+                                for v in [el for gr in data['ResultVariables'] for el in gr]:
+                                    self._update_comp_info(
+                                        idx, v, None, False, 0, 'No new data', data_idx)
+                            else:
+                                # compare the new reference data with the old one
+                                [updateReferenceData, _, ans] = self._compareResults(
+                                    data['ResultFile'], oldRefFulFilNam, y_sim, y_tra, refFilNam, ans,
+                                    data["model_name"], data_idx)
                         else:
                             # Reference file does not exist
                             print(
