@@ -1511,24 +1511,24 @@ class Tester(object):
     def _update_comp_info(self, idx, var_name, funnel_dir, test_passed, t_err_max, warning, data_idx, var_group=None):
         """Store comparison info for var_name in self._comp_info."""
 
-        # NOTE: data_idx can differ from idx if simulation failed.
+        # NOTE: data_idx can differ from idx if simulation failed or variable not available.
 
-        update = True
+        should_update = True
 
         if var_group is None:
             try:
                 var_group = next(iv for iv, vl in enumerate(self._data[data_idx]["ResultVariables"]) if var_name in vl)
             except StopIteration:
                 print('*** Warning: Variable {} not found in ResultVariables for model {}.'
-                    '(But found in reference results file).'
+                    'However it was found in reference results file.'
                     'JSON dump of self._data[data_idx]:\n{}'.format(
                     var_name,
                     self._comp_info[idx]['model'],
                     json.dumps(self._data[data_idx], indent=2, separators=(',', ': '), sort_keys=True)
                 ))
-                update = False
+                should_update = False
 
-        if update:
+        if should_update:
             self._comp_info[idx]["comparison"]["variables"].append(var_name)
             self._comp_info[idx]["comparison"]["funnel_dirs"].append(funnel_dir)
             self._comp_info[idx]["comparison"]["test_passed"].append(int(test_passed))  # Boolean not JSON serializable
@@ -1536,8 +1536,9 @@ class Tester(object):
             self._comp_info[idx]["comparison"]["warnings"].append(warning)
             self._comp_info[idx]["comparison"]["var_groups"].append(var_group)
             self._comp_info[idx]["comparison"]["success_rate"] = sum(
-                self._comp_info[idx]["comparison"]["test_passed"]) /\
-                len(self._comp_info[idx]["comparison"]["variables"])
+                self._comp_info[idx]["comparison"]["test_passed"]) / len(self._comp_info[idx]["comparison"]["variables"])
+
+        return None
 
     def areResultsEqual(self, tOld, yOld, tNew, yNew, varNam, data_idx):
         """ Return `True` if the data series are equal within a tolerance.
