@@ -4,8 +4,8 @@
 # TMP
 # - do not delete funnel_comp
 # TODO
-# O Update io.outputfile.Reader signature to allow for tool="jmodelica" (cf. HACK #1)
-# O 2 log files with redundancies for now (self._data and self._comp_info): should be merged
+# O Update io.outputfile.Reader signature to allow tool="jmodelica" (cf. HACK #1)
+# O 2 log files with redundancies for now (self._data included in self._comp_info): should be merged
 # O Create Dymola JSON log for translation and simulation: needs upstream work (log file is 10 MB now...)
 # x Include funnel warnings into HTML report
 # x Grouped variable for plot see all_data (or .mos file): up to 5 plots / test case
@@ -58,7 +58,7 @@
 #   But JModelica simulation results are stored in:
 #   Buildings_Controls_OBC_CDL_Continuous_Validation_Atan2_result.mat
 # => *** Error: Failed to read
-# (Dymola OK)
+# (Dymola OK: Buildings.HeatTransfer.Windows.BaseClasses.Examples.SideFins)
 # UNSOLVED => Open issue in JModelica branch
 # HACK #2
 # infer_name = difflib.get_close_matches(data['ResultFile'], list_files, n=1)[0]
