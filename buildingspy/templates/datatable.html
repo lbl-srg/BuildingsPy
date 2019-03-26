@@ -165,7 +165,7 @@ $(document).ready(function() {
 					var out = "";
 					if (typeof data !== 'undefined') {
 						out = data.map(function(e) {return '<wbr> ' + e});
-					} else {out = 'Error: unable to retrieve simulation results.'}
+					} else {out = 'Error: unable to retrieve variable names.'}
 					return out;
 				}
 			},
@@ -173,9 +173,9 @@ $(document).ready(function() {
 			  render: function (data, type, full) {
 					var out = "";
 					if (typeof data !== 'undefined') {
-						out = '<a class="myClass">' + data.toLocaleString('en-US', {style: "percent"}) + '</a>';
+						out = data.toLocaleString('en-US', {style: "percent"});
 					} else {out = '0%'}
-					return out;
+					return '<a class="myClass">' + out + '</a>';;
 				}
 			},
 			{ data: 'comparison.file_name' },
@@ -190,18 +190,24 @@ $(document).ready(function() {
 	$('#myTable3').on('click', '.myClass', function () {
 		var tr = $(this).closest('tr');
 		var row_idx = table3.row(tr).index();
-		var dirs = table3.cell(row_idx, 4).data();
+		var variables = table3.cell(row_idx, 1).data();
 		var file = table3.cell(row_idx, 3).data();
+		var dirs = table3.cell(row_idx, 4).data();
 		var groups = table3.cell(row_idx, 5).data();
+		var warnings = table3.cell(row_idx, 6).data();
 		var avail_groups = [];
 		var navail_vars = [];
 		var dict_var_info = {};  // dict of array of dicts (to handle multiple plots for one variable)
-		table3.cell(row_idx, 1).data().forEach( function(v, idx) {
-			if (dirs[idx] != null) {
-				(dict_var_info[v] = dict_var_info[v] || []).push({group: groups[idx], dir: dirs[idx]});
-				avail_groups.push(groups[idx]);
-			} else {navail_vars.push(v);}
-		});
+		if (variables != null) {
+			variables.forEach( function(v, idx) {
+				if (dirs[idx] != null) {
+					(dict_var_info[v] = dict_var_info[v] || []).push({group: groups[idx], dir: dirs[idx]});
+					avail_groups.push(groups[idx]);
+				} else {navail_vars.push(v);}
+			});
+		} else {
+			alert('Funnel comparison could not be executed for this file.');
+		}
 		var uniq_groups = [...new Set(avail_groups)];
 		var max_plot_per100 = 4;
 		var height = 100 * (1 + Math.max(0, uniq_groups.length - max_plot_per100) / max_plot_per100);
@@ -219,10 +225,7 @@ $(document).ready(function() {
 				win.document.write(new_data);
 				win.document.close();  // necessary for the scripts on the page to be executed
 				// win.document.title = file;
-			} else {alert(
-				'Funnel comparison could not be executed for this file: '.concat(
-					table3.cell(row_idx, 6).data().join(', '))
-			);}
+			} else {alert('Funnel comparison could not be executed for this file: '.concat(warnings.join(', ')));}
 		});
   });
 });
