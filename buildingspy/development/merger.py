@@ -176,7 +176,7 @@ class IBPSA(object):
             # We don't have wild cards
             return fnmatch.filter(file_list, pattern)
 
-    def merge(self):
+    def merge(self, force_reffile_merge=False):
         """ Merge all files except the license file and the top-level ``package.mo``
 
             .. warning:: This method is experimental. Do not use it without
@@ -210,6 +210,10 @@ class IBPSA(object):
             which allows libraries to have Modelica classes in the same
             directory as are used by the `IBPSA` library, as long
             as their name differs.
+
+            :param force_reffile_merge: Boolean
+                True if the refference files should be overwritten
+                False if not
 
             A typical usage is
                 >>> import buildingspy.development.merger as m
@@ -306,9 +310,15 @@ class IBPSA(object):
                         new_file = os.path.join(dir_name,
                                                 base_name.replace(self._src_library_name,
                                                                   self._new_library_name))
-                        if not os.path.isfile(new_file):
+                        # if force_reffile_merge, the copy of reference files
+                        # is forced
+                        if force_reffile_merge:
                             copiedFiles.append(new_file)
                             shutil.copy2(srcFil, new_file)
+                        else:
+                            if not os.path.isfile(new_file):
+                                copiedFiles.append(new_file)
+                                shutil.copy2(srcFil, new_file)
                 #
                 elif desFil.startswith(hea_pum):
                     dir_name = os.path.dirname(desFil)
