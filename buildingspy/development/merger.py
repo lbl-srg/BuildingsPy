@@ -176,7 +176,7 @@ class IBPSA(object):
             # We don't have wild cards
             return fnmatch.filter(file_list, pattern)
 
-    def merge(self, force_reffile_merge=False):
+    def merge(self, overwrite_reference_results=False):
         """ Merge all files except the license file and the top-level ``package.mo``
 
             .. warning:: This method is experimental. Do not use it without
@@ -211,9 +211,13 @@ class IBPSA(object):
             directory as are used by the `IBPSA` library, as long
             as their name differs.
 
-            :param force_reffile_merge: Boolean
-                True if the refference files should be overwritten
-                False if not
+            :param overwrite_reference_results: Boolean
+                `True` causes the reference results to be overwritten,
+                `False` causes the reference results to be skipped if
+                they already exist.
+                Note that if the reference result does not yet exist,
+                it will be merged regardless of the setting
+                of this parameter.
 
             A typical usage is
                 >>> import buildingspy.development.merger as m
@@ -310,9 +314,9 @@ class IBPSA(object):
                         new_file = os.path.join(dir_name,
                                                 base_name.replace(self._src_library_name,
                                                                   self._new_library_name))
-                        # if force_reffile_merge, the copy of reference files
+                        # if overwrite_reference_results, the copy of reference files
                         # is forced
-                        if force_reffile_merge:
+                        if overwrite_reference_results:
                             copiedFiles.append(new_file)
                             shutil.copy2(srcFil, new_file)
                         else:
