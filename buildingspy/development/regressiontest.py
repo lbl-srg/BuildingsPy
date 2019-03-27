@@ -1034,19 +1034,22 @@ class Tester(object):
 
     def _checkDataDictionary(self):
         """ Check if the data used to run the regression tests do not have duplicate ``*.fmu`` files
-            and ``*.mat`` names.
+            and ``*.mat`` names, or model names.
 
             Since Dymola writes all ``*.fmu`` and ``*.mat`` files to the current working directory,
             duplicate file names would cause a translation or simulation to overwrite the files
             of a previous test. This would make it impossible to check the FMU export
             and to compare the results to previously obtained results.
+            Duplicate model names are not allowed since this can cause a conflict when writing
+            translation log files on multicore systems.
 
-            If there are duplicate ``.fmu`` and ``*.mat`` file names used, then this method raises
+            If there are duplicate ``.fmu`` and ``*.mat`` file names or model names used, then this method raises
             a ``ValueError`` exception.
 
         """
         s_fmu = set()
         s_mat = set()
+        s_tra = set()
         errMes = ""
         for data in self._data:
             if 'ResultFile' in data:
@@ -1057,6 +1060,20 @@ class Tester(object):
                             "           You need to make sure that all scripts use unique result file names.\n" % resFil
                     else:
                         s_mat.add(resFil)
+
+        # Using the same model for multiple unit tests can lead to a conflict when writing the translation log file
+        # on a multicore test setup. This is therefore not allowed.
+        # See https://github.com/lbl-srg/BuildingsPy/issues/202 for a discussion.
+        for data in self._data:
+            if 'modelName' in data:
+                modelName = data['modelName']
+                if data['mustSimulate']:
+                    if modelName in s_tra:
+                        errMes += "*** Error: Model name %s is used by more than one script.\n" \
+                            "           You need to make sure that all scripts use each model only once.\n" % modelName
+                    else:
+                        s_tra.add(modelName)
+
         for data in self._data:
             if 'FMUName' in data:
                 fmuFil = data['FMUName']
