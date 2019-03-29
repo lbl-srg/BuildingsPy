@@ -3,6 +3,7 @@ BuildingsPy Changelog
 
 Version 2.0.0, xxx
 ^^^^^^^^^^^^^^^^^^
+- In development.Tester(), added error if a reference result does not yet exist.
 - Improved error reporting when running regression tests in batch mode.
 - Corrected bug when creating and then renaming a package with
   buildingspy.development.refactor

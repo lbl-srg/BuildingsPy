@@ -1733,16 +1733,16 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
 
         # Check whether the reference results exist.
         if not os.path.exists(abs_ref_fil_nam):
-            print("*** Warning: Reference file {} does not yet exist.".format(reference_file_name))
+            print("Warning ***: Reference file {} does not yet exist.".format(reference_file_name))
             while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
                 print("             Create new file?")
                 ans = input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
             if ans == "y" or ans == "Y":
                 self._writeReferenceResults(abs_ref_fil_nam, None, y_tra)
-                self._reporter.writeWarning("*** Warning: Wrote new reference file %s." %
+                self._reporter.writeOutput("Wrote new reference file %s." %
                                             reference_file_name)
             else:
-                self._reporter.writeWarning("*** Warning: Did not write new reference file %s." %
+                self._reporter.writeError("Did not write new reference file %s." %
                                             reference_file_name)
             return [True, ans]
 
@@ -2054,9 +2054,16 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                                     "             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
                             if ans == "y" or ans == "Y":
                                 updateReferenceData = True
+                            else:
+                                self._reporter.writeError("Did not write new reference file %s." %
+                                                oldRefFulFilNam)
                         if updateReferenceData:    # If the reference data of any variable was updated
                             # Make dictionary to save the results and the svn information
                             self._writeReferenceResults(oldRefFulFilNam, y_sim, y_tra)
+                            self._reporter.writeOutput("Wrote new reference file %s." %
+                                            oldRefFulFilNam)
+
+
             else:
                 # Tests that export FMUs do not have an output file. Hence, we do not warn
                 # about these cases.
