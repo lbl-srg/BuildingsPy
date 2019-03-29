@@ -3130,3 +3130,71 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
 
         print("\nMore detailed information is stored in self._omstats")
         print(70 * '#')
+
+    def get_test_example_coverage(self):
+        """
+        Analyse how many examples are tested.
+
+        Returns the share of tested examples
+        """
+        # first lines copy paste from run function
+        if self.get_number_of_tests() == 0:
+            self.setDataDictionary(self._rootPackage)
+
+        # Remove all data that do not require a simulation or an FMU export.
+        # Otherwise, some processes may have no simulation to run and then
+        # the json output file would have an invalid syntax
+        for ele in self._data[:]:
+            if not (ele['mustSimulate'] or ele['mustExportFMU']):
+                self._data.remove(ele)
+
+        # now we got clean _data to compare
+        # next step get all examples in the package (whether whole library or
+        # single package)
+
+        packages = list(dict.fromkeys(
+            [pac['ScriptFile'].split('/')[0] for pac in self._data]))
+
+        tested_model_names = [
+            nam['ScriptFile'].split('/')[-1][:-1] for nam in self._data]
+
+        # this needs to be adjusted for also subdirectories
+        total_examples = []
+        for pac in packages:
+            for (dirpath, dirnames, filenames) in os.walk(
+                    os.path.join(self._libHome, pac)):
+                for f in filenames:
+                    total_examples.append(os.path.abspath(
+                        os.path.join(dirpath, f)))
+
+        # list filtering only relevant examples, that could be nicer for sure
+        total_examples = [
+            i for i in total_examples if any(
+                xs in i for xs in ['Examples', 'Validation'])]
+        total_examples = [i for i in total_examples if not i.endswith(
+            ('package.mo', '.order'))]
+
+        coverage = round(len(self._data) / len(total_examples), 4)
+
+        print('***\n\nCoverage: ', coverage * 100.0, '%\n')
+        print(
+            '***\n\nYou are testing : ',
+            len(self._data),
+            ' out of ',
+            len(total_examples),
+            'total examples in ')
+        for pac in packages:
+            print(pac)
+        print('\n')
+
+        tested_model_names = [
+            nam['ScriptFile'].split('/')[-1][:-1] for nam in self._data]
+
+        missing_examples = [
+            i for i in total_examples if not any(
+                xs in i for xs in tested_model_names)]
+
+        if missing_examples:
+            print('***\n\nThe following examples are not tested\n')
+            for i in missing_examples:
+                print(i.split(self._libHome)[1])
