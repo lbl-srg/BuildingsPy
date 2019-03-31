@@ -3174,9 +3174,9 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         total_examples = [i for i in total_examples if not i.endswith(
             ('package.mo', '.order'))]
 
-        coverage = round(len(self._data) / len(total_examples), 4)
+        coverage = round(len(self._data) / len(total_examples), 4) * 100.0
 
-        print('***\n\nCoverage: ', coverage * 100.0, '%\n')
+        print('***\n\nCoverage: ', '%.2f' % coverage, '%\n')
         print(
             '***\n\nYou are testing : ',
             len(self._data),
