@@ -3153,10 +3153,10 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         # single package)
 
         packages = list(dict.fromkeys(
-            [pac['ScriptFile'].split('/')[0] for pac in self._data]))
+            [pac['ScriptFile'].split(os.sep)[0] for pac in self._data]))
 
         tested_model_names = [
-            nam['ScriptFile'].split('/')[-1][:-1] for nam in self._data]
+            nam['ScriptFile'].split(os.sep)[-1][:-1] for nam in self._data]
 
         # this needs to be adjusted for also subdirectories
         total_examples = []
@@ -3176,7 +3176,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
 
         coverage = round(len(self._data) / len(total_examples), 4) * 100.0
 
-        print('***\n\nCoverage: ', '%.2f' % coverage, '%\n')
+        print('***\n\nCoverage: ', '%.2f' % coverage + '%')
         print(
             '***\n\nYou are testing : ',
             len(self._data),
