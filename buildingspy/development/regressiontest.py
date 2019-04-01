@@ -3188,7 +3188,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         print('\n')
 
         tested_model_names = [
-            nam['ScriptFile'].split('/')[-1][:-1] for nam in self._data]
+            nam['ScriptFile'].split(os.sep)[-1][:-1] for nam in self._data]
 
         missing_examples = [
             i for i in total_examples if not any(
