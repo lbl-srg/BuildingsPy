@@ -48,8 +48,8 @@ def get_model_statistics(log_file, simulator):
     import os
     import re
 
-    if simulator not in ['dymola', 'jmodelica']:
-        raise ValueError('Argument "simulator" needs to be set to "dymola" or "jmodelica".')
+    if simulator != "dymola":
+        raise ValueError('Argument "simulator" needs to be set to "dymola".')
 
     if not os.path.isfile(log_file):
         raise IOError("File {!s} does not exist".format(log_file))
@@ -172,8 +172,8 @@ class Reader(object):
     """
 
     def __init__(self, fileName, simulator):
-        if simulator != "dymola":
-            raise ValueError('Argument "simulator" needs to be set to "dymola".')
+        if simulator not in ['dymola', 'jmodelica']:
+            raise ValueError('Argument "simulator" needs to be set to "dymola" or "jmodelica".')
 
         self.fileName = fileName
         self._data_ = DyMatFile(fileName)

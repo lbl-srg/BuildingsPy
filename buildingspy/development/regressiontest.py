@@ -18,6 +18,7 @@
 # x Integrate local server handling cf. IPython and pyfunnel
 # x Update plot function / refactoring of pyfunnel
 # TODO future release
+# O Tolerance values part of unit test parameters (inside configuration file)
 # O Static HTML files for CI tools cf. Michael Mans
 # O Buttons in HTML report to 1) update reference results 2) shutdown server 3) delete funnel files
 # O Separate run function (for simulation only eventually) and comparison function
@@ -1358,7 +1359,7 @@ class Tester(object):
         # Get the working directory that contains the ".log" file
         fulFilNam = os.path.join(data['ResultDirectory'],
                                  self.getLibraryName(), data['TranslationLogFile'])
-        return of.get_model_statistics(fulFilNam, "dymola")
+        return of.get_model_statistics(fulFilNam, self._modelica_tool)
 
     def legacy_comp(self, tOld, yOld, tNew, yNew, varNam, filNam, tol):
         # Interpolate the new variables to the old time stamps
