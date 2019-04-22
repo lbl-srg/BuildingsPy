@@ -28,12 +28,11 @@
 # BUG #1 JModelica
 # In _write_jmodelica_runfile:
 # Only the model name is defined, not the result file name as with Dymola.
-# DANGER: unit tests with multiple result files will fail.
+# Risk: unit tests with multiple result files will fail.
 # Here (issue245_funnelIntegration): we only adapt the result file name.
 # BUG #2
 # y_tra = self._getTranslationStatistics(data, warnings, errors) not working with jmodelica
-# Solved with:
-#   if self._modelica_tool != 'jmodelica':
+# Solved with: no translation statistics reading in case of jmodelica.
 # BUG #3 JModelica
 # 'simulator-jmodelica.log'
 #   with open('simulator-jmodelica.log', 'r') as f:
@@ -53,23 +52,6 @@
 #                         nModels=self.get_number_of_tests())
 # Bad method arguments.
 # Unsolved.
-# BUG #7 JModelica
-# Incorrect result file name in self._data (for a lot of files!)
-# Example case 1:
-#   "model_name": "Buildings.HeatTransfer.Windows.BaseClasses.Examples.SideFins",
-#   "ResultFile": "Buildings_HeatTransfer_Windows_BaseClasses_Examples_BaseClassesSideFins_result.mat"
-#   But JModelica simulation results are stored in:
-#   Buildings_HeatTransfer_Windows_BaseClasses_Examples_SideFins_result.mat
-# Example case 2:
-#   "model_name": "Buildings.Controls.OBC.CDL.Continuous.Validation.Atan2"
-#   "ResultFile": "Buildings_Controls_OBC_CDL_Continuous_Validation_Atan2_1_result.mat"
-#   But JModelica simulation results are stored in:
-#   Buildings_Controls_OBC_CDL_Continuous_Validation_Atan2_result.mat
-# => *** Error: Failed to read
-# (Dymola OK: Buildings.HeatTransfer.Windows.BaseClasses.Examples.SideFins)
-# UNSOLVED => Open issue in JModelica branch
-# HACK #2
-# infer_name = difflib.get_close_matches(data['ResultFile'], list_files, n=1)[0]
 # BUG #8 JModelica
 # FMU results mat files parsing: incorrect variable names
 # e.g. scipy.io.loadmat('Buildings_HeatTransfer_Examples_ConductorInitialization_result.mat')
@@ -99,6 +81,7 @@ from io import open
 # end of from future import
 # Python standard library imports.
 import difflib
+import fnmatch
 import functools
 import glob
 import json
@@ -1100,7 +1083,7 @@ class Tester(object):
 
                             # BUG #1
                             if self._modelica_tool == 'jmodelica':
-                                matFil = '{}_result.mat'.format(re.sub('.', '_', dat['model_name']))
+                                matFil = '{}_result.mat'.format(re.sub('\.', '_', dat['model_name']))
 
                             # Some *.mos file only contain plot commands, but no simulation.
                             # Hence, if 'resultFile=' could not be found, try to get the file that
@@ -2981,7 +2964,7 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
                 solver=dat['jmodelica']['solver'],
                 simulate=dat['jmodelica']['simulate'] and dat['mustSimulate'],
                 time_out=dat['jmodelica']['time_out'],
-                filter=result_variables)
+                filter=map(fnmatch.translate, result_variables))
             file_name = os.path.join(directory, "{}.py".format(model.replace(".", "_")))
             with open(file_name, mode="w", encoding="utf-8") as fil:
                 fil.write(txt)
@@ -3219,7 +3202,7 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
 
         # TMP
         # Output data
-        with open('data.json', mode="w", encoding="utf-8") as f:
+        with open('data_{}.json'.format(self._modelica_tool), mode="w", encoding="utf-8") as f:
             f.write(json.dumps(
                 self._data,
                 indent=2,
