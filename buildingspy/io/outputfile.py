@@ -48,8 +48,8 @@ def get_model_statistics(log_file, simulator):
     import os
     import re
 
-    if simulator != "dymola":
-        raise ValueError('Argument "simulator" needs to be set to "dymola".')
+    if simulator not in ['dymola', 'jmodelica']:
+        raise ValueError('Argument "simulator" needs to be set to "dymola" or "jmodelica".')
 
     if not os.path.isfile(log_file):
         raise IOError("File {!s} does not exist".format(log_file))
