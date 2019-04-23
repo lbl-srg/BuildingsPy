@@ -8,6 +8,8 @@
 # TODO this release
 # O Build package for PyPI (with funnel as submodule)
 # O Update documentation http://simulationresearch.lbl.gov/modelica/buildingspy
+# x Corrected bug in _write_jmodelica_runfile: filter option must match glob syntax ([[]) + no
+#   space for matrix variables in mat file
 # x Include funnel warnings into HTML report
 # x Grouped variable for plot see all_data (or .mos file): up to 5 plots / test case
 # x funnel_plot during regression tests I/O error: send content as request
@@ -37,7 +39,7 @@
 # 'simulator-jmodelica.log'
 #   with open('simulator-jmodelica.log', 'r') as f:
 #     json.load(f)  # ValueError: No JSON object could be decoded
-# HACK simplejson.loads(f.read())
+# Solved with: simplejson.loads(f.read())
 # BUG #4 Master
 # multiprocessing.Pool: the worker processes do not terminate when work has completed.
 # Solved with:
@@ -49,18 +51,14 @@
 # BUG #6 OpenModelica
 # if self._modelica_tool == 'omc':
 #   self._analyseOMStats(filename=self._simulator_log_file,
-#                         nModels=self.get_number_of_tests())
+#       nModels=self.get_number_of_tests())
 # Bad method arguments.
 # Unsolved.
-# BUG #8 JModelica
-# FMU results mat files parsing: incorrect variable names
-# e.g. scipy.io.loadmat('Buildings_HeatTransfer_Examples_ConductorInitialization_result.mat')
-# => 'name': array([u't', u'i', u'm', u'e', u''], dtype='<U1')
-# UNSOLVED.
 # BUG #9 JModelica
 # ValueError with loadmat: Mat 4 mopt wrong format, byteswapping problem?
 # Buildings_ThermalZones_Detailed_Examples_FFD_Tutorial_MixedConvection_result.mat
-# UNSOLVED.
+# Unsolved.
+#
 #######################################################
 # Script that runs all regression tests.
 #
@@ -99,7 +97,6 @@ import webbrowser
 # Third-party module or package imports.
 import matplotlib.pyplot as plt
 import numpy as np
-# BUG #3
 import simplejson
 # Code repository sub-package imports.
 from buildingspy.funnel.bin import pyfunnel
@@ -1252,7 +1249,6 @@ class Tester(object):
 
         # Get the working directory that contains the ".mat" file
         fulFilNam = os.path.join(data['ResultDirectory'], self.getLibraryName(), data['ResultFile'])
-        # BUG #1
         if self._modelica_tool == 'jmodelica':
             fulFilNam = os.path.join(data['ResultDirectory'], data['ResultFile'])
         ret = []
@@ -1273,7 +1269,11 @@ class Tester(object):
                 time = []
                 val = []
                 try:
-                    (time, val) = r.values(var)
+                    var_mat = var
+                    # Matrix variables in JModelica are stored in mat file with no space e.g. [1,1].
+                    if self._modelica_tool == 'jmodelica':
+                        var_mat = re.sub(' ', '', var_mat)
+                    (time, val) = r.values(var_mat)
                     # Make time grid to which simulation results
                     # will be interpolated.
                     # This reduces the data that need to be stored.
@@ -2956,7 +2956,9 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
                 else:
                     dat['jmodelica']['rtol'] = 1E-6
             # Note that if dat['mustSimulate'] == false, then only the FMU export is tested, but no
-            # simulation should be done
+            # simulation should be done.
+            # filter option must respect glob syntax ([ is escaped with []]) + JModelica mat file
+            # stores matrix variables with no space e.g. [1,1].
             txt = tem_mod.render(
                 model=model,
                 ncp=dat['jmodelica']['ncp'],
@@ -2964,7 +2966,8 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
                 solver=dat['jmodelica']['solver'],
                 simulate=dat['jmodelica']['simulate'] and dat['mustSimulate'],
                 time_out=dat['jmodelica']['time_out'],
-                filter=map(fnmatch.translate, result_variables))
+                filter=[re.sub('\[|\]', lambda m: '[{}]'.format(m.group()), re.sub(' ', '', x)) for x in result_variables]
+            )
             file_name = os.path.join(directory, "{}.py".format(model.replace(".", "_")))
             with open(file_name, mode="w", encoding="utf-8") as fil:
                 fil.write(txt)
