@@ -1,13 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #######################################################
-# TMP
-# data not deleted
-# funnel_comp not deleted
-# funnel as git submodule: needs branch issue28_python3 -> to merge & update remote = master
+# TMP!!!!
+# O funnel as git submodule: needs branch issue28_python3 -> to merge & update remote = master
+# O data not deleted
+# O funnel_comp not deleted
 # TODO this release
-# O Build package for PyPI (with funnel as submodule)
-# O Update documentation http://simulationresearch.lbl.gov/modelica/buildingspy
 # x Corrected bug in _write_jmodelica_runfile: filter option must match glob syntax ([[]) + no
 #   space for matrix variables in mat file
 # x Include funnel warnings into HTML report

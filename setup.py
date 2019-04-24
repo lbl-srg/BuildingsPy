@@ -1,3 +1,4 @@
+import platform
 import os
 from setuptools import setup
 # Python setup file.
@@ -7,6 +8,17 @@ from setuptools import setup
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
+
+os_name = platform.system()
+lib_data = 'funnel/lib'
+if os_name == 'Windows':
+    lib_data = '{}/win64/*.dll'.format(lib_data)
+elif os_name == 'Linux':
+    lib_data = '{}/linux64/*.so'.format(lib_data)
+elif os_name == 'Darwin':
+    lib_data = '{}/darwin64/*.dylib'.format(lib_data)
+else:
+    raise RuntimeError('Could not detect standard (system, architecture).')
 
 setup(
     name="buildingspy",
@@ -33,6 +45,7 @@ setup(
         'buildingspy/examples',
         'buildingspy/fmi',
         'buildingspy/funnel',
+        'buildingspy/funnel.bin',
         'buildingspy/io',
         'buildingspy/simulate',
         'buildingspy/thirdParty',
@@ -40,7 +53,9 @@ setup(
         'buildingspy/thirdParty.dymat.DyMat',
         'buildingspy/thirdParty.dymat.DyMat.Export',
     ],
-    package_data={'': ['*.template', 'templates/*']},
+    package_data={
+        '': ['*.template', 'templates/*', lib_data],
+    },
     include_package_data=True,
     classifiers=[
         "Development Status :: 5 - Production/Stable",
