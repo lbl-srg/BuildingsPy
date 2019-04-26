@@ -31,6 +31,7 @@ setup(
     keywords="modelica dymola openmodelica mat",
     url="http://simulationresearch.lbl.gov/modelica/",
     install_requires=[
+        'future',
         'gitpython',
         'jinja2',
         'matplotlib',
