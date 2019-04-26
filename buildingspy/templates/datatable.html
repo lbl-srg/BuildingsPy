@@ -225,7 +225,7 @@ $(document).ready(function() {
 				win.document.write(new_data);
 				win.document.close();  // necessary for the scripts on the page to be executed
 				// win.document.title = file;
-			} else {alert('Funnel comparison could not be executed for this file: '.concat(warnings.join(', ')));}
+			} else {alert(warnings.join(', '));}
 		});
   });
 });

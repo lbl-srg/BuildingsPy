@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #######################################################
-# TMP!!!!
+# !!!!TMP!!!!
 # O funnel as git submodule: needs branch issue28_python3 -> to merge & update remote = master
 # O data not deleted
 # O funnel_comp not deleted
 # TODO this release
+# x Corrected bug: jmodelica run check was performed even if not simulated
 # x Corrected bug in _write_jmodelica_runfile: filter option must match glob syntax ([[]) + no
 #   space for matrix variables in mat file
 # x Include funnel warnings into HTML report
@@ -18,6 +19,7 @@
 # x Update plot function / refactoring of pyfunnel
 # TODO future release
 # O Tolerance values part of unit test parameters (inside configuration file)
+# O Color code revealing the reason of failed test for each variable
 # O Static HTML files for CI tools cf. Michael Mans
 # O Buttons in HTML report to 1) update reference results 2) shutdown server 3) delete funnel files
 # O Separate run function (for simulation only eventually) and comparison function
@@ -2374,8 +2376,11 @@ class Tester(object):
                         model_name = data['model_name']
                         idx = self._init_comp_info(model_name, matFilNam)
                         list_var_ref = [el for gr in data['ResultVariables'] for el in gr]
-                        for var_ref in list_var_ref:
-                            self._update_comp_info(idx, var_ref, None, False, 0, ', '.join(errors), data_idx)
+                        for iv, var_ref in enumerate(list_var_ref):
+                            if iv == 0:
+                                self._update_comp_info(idx, var_ref, None, False, 0, 'Translation or simulation failed', data_idx)
+                            else:
+                                self._update_comp_info(idx, var_ref, None, False, 0, '', data_idx)
                         # flags to return
                         ret_val = 1
                         get_user_prompt = False
@@ -2900,12 +2905,14 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
                 data = []
                 for i in range(iPro, nTes, self._nPro):
                     # Store ResultDirectory into data dict.
-                    if self._data[i]['mustSimulate'] or self._data[i]['mustExportFMU']:
+                    if self._data[i]['jmodelica']['simulate']:
                         self._data[i]['ResultDirectory'] = self._temDir[iPro]
-                    # Copy data used for this process only
-                    data.append(self._data[i])
-                    nUniTes = nUniTes + 1
-                self._write_jmodelica_runfile(self._temDir[iPro], data)
+                        data.append(self._data[i])
+                        nUniTes = nUniTes + 1
+                        self._write_jmodelica_runfile(self._temDir[iPro], data)
+                    else:
+                        # Copy data used for this process only
+                        data.append(self._data[i])
 
         print("Generated {} regression tests.\n".format(nUniTes))
 
@@ -2964,7 +2971,9 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
                 solver=dat['jmodelica']['solver'],
                 simulate=dat['jmodelica']['simulate'] and dat['mustSimulate'],
                 time_out=dat['jmodelica']['time_out'],
-                filter=[re.sub('\[|\]', lambda m: '[{}]'.format(m.group()), re.sub(' ', '', x)) for x in result_variables]
+                filter=[re.sub('\[|\]',
+                    lambda m: '[{}]'.format(m.group()),
+                    re.sub(' ', '', x)) for x in result_variables]
             )
             file_name = os.path.join(directory, "{}.py".format(model.replace(".", "_")))
             with open(file_name, mode="w", encoding="utf-8") as fil:
@@ -3029,15 +3038,18 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
 
         self.checkPythonModuleAvailability()
 
-        if self.get_number_of_tests() == 0:
-            self.setDataDictionary(self._rootPackage)
-
         # Remove all data that do not require a simulation or an FMU export.
         # Otherwise, some processes may have no simulation to run and then
         # the json output file would have an invalid syntax
-        for ele in self._data[:]:
-            if not (ele['mustSimulate'] or ele['mustExportFMU']):
+        for ele in self._data:
+            if (self._modelica_tool == 'jmodelica' and not ele['jmodelica']['simulate']) or\
+            (self._modelica_tool != 'jmodelica' and not (ele['mustSimulate'] or ele['mustExportFMU'])):
                 self._data.remove(ele)
+
+        if self.get_number_of_tests() == 0:
+            print('No unit test to run within the specified package.'
+                'The root package will be tested instead.')
+            self.setDataDictionary(self._rootPackage)
 
         # Reset the number of processors to use no more processors than there are
         # examples to be run
@@ -3113,7 +3125,8 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
                 po.close()
                 po.join()
             else:
-                runSimulation(tem_dir[0], cmd)
+                if len(self._data) > 0:
+                    runSimulation(tem_dir[0], cmd)
 
             # Concatenate simulator output files into one file
             with open(self._simulator_log_file, mode="w", encoding="utf-8") as logFil:
