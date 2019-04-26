@@ -2235,7 +2235,8 @@ class Tester(object):
         iOmiSim = 0
         # Iterate over directories
         all_res = []
-        for d in self._temDir:
+        for utest in self._data:
+            d = utest['ResultDirectory']
             # Iterate over json files
             # The python file have names such as class_class_class.py
             for fil in glob.glob("{}{}*_*.py".format(d, os.path.sep)):
@@ -3041,7 +3042,7 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
         # Remove all data that do not require a simulation or an FMU export.
         # Otherwise, some processes may have no simulation to run and then
         # the json output file would have an invalid syntax
-        for ele in self._data:
+        for ele in self._data[:]:
             if (self._modelica_tool == 'jmodelica' and not ele['jmodelica']['simulate']) or\
             (self._modelica_tool != 'jmodelica' and not (ele['mustSimulate'] or ele['mustExportFMU'])):
                 self._data.remove(ele)
