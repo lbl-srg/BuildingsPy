@@ -2550,7 +2550,11 @@ class Tester(object):
     def get_number_of_tests(self):
         """ Returns the number of regression tests that will be run for the current library and configuration.
         """
-        return len(self._data)
+        def check_if_run_req(el):
+            return (self._modelica_tool == 'jmodelica' and not el['jmodelica']['simulate']) or\
+            (self._modelica_tool != 'jmodelica' and not (el['mustSimulate'] or el['mustExportFMU']))
+
+        return len([el for el in self._data if check_if_run_req(el)])
 
     def printNumberOfClasses(self):
         """ Print the number of models, blocks and functions to the
@@ -2668,11 +2672,15 @@ class Tester(object):
             self.setNumberOfThreads(nTes)
 
         # For files that do not require a simulation, we need to set the path of the result files.
+        # FIXME
+        # Why cf. run()
+        #   Remove all data that do not require a simulation or an FMU export
         for dat in self._data:
-            if not dat['mustSimulate'] and not dat['mustExportFMU']:
+            if (self._modelica_tool == 'jmodelica' and not dat['jmodelica']['simulate']) or\
+                (self._modelica_tool != 'jmodelica' and not (dat['mustSimulate'] or dat['mustExportFMU'])):
                 matFil = dat['ResultFile']
                 for allDat in self._data:
-                    if allDat['mustSimulate']:
+                    if allDat['mustSimulate'] or allDat['jmodelica']['simulate']:
                         resFil = allDat['ResultFile']
                         if resFil == matFil:
                             dat['ResultDirectory'] = allDat['ResultDirectory']
@@ -3049,13 +3057,13 @@ class Tester(object):
 
         self.checkPythonModuleAvailability()
 
-        # Remove all data that do not require a simulation or an FMU export.
-        # Otherwise, some processes may have no simulation to run and then
-        # the json output file would have an invalid syntax
-        for ele in self._data[:]:
-            if (self._modelica_tool == 'jmodelica' and not ele['jmodelica']['simulate']) or\
-            (self._modelica_tool != 'jmodelica' and not (ele['mustSimulate'] or ele['mustExportFMU'])):
-                self._data.remove(ele)
+        # # # Remove all data that do not require a simulation or an FMU export.
+        # # # Otherwise, some processes may have no simulation to run and then
+        # # # the json output file would have an invalid syntax
+        # # for ele in self._data[:]:
+        #     if (self._modelica_tool == 'jmodelica' and not ele['jmodelica']['simulate']) or\
+        #     (self._modelica_tool != 'jmodelica' and not (ele['mustSimulate'] or ele['mustExportFMU'])):
+        #         self._data.remove(ele)
 
         if self.get_number_of_tests() == 0:
             print('No unit test to run within the specified package.'
@@ -3132,7 +3140,6 @@ class Tester(object):
                 po.map(functools.partial(runSimulation,
                                          cmd=cmd),
                        [x for x in tem_dir])
-                # BUG #4
                 po.close()
                 po.join()
             else:
@@ -3212,7 +3219,6 @@ class Tester(object):
                 retVal = self._check_jmodelica_runs()
             else:
                 self._check_jmodelica_runs()
-            # TODO: 2 log files with redundancies for now, should be merged.
             with open(self._simulator_log_file, 'r') as f:
                 self._comp_info = simplejson.loads(f.read())
             self._checkReferencePoints(ans='N')
