@@ -82,6 +82,7 @@ import difflib
 import fnmatch
 import functools
 import glob
+import io
 import json
 import multiprocessing
 import numbers
@@ -1432,23 +1433,31 @@ class Tester(object):
         t_err_max, warning = 0, None
 
         tmp_dir = tempfile.mkdtemp()
-        exitcode = pyfunnel.compareAndReport(
-            xReference=tOld,
-            yReference=yOld,
-            xTest=tNew,
-            yTest=yNew,
-            outputDirectory=tmp_dir,
-            atolx=tol['ax'],
-            atoly=tol['ay'],
-            rtolx=tol['rx'],
-            rtoly=tol['ry']
-        )
+
+        log_stdout = io.StringIO()
+        sys.stdout = log_stdout
+
+        try:
+            exitcode = pyfunnel.compareAndReport(
+                        xReference=tOld,
+                        yReference=yOld,
+                        xTest=tNew,
+                        yTest=yNew,
+                        outputDirectory=tmp_dir,
+                        atolx=tol['ax'],
+                        atoly=tol['ay'],
+                        rtolx=tol['rx'],
+                        rtoly=tol['ry'],
+            )
+        finally:
+            sys.stdout = sys.__stdout__
+            log_content = log_stdout.getvalue().decode('utf8')
+            log_content = re.sub('(^.*Warning:\s+)|(Error:\s+)', '', log_content)
+            log_stdout.close()
 
         if exitcode != 0:
-            warning = textwrap.dedent("""\
-                Function pyfunnel.compareAndReport returned status {} while processing file
-                {} for variable {}.
-                """.format(exitcode, filNam, varNam)
+            warning = re.sub('\n\s+', '\n',
+                """While processing file {} for variable {}: {}""".format(filNam, varNam, log_content)
             )
             test_passed = False
             funnel_success = False
@@ -1460,8 +1469,8 @@ class Tester(object):
             t_err_max = err_arr[0][idx_err_max]
             test_passed = (err_max == 0)
             if err_max > 0:
-                warning = textwrap.dedent("""\
-                    {}: {} exceeds funnel tolerance with absolute error = {:.3e}.
+                warning = re.sub('\n\s+', '\n',
+                    """{}: {} exceeds funnel tolerance with absolute error = {:.3e}.
                     """.format(filNam, varNam, err_max))
                 if self._isParameter(yOld):
                     warning += "             {} is a parameter.\n".format(varNam)
