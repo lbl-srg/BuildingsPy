@@ -2549,12 +2549,11 @@ class Tester(object):
 
     def get_number_of_tests(self):
         """ Returns the number of regression tests that will be run for the current library and configuration.
-        """
-        def check_if_run_req(el):
-            return (self._modelica_tool == 'jmodelica' and not el['jmodelica']['simulate']) or\
-            (self._modelica_tool != 'jmodelica' and not (el['mustSimulate'] or el['mustExportFMU']))
 
-        return len([el for el in self._data if check_if_run_req(el)])
+            Note: Needs to be run within the run method (where elements of self._data requiring no simulation
+            are first removed)
+        """
+        return len(self._data)
 
     def printNumberOfClasses(self):
         """ Print the number of models, blocks and functions to the
@@ -2672,19 +2671,17 @@ class Tester(object):
             self.setNumberOfThreads(nTes)
 
         # For files that do not require a simulation, we need to set the path of the result files.
-        # FIXME
-        # Why cf. run()
-        #   Remove all data that do not require a simulation or an FMU export
-        for dat in self._data:
-            if (self._modelica_tool == 'jmodelica' and not dat['jmodelica']['simulate']) or\
-                (self._modelica_tool != 'jmodelica' and not (dat['mustSimulate'] or dat['mustExportFMU'])):
-                matFil = dat['ResultFile']
-                for allDat in self._data:
-                    if allDat['mustSimulate'] or allDat['jmodelica']['simulate']:
-                        resFil = allDat['ResultFile']
-                        if resFil == matFil:
-                            dat['ResultDirectory'] = allDat['ResultDirectory']
-                            break
+        # Not useful anymore since _write_runscripts is called only after the files that do not require
+        # a simulation have already been removed from self_data (see run method).
+        # for dat in self._data:
+        #     if not dat['mustSimulate'] and not dat['mustExportFMU']:
+        #         matFil = dat['ResultFile']
+        #         for allDat in self._data:
+        #             if allDat['mustSimulate']:
+        #                 resFil = allDat['ResultFile']
+        #                 if resFil == matFil:
+        #                     dat['ResultDirectory'] = allDat['ResultDirectory']
+        #                     break
 
         for iPro in range(self._nPro):
 
@@ -2981,7 +2978,7 @@ class Tester(object):
                     dat['jmodelica']['rtol'] = 1E-6
             # Note that if dat['mustSimulate'] == false, then only the FMU export is tested, but no
             # simulation should be done.
-            # filter option must respect glob syntax ([ is escaped with []]) + JModelica mat file
+            # filter argument must respect glob syntax ([ is escaped with []]) + JModelica mat file
             # stores matrix variables with no space e.g. [1,1].
             txt = tem_mod.render(
                 model=model,
@@ -3057,13 +3054,15 @@ class Tester(object):
 
         self.checkPythonModuleAvailability()
 
-        # # # Remove all data that do not require a simulation or an FMU export.
-        # # # Otherwise, some processes may have no simulation to run and then
-        # # # the json output file would have an invalid syntax
-        # # for ele in self._data[:]:
-        #     if (self._modelica_tool == 'jmodelica' and not ele['jmodelica']['simulate']) or\
-        #     (self._modelica_tool != 'jmodelica' and not (ele['mustSimulate'] or ele['mustExportFMU'])):
-        #         self._data.remove(ele)
+        # Remove all data that do not require a simulation or an FMU export.
+        # Otherwise, some processes may have no simulation to run and then
+        # the json output file would have an invalid syntax
+        for ele in self._data[:]:
+            if not (ele['mustSimulate'] or ele['mustExportFMU']):
+                self._data.remove(ele)
+            elif self._modelica_tool == 'jmodelica' and not ele['jmodelica']['simulate']:
+                # Further condition in case of JModelica.
+                self._data.remove(ele)
 
         if self.get_number_of_tests() == 0:
             print('No unit test to run within the specified package.'
