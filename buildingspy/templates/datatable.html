@@ -56,7 +56,12 @@ td { font-size: 14px; }
 			</table>
 		</div>
 	</div>
+	<p>Color Legend:</p>
+	<p style="color:red;">Either translation or simulation failed, or variable unavailable in mat file.</p>
+	<p style="color:brown;">Comparison failed, most likely because of different start values for x in reference and test data sets.</p>
+	<p style="color:orange;">Non zero error computed while comparing reference and test data sets.</p>
 </div>
+
 </body>
 <script>
 $(document).ready(function() {
@@ -161,10 +166,33 @@ $(document).ready(function() {
 				return data.replace(/\./g, '.<wbr>');}
 			},
 			{ data: 'comparison.variables', width: "60%",
-			  render: function (data, type, full) {
+			  render: function (data, type, row, meta) {
 					var out = "";
 					if (typeof data !== 'undefined') {
-						out = data.map(function(e) {return '<wbr> ' + e});
+						out = data.map(function(e, var_idx) {
+							var warnings = table3.cell(meta.row, 6).data();
+							var color;
+							if ((warnings[0] != null) && (warnings[0].includes('simulation'))) {
+								color = 'red';
+							}
+							else if (warnings[var_idx] != null) {
+								if (warnings[var_idx].includes('not found in')) {
+									color = 'red';
+								}
+								else if (warnings[var_idx].includes('funnel binary')) {
+									color = 'brown';
+								}
+								else if (warnings[var_idx].includes('exceeds funnel')) {
+									color = 'orange';
+								}
+							}
+							if (color != null) {
+								return '<wbr> ' + e.fontcolor(color);
+							}
+							else {
+								return '<wbr> ' + e;
+							}
+						});
 					} else {out = 'No simulation results available.'}
 					return out;
 				}

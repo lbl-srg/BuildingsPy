@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #######################################################
-# !!!!TMP!!!!
-# O funnel as git submodule: needs branch issue28_python3 -> to merge & update remote = master
-# O data not deleted
-# O funnel_comp not deleted
 # TODO this release
+# ? For Dymola in run method: why _checkSimulationError after _checkReferencePoints in master
+# ? Skip warning when x variable found in reference result but not in simulated (as in master)
+
 # x Corrected bug: jmodelica run check was performed even if not simulated
 # x Corrected bug in _write_jmodelica_runfile: filter option must match glob syntax ([[]) + no
 #   space for matrix variables in mat file
@@ -27,11 +26,10 @@
 # O Python 3 port (Python 2 -> 2020)
 # O Refactor all code for report and multiple plots into funnel (with JSON string as parameter)
 # O 2 data structures with redundancies for now (self._data included in self._comp_info): should be merged
-# BUG #1 JModelica
+# BUG #1? JModelica
 # In _write_jmodelica_runfile:
 # Only the model name is defined, not the result file name as with Dymola.
 # Risk: unit tests with multiple result files will fail.
-# Here (issue245_funnelIntegration): we only adapt the result file name.
 # BUG #2
 # y_tra = self._getTranslationStatistics(data, warnings, errors) not working with jmodelica
 # Solved with: no translation statistics reading in case of jmodelica.
@@ -92,7 +90,6 @@ import shutil
 import subprocess
 import sys
 import tempfile
-import textwrap
 import time
 import webbrowser
 # Third-party module or package imports.
@@ -1073,7 +1070,14 @@ class Tester(object):
                                 s += "results in the regression tests.\n"
                                 self._reporter.writeError(s)
 
-                            dat['ResultVariables'] = plotVars
+                            # Remove duplicates that happen when the same y variables are plotted against
+                            # different x variables.
+                            idx_del = []
+                            for i_v, v_i in enumerate(plotVars):
+                                for j_v in range(i_v + 1, len(plotVars)):
+                                    if v_i == plotVars[j_v]:
+                                        idx_del.append(j_v)
+                            dat['ResultVariables'] = [el for i_el, el in enumerate(plotVars) if i_el not in idx_del]
 
                             # search for the result file
                             for lin in Lines:
@@ -1348,8 +1352,8 @@ class Tester(object):
             try:
                 yInt = Plotter.interpolate(tOld, tNew, yNew)
             except (IndexError, ValueError):
-                em = textwrap.dedent("""\
-                    Data series have different length:
+                em = re.sub('\n\s+', '\n',
+                    """Data series have different length:
                     File=%s,
                     variable=%s,
                     len(tOld) = %d,
@@ -1384,8 +1388,8 @@ class Tester(object):
             elif len(yInt) == 2 and len(yOld) == self._nPoi:
                 yInt = Plotter.interpolate(t, [tOld[0], tOld[-1]], yInt)
             else:
-                raise ValueError(textwrap.dedent("""\
-                    Program error, yOld and yInt have different lengths.
+                raise ValueError(re.sub('\n\s+', '\n',
+                    """Program error, yOld and yInt have different lengths.
                     Result file : %s
                     Variable    : %s
                     len(yOld)=%d
@@ -1439,15 +1443,15 @@ class Tester(object):
 
         try:
             exitcode = pyfunnel.compareAndReport(
-                        xReference=tOld,
-                        yReference=yOld,
-                        xTest=tNew,
-                        yTest=yNew,
-                        outputDirectory=tmp_dir,
-                        atolx=tol['ax'],
-                        atoly=tol['ay'],
-                        rtolx=tol['rx'],
-                        rtoly=tol['ry'],
+                xReference=tOld,
+                yReference=yOld,
+                xTest=tNew,
+                yTest=yNew,
+                outputDirectory=tmp_dir,
+                atolx=tol['ax'],
+                atoly=tol['ay'],
+                rtolx=tol['rx'],
+                rtoly=tol['ry'],
             )
         finally:
             sys.stdout = sys.__stdout__
@@ -1456,9 +1460,7 @@ class Tester(object):
             log_stdout.close()
 
         if exitcode != 0:
-            warning = re.sub('\n\s+', '\n',
-                """While processing file {} for variable {}: {}""".format(filNam, varNam, log_content)
-            )
+            warning = """While processing file {} for variable {}: {}""".format(filNam, varNam, log_content)
             test_passed = False
             funnel_success = False
         else:
@@ -1491,20 +1493,20 @@ class Tester(object):
         return (t_err_max, warning)
 
     def _init_comp_info(self, model_name, file_name):
-        """Append self._comp_info with dict to store comparison results for model_name.
+        """Update self._comp_info with dict to store comparison results for model_name.
 
         Returns: index of dict storing results for model_name.
         """
         try:
             idx = next(i for i, el in enumerate(self._comp_info) if el['model'] == model_name)
-        except StopIteration:  # no model_name found in self._comp_info
+        except StopIteration:  # no model_name found in self._comp_info (case dymola): create
             self._comp_info.append({
                 "model": model_name,
             })
             idx = len(self._comp_info) - 1
         try:
             self._comp_info[idx]["comparison"]
-        except KeyError:  # no comparison data stored for model_name
+        except KeyError:  # no comparison data stored for model_name: create
             self._comp_info[idx]["comparison"] = {
                 "variables": [],
                 "funnel_dirs": [],
@@ -1529,14 +1531,14 @@ class Tester(object):
             try:
                 var_group = next(iv for iv, vl in enumerate(self._data[data_idx]["ResultVariables"]) if var_name in vl)
             except StopIteration:
-                print('*** Warning: Variable {} not found in ResultVariables for model {}. '
-                    'However it was found in reference results file. '
-                    'JSON dump of self._data[data_idx]:\n{}'.format(
-                    var_name,
-                    self._comp_info[idx]['model'],
-                    json.dumps(self._data[data_idx], indent=2, separators=(',', ': '), sort_keys=True)
-                ))
-                should_update = False
+                if warning == 'skip':
+                    should_update = False
+                else:
+                    warning = re.sub('\n\s+', '\n',
+                        """Variable {} not found in ResultVariables for model {}.
+                        However it was found in reference results file.""".format(var_name, self._comp_info[idx]['model'])
+                    )
+                    self._reporter.writeWarning(warning)
 
         if should_update:
             self._comp_info[idx]["comparison"]["variables"].append(var_name)
@@ -1578,14 +1580,16 @@ class Tester(object):
                 raise ValueError(s)
 
         if (abs(tOld[-1] - tNew[-1]) > 1E-5):
-            msg = textwrap.dedent("""%s: The new results and the reference results have a different end time.
+            msg = re.sub('\n\s+', '\n',
+                """%s: The new results and the reference results have a different end time.
                 tNew = [%d, %d]
                 tOld = [%d, %d]""" % (filNam, tNew[0], tNew[-1], tOld[0], tOld[-1])
             )
             return (False, min(tOld[-1], tNew[-1]), msg)
 
         if (abs(tOld[0] - tNew[0]) > 1E-5):
-            msg = textwrap.dedent("""%s: The new results and the reference results have a different start time.
+            msg = re.sub('\n\s+', '\n',
+                """%s: The new results and the reference results have a different start time.
                 tNew = [%d, %d]
                 tOld = [%d, %d]""" % (filNam, tNew[0], tNew[-1], tOld[0], tOld[-1])
             )
@@ -1594,7 +1598,8 @@ class Tester(object):
         # The next test may be true if a simulation stopped with an error prior to
         # producing sufficient data points
         if len(yNew) < len(yOld) and len(yNew) > 2:
-            warning = textwrap.dedent("""%s: %s has fewer data points than reference results.
+            warning = re.sub('\n\s+', '\n',
+                """%s: %s has fewer data points than reference results.
                 len(yOld) = %d,
                 len(yNew) = %d
                 Skipping error checking for this variable.""" % (filNam, varNam, len(yOld), len(yNew))
@@ -1871,10 +1876,12 @@ class Tester(object):
 
         list_var_ref = [el for el in y_ref.keys() if not re.search('time', el, re.I)]
         list_var_sim = [el for gr in y_sim for el in gr.keys() if not re.search('time', el, re.I)]
-        for var in list_var_ref:  # log warning if reference variables not available in simulation results
+        for var in list_var_ref:  # reference variables not available in simulation results
             if var not in list_var_sim:
                 idx = self._init_comp_info(model_name, matFilNam)
-                self._update_comp_info(idx, var, None, False, 0, 'Test data unavailable', data_idx)
+                # We skip warning considering it is only the case for x variables against which y variables
+                # are plotted.
+                self._update_comp_info(idx, var, None, False, 0, 'skip', data_idx)
 
         for pai in y_sim:
             t_sim = pai['time']
@@ -1911,9 +1918,11 @@ class Tester(object):
                         else:
                             t = t_sim
 
+                        # Compare times series.
                         (res, timMaxErr, warning) = self.areResultsEqual(
                             t_ref, y_ref[varNam], t, pai[varNam], varNam, data_idx
                         )
+
                         if warning:
                             self._reporter.writeWarning(warning)
                         if not res:
@@ -1933,7 +1942,6 @@ class Tester(object):
         # 2. The old reference results have statistics, and they are the same or different.
         # Statistics of the simulation model
         newStatistics = False
-        # BUG #2
         if self._modelica_tool != 'jmodelica':
             for stage in ['initialization', 'simulation']:
                 # Updated newStatistics if there is a new statistic. The other
@@ -2250,8 +2258,7 @@ class Tester(object):
         iOmiSim = 0
         # Iterate over directories
         all_res = []
-        for utest in self._data:
-            d = utest['ResultDirectory']
+        for d in self._temDir:
             # Iterate over json files
             # The python file have names such as class_class_class.py
             for fil in glob.glob("{}{}*_*.py".format(d, os.path.sep)):
@@ -2353,6 +2360,7 @@ class Tester(object):
             case of wrong simulation results, this function also returns 0, as this is
             not considered an error in executing this function.
         """
+        self._reporter.writeOutput('Starting validation against reference points.\n')
         # Check if the directory
         # "self._libHome\\Resources\\ReferenceResults\\Dymola" exists, if not
         # create it.
@@ -2364,6 +2372,8 @@ class Tester(object):
         for data_idx, data in enumerate(self._data):
             # Only check data that need to be simulated. This excludes the FMU export
             # from this test.
+            # Nota for JModelica: data['jmodelica']['simulate']=False have already been removed
+            # from self._data (see run method).
             if self._includeFile(data['ScriptFile']) and data['mustSimulate']:
                 get_user_prompt = True
                 # Convert 'aa/bb.mos' to 'aa_bb.txt'
@@ -2400,6 +2410,7 @@ class Tester(object):
                         # flags to return
                         ret_val = 1
                         get_user_prompt = False
+
                 except UnicodeDecodeError as e:
                     em = "UnicodeDecodeError({0}): {1}".format(e.errno, e)
                     em += "Output file of " + data['ScriptFile'] + " is excluded from unit tests.\n"
@@ -2419,7 +2430,7 @@ class Tester(object):
                         # If the reference file exists, and if the reference file contains
                         # results, compare the results.
                         if os.path.exists(oldRefFulFilNam):
-                            print('Found results for ' + oldRefFulFilNam)
+                            # print('Found results for ' + oldRefFulFilNam)
                             [updateReferenceData, _, ans] = self._compareResults(
                                 data_idx, oldRefFulFilNam, y_sim, y_tra, refFilNam, ans,
                             )
@@ -2551,7 +2562,7 @@ class Tester(object):
         """ Returns the number of regression tests that will be run for the current library and configuration.
 
             Note: Needs to be run within the run method (where elements of self._data requiring no simulation
-            are first removed)
+            are first removed).
         """
         return len(self._data)
 
@@ -2921,14 +2932,11 @@ class Tester(object):
                 data = []
                 for i in range(iPro, nTes, self._nPro):
                     # Store ResultDirectory into data dict.
-                    if self._data[i]['jmodelica']['simulate']:
-                        self._data[i]['ResultDirectory'] = self._temDir[iPro]
-                        data.append(self._data[i])
-                        nUniTes = nUniTes + 1
-                        self._write_jmodelica_runfile(self._temDir[iPro], data)
-                    else:
-                        # Copy data used for this process only
-                        data.append(self._data[i])
+                    self._data[i]['ResultDirectory'] = self._temDir[iPro]
+                    # Copy data used for this process only.
+                    data.append(self._data[i])
+                    nUniTes = nUniTes + 1
+                self._write_jmodelica_runfile(self._temDir[iPro], data)
 
         print("Generated {} regression tests.\n".format(nUniTes))
 
@@ -3060,7 +3068,7 @@ class Tester(object):
         for ele in self._data[:]:
             if not (ele['mustSimulate'] or ele['mustExportFMU']):
                 self._data.remove(ele)
-            elif self._modelica_tool == 'jmodelica' and not ele['jmodelica']['simulate']:
+            if self._modelica_tool == 'jmodelica' and not ele['jmodelica']['simulate']:
                 # Further condition in case of JModelica.
                 self._data.remove(ele)
 
@@ -3124,6 +3132,7 @@ class Tester(object):
                 tem_dir.append(os.path.join(di, libNam))
 
         self._write_runscripts()
+
         if not self._useExistingResults:
             if self._modelica_tool == 'dymola':
                 if self._showGUI:
@@ -3208,7 +3217,11 @@ class Tester(object):
             if retVal != 0:
                 retVal = 4
 
-        if self._modelica_tool == 'dymola':
+            if retVal == 0:
+                retVal = self._checkSimulationError(self._simulator_log_file)
+            else:
+                self._checkSimulationError(self._simulator_log_file)
+
             r = self._checkReferencePoints(ans)
             if r != 0:
                 retVal = 4
@@ -3218,16 +3231,17 @@ class Tester(object):
                 retVal = self._check_jmodelica_runs()
             else:
                 self._check_jmodelica_runs()
+
+            # For JModelica: store available translation and simulation info
+            # into self._comp_info used for reporting.
+            # To be implemented for Dymola once translation and simulation info
+            # are available in JSON format (HTML file to large to parse for now).
             with open(self._simulator_log_file, 'r') as f:
                 self._comp_info = simplejson.loads(f.read())
-            self._checkReferencePoints(ans='N')
 
-        # Check for errors
-        if self._modelica_tool == 'dymola':
-            if retVal == 0:
-                retVal = self._checkSimulationError(self._simulator_log_file)
-            else:
-                self._checkSimulationError(self._simulator_log_file)
+            r = self._checkReferencePoints(ans='N')
+            if r != 0:
+                retVal = 4
 
         # Delete temporary directories, or write message that they are not deleted
         for d in self._temDir:
@@ -3235,18 +3249,6 @@ class Tester(object):
                 shutil.rmtree(d)
             else:
                 print("Did not delete temporary directory {}".format(d))
-
-
-        # TMP
-        # Output data
-        with open('data_{}.json'.format(self._modelica_tool), mode="w", encoding="utf-8") as f:
-            f.write(json.dumps(
-                self._data,
-                indent=2,
-                separators=(',', ': '),
-                sort_keys=True
-            ))
-
 
         # Print list of files that may be excluded from unit tests
         if len(self._exclude_tests) > 0:
