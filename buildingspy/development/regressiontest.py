@@ -4,7 +4,7 @@
 # TODO this release
 # ? For Dymola in run method: why _checkSimulationError after _checkReferencePoints in master
 # ? Skip warning when x variable found in reference result but not in simulated (as in master)
-
+#
 # x Corrected bug: jmodelica run check was performed even if not simulated
 # x Corrected bug in _write_jmodelica_runfile: filter option must match glob syntax ([[]) + no
 #   space for matrix variables in mat file
@@ -56,6 +56,10 @@
 # ValueError with loadmat: Mat 4 mopt wrong format, byteswapping problem?
 # Buildings_ThermalZones_Detailed_Examples_FFD_Tutorial_MixedConvection_result.mat
 # Unsolved.
+# BUG #10 JModelica
+# JModelica simulations being run even if excluded.
+# Solved by including data removing in case of no required simulation  within setDataDictionary method.
+# (Was previously done at the begining of run method.)
 #
 #######################################################
 # Script that runs all regression tests.
@@ -64,7 +68,6 @@
 # MWetter@lbl.gov                            2011-02-23
 #######################################################
 #
-# import from future to make Python2 behave like Python3
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -1086,7 +1089,6 @@ class Tester(object):
                                     matFil = matFil + '.mat'
                                     break
 
-                            # BUG #1
                             if self._modelica_tool == 'jmodelica':
                                 matFil = '{}_result.mat'.format(re.sub('\.', '_', dat['model_name']))
 
@@ -2406,7 +2408,10 @@ class Tester(object):
                         list_var_ref = [el for gr in data['ResultVariables'] for el in gr]
                         for iv, var_ref in enumerate(list_var_ref):
                             if iv == 0:
-                                self._update_comp_info(idx, var_ref, None, False, 0, 'Translation or simulation failed', data_idx)
+                                if not(data.)
+                                self._update_comp_info(idx, var_ref, None, False, 0,
+                                    'Translation, simulation or extracting simulation results failed. {}'.format('\n'.join(errors)),
+                                    data_idx)
                             else:
                                 self._update_comp_info(idx, var_ref, None, False, 0, '', data_idx)
                         # flags to return

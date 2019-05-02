@@ -55,8 +55,8 @@ td { font-size: 14px; }
 				</thead>
 			</table>
 			<p><u>Color Legend</u></p>
-			<p style="color:red;">Translation failed, simulation failed or variable unavailable in mat file.</p>
-			<p style="color:brown;">Comparison failed (for example because of different x start values in reference and test data sets).</p>
+			<p style="color:red;">Translation, simulation or extracting simulation results failed.</p>
+			<p style="color:brown;">Funnel comparison failed (for example because of different x start values in reference and test data sets).</p>
 			<p style="color:orange;">Non zero error computed while comparing reference and test data sets: see plot.</p>
 		</div>
 	</div>
@@ -172,7 +172,7 @@ $(document).ready(function() {
 						out = data.map(function(e, var_idx) {
 							var warnings = table3.cell(meta.row, 6).data();
 							var color;
-							if ((warnings[0] != null) && (warnings[0].includes('simulation'))) {
+							if ((warnings[0] != null) && (warnings[0].includes('failed'))) {
 								color = 'red';
 							}
 							else if (warnings[var_idx] != null) {
