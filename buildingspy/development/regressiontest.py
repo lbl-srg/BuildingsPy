@@ -2408,7 +2408,6 @@ class Tester(object):
                         list_var_ref = [el for gr in data['ResultVariables'] for el in gr]
                         for iv, var_ref in enumerate(list_var_ref):
                             if iv == 0:
-                                if not(data.)
                                 self._update_comp_info(idx, var_ref, None, False, 0,
                                     'Translation, simulation or extracting simulation results failed. {}'.format('\n'.join(errors)),
                                     data_idx)
