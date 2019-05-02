@@ -1070,14 +1070,13 @@ class Tester(object):
                                 s += "results in the regression tests.\n"
                                 self._reporter.writeError(s)
 
-                            # Remove duplicates that happen when the same y variables are plotted against
-                            # different x variables.
-                            idx_del = []
-                            for i_v, v_i in enumerate(plotVars):
-                                for j_v in range(i_v + 1, len(plotVars)):
-                                    if v_i == plotVars[j_v]:
-                                        idx_del.append(j_v)
-                            dat['ResultVariables'] = [el for i_el, el in enumerate(plotVars) if i_el not in idx_del]
+                            # Store grouped plot variables without duplicates.
+                            # (Duplicates happen when the same y variables are plotted against
+                            # different x variables.)
+                            dat['ResultVariables'] = []
+                            for v_i in plotVars:
+                                if v_i not in dat['ResultVariables']:
+                                    dat['ResultVariables'].append(v_i)
 
                             # search for the result file
                             for lin in Lines:
