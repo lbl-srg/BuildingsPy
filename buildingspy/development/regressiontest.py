@@ -950,8 +950,6 @@ class Tester(object):
         # which case we return doing nothing.
         # This is needed because methods append to the dictionary, which
         # can lead to double entries.
-# if len(self._data) > 0:
-# return
         roo_pac = root_package if root_package is not None else os.path.join(
             self._libHome, 'Resources', 'Scripts', 'Dymola')
         for root, _, files in os.walk(roo_pac):
@@ -1115,7 +1113,7 @@ class Tester(object):
                     if dat['mustSimulate'] or dat['mustExportFMU']:
                         self._data.append(dat)
 
-        # Make sure we found at least one unit test
+        # Make sure we found at least one unit test.
         if self.get_number_of_tests() == old_len:
             msg = """Did not find any regression tests in '%s'.""" % root_package
             self._reporter.writeError(msg)
@@ -1125,8 +1123,13 @@ class Tester(object):
         if self._reporter.getNumberOfErrors() > 0:
             raise ValueError("Error when setting up unit tests.")
 
-        # Add the experiment specifications to the data
+        # Add the experiment specifications to the data.
         self._add_experiment_specifications()
+
+        # In case of JModelica keep only elements where simulate is true.
+        if self._modelica_tool == 'jmodelica':
+            self._data = [ele for ele in self._data if ele['jmodelica']['simulate']]
+
         return
 
     def _add_experiment_specifications(self):
@@ -3057,19 +3060,7 @@ class Tester(object):
         - returns 0 if no errors and no warnings occurred, or non-zero otherwise.
 
         """
-        # import pdb;pdb.set_trace()
-
         self.checkPythonModuleAvailability()
-
-        # Remove all data that do not require a simulation or an FMU export.
-        # Otherwise, some processes may have no simulation to run and then
-        # the json output file would have an invalid syntax
-        for ele in self._data[:]:
-            if not (ele['mustSimulate'] or ele['mustExportFMU']):
-                self._data.remove(ele)
-            if self._modelica_tool == 'jmodelica' and not ele['jmodelica']['simulate']:
-                # Further condition in case of JModelica.
-                self._data.remove(ele)
 
         if self.get_number_of_tests() == 0:
             print('No unit test to run within the specified package.'
