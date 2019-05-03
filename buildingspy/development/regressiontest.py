@@ -339,9 +339,7 @@ class Tester(object):
         self._comp_dir = "funnel_comp"
 
         # (Delete and) Create directory for storing funnel data.
-        if comp_tool == 'funnel':
-            shutil.rmtree(self._comp_dir , ignore_errors=True)
-            os.makedirs(self._comp_dir)
+        # Done by run method to allow for runing report method without having to rerun simulations.
 
         # Path of templates for HTML report and plot.
         self._REPORT_TEMPLATE = os.path.join(
@@ -378,7 +376,7 @@ class Tester(object):
         # By default, do not show the GUI of the simulator
         self._showGUI = False
 
-    def report(self, timeout=600, browser=None, autoraise=True):
+    def report(self, timeout=600, browser=None, autoraise=True, comp_file=None):
         """Builds and displays HTML report.
 
         Serves until timeout (s) or KeyboardInterrupt.
@@ -386,7 +384,6 @@ class Tester(object):
         if self._comp_tool != 'funnel':
             raise ValueError('Report is only available with comp_tool="funnel".')
 
-        list_files = [self._comp_log_file] * 3
         report_file = 'report.html'
         plot_file = os.path.join(self._comp_dir, 'plot.html')
 
@@ -3067,9 +3064,14 @@ class Tester(object):
         self.checkPythonModuleAvailability()
 
         if self.get_number_of_tests() == 0:
-            print('No unit test to run within the specified package.'
-                'The root package will be tested instead.')
+            print('No package specified of no unit test found for the specified package. '
+                'All unit tests of the root package will be run.')
             self.setDataDictionary(self._rootPackage)
+
+        # (Delete and) Create directory for storing funnel data.
+        if self._comp_tool == 'funnel':
+            shutil.rmtree(self._comp_dir , ignore_errors=True)
+            os.makedirs(self._comp_dir)
 
         # Reset the number of processors to use no more processors than there are
         # examples to be run
