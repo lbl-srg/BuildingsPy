@@ -3080,7 +3080,7 @@ class Tester(object):
         self.checkPythonModuleAvailability()
 
         if self.get_number_of_tests() == 0:
-            print('No package specified of no unit test found for the specified package. '
+            print('No package specified or no unit test found for the specified package. '
                 'All unit tests of the root package will be run.')
             self.setDataDictionary(self._rootPackage)
 
