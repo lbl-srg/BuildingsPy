@@ -2347,6 +2347,14 @@ class Tester(object):
             self._reporter.writeOutput("Unit tests completed successfully.\n")
             return 0
 
+    def _get_size_dir(self, start_path):
+        total_size = 0
+        for dirpath, dirnames, filenames in os.walk(start_path):
+            for f in filenames:
+                fp = os.path.join(dirpath, f)
+                total_size += os.path.getsize(fp)
+        return total_size
+
     def _checkReferencePoints(self, ans):
         """ Check reference points from each regression test and compare it with the previously
             saved reference points of the same test stored in the library home folder.
@@ -2456,9 +2464,17 @@ class Tester(object):
                     self._reporter.writeWarning(
                         "Output file of " + data['ScriptFile'] + " is excluded from result test.")
 
-        # Write all results to comparison log file
+        # Write all results to comparison log file and inform user.
         with open(self._comp_log_file, 'w', encoding="utf-8-sig") as comp_log:
             comp_log.write("{}\n".format(json.dumps(self._comp_info, indent=2, sort_keys=True)))
+
+        if self._comp_tool == 'funnel':
+            self._reporter.writeOutput(re.sub('\n\s+', '\n',
+                """Comparison files output by funnel are stored in the directory ``{}``
+                of size {:.1f} MB. Run ``report`` method of class ``Tester`` to access a summary
+                of the comparison results.
+                """.format(self._comp_dir, self._get_size_dir(self._comp_dir) * 1e-6)
+            ))
 
         return ret_val
 
