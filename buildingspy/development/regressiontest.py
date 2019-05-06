@@ -1576,36 +1576,57 @@ class Tester(object):
             elif len(t) == nPoi:
                 return t
             else:
-                s = "%s: The new time grid has %d points, but it must have 2 or %d points.\n\
-                Stop processing.\n" % (filNam, len(tNew), nPoi)
+                s = re.sub('\s+', '\n',
+                    "While processing file {} for variable {}: the new time grid has {} points " +\
+                    "but it must have 2 or {} points.\nStop processing.\n".format(filNam, varNam, len(tNew), nPoi))
                 raise ValueError(s)
 
+        # Check if the first and last time stamp are equal
+        tolTim = 1E-3  # Tolerance for time
+        if (abs(tOld[0] - tNew[0]) > tolTim) or abs(tOld[-1] - tNew[-1]) > tolTim:
+            warning = re.sub('\n\s+', '\n',
+                "While processing file {} for variable {}: different simulation time interval between " +\
+                """reference and test data.
+                Old reference points are for {} <= t <= {}
+                New reference points are for {} <= t <= {}
+                """.format(filNam, varNam, tOld[0], tOld[len(tOld) - 1], tNew[0], tNew[len(tNew) - 1]))
+            test_passed = False
+            t_err_max = None
+
         if (abs(tOld[-1] - tNew[-1]) > 1E-5):
-            msg = re.sub('\n\s+', '\n',
-                """%s: The new results and the reference results have a different end time.
-                tNew = [%d, %d]
-                tOld = [%d, %d]""" % (filNam, tNew[0], tNew[-1], tOld[0], tOld[-1])
+            warning = re.sub('\n\s+', '\n',
+                "While processing file {} for variable {}: different end time between " +\
+                """reference and test data.
+                tNew = [{}, {}]
+                tOld = [{}, {}]
+                """.format(filNam, varNam, tNew[0], tNew[-1], tOld[0], tOld[-1])
             )
-            return (False, min(tOld[-1], tNew[-1]), msg)
+            test_passed = False
+            t_err_max = min(tOld[-1], tNew[-1])
 
         if (abs(tOld[0] - tNew[0]) > 1E-5):
-            msg = re.sub('\n\s+', '\n',
-                """%s: The new results and the reference results have a different start time.
-                tNew = [%d, %d]
-                tOld = [%d, %d]""" % (filNam, tNew[0], tNew[-1], tOld[0], tOld[-1])
+            warning = re.sub('\n\s+', '\n',
+                "While processing file {} for variable {}: different start time between " +\
+                """reference and test data.
+                tNew = [{}, {}]
+                tOld = [{}, {}]
+                """.format(filNam, varNam, tNew[0], tNew[-1], tOld[0], tOld[-1])
             )
-            return (False, min(tOld[0], tNew[0]), msg)
+            test_passed = False
+            t_err_max = min(tOld[0], tNew[0])
 
         # The next test may be true if a simulation stopped with an error prior to
         # producing sufficient data points
         if len(yNew) < len(yOld) and len(yNew) > 2:
             warning = re.sub('\n\s+', '\n',
-                """%s: %s has fewer data points than reference results.
-                len(yOld) = %d,
-                len(yNew) = %d
-                Skipping error checking for this variable.""" % (filNam, varNam, len(yOld), len(yNew))
+                """While processing file {} for variable {}: fewer data points than reference results.
+                len(yOld) = {}
+                len(yNew) = {}
+                Skipping error checking for this variable.
+                """.format(filNam, varNam, len(yOld), len(yNew))
             )
-            return (False, None, warning)
+            test_passed = False
+            t_err_max = None
 
         if (len(yNew) > 2) and (self._comp_tool == 'legacy'):
             # Some reference results contain already a time grid,
@@ -1619,15 +1640,18 @@ class Tester(object):
             tNew = getTimeGrid(tNew, len(yNew))
 
         if self._comp_tool == 'legacy':
-            t_err_max, warning = self.legacy_comp(tOld, yOld, tNew, yNew, varNam, filNam, self._tol['ay'])
+            try:
+                warning
+            except NameError:
+                t_err_max, warning = self.legacy_comp(tOld, yOld, tNew, yNew, varNam, filNam, self._tol['ay'])
         else:
+            idx = self._init_comp_info(model_name, filNam)
+            comp_tmp = self._comp_info[idx]['comparison']
             try:
                 # Check if the variable has already been tested. (This might happen if the variable is used in several
                 # subplots of different plots.)
                 # In this case we do not want to perform the comparison again but we still want the variable to be
                 # plotted several times as it was originally intended: update _comp_info with stored data.
-                idx = next(i for i, el in enumerate(self._comp_info) if el['model'] == model_name)
-                comp_tmp = self._comp_info[idx]['comparison']
                 var_idx = comp_tmp['variables'].index(varNam)
                 fun_dir = comp_tmp['funnel_dirs'][var_idx]
                 test_passed = comp_tmp['test_passed'][var_idx]
@@ -1638,8 +1662,12 @@ class Tester(object):
                 warning = comp_tmp['warnings'][var_idx]
                 t_err_max = comp_tmp['t_err_max'][var_idx]
                 self._update_comp_info(idx, varNam, fun_dir, test_passed, t_err_max, warning, data_idx, var_group)
-            except (KeyError, StopIteration, ValueError):
-                t_err_max, warning = self.funnel_comp(tOld, yOld, tNew, yNew, varNam, filNam, model_name, self._tol, data_idx)
+            except ValueError:
+                try:
+                    self._update_comp_info(idx, varNam, None, test_passed, t_err_max, warning, data_idx)
+                except NameError:
+                    t_err_max, warning = self.funnel_comp(
+                        tOld, yOld, tNew, yNew, varNam, filNam, model_name, self._tol, data_idx)
 
         test_passed = True
         if warning is not None:
@@ -1888,24 +1916,6 @@ class Tester(object):
             t_sim = pai['time']
             if not verifiedTime:
                 verifiedTime = True
-
-                # Check if the first and last time stamp are equal
-                tolTim = 1E-3  # Tolerance for time
-                if (abs(t_ref[0] - t_sim[0]) > tolTim) or abs(t_ref[-1] - t_sim[-1]) > tolTim:
-                    print(
-                        "*** Warning: Different simulation time interval in {} and {}".format(refFilNam, matFilNam))
-                    print("             Old reference points are for {} <= t <= {}".format(
-                        t_ref[0], t_ref[len(t_ref) - 1]))
-                    print("             New reference points are for {} <= t <= {}".format(
-                        t_sim[0], t_sim[len(t_sim) - 1]))
-                    foundError = True
-                    while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
-                        print("             Accept new results and update reference file in library?")
-                        ans = input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
-                    if ans == "y" or ans == "Y":
-                        # Write results to reference file
-                        updateReferenceData = True
-                        return (updateReferenceData, foundError, ans)
 
             # The time interval is the same for the stored and the current data.
             # Check the accuracy of the simulation.
@@ -2436,7 +2446,7 @@ class Tester(object):
                         if not (ans == "Y" or ans == "N"):
                             ans = "-"
                         updateReferenceData = False
-                        # check if reference results already exists in library
+                        # check if reference results already exist in library
                         oldRefFulFilNam = os.path.join(refDir, refFilNam)
                         # If the reference file exists, and if the reference file contains
                         # results, compare the results.
