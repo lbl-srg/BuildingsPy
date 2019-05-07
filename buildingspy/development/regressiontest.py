@@ -1640,7 +1640,7 @@ class Tester(object):
             tNew = getTimeGrid(tNew, len(yNew))
 
         if self._comp_tool == 'legacy':
-            try:
+            try:  # In case a warning has been raised before: no comparison performed.
                 warning
             except NameError:
                 t_err_max, warning = self.legacy_comp(tOld, yOld, tNew, yNew, varNam, filNam, self._tol['ay'])
@@ -1658,12 +1658,12 @@ class Tester(object):
                 var_group_str = comp_tmp['var_groups'][var_idx]  # variable group already stored for this variable
                 # Now looking for the new variable group to be stored.
                 var_group = var_group_str + 1 + next(iv for iv, vl in enumerate(
-                    self._data[idx]["ResultVariables"][(var_group_str+1):]) if varNam in vl)
+                    self._data[data_idx]["ResultVariables"][(var_group_str+1):]) if varNam in vl)
                 warning = comp_tmp['warnings'][var_idx]
                 t_err_max = comp_tmp['t_err_max'][var_idx]
                 self._update_comp_info(idx, varNam, fun_dir, test_passed, t_err_max, warning, data_idx, var_group)
-            except ValueError:
-                try:
+            except (ValueError, StopIteration):
+                try:  # In case a warning has been raised before: no comparison performed.
                     self._update_comp_info(idx, varNam, None, test_passed, t_err_max, warning, data_idx)
                 except NameError:
                     t_err_max, warning = self.funnel_comp(
