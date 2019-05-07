@@ -1,67 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #######################################################
-# TODO this release
-# ? For Dymola in run method: why _checkSimulationError after _checkReferencePoints in master
-# ? Skip warning when x variable found in reference result but not in simulated (as in master)
-#
-# x Corrected bug: jmodelica run check was performed even if not simulated
-# x Corrected bug in _write_jmodelica_runfile: filter option must match glob syntax ([[]) + no
-#   space for matrix variables in mat file
-# x Include funnel warnings into HTML report
-# x Grouped variable for plot see all_data (or .mos file): up to 5 plots / test case
-# x funnel_plot during regression tests I/O error: send content as request
-# x Check sleeping process
-# x Compare results JModelica to Dymola
-# x Output json with path of funnel results dir + nb variables + nb passed
-# x Integrate local server handling cf. IPython and pyfunnel
-# x Update plot function / refactoring of pyfunnel
-# TODO future release
-# O Tolerance values part of unit test parameters (inside configuration file)
-# O Color code revealing the reason of failed test for each variable
-# O Static HTML files for CI tools cf. Michael Mans
-# O Buttons in HTML report to 1) update reference results 2) shutdown server 3) delete funnel files
-# O Separate run function (for simulation only eventually) and comparison function
-# O Create Dymola JSON log for translation and simulation: needs upstream work (log file is 10 MB now...)
-# O Python 3 port (Python 2 -> 2020)
-# O Refactor all code for report and multiple plots into funnel (with JSON string as parameter)
-# O 2 data structures with redundancies for now (self._data included in self._comp_info): should be merged
-# BUG #1? JModelica
-# In _write_jmodelica_runfile:
-# Only the model name is defined, not the result file name as with Dymola.
-# Risk: unit tests with multiple result files will fail.
-# BUG #2
-# y_tra = self._getTranslationStatistics(data, warnings, errors) not working with jmodelica
-# Solved with: no translation statistics reading in case of jmodelica.
-# BUG #3 JModelica
-# 'simulator-jmodelica.log'
-#   with open('simulator-jmodelica.log', 'r') as f:
-#     json.load(f)  # ValueError: No JSON object could be decoded
-# Solved with: simplejson.loads(f.read())
-# BUG #4 Master
-# multiprocessing.Pool: the worker processes do not terminate when work has completed.
-# Solved with:
-#   po.close()
-#   po.join()
-# BUG #5
-# input() raises EOFError in IPython Notebook
-# Unsolved.
-# BUG #6 OpenModelica
-# if self._modelica_tool == 'omc':
-#   self._analyseOMStats(filename=self._simulator_log_file,
-#       nModels=self.get_number_of_tests())
-# Bad method arguments.
-# Unsolved.
-# BUG #9 JModelica
-# ValueError with loadmat: Mat 4 mopt wrong format, byteswapping problem?
-# Buildings_ThermalZones_Detailed_Examples_FFD_Tutorial_MixedConvection_result.mat
-# Unsolved.
-# BUG #10 JModelica
-# JModelica simulations being run even if excluded.
-# Solved by including data removing in case of no required simulation  within setDataDictionary method.
-# (Was previously done at the begining of run method.)
-#
-#######################################################
 # Script that runs all regression tests.
 #
 #
@@ -74,11 +13,10 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from future import standard_library
 standard_library.install_aliases()
+# Python standard library imports.
 from builtins import *
 from collections import defaultdict
 from io import open
-# end of from future import
-# Python standard library imports.
 import difflib
 import fnmatch
 import functools
@@ -1441,7 +1379,6 @@ class Tester(object):
 
         log_stdout = io.StringIO()
         sys.stdout = log_stdout
-
         try:
             exitcode = pyfunnel.compareAndReport(
                 xReference=tOld,
@@ -1455,6 +1392,7 @@ class Tester(object):
                 rtoly=tol['ry'],
             )
         finally:
+            sys.stdout.flush()
             sys.stdout = sys.__stdout__
             log_content = log_stdout.getvalue().decode('utf8')
             log_content = re.sub('(^.*Warning:\s+)|(Error:\s+)', '', log_content)
@@ -1476,9 +1414,9 @@ class Tester(object):
                     """{}: {} exceeds funnel tolerance with absolute error = {:.3e}.
                     """.format(filNam, varNam, err_max))
                 if self._isParameter(yOld):
-                    warning += "             {} is a parameter.\n".format(varNam)
+                    warning += "{} is a parameter.\n".format(varNam)
                 else:
-                    warning += "             Maximum error is at t = {}\n".format(t_err_max)
+                    warning += "Maximum error is at t = {}\n".format(t_err_max)
             funnel_success = True
 
         if keep_dir and funnel_success:
@@ -1578,7 +1516,9 @@ class Tester(object):
             else:
                 s = re.sub('\s+', '\n',
                     "While processing file {} for variable {}: the new time grid has {} points " +\
-                    "but it must have 2 or {} points.\nStop processing.\n".format(filNam, varNam, len(tNew), nPoi))
+                    """but it must have 2 or {} points.
+                    Stop processing.
+                    """.format(filNam, varNam, len(tNew), nPoi))
                 raise ValueError(s)
 
         # Check if the first and last time stamp are equal
