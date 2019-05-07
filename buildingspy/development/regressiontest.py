@@ -1284,20 +1284,20 @@ class Tester(object):
                                  self.getLibraryName(), data['TranslationLogFile'])
         return of.get_model_statistics(fulFilNam, self._modelica_tool)
 
-    def legacy_comp(self, tOld, yOld, tNew, yNew, varNam, filNam, tol):
+    def legacy_comp(self, tOld, yOld, tNew, yNew, tGriOld, tGriNew, varNam, filNam, tol):
         # Interpolate the new variables to the old time stamps
         #
         if len(yNew) > 2:
             try:
-                yInt = Plotter.interpolate(tOld, tNew, yNew)
+                yInt = Plotter.interpolate(tGriOld, tGriNew, yNew)
             except (IndexError, ValueError):
                 em = re.sub('\n\s+', '\n',
                     """Data series have different length:
                     File=%s,
                     variable=%s,
-                    len(tOld) = %d,
-                    len(tNew) = %d,
-                    len(yNew)    = %d.""" % (filNam, varNam, len(tOld), len(tNew), len(yNew))
+                    len(tGriOld) = %d,
+                    len(tGriNew) = %d,
+                    len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                 )
                 self._reporter.writeError(em)
                 raise ValueError(em)
@@ -1505,8 +1505,12 @@ class Tester(object):
                  of the maximum error, and a warning message or `None`.
                  In case of errors, the time of the maximum error may by `None`.
         """
-        filNam = self._data[data_idx]['ResultFile']
-        model_name = self._data[data_idx]['model_name']
+        try:
+            filNam = self._data[data_idx]['ResultFile']
+            model_name = self._data[data_idx]['model_name']
+        except:
+            filNam = 'Undefined file name'
+            model_name = 'Undefined model name'
 
         def getTimeGrid(t, nPoi=self._nPoi):
             if len(t) == 2:
@@ -1568,22 +1572,27 @@ class Tester(object):
             test_passed = False
             t_err_max = None
 
-        if (len(yNew) > 2) and (self._comp_tool == 'legacy'):
-            # Some reference results contain already a time grid,
-            # whereas others only contain the first and last time stamp.
-            # Hence, we make sure to have the right time grid before we
-            # call the interpolation.
-            tOld = getTimeGrid(tOld, len(yNew))
-            tNew = getTimeGrid(tNew, min(len(yNew), self._nPoi))
-        if self._comp_tool == 'funnel':  # funnel_comp only needs len(t) = len(y) for Old and New time series
-            tOld = getTimeGrid(tOld, len(yOld))
-            tNew = getTimeGrid(tNew, len(yNew))
+        if len(yNew) > 2:
+            if self._comp_tool == 'legacy':
+                # Some reference results contain already a time grid,
+                # whereas others only contain the first and last time stamp.
+                # Hence, we make sure to have the right time grid before we
+                # call the interpolation.
+                tGriOld = getTimeGrid(tOld, len(yNew))
+                tGriNew = getTimeGrid(tNew, min(len(yNew), self._nPoi))
+            elif self._comp_tool == 'funnel':
+                # funnel_comp only needs len(t) = len(y) for Old and New time series
+                tOld = getTimeGrid(tOld, len(yOld))
+                tNew = getTimeGrid(tNew, len(yNew))
+        else:
+            tGriOld = tOld
+            tGriNew = tNew
 
         if self._comp_tool == 'legacy':
             try:  # In case a warning has been raised before: no comparison performed.
                 warning
             except NameError:
-                t_err_max, warning = self.legacy_comp(tOld, yOld, tNew, yNew, varNam, filNam, self._tol['ay'])
+                t_err_max, warning = self.legacy_comp(tOld, yOld, tNew, yNew, tGriOld, tGriNew, varNam, filNam, self._tol['ay'])
         else:
             idx = self._init_comp_info(model_name, filNam)
             comp_tmp = self._comp_info[idx]['comparison']
@@ -3186,7 +3195,10 @@ class Tester(object):
 
             r = self._checkReferencePoints(ans)
             if r != 0:
-                retVal = 4
+                if retVal != 0:  # We keep the translation or simulation error code.
+                    pass
+                else:
+                    retVal = 4
 
         if self._modelica_tool == 'jmodelica':
             if retVal == 0:
@@ -3203,7 +3215,10 @@ class Tester(object):
 
             r = self._checkReferencePoints(ans='N')
             if r != 0:
-                retVal = 4
+                if retVal != 0:  # We keep the translation or simulation error code.
+                    pass
+                else:
+                    retVal = 4
 
         # Delete temporary directories, or write message that they are not deleted
         for d in self._temDir:
