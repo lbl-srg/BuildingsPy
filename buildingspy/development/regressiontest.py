@@ -1318,14 +1318,17 @@ class Tester(object):
             try:
                 yInt = Plotter.interpolate(tGriOld, tGriNew, yNew)
             except (IndexError, ValueError):
-                em = re.sub('\n\s+', '\n',
-                            """Data series have different length:
-                    File=%s,
-                    variable=%s,
-                    len(tGriOld) = %d,
-                    len(tGriNew) = %d,
-                    len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
-                            )
+                em = (
+                    "Data series have different length:\n"
+                    "File=%s\n"
+                    "variable=%s\n"
+                    "len(tGriOld) = %d\n"
+                    "len(tGriNew) = %d\n"
+                    "len(yNew)    = %d\n") % (filNam,
+                                              varNam,
+                                              len(tGriOld),
+                                              len(tGriNew),
+                                              len(yNew))
                 self._reporter.writeError(em)
                 raise ValueError(em)
         else:
@@ -1354,14 +1357,14 @@ class Tester(object):
             elif len(yInt) == 2 and len(yOld) == self._nPoi:
                 yInt = Plotter.interpolate(t, [tOld[0], tOld[-1]], yInt)
             else:
-                raise ValueError(re.sub('\n\s+', '\n',
-                                        """Program error, yOld and yInt have different lengths.
-                    Result file : %s
-                    Variable    : %s
-                    len(yOld)=%d
-                    len(yInt)=%d
-                    Stop processing.""" % (filNam, varNam, len(yOld), len(yInt))
-                                        ))
+                raise ValueError((
+                    "Program error, yOld and yInt have different lengths.\n"
+                    "Result file : %s\n"
+                    "Variable    : %s\n"
+                    "len(yOld)=%d\n"
+                    "len(yInt)=%d\n"
+                    "Stop processing.\n") % (filNam, varNam, len(yOld), len(yInt))
+                )
 
         errAbs = np.zeros(len(yInt))
         errRel = np.zeros(len(yInt))
@@ -1432,7 +1435,7 @@ class Tester(object):
         log_stdout.close()
 
         if exitcode != 0:
-            warning = """While processing file {} for variable {}: {}""".format(
+            warning = "While processing file {} for variable {}: {}".format(
                 filNam, varNam, log_content)
             test_passed = False
             funnel_success = False
@@ -1444,9 +1447,9 @@ class Tester(object):
             t_err_max = err_arr[0][idx_err_max]
             test_passed = (err_max == 0)
             if err_max > 0:
-                warning = re.sub('\n\s+', '\n',
-                                 """{}: {} exceeds funnel tolerance with absolute error = {:.3e}.
-                    """.format(filNam, varNam, err_max))
+                warning = (
+                    "{}: {} exceeds funnel tolerance with absolute error = {:.3e}."
+                ).format(filNam, varNam, err_max)
                 if self._isParameter(yOld):
                     warning += "{} is a parameter.\n".format(varNam)
                 else:
@@ -1518,10 +1521,9 @@ class Tester(object):
                 if warning == 'skip':
                     should_update = False
                 else:
-                    warning = re.sub('\n\s+', '\n',
-                                     """Variable {} not found in ResultVariables for model {}.
-                        However it was found in reference results file.""".format(var_name, self._comp_info[idx]['model'])
-                                     )
+                    warning = ("Variable {} not found in ResultVariables for model {}. "
+                               "However it was found in reference results file.\n").format(
+                        var_name, self._comp_info[idx]['model'])
                     self._reporter.writeWarning(warning)
 
         if should_update:
@@ -1564,68 +1566,54 @@ class Tester(object):
             elif len(t) == nPoi:
                 return t
             else:
-                s = re.sub(
-                    r'\s+',
-                    '\n',
-                    "While processing file {} for variable {}: the new time grid has {} points " +
-                    """but it must have 2 or {} points.
-                    Stop processing.
-                    """.format(
-                        filNam,
-                        varNam,
-                        len(tNew),
-                        nPoi))
+                s = ("While processing file {} for variable {}: the new time grid has {} points "
+                     "but it must have 2 or {} points.\n"
+                     "Stop processing.\n").format(
+                    filNam,
+                    varNam,
+                    len(tNew),
+                    nPoi)
                 raise ValueError(s)
 
         # Check if the first and last time stamp are equal
         tolTim = 1E-3  # Tolerance for time
         if (abs(tOld[0] - tNew[0]) > tolTim) or abs(tOld[-1] - tNew[-1]) > tolTim:
-            warning = re.sub('\n\s+', '\n',
-                             "While processing file {} for variable {}: different simulation time interval between " +
-                             """reference and test data.
-                Old reference points are for {} <= t <= {}
-                New reference points are for {} <= t <= {}
-                """.format(filNam, varNam, tOld[0], tOld[len(tOld) - 1], tNew[0], tNew[len(tNew) - 1]))
+            warning = (
+                "While processing file {} for variable {}: different simulation time interval between "
+                "reference and test data.\n"
+                "Old reference points are for {} <= t <= {}\n"
+                "New reference points are for {} <= t <= {}\n").format(
+                    filNam, varNam, tOld[0], tOld[len(tOld) - 1], tNew[0], tNew[len(tNew) - 1])
             test_passed = False
             t_err_max = None
 
         if (abs(tOld[-1] - tNew[-1]) > 1E-5):
-            warning = re.sub('\n\s+', '\n',
-                             "While processing file {} for variable {}: different end time between " +
-                             """reference and test data.
-                tNew = [{}, {}]
-                tOld = [{}, {}]
-                """.format(filNam, varNam, tNew[0], tNew[-1], tOld[0], tOld[-1])
-            )
+            warning = (
+                "While processing file {} for variable {}: different end time between "
+                "reference and test data.\n"
+                "tNew = [{}, {}]\n"
+                "tOld = [{}, {}]\n").format(filNam, varNam, tNew[0], tNew[-1], tOld[0], tOld[-1])
             test_passed = False
             t_err_max = min(tOld[-1], tNew[-1])
 
         if (abs(tOld[0] - tNew[0]) > 1E-5):
-            warning = re.sub('\n\s+', '\n',
-                             "While processing file {} for variable {}: different start time between " +
-                             """reference and test data.
-                tNew = [{}, {}]
-                tOld = [{}, {}]
-                """.format(filNam, varNam, tNew[0], tNew[-1], tOld[0], tOld[-1])
-            )
+            warning = (
+                "While processing file {} for variable {}: different start time between "
+                "reference and test data.\n"
+                "tNew = [{}, {}]\n"
+                "tOld = [{}, {}]\n").format(filNam, varNam, tNew[0], tNew[-1], tOld[0], tOld[-1])
             test_passed = False
             t_err_max = min(tOld[0], tNew[0])
 
         # The next test may be true if a simulation stopped with an error prior to
         # producing sufficient data points
         if len(yNew) < len(yOld) and len(yNew) > 2:
-            warning = re.sub(
-                r'\n\s+',
-                '\n',
-                """While processing file {} for variable {}: fewer data points than reference results.
-                len(yOld) = {}
-                len(yNew) = {}
-                Skipping error checking for this variable.
-                """.format(
-                    filNam,
-                    varNam,
-                    len(yOld),
-                    len(yNew)))
+            warning = (
+                "While processing file {} for variable {}: fewer data points than reference results.\n"
+                "len(yOld) = {}\n"
+                "len(yNew) = {}\n"
+                "Skipping error checking for this variable.\n").format(
+                filNam, varNam, len(yOld), len(yNew))
             test_passed = False
             t_err_max = None
 
@@ -2506,18 +2494,12 @@ class Tester(object):
             comp_log.write("{}\n".format(json.dumps(self._comp_info, indent=2, sort_keys=True)))
 
         if self._comp_tool == 'funnel':
-            self._reporter.writeOutput(
-                re.sub(
-                    r'\n\s+',
-                    '\n',
-                    """Comparison files output by funnel are stored in the directory '{}'
-                of size {:.1f} MB. Run 'report' method of class 'Tester' to access a summary
-                of the comparison results.
-                """.format(
-                        self._comp_dir,
-                        self._get_size_dir(
-                            self._comp_dir) *
-                        1e-6)))
+            self._reporter.writeOutput((
+                "Comparison files output by funnel are stored in the directory '{}' "
+                "of size {:.1f} MB. Run 'report' method of class 'Tester' to access a summary "
+                "of the comparison results.\n").format(
+                self._comp_dir,
+                self._get_size_dir(self._comp_dir) * 1e-6))
 
         return ret_val
 
