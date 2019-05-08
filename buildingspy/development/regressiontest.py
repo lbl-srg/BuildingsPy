@@ -16,6 +16,7 @@ standard_library.install_aliases()
 # Python standard library imports.
 from builtins import *
 from collections import defaultdict
+from contextlib import contextmanager
 from io import open
 import difflib
 import fnmatch
@@ -85,6 +86,17 @@ def runSimulation(worDir, cmd):
         except KeyboardInterrupt as e:
             pro.kill()
             sys.stderr.write("Users stopped simulation in %s.\n" % worDir)
+
+
+@contextmanager
+def _stdout_redirector(stream):
+    """ Redirects sys.stdout to stream."""
+    old_stdout = sys.stdout
+    sys.stdout = stream
+    try:
+        yield
+    finally:
+        sys.stdout = old_stdout
 
 
 class Tester(object):
@@ -1402,10 +1414,8 @@ class Tester(object):
         t_err_max, warning = 0, None
 
         tmp_dir = tempfile.mkdtemp()
-
         log_stdout = io.StringIO()
-        sys.stdout = log_stdout
-        try:
+        with _stdout_redirector(log_stdout):
             exitcode = pyfunnel.compareAndReport(
                 xReference=tOld,
                 yReference=yOld,
@@ -1417,12 +1427,9 @@ class Tester(object):
                 rtolx=tol['rx'],
                 rtoly=tol['ry'],
             )
-        finally:
-            sys.stdout.flush()
-            sys.stdout = sys.__stdout__
-            log_content = log_stdout.getvalue().decode('utf8')
-            log_content = re.sub(r'(^.*Warning:\s+)|(Error:\s+)', '', log_content)
-            log_stdout.close()
+        log_content = log_stdout.getvalue()
+        log_content = re.sub(r'(^.*Warning:\s+)|(Error:\s+)', '', log_content)
+        log_stdout.close()
 
         if exitcode != 0:
             warning = """While processing file {} for variable {}: {}""".format(
