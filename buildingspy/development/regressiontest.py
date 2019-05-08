@@ -145,6 +145,7 @@ class Tester(object):
        >>> myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
        >>> rt.setLibraryRoot(myMoLib)
        >>> rt.run() # doctest: +ELLIPSIS
+       No package specified or no unit test found for the specified package. All unit tests of the root package will be run.
        Using ... of ... processors to run unit tests for dymola.
        Number of models   : ...
                  blocks   : 0
@@ -155,6 +156,12 @@ class Tester(object):
        <BLANKLINE>
        See 'simulator-....log' for details.
        Unit tests completed successfully.
+       <BLANKLINE>
+       Starting validation against reference points.
+       <BLANKLINE>
+       Comparison files output by funnel are stored in the directory 'funnel_comp'
+       of size ... MB. Run 'report' method of class 'Tester' to access a summary
+       of the comparison results.
        <BLANKLINE>
        Execution time = ...
 
@@ -2429,8 +2436,8 @@ class Tester(object):
 
         if self._comp_tool == 'funnel':
             self._reporter.writeOutput(re.sub('\n\s+', '\n',
-                """Comparison files output by funnel are stored in the directory ``{}``
-                of size {:.1f} MB. Run ``report`` method of class ``Tester`` to access a summary
+                """Comparison files output by funnel are stored in the directory '{}'
+                of size {:.1f} MB. Run 'report' method of class 'Tester' to access a summary
                 of the comparison results.
                 """.format(self._comp_dir, self._get_size_dir(self._comp_dir) * 1e-6)
             ))

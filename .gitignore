@@ -24,6 +24,8 @@ pip-log.txt
 .coverage
 .tox
 nosetests.xml
+funnel_comp/*
+*.log
 
 # Translations
 
