@@ -171,9 +171,8 @@ class Tester(object):
        <BLANKLINE>
        Starting validation against reference points.
        <BLANKLINE>
-       Comparison files output by funnel are stored in the directory 'funnel_comp'
-       of size ... MB. Run 'report' method of class 'Tester' to access a summary
-       of the comparison results.
+       Comparison files output by funnel are stored in the directory 'funnel_comp' of size ... MB.
+       Run 'report' method of class 'Tester' to access a summary of the comparison results.
        <BLANKLINE>
        Execution time = ...
 
@@ -2494,12 +2493,13 @@ class Tester(object):
             comp_log.write("{}\n".format(json.dumps(self._comp_info, indent=2, sort_keys=True)))
 
         if self._comp_tool == 'funnel':
-            self._reporter.writeOutput((
-                "Comparison files output by funnel are stored in the directory '{}' "
-                "of size {:.1f} MB. Run 'report' method of class 'Tester' to access a summary "
-                "of the comparison results.\n").format(
+            s = (
+                "Comparison files output by funnel are stored in the directory "
+                "'{}' of size {:.1f} MB.\nRun 'report' method of class 'Tester' "
+                "to access a summary of the comparison results.\n").format(
                 self._comp_dir,
-                self._get_size_dir(self._comp_dir) * 1e-6))
+                self._get_size_dir(self._comp_dir) * 1e-6)
+            self._reporter.writeOutput(s)
 
         return ret_val
 
