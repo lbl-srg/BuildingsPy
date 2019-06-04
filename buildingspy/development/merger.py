@@ -130,14 +130,15 @@ class IBPSA(object):
             :param rep: Dictionary where each key is the string to be replaced in the new file with its value.
         """
         from collections import OrderedDict
+
+        lines = list()
         with open(src, mode="r", encoding="utf-8-sig") as f_sou:
-            lines = list()
             for _, lin in enumerate(f_sou):
                 for ori, new in list(rep.items()):
                     lin = lin.replace(ori, new)
                 lines.append(lin)
-            # Remove library specific documentation.
-            lin = self.remove_library_specific_documentation(lines, self._new_library_name)
+        # Remove library specific documentation.
+        lines = self.remove_library_specific_documentation(lines, self._new_library_name)
         # Write the lines to the new file
         with open(des, mode="w", encoding="utf-8") as f_des:
             f_des.writelines(lines)
