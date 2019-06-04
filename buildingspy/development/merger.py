@@ -146,13 +146,17 @@ class IBPSA(object):
     def remove_library_specific_documentation(file_lines, library_name):
         """ Remove library specific content.
 
-            For example, for the `Buildings` and `IDEAS` libraries, include the comment
+            For example, for the `Buildings` and `IDEAS` libraries, include the
+            section in the commented block below, but keep the comment as an html-comment
+            for other libraries.
 
-            .. code::
+            .. code-block:: html
+
                <!-- @include_Buildings @include_IDEAS
-               some documentation to be used for Buildings and IDEAS library only, but
-               remain in comments for other libraries.
+               some documentation to be used for
+               Buildings and IDEAS library only.
                -->
+
         :param file_lines: The lines of the file to be merged.
         :return: The lines of the files, with comments removed as indicated by the tag(s) in the comment line.
         """
