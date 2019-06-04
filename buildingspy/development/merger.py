@@ -180,9 +180,6 @@ class IBPSA(object):
 
         return lines
 
-
-
-
     @staticmethod
     def filter_files(file_list, pattern):
         """
