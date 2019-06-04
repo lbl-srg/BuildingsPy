@@ -136,9 +136,48 @@ class IBPSA(object):
                 for ori, new in list(rep.items()):
                     lin = lin.replace(ori, new)
                 lines.append(lin)
+            # Remove library specific documentation.
+            lin = self.remove_library_specific_documentation(lines, self._new_library_name)
         # Write the lines to the new file
         with open(des, mode="w", encoding="utf-8") as f_des:
             f_des.writelines(lines)
+
+    @staticmethod
+    def remove_library_specific_documentation(file_lines, library_name):
+        """ Remove library specific content.
+
+            For example, for the `Buildings` and `IDEAS` libraries, include the comment
+
+            .. code::
+               <!-- @include_Buildings @include_IDEAS
+               some documentation to be used for Buildings and IDEAS library only, but
+               remain in comments for other libraries.
+               -->
+        :param file_lines: The lines of the file to be merged.
+        :return: The lines of the files, with comments removed as indicated by the tag(s) in the comment line.
+        """
+
+        lines = list()
+        pattern_start = "<!--"
+        library_token = "@include_{}".format(library_name)
+        pattern_end = "-->"
+        search_start = True
+        for lin in file_lines:
+            if search_start and pattern_start in lin and library_token in lin:
+                # Found the start of the commented section for this library.
+                # Remove this line
+                search_start = False
+            elif (not search_start) and pattern_end in lin:
+                # Found the end of the line
+                # Reove this line
+                search_start = True
+            else:
+                lines.append(lin)
+
+        return lines
+
+
+
 
     @staticmethod
     def filter_files(file_list, pattern):
