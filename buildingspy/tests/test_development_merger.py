@@ -74,31 +74,30 @@ class Test_development_merger_IBPSA(unittest.TestCase):
         lines = ["aaa", "bbb", "<!-- @include_Buildings", "ccc", "-->", "ddd"]
         result = ["aaa", "bbb", "ccc", "ddd"]
         self.assertEqual(result,
-            m.IBPSA.remove_library_specific_documentation(lines, "Buildings"),
-            "Test one library")
+                         m.IBPSA.remove_library_specific_documentation(lines, "Buildings"),
+                         "Test one library")
 
         lines[2] = "<!-- @include_Buildings @include_aaa"
         self.assertEqual(result,
-            m.IBPSA.remove_library_specific_documentation(lines, "Buildings"),
-            "Test multiple libraries")
+                         m.IBPSA.remove_library_specific_documentation(lines, "Buildings"),
+                         "Test multiple libraries")
 
         lines[2] = "<!-- @include_aaa @include_Buildings"
         self.assertEqual(result,
-            m.IBPSA.remove_library_specific_documentation(lines, "Buildings"),
-            "Test multiple libraries reverse")
+                         m.IBPSA.remove_library_specific_documentation(lines, "Buildings"),
+                         "Test multiple libraries reverse")
 
         lines[2] = " <!--  @include_Buildings"
         self.assertEqual(result,
-            m.IBPSA.remove_library_specific_documentation(lines, "Buildings"),
-            "Test with spaces")
+                         m.IBPSA.remove_library_specific_documentation(lines, "Buildings"),
+                         "Test with spaces")
 
         lines[2] = "<!--"
         result = ["aaa", "bbb", "<!--", "ccc", "-->", "ddd"]
         self.assertEqual(result,
-            m.IBPSA.remove_library_specific_documentation(lines, "Buildings"),
-            "Test without removing")
+                         m.IBPSA.remove_library_specific_documentation(lines, "Buildings"),
+                         "Test without removing")
         return
-
 
     def test_merge(self):
         """Test merging the libraries
