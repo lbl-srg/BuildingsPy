@@ -3,6 +3,7 @@ BuildingsPy Changelog
 
 Version 2.0.0, xxx
 ^^^^^^^^^^^^^^^^^^
+- Added handling of library specific comments in buildingspy.development.merger
 - Improved error reporting when running regression tests in batch mode.
 - Corrected bug when creating and then renaming a package with
   buildingspy.development.refactor
