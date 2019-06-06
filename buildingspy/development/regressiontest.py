@@ -1007,6 +1007,8 @@ class Tester(object):
                             dat['FMUName'] = dat['FMUName'] + ".fmu"
 
                         # Plot variables are only used for those models that need to be simulated.
+                        # For JModelica, if dat['jmodelica']['simulate'] == False:
+                        #   dat['ResultVariables'] is reset to [] in _add_experiment_specifications
                         if dat['mustSimulate']:
                             plotVars = []
                             iLin = 0
@@ -1089,10 +1091,6 @@ class Tester(object):
         # Add the experiment specifications to the data.
         self._add_experiment_specifications()
 
-        # In case of JModelica keep only elements where simulate is true.
-        if self._modelica_tool == 'jmodelica':
-            self._data = [ele for ele in self._data if ele['jmodelica']['simulate']]
-
         return
 
     def _add_experiment_specifications(self):
@@ -1140,17 +1138,19 @@ class Tester(object):
                                     val = con_dat[self._modelica_tool][s]
                                     if s == 'simulate':
                                         all_dat[self._modelica_tool][s] = val
-                                        # Write a warning if a model is not translated
-                                        if not val:
-                                            self._reporter.writeOutput(
-                                                "{}: Requested to be excluded from translation".format(
-                                                    all_dat['model_name']))
-                                    elif s == 'translate':
-                                        all_dat['jmodelica'][s] = val
                                         # Write a warning if a model is not simulated
                                         if not val:
                                             self._reporter.writeOutput(
                                                 "{}: Requested to be excluded from simulation".format(
+                                                    all_dat['model_name']))
+                                            # Reset plot variables
+                                            all_dat['ResultVariables'] = []
+                                    elif s == 'translate':
+                                        all_dat['jmodelica'][s] = val
+                                        # Write a warning if a model is not translated
+                                        if not val:
+                                            self._reporter.writeOutput(
+                                                "{}: Requested to be excluded from translation".format(
                                                     all_dat['model_name']))
                                     else:
                                         all_dat[self._modelica_tool][s] = val
@@ -1164,7 +1164,7 @@ class Tester(object):
             Since Dymola writes all ``*.fmu`` and ``*.mat`` files to the current working directory,
             duplicate file names would cause a translation or simulation to overwrite the files
             of a previous test. This would make it impossible to check the FMU export
-            and to compare the results to previously obtained results.
+            and to compare the results to previously obtained results.na
 
             If there are duplicate ``.fmu`` and ``*.mat`` file names used, then this method raises
             a ``ValueError`` exception.
@@ -2398,9 +2398,11 @@ class Tester(object):
         for data_idx, data in enumerate(self._data):
             # Only check data that need to be simulated. This excludes the FMU export
             # from this test.
-            # Nota for JModelica: data['jmodelica']['simulate']=False have already been removed
-            # from self._data (see run method).
-            if self._includeFile(data['ScriptFile']) and data['mustSimulate']:
+            # Nota for JModelica: data['jmodelica']['simulate']=True is an additional condition.
+            check_condition = self._includeFile(data['ScriptFile']) and data['mustSimulate']
+            if self._modelica_tool == 'jmodelica':
+                check_condition = check_condition and data[self._modelica_tool]['simulate']
+            if check_condition:
                 get_user_prompt = True
                 # Convert 'aa/bb.mos' to 'aa_bb.txt'
                 mosFulFilNam = os.path.join(self.getLibraryName(), data['ScriptFile'])
