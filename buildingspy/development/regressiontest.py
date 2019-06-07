@@ -1616,21 +1616,23 @@ class Tester(object):
             test_passed = False
             t_err_max = None
 
-        if len(yNew) > 2:
-            if self._comp_tool == 'legacy':
+        if self._comp_tool == 'legacy':
+            if len(yNew) > 2:
                 # Some reference results contain already a time grid,
                 # whereas others only contain the first and last time stamp.
                 # Hence, we make sure to have the right time grid before we
                 # call the interpolation.
                 tGriOld = getTimeGrid(tOld, len(yNew))
                 tGriNew = getTimeGrid(tNew, min(len(yNew), self._nPoi))
-            elif self._comp_tool == 'funnel':
-                # funnel_comp only needs len(t) = len(y) for Old and New time series
-                tOld = getTimeGrid(tOld, len(yOld))
+            else:
+                tGriOld = tOld
+                tGriNew = tNew
+        elif self._comp_tool == 'funnel':
+            # funnel_comp only needs len(t) = len(y) for Old and New time series
+            if len(yNew) > 2:
                 tNew = getTimeGrid(tNew, len(yNew))
-        else:
-            tGriOld = tOld
-            tGriNew = tNew
+            if len(yOld) > 2:
+                tOld = getTimeGrid(tOld, len(yOld))
 
         if self._comp_tool == 'legacy':
             try:  # In case a warning has been raised before: no comparison performed.
