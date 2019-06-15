@@ -2254,8 +2254,8 @@ class Tester(object):
                         ("""Ignoring erroneous 'each' for the modification ' = {","}'""" in lin):
                     break
                 # Ignore warnings of the form Iteration variable "der(xxx)" is missing start value!
-                if re.search(r"""Iteration variable "der\(\S|.\)" is missing start value!""", lin):
-                    break
+#                if re.search(r"""Iteration variable "der\(\S|.\)" is missing start value!""", lin):
+#                    break
                 if v['tool_message'] in lin:
                     # Found a warning. Report it to the reporter, and add it to the list that will be written to
                     # the json file.
