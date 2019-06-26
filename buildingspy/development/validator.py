@@ -213,14 +213,14 @@ Modelica package. Expected file '%s'."
 
         if("*" in str(val)):
             s = (
-                "Found mo file="
-                + str(model_path)
-                + " with experiment annotation "
-                + self._capitalize_first(name)
-                + ".\n"
-                + self._capitalize_first(name)
-                + " contains invalid expressions such as x * y. Only literal expressions are allowed "
-                + "by JModelica and OpenModelica unit tests.\n")
+                "Found mo file=" +
+                str(model_path) +
+                " with experiment annotation " +
+                self._capitalize_first(name) +
+                ".\n" +
+                self._capitalize_first(name) +
+                " contains invalid expressions such as x * y. Only literal expressions are allowed " +
+                "by JModelica and OpenModelica unit tests.\n")
             raise ValueError(s)
 
         delta = abs(eval(val) - eval(value))
@@ -229,9 +229,9 @@ Modelica package. Expected file '%s'."
             s = ("Found mo file={!s} with experiment annotation {!s}.\n" +
                  "The value of {!s}={!s} is different from the (default) value={!s}"
                  + " found in the mos file={!s}.\n").format(model_path,
-                                                          self._capitalize_first(name),
-                                                          self._capitalize_first(name),
-                                                          val, value, mos_file)
+                                                            self._capitalize_first(name),
+                                                            self._capitalize_first(name),
+                                                            val, value, mos_file)
             raise ValueError(s)
 
     def _missing_parameter(self, name, value, model_path, mos_file):
@@ -383,8 +383,8 @@ Modelica package. Expected file '%s'."
         if (name + "=" == "tolerance="):
             if value is None:
                 s = (
-                    "Found mos file={!s} without tolerance specified.\n"
-                    + "A minimum tolerance of 1e-6 is required for JModelica for unit tests.\n").format(mos_file)
+                    "Found mos file={!s} without tolerance specified.\n" +
+                    "A minimum tolerance of 1e-6 is required for JModelica for unit tests.\n").format(mos_file)
                 raise ValueError(s)
             else:
                 if(float(value) > 1e-6):
@@ -396,8 +396,8 @@ Modelica package. Expected file '%s'."
         if (name + "=" == "stopTime="):
             if value is None:
                 s = (
-                    "Found mos file={!s} without stopTime specified.\n"
-                    + "A non-null stopTime is required by OpenModelica for unit tests.\n").format(mos_file)
+                    "Found mos file={!s} without stopTime specified.\n" +
+                    "A non-null stopTime is required by OpenModelica for unit tests.\n").format(mos_file)
                 raise ValueError(s)
 
     def _getValue(self, name, line, fil_nam):
@@ -427,8 +427,9 @@ Modelica package. Expected file '%s'."
             # the CI testing of JModelica. Exceeding them will cause an integer overflow
             if isinstance(ev, int):
                 if ev < -2147483648:
-                    err = ("Integer overflow: Integers can be -2147483648 to 2147483647, received {}.\n".format(ev)
-                          + "Use floating point represenation in {!s}.".format(fil_nam))
+                    err = (
+                        "Integer overflow: Integers can be -2147483648 to 2147483647, received {}.\n".format(ev) +
+                        "Use floating point represenation in {!s}.".format(fil_nam))
                     raise ValueError(err)
 
         if name == "StopTime":
@@ -437,8 +438,9 @@ Modelica package. Expected file '%s'."
             # the CI testing of JModelica. Exceeding them will cause an integer overflow
             if isinstance(ev, int):
                 if ev > 2147483647:
-                    err = ("Integer overflow: Integers can be -2147483648 to 2147483647, received {}.\n".format(ev)
-                            + "Use floating point represenation in {!s}.".format(fil_nam))
+                    err = (
+                        "Integer overflow: Integers can be -2147483648 to 2147483647, received {}.\n".format(ev) +
+                        "Use floating point represenation in {!s}.".format(fil_nam))
                     raise ValueError(err)
 
         # Return the value found

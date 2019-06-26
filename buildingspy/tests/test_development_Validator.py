@@ -178,9 +178,12 @@ class Test_development_Validator(unittest.TestCase):
         self.run_case(val, myMoLib, "experiment(Tolerance=1e-6, StartTime=0, StopTime=2147483648),",
                       "tolerance=1e-6, startTime=0, stopTime=2147483648,",
                       "Integer overflow: Integers can be -2147483648 to 2147483647, received")
-        self.run_case(val, myMoLib, "experiment(Tolerance=1e-6, StartTime=-2147483649, StopTime=0),",
-                      "tolerance=1e-6, startTime=-2147483649, stopTime=0,",
-                      "Integer overflow: Integers can be -2147483648 to 2147483647, received")
+        self.run_case(
+            val,
+            myMoLib,
+            "experiment(Tolerance=1e-6, StartTime=-2147483649, StopTime=0),",
+            "tolerance=1e-6, startTime=-2147483649, stopTime=0,",
+            "Integer overflow: Integers can be -2147483648 to 2147483647, received")
 
 
 if __name__ == '__main__':
