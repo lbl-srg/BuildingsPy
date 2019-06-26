@@ -63,11 +63,9 @@ class Test_development_Validator(unittest.TestCase):
         :param: mod_lib Path to model library.
         :param: mo_param Parameter of mo file.
         :param: mos_param Parameter of mos file.
-        :param: mos_param Parameter of mos file.
-        :param: mos_param Expected error message.
+        :param: err_msg Expected error message.
 
         """
-
         model_name = ''.join(random.choice(string.ascii_uppercase + string.digits)
                              for _ in range(6))
 
@@ -89,11 +87,7 @@ class Test_development_Validator(unittest.TestCase):
 
         with self.assertRaises(ValueError) as context:
             val.validateExperimentSetup(mod_lib)
-
-            for path in [path_mo, path_mos]:
-                if os.path.exists(path):
-                    os.remove(path)
-            self.assertTrue(err_msg in str(context.exception))
+        self.assertTrue(err_msg in str(context.exception))
 
         # Delete created files
         os.remove(path_mo)
@@ -147,7 +141,7 @@ class Test_development_Validator(unittest.TestCase):
         self.run_case(val, myMoLib, "experiment(Tolerance=1e-6, StopTime=30.0),",
                       "tolerance=1e-6, stopTime=15,",
                       "The value of StopTime=30.0 is different from the")
-#
+
         ###########################################
         # Checking wrong literal in StopTime
         self.run_case(val, myMoLib, "experiment(Tolerance=1e-6, StopTime=2*5),",
@@ -177,6 +171,16 @@ class Test_development_Validator(unittest.TestCase):
         self.run_case(val, myMoLib, "experiment(Tolerance=1e-6),",
                       "tolerance=1e-6,",
                       "without StopTime in experiment annotation")
+
+        ###########################################
+        # Checking wrong data type that can cause an overflow
+        # In JModelica's CI testing, the maximum integer is 2147483647
+        self.run_case(val, myMoLib, "experiment(Tolerance=1e-6, StartTime=0, StopTime=2147483648),",
+                      "tolerance=1e-6, startTime=0, stopTime=2147483648,",
+                      "Integer overflow: Integers can be -2147483648 to 2147483647, received")
+        self.run_case(val, myMoLib, "experiment(Tolerance=1e-6, StartTime=-2147483649, StopTime=0),",
+                      "tolerance=1e-6, startTime=-2147483649, stopTime=0,",
+                      "Integer overflow: Integers can be -2147483648 to 2147483647, received")
 
 
 if __name__ == '__main__':
