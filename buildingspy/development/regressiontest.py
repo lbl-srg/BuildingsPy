@@ -113,6 +113,8 @@ class Tester(object):
     :param tol: float or dict (default=1E-3). Comparison tolerance: if a float is provided, it is
         considered as an absolute tolerance along y axis (and x axis if comp_tool='funnel'). If a dict
         is provided, keys must be ('ax', 'ay') for absolute tolerance or ('rx', 'ry') for relative tolerance.
+    :param check_jmodelica: boolean (default False). Check unit test results against reference points when
+        tool=='jmodelica'.
 
     This class can be used to run all regression tests.
 
@@ -219,7 +221,8 @@ class Tester(object):
         tool="dymola",
         cleanup=True,
         comp_tool='funnel',
-        tol=1E-3
+        tol=1E-3,
+        check_jmodelica=False,
     ):
         """ Constructor."""
         if tool == 'jmodelica':
@@ -266,8 +269,11 @@ class Tester(object):
         # Flag to delete temporary directories.
         self._deleteTemporaryDirectories = cleanup
 
-        # Flag to use existing results instead of running a simulation
+        # Flag to use existing results instead of running a simulation.
         self._useExistingResults = False
+
+        # Flag to compare results against reference points for JModelica.
+        self.check_jmodelica = check_jmodelica
 
         # Comparison tool.
         self._comp_tool = comp_tool
@@ -2345,26 +2351,7 @@ class Tester(object):
         with open(self._simulator_log_file, 'w', encoding="utf-8-sig") as sim_log:
             sim_log.write("{}\n".format(json.dumps(all_res, indent=2, sort_keys=True)))
 
-        # Write summary messages
-        for _, v in list(self._error_dict.get_dictionary().items()):
-            counter = v['counter']
-            if counter > 0:
-                print(v['summary_message'].format(counter))
-
-        self._reporter.writeOutput("Script that runs unit tests had " +
-                                   str(self._reporter.getNumberOfWarnings()) +
-                                   " warnings and " +
-                                   str(self._reporter.getNumberOfErrors()) +
-                                   " errors.\n")
-        sys.stdout.write("See '{}' for details.\n".format(self._simulator_log_file))
-
-        if self._reporter.getNumberOfErrors() > 0:
-            return 1
-        if self._reporter.getNumberOfWarnings() > 0:
-            return 2
-        else:
-            self._reporter.writeOutput("Unit tests completed successfully.\n")
-            return 0
+        return self._writeSummaryMessages()
 
     def _get_size_dir(self, start_path):
         total_size = 0
@@ -2585,26 +2572,35 @@ class Tester(object):
         if iFMU > 0:
             print("Number of models that failed to export as an FMU             : {}".format(iFMU))
 
-        # Write summary messages
+        return self._writeSummaryMessages()
+
+    def _writeSummaryMessages(self, silent=True):
+        """Write summary messages"""
+
         for _, v in list(self._error_dict.get_dictionary().items()):
             counter = v['counter']
-            if counter > 0:
+            if counter > 0 and not silent:
                 print(v['summary_message'].format(counter))
 
-        self._reporter.writeOutput("Script that runs unit tests had " +
-                                   str(self._reporter.getNumberOfWarnings()) +
-                                   " warnings and " +
-                                   str(self._reporter.getNumberOfErrors()) +
-                                   " errors.\n")
-        sys.stdout.write("See '{}' for details.\n".format(self._simulator_log_file))
+        if not silent:
+            self._reporter.writeOutput("Script that runs unit tests had " +
+                                    str(self._reporter.getNumberOfWarnings()) +
+                                    " warnings and " +
+                                    str(self._reporter.getNumberOfErrors()) +
+                                    " errors.\n")
+            sys.stdout.write("See '{}' for details.\n".format(self._simulator_log_file))
 
         if self._reporter.getNumberOfErrors() > 0:
-            return 1
+            retval = 1
         if self._reporter.getNumberOfWarnings() > 0:
-            return 2
+            retval = 2
         else:
-            self._reporter.writeOutput("Unit tests completed successfully.\n")
-            return 0
+            if not silent:
+                self._reporter.writeOutput("Unit tests completed successfully.\n")
+            retval = 0
+        sys.stdout.flush()
+
+        return retval
 
     def get_number_of_tests(self):
         """ Returns the number of regression tests that will be run for the current library and configuration.
@@ -3264,7 +3260,7 @@ class Tester(object):
                 self._checkSimulationError(self._simulator_log_file)
 
             r = self._checkReferencePoints(ans)
-            if r != 0:
+            if r != 0:  # In case of comparison error. Comparison warnings are handled
                 if retVal != 0:  # We keep the translation or simulation error code.
                     pass
                 else:
@@ -3276,19 +3272,27 @@ class Tester(object):
             else:
                 self._check_jmodelica_runs()
 
-            # For JModelica: store available translation and simulation info
-            # into self._comp_info used for reporting.
-            # To be implemented for Dymola once translation and simulation info
-            # are available in JSON format (HTML file to large to parse for now).
-            with open(self._simulator_log_file, 'r') as f:
-                self._comp_info = simplejson.loads(f.read())
+            if self.check_jmodelica:
+                # For JModelica: store available translation and simulation info
+                # into self._comp_info used for reporting.
+                # To be implemented for Dymola once translation and simulation info
+                # are available in JSON format (HTML file to large to parse for now).
+                with open(self._simulator_log_file, 'r') as f:
+                    self._comp_info = simplejson.loads(f.read())
 
-            r = self._checkReferencePoints(ans='N')
-            if r != 0:
-                if retVal != 0:  # We keep the translation or simulation error code.
-                    pass
-                else:
-                    retVal = 4
+                r = self._checkReferencePoints(ans='N')
+                if r != 0:
+                    if retVal != 0:  # We keep the translation or simulation error code.
+                        pass
+                    else:
+                        retVal = 4
+
+        # Update exit code after comparing with reference points
+        # and print summary messages.
+        if retVal == 0:
+            retVal = self._writeSummaryMessages(silent=False)
+        else:  # We keep the translation or simulation error code.
+            self._writeSummaryMessages(silent=False)
 
         # Delete temporary directories, or write message that they are not deleted
         for d in self._temDir:
