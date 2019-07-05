@@ -2376,6 +2376,7 @@ class Tester(object):
             not considered an error in executing this function.
         """
         self._reporter.writeOutput('Starting validation against reference points.\n')
+        sys.stdout.flush()
         # Check if the directory
         # "self._libHome\\Resources\\ReferenceResults\\Dymola" exists, if not
         # create it.
