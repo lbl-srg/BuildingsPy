@@ -416,10 +416,33 @@ Modelica package. Expected file '%s'."
         # Split the value with potential character
         value3 = value2[0].split(')')
         try:
-            eval(value3[0])
+            ev = eval(value3[0])
         except Exception as err:
-            err = "{!s}. Invalid literal found in file {!s}.\n".format(err, fil_nam)
+            err = "{!s}. Invalid literal found in file {!s}.".format(err, fil_nam)
             raise ValueError(err)
+
+        if name == "StartTime":
+            # If it is smaller than -2147483648 and bigger than 2147483647, which are
+            # the minimum and maximum 32 bit integers. These are used in
+            # the CI testing of JModelica. Exceeding them will cause an integer overflow
+            if isinstance(ev, int):
+                if ev < -2147483648:
+                    err = (
+                        "Integer overflow: Integers can be -2147483648 to 2147483647, received {}.\n".format(ev)
+                        + "Use floating point represenation in {!s}.".format(fil_nam))
+                    raise ValueError(err)
+
+        if name == "StopTime":
+            # If it is smaller than -2147483648 and bigger than 2147483647, which are
+            # the minimum and maximum 32 bit integers. These are used in
+            # the CI testing of JModelica. Exceeding them will cause an integer overflow
+            if isinstance(ev, int):
+                if ev > 2147483647:
+                    err = (
+                        "Integer overflow: Integers can be -2147483648 to 2147483647, received {}.\n".format(ev)
+                        + "Use floating point represenation in {!s}.".format(fil_nam))
+                    raise ValueError(err)
+
         # Return the value found
         return value3[0]
 

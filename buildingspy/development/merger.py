@@ -76,6 +76,8 @@ class IBPSA(object):
                                 os.path.join(ibpsa_dir, "nohup.out"),
                                 os.path.join(ibpsa_dir, "Fluid", "package.mo"),
                                 os.path.join(ibpsa_dir, "Resources",
+                                             "Scripts", "Dymola", "ConvertIBPSA_from_*.mos"),
+                                os.path.join(ibpsa_dir, "Resources",
                                              "Scripts", "travis", "Makefile"),
                                 os.path.join(ibpsa_dir, "Resources",
                                              "Scripts", "BuildingsPy", "conf.json"),
