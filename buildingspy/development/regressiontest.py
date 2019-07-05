@@ -166,15 +166,15 @@ class Tester(object):
                  functions: 0
        Generated ... regression tests.
        <BLANKLINE>
-       Script that runs unit tests had 0 warnings and 0 errors.
-       <BLANKLINE>
-       See 'simulator-....log' for details.
-       Unit tests completed successfully.
-       <BLANKLINE>
        Starting validation against reference points.
        <BLANKLINE>
        Comparison files output by funnel are stored in the directory 'funnel_comp' of size ... MB.
        Run 'report' method of class 'Tester' to access a summary of the comparison results.
+       <BLANKLINE>
+       Script that runs unit tests had 0 warnings and 0 errors.
+       <BLANKLINE>
+       See 'simulator-....log' for details.
+       Unit tests completed successfully.
        <BLANKLINE>
        Execution time = ...
 
