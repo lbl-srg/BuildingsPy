@@ -1,6 +1,7 @@
 import platform
 import os
 from setuptools import setup
+from buildingspy import __version__
 # Python setup file.
 # See http://packages.python.org/an_example_pypi_project/setuptools.html
 
@@ -22,10 +23,11 @@ else:
 
 setup(
     name="buildingspy",
-    version="2.1.0",
+    version=__version__,
     author="Michael Wetter",
     author_email="mwetter@lbl.gov",
-    description=("Package for simulating and testing models from the Modelica Buildings and IBPSA libraries"),
+    description=(
+        "Package for simulating and testing models from the Modelica Buildings and IBPSA libraries"),
     long_description=read('README.rst'),
     license="3-clause BSD",
     keywords="modelica dymola openmodelica mat",
