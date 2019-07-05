@@ -2583,21 +2583,22 @@ class Tester(object):
                 print(v['summary_message'].format(counter))
 
         if not silent:
-            self._reporter.writeOutput("Script that runs unit tests had " +
-                                    str(self._reporter.getNumberOfWarnings()) +
-                                    " warnings and " +
-                                    str(self._reporter.getNumberOfErrors()) +
-                                    " errors.\n")
+            self._reporter.writeOutput(
+                "Script that runs unit tests had {} warnings and {} errors.\n".format(
+                    self._reporter.getNumberOfWarnings(),
+                    self._reporter.getNumberOfErrors(),
+                )
+            )
             sys.stdout.write("See '{}' for details.\n".format(self._simulator_log_file))
 
         if self._reporter.getNumberOfErrors() > 0:
             retval = 1
-        if self._reporter.getNumberOfWarnings() > 0:
+        elif self._reporter.getNumberOfWarnings() > 0:
             retval = 2
         else:
+            retval = 0
             if not silent:
                 self._reporter.writeOutput("Unit tests completed successfully.\n")
-            retval = 0
         sys.stdout.flush()
 
         return retval
