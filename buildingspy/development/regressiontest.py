@@ -166,8 +166,6 @@ class Tester(object):
                  functions: 0
        Generated ... regression tests.
        <BLANKLINE>
-       Starting validation against reference points.
-       <BLANKLINE>
        Comparison files output by funnel are stored in the directory 'funnel_comp' of size ... MB.
        Run 'report' method of class 'Tester' to access a summary of the comparison results.
        <BLANKLINE>
@@ -2375,8 +2373,6 @@ class Tester(object):
             case of wrong simulation results, this function also returns 0, as this is
             not considered an error in executing this function.
         """
-        self._reporter.writeOutput('Starting validation against reference points.\n')
-        sys.stdout.flush()
         # Check if the directory
         # "self._libHome\\Resources\\ReferenceResults\\Dymola" exists, if not
         # create it.
