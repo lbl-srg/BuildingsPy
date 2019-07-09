@@ -1453,7 +1453,7 @@ class Tester(object):
             test_passed = (err_max == 0)
             if err_max > 0:
                 warning = (
-                    "{}: {} exceeds funnel tolerance with absolute error = {:.3e}."
+                    "{}: {} exceeds funnel tolerance with absolute error = {:.3e}. "
                 ).format(filNam, varNam, err_max)
                 if self._isParameter(yOld):
                     warning += "{} is a parameter.\n".format(varNam)
