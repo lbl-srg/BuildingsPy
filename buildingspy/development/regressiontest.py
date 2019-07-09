@@ -113,8 +113,8 @@ class Tester(object):
     :param tol: float or dict (default=1E-3). Comparison tolerance: if a float is provided, it is
         considered as an absolute tolerance along y axis (and x axis if comp_tool='funnel'). If a dict
         is provided, keys must be ('ax', 'ay') for absolute tolerance or ('rx', 'ry') for relative tolerance.
-    :param verify_jmodelica: boolean (default False). Verify unit test results against reference points when
-        tool=='jmodelica'.
+    :param skip_verification: boolean (default ``False``).
+       If ``True``, unit test results are not verified against reference points.
 
     This class can be used to run all regression tests.
 
@@ -222,7 +222,7 @@ class Tester(object):
         cleanup=True,
         comp_tool='funnel',
         tol=1E-3,
-        verify_jmodelica=False,
+        skip_verification=False,
     ):
         """ Constructor."""
         if tool == 'jmodelica':
@@ -273,7 +273,8 @@ class Tester(object):
         self._useExistingResults = False
 
         # Flag to compare results against reference points for JModelica.
-        self.verify_jmodelica = verify_jmodelica
+        self._skip_verification = skip_verification
+        #self._skip_verification = True
 
         # Comparison tool.
         self._comp_tool = comp_tool
@@ -2369,10 +2370,10 @@ class Tester(object):
             If there is no ``.mat`` file of the reference points in the library home folder,
             ask the user whether it should be generated.
 
-            This function return 1 if reading reference results or reading the translation
+            This function returns ``1`` if reading reference results or reading the translation
             statistics failed. In this case, the calling method should not attempt to do
-            further processing. The function returns 0 if there were no problems. In
-            case of wrong simulation results, this function also returns 0, as this is
+            further processing. The function returns ``0`` if there were no problems. In
+            case of wrong simulation results, this function also returns ``0``, as this is
             not considered an error in executing this function.
         """
         self._reporter.writeOutput('Starting validation against reference points.\n')
@@ -3150,6 +3151,11 @@ class Tester(object):
         # Initialize data structure to check results
         self._initialize_error_dict()
 
+        # Inform the user if regression tests are skipped
+        if self._skip_verification:
+            self._reporter.writeOutput(
+                "Time series of simulation results will not be verified.")
+
         # Print number of processors
         print("Using {!s} of {!s} processors to run unit tests for {!s}.".format(
             self._nPro,
@@ -3261,12 +3267,13 @@ class Tester(object):
             else:
                 self._checkSimulationError(self._simulator_log_file)
 
-            r = self._checkReferencePoints(ans)
-            if r != 0:  # In case of comparison error. Comparison warnings are handled
-                if retVal != 0:  # We keep the translation or simulation error code.
-                    pass
-                else:
-                    retVal = 4
+            if not self._skip_verification:
+                r = self._checkReferencePoints(ans)
+                if r != 0:  # In case of comparison error. Comparison warnings are handled
+                    if retVal != 0:  # We keep the translation or simulation error code.
+                        pass
+                    else:
+                        retVal = 4
 
         if self._modelica_tool == 'jmodelica':
             if retVal == 0:
@@ -3274,7 +3281,7 @@ class Tester(object):
             else:
                 self._verify_jmodelica_runs()
 
-            if self.verify_jmodelica:
+            if not self._skip_verification:
                 # For JModelica: store available translation and simulation info
                 # into self._comp_info used for reporting.
                 # To be implemented for Dymola once translation and simulation info
