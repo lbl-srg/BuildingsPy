@@ -113,7 +113,7 @@ class Tester(object):
     :param tol: float or dict (default=1E-3). Comparison tolerance: if a float is provided, it is
         considered as an absolute tolerance along y axis (and x axis if comp_tool='funnel'). If a dict
         is provided, keys must be ('ax', 'ay') for absolute tolerance or ('rx', 'ry') for relative tolerance.
-    :param check_jmodelica: boolean (default False). Check unit test results against reference points when
+    :param verify_jmodelica: boolean (default False). Verify unit test results against reference points when
         tool=='jmodelica'.
 
     This class can be used to run all regression tests.
@@ -222,7 +222,7 @@ class Tester(object):
         cleanup=True,
         comp_tool='funnel',
         tol=1E-3,
-        check_jmodelica=False,
+        verify_jmodelica=False,
     ):
         """ Constructor."""
         if tool == 'jmodelica':
@@ -273,7 +273,7 @@ class Tester(object):
         self._useExistingResults = False
 
         # Flag to compare results against reference points for JModelica.
-        self.check_jmodelica = check_jmodelica
+        self.verify_jmodelica = verify_jmodelica
 
         # Comparison tool.
         self._comp_tool = comp_tool
@@ -2273,7 +2273,7 @@ class Tester(object):
         # Return a dictionary with all warnings
         return lis
 
-    def _check_jmodelica_runs(self):
+    def _verify_jmodelica_runs(self):
         """ Check the results of the JModelica tests.
 
             This function returns 0 if no errors occurred,
@@ -3270,11 +3270,11 @@ class Tester(object):
 
         if self._modelica_tool == 'jmodelica':
             if retVal == 0:
-                retVal = self._check_jmodelica_runs()
+                retVal = self._verify_jmodelica_runs()
             else:
-                self._check_jmodelica_runs()
+                self._verify_jmodelica_runs()
 
-            if self.check_jmodelica:
+            if self.verify_jmodelica:
                 # For JModelica: store available translation and simulation info
                 # into self._comp_info used for reporting.
                 # To be implemented for Dymola once translation and simulation info
