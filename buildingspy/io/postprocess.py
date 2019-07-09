@@ -90,7 +90,7 @@ class Plotter(object):
         yNew.append(y[iMax])
 
         for i in range(1, len(tNew)):
-            if tNew[i] < tNew[i - 1] + 0.9 * tTol:
+            if tNew[i - 1] >= tNew[i]:
                 raise ValueError('Time t is not strictly increasing.')
         for i in range(1, len(tSup)):
             if tSup[i] <= tSup[i - 1]:
