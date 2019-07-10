@@ -2017,7 +2017,8 @@ class Tester(object):
 
         with open(self._PLOT_TEMPLATE, 'r') as f:
             template = f.read()
-        content = re.sub(r'\$TITLE', plot_title, template)
+        content = re.sub(r'\$PAGE_TITLE', plot_title, template)
+        content = re.sub(r'\$TITLE', plot_title, content)
         content = re.sub(r'\$DICT_VAR_INFO', json.dumps(dict_var_info), content)
         content = re.sub(r'\$HEIGHT', '{}%'.format(height), content)
         content = re.sub(r'\$ERR_PLOT_HEIGHT', str(err_plot_height), content)
