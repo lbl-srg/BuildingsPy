@@ -39,6 +39,7 @@ setup(
         'matplotlib',
         'numpy',
         'pytidylib',
+        'scipy',
         'simplejson',
         'six',
     ],
