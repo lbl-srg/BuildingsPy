@@ -36,4 +36,5 @@ funnel_comp/*
 .pydevproject
 org.eclipse.core.resources.prefs
 .vs/
+.vscode
 .idea/
