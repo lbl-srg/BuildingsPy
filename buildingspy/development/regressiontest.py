@@ -73,7 +73,7 @@ class Tester(object):
 
     :param check_html: bool (default=True). Specify whether to load tidylib and
         perform validation of html documentation
-    :param tool: {'dymola', 'omc', 'jmodelica'}.  Default is 'dymola', specifies the
+    :param tool: {``dymola``, ``omc``, ``jmodelica``}.  Default is ``dymola``, specifies the
         tool to use for running the regression test with :func:`~buildingspy.development.Tester.run`.
     :param cleanup: bool (default=True).  Specify whether to delete temporary directories.
 
