@@ -216,9 +216,9 @@ class IBPSA(object):
             if len(pat) is not 2:
                 ValueError("Pattern {} is not supported.".format(pattern))
             # Make sure it has the same number of directories
-            ret = filter(lambda x: (x.count(os.path.sep) == pattern.count(os.path.sep)) and
-                         x.startswith(pat[0]) and
-                         x.endswith(pat[1]),
+            ret = filter(lambda x: (x.count(os.path.sep) == pattern.count(os.path.sep))
+                         and x.startswith(pat[0])
+                         and x.endswith(pat[1]),
                          file_list)
             return list(ret)
         else:
@@ -397,7 +397,6 @@ class IBPSA(object):
                             copyfile(srcFil, new_file)
                         else:
                             self._copy_rename(srcFil, new_file, rep)
-
 
                 # Copy all other files. This may be images, C-source, libraries etc.
                 else:
