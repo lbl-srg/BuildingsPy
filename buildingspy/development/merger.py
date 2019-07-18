@@ -16,6 +16,7 @@ from future import standard_library
 standard_library.install_aliases()
 from builtins import *
 from io import open
+from shutil import copyfile
 # end of from future import
 
 
@@ -134,11 +135,16 @@ class IBPSA(object):
         from collections import OrderedDict
 
         lines = list()
-        with open(src, mode="r", encoding="utf-8-sig") as f_sou:
-            for _, lin in enumerate(f_sou):
-                for ori, new in list(rep.items()):
-                    lin = lin.replace(ori, new)
-                lines.append(lin)
+        try:
+            with open(src, mode="r", encoding="utf-8") as f_sou:
+                for _, lin in enumerate(f_sou):
+                    for ori, new in list(rep.items()):
+                        lin = lin.replace(ori, new)
+                    lines.append(lin)
+        except UnicodeDecodeError as e:
+            msg = "UnicodeDecodeError when processing '{}'. {}".format(f_sou, e.reason)
+            e.reason = msg
+            raise e
         # Remove library specific documentation.
         lines = self.remove_library_specific_documentation(lines, self._new_library_name)
         # Write the lines to the new file
@@ -210,9 +216,9 @@ class IBPSA(object):
             if len(pat) is not 2:
                 ValueError("Pattern {} is not supported.".format(pattern))
             # Make sure it has the same number of directories
-            ret = filter(lambda x: (x.count(os.path.sep) == pattern.count(os.path.sep)) and
-                         x.startswith(pat[0]) and
-                         x.endswith(pat[1]),
+            ret = filter(lambda x: (x.count(os.path.sep) == pattern.count(os.path.sep))
+                         and x.startswith(pat[0])
+                         and x.endswith(pat[1]),
                          file_list)
             return list(ret)
         else:
@@ -377,7 +383,20 @@ class IBPSA(object):
                         copiedFiles.append(new_file)
                         rep = dict()
                         rep[self._src_library_name] = self._new_library_name
-                        self._copy_rename(srcFil, new_file, rep)
+                        # If it is a binary file, simply copy it. Otherwise, the copy/replace/write
+                        # will read, search for a string and rewrite the file, leading to a Unicode error.
+                        # This happens for example for the file
+                        # build/html/_static/bootstrap-3.3.6/fonts/glyphicons-halflings-regular.woff2
+                        bin_ext = [".woff", ".woff2", ".ttf", ".eot"]
+                        is_binary = False
+                        for ext in bin_ext:
+                            if srcFil.endswith(ext):
+                                is_binary = True
+                                break
+                        if is_binary:
+                            copyfile(srcFil, new_file)
+                        else:
+                            self._copy_rename(srcFil, new_file, rep)
 
                 # Copy all other files. This may be images, C-source, libraries etc.
                 else:
