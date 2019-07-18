@@ -820,7 +820,13 @@ class Tester(object):
                                                    mosFil),
                         'mustSimulate': False,
                         'mustExportFMU': False}
-
+                    # ScriptFile is something like Controls/Continuous/Examples/LimPIDWithReset.mos
+                    # JModelica CI testing needs files below 140 characters, which includes Buildings.
+                    # Hence, write warning if a file is equal or longer than 140-9=131 characters.
+                    if len(dat['ScriptFile']) >= 131:
+                        self._reporter.writeError(
+                            """File {} is too long. Reduce it to maximum of 130 characters.""".format(dat['ScriptFile'], len(dat['ScriptFile'])))
+                    #_check_reference_result_file_name(dat['ScriptFile'])
                     # open the mos file and read its content.
                     # Path and name of mos file without 'Resources/Scripts/Dymola'
                     with open(os.path.join(root, mosFil), mode="r", encoding="utf-8-sig") as fMOS:
