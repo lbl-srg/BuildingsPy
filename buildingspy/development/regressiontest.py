@@ -43,7 +43,7 @@ def runSimulation(worDir, cmd):
         os.environ['MODELICAPATH'] = worDir
 
     logFilNam = os.path.join(worDir, 'stdout.log')
-#    print("***** Working directory is {}".format(worDir))
+    print("***** Working directory is {}".format(worDir))
     with open(logFilNam, mode="w", encoding="utf-8") as logFil:
         pro = subprocess.Popen(args=cmd,
                                stdout=logFil,
@@ -53,6 +53,9 @@ def runSimulation(worDir, cmd):
         try:
             retcode = pro.wait()
             if retcode != 0:
+                print("Files are\n")
+                for fil in os.listdir(worDir):
+                    print("==== {}\n".format(fil))
                 print("Child was terminated by signal {}".format(retcode))
                 return retcode
             else:
