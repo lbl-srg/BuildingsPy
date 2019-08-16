@@ -60,8 +60,11 @@ def runSimulation(worDir, cmd):
                     print("==== {}".format(fil))
 
                 print("*** stdout.log is \n")
-                with open("stdout.log", 'r') as f:
-                    print(f.read())
+                if os.path.isfile(logFilNam):
+                    with open(logFilNam, 'r') as f:
+                        print(f.read())
+                else:
+                    print("The file {} does not exist.\n".format(logFilNam))
                 print("*** end of stdout.log\n")
 
                 print("Child was terminated by signal {}".format(retcode))
