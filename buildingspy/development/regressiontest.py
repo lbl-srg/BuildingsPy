@@ -56,7 +56,13 @@ def runSimulation(worDir, cmd):
                 print("Command is {}\n".format(cmd))
                 print("Files are\n")
                 for fil in os.listdir(worDir):
-                    print("==== {}\n".format(fil))
+                    print("==== {}"comman.format(fil))
+
+                print("*** stdout.log is \n")
+                with open("stdout.log", 'r') as f:
+                    print(f.read())
+                print("*** end of stdout.log\n")
+
                 print("Child was terminated by signal {}".format(retcode))
                 return retcode
             else:
