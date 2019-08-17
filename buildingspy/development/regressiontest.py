@@ -65,7 +65,7 @@ def runSimulation(worDir, cmd):
         os.environ['MODELICAPATH'] = worDir
 
     logFilNam = os.path.join(worDir, 'stdout.log')
-#    print("***** Working directory is {}".format(worDir))
+#
     with open(logFilNam, mode="w", encoding="utf-8") as logFil:
         pro = subprocess.Popen(args=cmd,
                                stdout=logFil,
@@ -75,6 +75,19 @@ def runSimulation(worDir, cmd):
         try:
             retcode = pro.wait()
             if retcode != 0:
+                print("*** Working directory is {}".format(worDir))
+                print("*** Command is {}\n".format(cmd))
+                print("*** Files in directory {} are\n".format(worDir))
+                for fil in os.listdir(worDir):
+                    print("     {}".format(fil))
+                print("*** stdout.log is \n")
+                if os.path.isfile(logFilNam):
+                    with open(logFilNam, 'r') as f:
+                        print(f.read())
+                else:
+                    print("The file {} does not exist.\n".format(logFilNam))
+                print("*** end of stdout.log\n")
+
                 print("Child was terminated by signal {}".format(retcode))
                 return retcode
             else:
@@ -106,7 +119,7 @@ class Tester(object):
 
     :param check_html: bool (default=True). Specify whether to load tidylib and
         perform validation of html documentation
-    :param tool: {'dymola', 'omc', 'jmodelica'}.  Default is 'dymola', specifies the
+    :param tool: {``dymola``, ``omc``, ``jmodelica``}.  Default is ``dymola``, specifies the
         tool to use for running the regression test with :func:`~buildingspy.development.Tester.run`.
     :param cleanup: bool (default=True).  Specify whether to delete temporary directories.
     :param comp_tool: string (default='funnel'). Specify the comparison tool ('funnel' or 'legacy').
@@ -933,7 +946,15 @@ class Tester(object):
                                                    mosFil),
                         'mustSimulate': False,
                         'mustExportFMU': False}
-
+                    # ScriptFile is something like Controls/Continuous/Examples/LimPIDWithReset.mos
+                    # JModelica CI testing needs files below 140 characters, which includes Buildings.
+                    # Hence, write warning if a file is equal or longer than 140-9=131 characters.
+                    if len(dat['ScriptFile']) >= 131:
+                        self._reporter.writeError(
+                            """File {} is too long. Reduce it to maximum of 130 characters.""".format(
+                                dat['ScriptFile'], len(
+                                    dat['ScriptFile'])))
+                    # _check_reference_result_file_name(dat['ScriptFile'])
                     # open the mos file and read its content.
                     # Path and name of mos file without 'Resources/Scripts/Dymola'
                     with open(os.path.join(root, mosFil), mode="r", encoding="utf-8-sig") as fMOS:
