@@ -4,7 +4,9 @@ BuildingsPy Changelog
 Version 2.0.1, July 17, 2019 -- Release 2.0
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 - Avoided text replace in binary files when merging libraries, which lead to
-  UnicodeDecodeError.
+  UnicodeDecodeError. (Issue 272)
+- In regression tests, issue error if the name of the reference results
+  is too long. (Issue 274)
 
 Version 2.0.0, July 15, 2019 -- Release 2.0
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
