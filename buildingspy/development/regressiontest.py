@@ -54,11 +54,9 @@ def runSimulation(worDir, cmd):
             retcode = pro.wait()
             if retcode != 0:
                 print("*** Command is {}\n".format(cmd))
-
-                print("Files are\n")
+                print("Files in directory {} are\n".format(worDir))
                 for fil in os.listdir(worDir):
                     print("==== {}".format(fil))
-
                 print("*** stdout.log is \n")
                 if os.path.isfile(logFilNam):
                     with open(logFilNam, 'r') as f:
