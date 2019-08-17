@@ -1,6 +1,5 @@
-group: deprecated-2017Q2
-
 dist: trusty
+sudo: true
 
 language: python
 
@@ -15,9 +14,6 @@ env:
 
 notifications:
   email: false
-
-git:
-  depth: 3
 
 services:
   - docker
@@ -34,9 +30,9 @@ addons:
 
 before_install:
   - chmod +x buildingspy/tests/MyModelicaLibrary/Resources/Scripts/travis/bin/dymola
-  - sudo cp buildingspy/tests/MyModelicaLibrary/Resources/Scripts/travis/bin/dymola /usr/local/bin/
+  - cp buildingspy/tests/MyModelicaLibrary/Resources/Scripts/travis/bin/dymola $HOME/bin/
   - chmod +x buildingspy/tests/MyModelicaLibrary/Resources/Scripts/travis/bin/jm_ipython.sh
-  - sudo cp buildingspy/tests/MyModelicaLibrary/Resources/Scripts/travis/bin/jm_ipython.sh /usr/local/bin/
+  - cp buildingspy/tests/MyModelicaLibrary/Resources/Scripts/travis/bin/jm_ipython.sh $HOME/bin/
   - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
   - docker pull "$DOCKER_USERNAME"/travis_ubuntu-1804_dymola-2020-x86_64
   - docker pull "$DOCKER_USERNAME"/ubuntu-1804_jmodelica_trunk
