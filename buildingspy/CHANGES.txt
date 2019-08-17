@@ -1,9 +1,17 @@
 BuildingsPy Changelog
 ---------------------
 
-Version 2.0.0, xxx
-^^^^^^^^^^^^^^^^^^
+Version 2.0.1, July 17, 2019 -- Release 2.0
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 - In development.Tester(), added error if a reference result does not yet exist.
+- Avoided text replace in binary files when merging libraries, which lead to
+  UnicodeDecodeError. (Issue 272)
+- In regression tests, issue error if the name of the reference results
+  is too long. (Issue 274)
+
+Version 2.0.0, July 15, 2019 -- Release 2.0
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- Added handling of library specific comments in buildingspy.development.merger
 - Improved error reporting when running regression tests in batch mode.
 - Corrected bug when creating and then renaming a package with
   buildingspy.development.refactor

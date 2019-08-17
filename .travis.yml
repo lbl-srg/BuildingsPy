@@ -38,8 +38,8 @@ before_install:
   - chmod +x buildingspy/tests/MyModelicaLibrary/Resources/Scripts/travis/bin/jm_ipython.sh
   - sudo cp buildingspy/tests/MyModelicaLibrary/Resources/Scripts/travis/bin/jm_ipython.sh /usr/local/bin/
   - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
-  - docker pull "$DOCKER_USERNAME"/travis_ubuntu-1804_dymola-2019fd01-x86_64
-  - docker pull "$DOCKER_USERNAME"/ubuntu-1604_jmodelica_trunk
+  - docker pull "$DOCKER_USERNAME"/travis_ubuntu-1804_dymola-2020-x86_64
+  - docker pull "$DOCKER_USERNAME"/ubuntu-1804_jmodelica_trunk
 
 install:
   - pip install --upgrade pip setuptools wheel

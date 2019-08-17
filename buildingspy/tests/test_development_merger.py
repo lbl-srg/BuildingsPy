@@ -68,6 +68,37 @@ class Test_development_merger_IBPSA(unittest.TestCase):
         # Test packages that do exist
         m.IBPSA(self._ibpsa_dir, self._dest_dir)
 
+    def test_remove_library_specific_documentation(self):
+        import buildingspy.development.merger as m
+
+        lines = ["aaa", "bbb", "<!-- @include_Buildings", "ccc", "-->", "ddd"]
+        result = ["aaa", "bbb", "ccc", "ddd"]
+        self.assertEqual(result,
+                         m.IBPSA.remove_library_specific_documentation(lines, "Buildings"),
+                         "Test one library")
+
+        lines[2] = "<!-- @include_Buildings @include_aaa"
+        self.assertEqual(result,
+                         m.IBPSA.remove_library_specific_documentation(lines, "Buildings"),
+                         "Test multiple libraries")
+
+        lines[2] = "<!-- @include_aaa @include_Buildings"
+        self.assertEqual(result,
+                         m.IBPSA.remove_library_specific_documentation(lines, "Buildings"),
+                         "Test multiple libraries reverse")
+
+        lines[2] = " <!--  @include_Buildings"
+        self.assertEqual(result,
+                         m.IBPSA.remove_library_specific_documentation(lines, "Buildings"),
+                         "Test with spaces")
+
+        lines[2] = "<!--"
+        result = ["aaa", "bbb", "<!--", "ccc", "-->", "ddd"]
+        self.assertEqual(result,
+                         m.IBPSA.remove_library_specific_documentation(lines, "Buildings"),
+                         "Test without removing")
+        return
+
     def test_merge(self):
         """Test merging the libraries
         """
