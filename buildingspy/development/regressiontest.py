@@ -7,19 +7,45 @@
 # MWetter@lbl.gov                            2011-02-23
 #######################################################
 #
-# import from future to make Python2 behave like Python3
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 from future import standard_library
 standard_library.install_aliases()
+# Python standard library imports.
 from builtins import *
+from collections import defaultdict
+from contextlib import contextmanager
 from io import open
-# end of from future import
-
-import sys
+import difflib
+import fnmatch
+import functools
+import glob
+import io
+import json
+import multiprocessing
+import numbers
 import os
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+import time
+import webbrowser
+# Third-party module or package imports.
+import matplotlib.pyplot as plt
+import numpy as np
+import simplejson
+# Code repository sub-package imports.
+from buildingspy.funnel.bin import pyfunnel
+from buildingspy.development import error_dictionary_jmodelica
+from buildingspy.development import error_dictionary_dymola
+from buildingspy.io.outputfile import Reader
+from buildingspy.io.postprocess import Plotter
+import buildingspy.io.outputfile as of
+import buildingspy.io.reporter as rep
 
 
 def runSimulation(worDir, cmd):
@@ -32,10 +58,6 @@ def runSimulation(worDir, cmd):
     .. note:: This method is outside the class definition to
               allow parallel computing.
     """
-
-    import subprocess
-    import os
-
     # JModelica requires the working directory to be part of MODELICAPATH
     if 'MODELICAPATH' in os.environ:
         os.environ['MODELICAPATH'] = "{}:{}".format(os.environ['MODELICAPATH'], worDir)
@@ -79,6 +101,17 @@ def runSimulation(worDir, cmd):
             sys.stderr.write("Users stopped simulation in %s.\n" % worDir)
 
 
+@contextmanager
+def _stdout_redirector(stream):
+    """ Redirects sys.stdout to stream."""
+    old_stdout = sys.stdout
+    sys.stdout = stream
+    try:
+        yield
+    finally:
+        sys.stdout = old_stdout
+
+
 class Tester(object):
     """ Class that runs all regression tests using Dymola.
 
@@ -89,6 +122,12 @@ class Tester(object):
     :param tool: {``dymola``, ``omc``, ``jmodelica``}.  Default is ``dymola``, specifies the
         tool to use for running the regression test with :func:`~buildingspy.development.Tester.run`.
     :param cleanup: bool (default=True).  Specify whether to delete temporary directories.
+    :param comp_tool: string (default='funnel'). Specify the comparison tool ('funnel' or 'legacy').
+    :param tol: float or dict (default=1E-3). Comparison tolerance: if a float is provided, it is
+        considered as an absolute tolerance along y axis (and x axis if comp_tool='funnel'). If a dict
+        is provided, keys must be ('ax', 'ay') for absolute tolerance or ('rx', 'ry') for relative tolerance.
+    :param skip_verification: boolean (default ``False``).
+       If ``True``, unit test results are not verified against reference points.
 
     This class can be used to run all regression tests.
 
@@ -133,11 +172,15 @@ class Tester(object):
        >>> myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
        >>> rt.setLibraryRoot(myMoLib)
        >>> rt.run() # doctest: +ELLIPSIS
+       No package specified or no unit test found for the specified package. All unit tests of the root package will be run.
        Using ... of ... processors to run unit tests for dymola.
        Number of models   : ...
                  blocks   : 0
                  functions: 0
        Generated ... regression tests.
+       <BLANKLINE>
+       Comparison files output by funnel are stored in the directory 'funnel_comp' of size ... MB.
+       Run 'report' method of class 'Tester' to access a summary of the comparison results.
        <BLANKLINE>
        Script that runs unit tests had 0 warnings and 0 errors.
        <BLANKLINE>
@@ -181,19 +224,22 @@ class Tester(object):
     which is read from the `.mo` file. However, with `rtol`, this
     value can be overwritten.
     Note that this syntax is still experimental and may be changed.
-
     """
 
-    def __init__(self, check_html=True, tool="dymola", cleanup=True):
-        """ Constructor.
-        """
-        import multiprocessing
-        import buildingspy.io.reporter as rep
+    def __init__(
+        self,
+        check_html=True,
+        tool="dymola",
+        cleanup=True,
+        comp_tool='funnel',
+        tol=1E-3,
+        skip_verification=False,
+    ):
+        """ Constructor."""
         if tool == 'jmodelica':
-            import buildingspy.development.error_dictionary_jmodelica as e
+            e = error_dictionary_jmodelica
         else:
-            import buildingspy.development.error_dictionary_dymola as e
-
+            e = error_dictionary_dymola
         # --------------------------
         # Class variables
         self._checkHtml = check_html
@@ -234,12 +280,51 @@ class Tester(object):
         # Flag to delete temporary directories.
         self._deleteTemporaryDirectories = cleanup
 
-        # Flag to use existing results instead of running a simulation
+        # Flag to use existing results instead of running a simulation.
         self._useExistingResults = False
+
+        # Flag to compare results against reference points for JModelica.
+        self._skip_verification = skip_verification
+        #self._skip_verification = True
+
+        # Comparison tool.
+        self._comp_tool = comp_tool
+
+        # Absolute (a) or relative (r) tolerance in x and y: scalar or dict.
+        self._tol = {}
+        if isinstance(
+                tol, numbers.Real):  # if scalar, considered as absolute tolerance value for x an y
+            self._tol['ax'] = tol
+            self._tol['ay'] = tol
+        elif isinstance(tol, dict):
+            self._tol = tol
+        else:
+            raise TypeError('Parameter tol must be a number or a dict.')
+        for k in ['ax', 'ay', 'rx', 'ry']:  # fill with None if undefined
+            try:
+                self._tol[k]
+            except KeyError:
+                self._tol[k] = None
+        if self._comp_tool == 'legacy' and self._tol['ay'] is None:
+            raise ValueError(
+                'Using legacy comparison tool: absolute tolerance along y axis must be specified.')
+
+        # Data structures for storing comparison data.
+        self._comp_info = []
+        self._comp_log_file = "comparison-{}.log".format(tool)
+        self._comp_dir = "funnel_comp"
+
+        # (Delete and) Create directory for storing funnel data.
+        # Done by run method to allow for runing report method without having to rerun simulations.
+
+        # Path of templates for HTML report and plot.
+        self._REPORT_TEMPLATE = os.path.join(
+            os.path.dirname(__file__), os.path.pardir, 'templates', 'datatable.html')
+        self._PLOT_TEMPLATE = os.path.join(
+            os.path.dirname(__file__), os.path.pardir, 'templates', 'plot.html')
 
         # Write result dictionary that is used by OpenModelica's regression testing
 #        self.writeOpenModelicaResultDictionary()
-
         '''
         List of dicts, each dict with all meta-information about a single model to be tested.
         keys equal to the ``*.mos`` file name, and values
@@ -266,6 +351,38 @@ class Tester(object):
 
         # By default, do not show the GUI of the simulator
         self._showGUI = False
+
+    def report(self, timeout=600, browser=None, autoraise=True, comp_file=None):
+        """Builds and displays HTML report.
+
+        Serves until timeout (s) or KeyboardInterrupt.
+        """
+        if self._comp_tool != 'funnel':
+            raise ValueError('Report is only available with comp_tool="funnel".')
+
+        report_file = 'report.html'
+        plot_file = os.path.join(self._comp_dir, 'plot.html')
+
+        with open(self._REPORT_TEMPLATE, 'r') as f:
+            template = f.read()
+        content = re.sub(r'\$SIMULATOR_LOG', self._comp_log_file, template)
+        content = re.sub(r'\$COMP_DIR', self._comp_dir, content)
+        server = pyfunnel.MyHTTPServer(
+            ('',
+             0),
+            pyfunnel.CORSRequestHandler,
+            str_html=content,
+            url_html='funnel',
+            browse_dir=os.getcwd())
+
+        # Pre-build HTML plot file.
+        with open(self._PLOT_TEMPLATE, 'r') as f:
+            template = f.read()
+        content = re.sub(r'\$SERVER_PORT', str(server.server_port), template)
+        with open(plot_file, 'w') as f:
+            f.write(content)
+
+        server.browse(browser=browser, timeout=60 * 15)
 
     def get_unit_test_log_file(self):
         """ Return the name of the log file of the unit tests, such as ``unitTests-jmodelica.log`` or ``unitTests-dymola.log``.
@@ -786,8 +903,6 @@ class Tester(object):
                                 Separate package names with a period.
 
         """
-        import re
-
         def _get_attribute_value(line, keyword, dat):
             """ Get the value of an attribute in the `.mos` file.
 
@@ -816,8 +931,6 @@ class Tester(object):
         # which case we return doing nothing.
         # This is needed because methods append to the dictionary, which
         # can lead to double entries.
-# if len(self._data) > 0:
-# return
         roo_pac = root_package if root_package is not None else os.path.join(
             self._libHome, 'Resources', 'Scripts', 'Dymola')
         for root, _, files in os.walk(roo_pac):
@@ -920,6 +1033,8 @@ class Tester(object):
                             dat['FMUName'] = dat['FMUName'] + ".fmu"
 
                         # Plot variables are only used for those models that need to be simulated.
+                        # For JModelica, if dat['jmodelica']['simulate'] == False:
+                        #   dat['ResultVariables'] is reset to [] in _add_experiment_specifications
                         if dat['mustSimulate']:
                             plotVars = []
                             iLin = 0
@@ -944,7 +1059,13 @@ class Tester(object):
                                 s += "results in the regression tests.\n"
                                 self._reporter.writeError(s)
 
-                            dat['ResultVariables'] = plotVars
+                            # Store grouped plot variables without duplicates.
+                            # (Duplicates happen when the same y variables are plotted against
+                            # different x variables.)
+                            dat['ResultVariables'] = []
+                            for v_i in plotVars:
+                                if v_i not in dat['ResultVariables']:
+                                    dat['ResultVariables'].append(v_i)
 
                             # search for the result file
                             for lin in Lines:
@@ -955,9 +1076,15 @@ class Tester(object):
                                     # resultFile entry.
                                     matFil = matFil + '.mat'
                                     break
+
+                            if self._modelica_tool == 'jmodelica':
+                                matFil = '{}_result.mat'.format(
+                                    re.sub(r'\.', '_', dat['model_name']))
+
                             # Some *.mos file only contain plot commands, but no simulation.
                             # Hence, if 'resultFile=' could not be found, try to get the file that
                             # is used for plotting.
+                            # cf. BUG
                             if len(matFil) == 0:
                                 for lin in Lines:
                                     if 'filename=\"' in lin:
@@ -977,7 +1104,7 @@ class Tester(object):
                     if dat['mustSimulate'] or dat['mustExportFMU']:
                         self._data.append(dat)
 
-        # Make sure we found at least one unit test
+        # Make sure we found at least one unit test.
         if self.get_number_of_tests() == old_len:
             msg = """Did not find any regression tests in '%s'.""" % root_package
             self._reporter.writeError(msg)
@@ -987,8 +1114,9 @@ class Tester(object):
         if self._reporter.getNumberOfErrors() > 0:
             raise ValueError("Error when setting up unit tests.")
 
-        # Add the experiment specifications to the data
+        # Add the experiment specifications to the data.
         self._add_experiment_specifications()
+
         return
 
     def _add_experiment_specifications(self):
@@ -1036,17 +1164,19 @@ class Tester(object):
                                     val = con_dat[self._modelica_tool][s]
                                     if s == 'simulate':
                                         all_dat[self._modelica_tool][s] = val
-                                        # Write a warning if a model is not translated
-                                        if not val:
-                                            self._reporter.writeOutput(
-                                                "{}: Requested to be excluded from translation".format(
-                                                    all_dat['model_name']))
-                                    elif s == 'translate':
-                                        all_dat['jmodelica'][s] = val
                                         # Write a warning if a model is not simulated
                                         if not val:
                                             self._reporter.writeOutput(
                                                 "{}: Requested to be excluded from simulation".format(
+                                                    all_dat['model_name']))
+                                            # Reset plot variables
+                                            all_dat['ResultVariables'] = []
+                                    elif s == 'translate':
+                                        all_dat['jmodelica'][s] = val
+                                        # Write a warning if a model is not translated
+                                        if not val:
+                                            self._reporter.writeOutput(
+                                                "{}: Requested to be excluded from translation".format(
                                                     all_dat['model_name']))
                                     else:
                                         all_dat[self._modelica_tool][s] = val
@@ -1060,7 +1190,7 @@ class Tester(object):
             Since Dymola writes all ``*.fmu`` and ``*.mat`` files to the current working directory,
             duplicate file names would cause a translation or simulation to overwrite the files
             of a previous test. This would make it impossible to check the FMU export
-            and to compare the results to previously obtained results.
+            and to compare the results to previously obtained results.na
 
             If there are duplicate ``.fmu`` and ``*.mat`` file names used, then this method raises
             a ``ValueError`` exception.
@@ -1101,8 +1231,7 @@ class Tester(object):
         return [tMin + float(i) / (nPoi - 1) * (tMax - tMin) for i in range(nPoi)]
 
     def _getSimulationResults(self, data, warnings, errors):
-        """
-        Get the simulation results for a single unit test.
+        """Get the simulation results for a single unit test.
 
         :param data: The class that contains the data structure for the simulation results.
         :param warning: A list to which all warnings will be appended.
@@ -1112,9 +1241,6 @@ class Tester(object):
         a list of dictionaries. Each element of the list contains a dictionary
         of results that need to be printed together.
         """
-        from buildingspy.io.outputfile import Reader
-        from buildingspy.io.postprocess import Plotter
-
         def extractData(y, step):
             # Replace the last element with the last element in time,
             # [::step] may not extract the last time stamp, in which case
@@ -1125,11 +1251,17 @@ class Tester(object):
 
         # Get the working directory that contains the ".mat" file
         fulFilNam = os.path.join(data['ResultDirectory'], self.getLibraryName(), data['ResultFile'])
+        if self._modelica_tool == 'jmodelica':
+            fulFilNam = os.path.join(data['ResultDirectory'], data['ResultFile'])
         ret = []
         try:
-            r = Reader(fulFilNam, "dymola")
+            r = Reader(fulFilNam, self._modelica_tool)
         except IOError as e:
             errors.append("Failed to read %s generated by %s.\n%s\n" %
+                          (fulFilNam, data['ScriptFile'], e))
+            return ret
+        except ValueError as e:  # BUG #9
+            errors.append("Error while reading %s generated by %s.\n%s\n" %
                           (fulFilNam, data['ScriptFile'], e))
             return ret
 
@@ -1139,7 +1271,11 @@ class Tester(object):
                 time = []
                 val = []
                 try:
-                    (time, val) = r.values(var)
+                    var_mat = var
+                    # Matrix variables in JModelica are stored in mat file with no space e.g. [1,1].
+                    if self._modelica_tool == 'jmodelica':
+                        var_mat = re.sub(' ', '', var_mat)
+                    (time, val) = r.values(var_mat)
                     # Make time grid to which simulation results
                     # will be interpolated.
                     # This reduces the data that need to be stored.
@@ -1195,100 +1331,48 @@ class Tester(object):
         a list of dictionaries.
         In case of an error, this method returns `None`.
         """
-        import buildingspy.io.outputfile as of
-
         # Get the working directory that contains the ".log" file
         fulFilNam = os.path.join(data['ResultDirectory'],
                                  self.getLibraryName(), data['TranslationLogFile'])
-        return of.get_model_statistics(fulFilNam, "dymola")
+        return of.get_model_statistics(fulFilNam, self._modelica_tool)
 
-    def areResultsEqual(self, tOld, yOld, tNew, yNew, varNam, filNam):
-        """ Return `True` if the data series are equal within a tolerance.
-
-        :param tOld: List of old time values.
-        :param yOld: Old simulation results.
-        :param tNew: Time stamps of new results.
-        :param yNew: New simulation results.
-        :param varNam: Variable name, used for reporting.
-        :param filNam: File name, used for reporting.
-        :return: A list with ``False`` if the results are not equal, and the time
-                 of the maximum error, and a warning message or `None`.
-                 In case of errors, the time of the maximum error may by `None`.
-        """
-        import numpy as np
-        from buildingspy.io.postprocess import Plotter
-
-        def getTimeGrid(t, nPoi=self._nPoi):
-            if len(t) == 2:
-                return self._getTimeGrid(t[0], t[-1], nPoi)
-            elif len(t) == nPoi:
-                return t
-            else:
-                s = "%s: The new time grid has %d points, but it must have 2 or %d points.\n\
-            Stop processing.\n" % (filNam, len(tNew), nPoi)
-                raise ValueError(s)
-
-        if (abs(tOld[-1] - tNew[-1]) > 1E-5):
-            msg = """%s: The new results and the reference results have a different end time.
-            tNew = [%d, %d]
-            tOld = [%d, %d]""" % (filNam, tNew[0], tNew[-1], tOld[0], tOld[-1])
-            return (False, min(tOld[-1], tNew[-1]), msg)
-
-        if (abs(tOld[0] - tNew[0]) > 1E-5):
-            msg = """%s: The new results and the reference results have a different start time.
-            tNew = [%d, %d]
-            tOld = [%d, %d]""" % (filNam, tNew[0], tNew[-1], tOld[0], tOld[-1])
-            return (False, min(tOld[0], tNew[0]), msg)
-
-        timMaxErr = 0
-
-        tol = 1E-3  # Tolerance
-
+    def legacy_comp(self, tOld, yOld, tNew, yNew, tGriOld, tGriNew, varNam, filNam, tol):
         # Interpolate the new variables to the old time stamps
         #
-        # The next test may be true if a simulation stopped with an error prior to
-        # producing sufficient data points
-        if len(yNew) < len(yOld) and len(yNew) > 2:
-            warning = """%s: %s has fewer data points than reference results.
-len(yOld) = %d,
-len(yNew) = %d
-Skipping error checking for this variable.""" % (filNam, varNam, len(yOld), len(yNew))
-            return (False, None, warning)
-
         if len(yNew) > 2:
-            # Some reference results contain already a time grid,
-            # whereas others only contain the first and last time stamp.
-            # Hence, we make sure to have the right time grid before we
-            # call the interpolation.
-            tGriOld = getTimeGrid(tOld, len(yNew))
-            tGriNew = getTimeGrid(tNew, min(len(yNew), self._nPoi))
             try:
                 yInt = Plotter.interpolate(tGriOld, tGriNew, yNew)
             except (IndexError, ValueError):
-                em = """Data series have different length:
-File=%s,
-variable=%s,
-len(tGriOld) = %d,
-len(tGriNew) = %d,
-len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
+                em = (
+                    "Data series have different length:\n"
+                    "File=%s\n"
+                    "variable=%s\n"
+                    "len(tGriOld) = %d\n"
+                    "len(tGriNew) = %d\n"
+                    "len(yNew)    = %d\n") % (filNam,
+                                              varNam,
+                                              len(tGriOld),
+                                              len(tGriNew),
+                                              len(yNew))
                 self._reporter.writeError(em)
                 raise ValueError(em)
         else:
             yInt = [yNew[0], yNew[0]]
 
-        # If the variable is heatPort.T or heatPort.Q_flow, with lenght=2, then
+        # If the variable is heatPort.T or heatPort.Q_flow, with length=2, then
         # it has been evaluated as a parameter in the Buildings library. In the Annex60
         # library, this may be a variable as the Buildings library uses a more efficient
         # implementation of the heatPort. Hence, we test for this special case, and
         # store the parameter as if it were a variable so that the reference result are not
         # going to be changed.
+        # (Not needed for funnel: can deal with len(yNew) != len(yOld))
         if (varNam.endswith("heatPort.T") or varNam.endswith("heatPort.Q_flow")) and (
                 len(yInt) == 2) and len(yOld) != len(yInt):
             yInt = np.ones(len(yOld)) * yInt[0]
 
         # Compute error for the variable with name varNam
         if len(yOld) != len(yInt):
-            # If yOld has two points, by yInt has more points, then
+            # If yOld has two points, but yInt has more points, then
             # extrapolate yOld to nPoi
             t = self._getTimeGrid(tOld[0], tOld[-1], self._nPoi)
             if len(yOld) == 2 and len(yInt) == self._nPoi:
@@ -1298,12 +1382,14 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             elif len(yInt) == 2 and len(yOld) == self._nPoi:
                 yInt = Plotter.interpolate(t, [tOld[0], tOld[-1]], yInt)
             else:
-                raise ValueError("""Program error, yOld and yInt have different lengths.
-  Result file : %s
-  Variable    : %s
-  len(yOld)=%d
-  len(yInt)=%d
-  Stop processing.""" % (filNam, varNam, len(yOld), len(yInt)))
+                raise ValueError((
+                    "Program error, yOld and yInt have different lengths.\n"
+                    "Result file : %s\n"
+                    "Variable    : %s\n"
+                    "len(yOld)=%d\n"
+                    "len(yInt)=%d\n"
+                    "Stop processing.\n") % (filNam, varNam, len(yOld), len(yInt))
+                )
 
         errAbs = np.zeros(len(yInt))
         errRel = np.zeros(len(yInt))
@@ -1320,6 +1406,9 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             else:
                 errRel[i] = 0
             errFun[i] = errAbs[i] + errRel[i]
+
+        t_err_max, warning = 0, None
+
         if max(errFun) > tol:
             iMax = 0
             eMax = 0
@@ -1328,17 +1417,296 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                     eMax = errFun[i]
                     iMax = i
             tGri = self._getTimeGrid(tOld[0], tOld[-1], self._nPoi)
-            timMaxErr = tGri[iMax]
+            t_err_max = tGri[iMax]
             warning = filNam + ": " + varNam + " has absolute and relative error = " + \
                 ("%0.3e" % max(errAbs)) + ", " + ("%0.3e" % max(errRel)) + ".\n"
             if self._isParameter(yInt):
                 warning += "             %s is a parameter.\n" % varNam
             else:
-                warning += "             Maximum error is at t = %s\n" % str(timMaxErr)
+                warning += "             Maximum error is at t = %s\n" % str(t_err_max)
 
-            return (False, timMaxErr, warning)
+        return (t_err_max, warning)
+
+    def funnel_comp(
+            self,
+            tOld,
+            yOld,
+            tNew,
+            yNew,
+            varNam,
+            filNam,
+            model_name,
+            tol,
+            data_idx,
+            keep_dir=True):
+        t_err_max, warning = 0, None
+
+        tmp_dir = tempfile.mkdtemp()
+        log_stdout = io.StringIO()
+        with _stdout_redirector(log_stdout):
+            exitcode = pyfunnel.compareAndReport(
+                xReference=tOld,
+                yReference=yOld,
+                xTest=tNew,
+                yTest=yNew,
+                outputDirectory=tmp_dir,
+                atolx=tol['ax'],
+                atoly=tol['ay'],
+                rtolx=tol['rx'],
+                rtoly=tol['ry'],
+            )
+        log_content = log_stdout.getvalue()
+        log_content = re.sub(r'(^.*Warning:\s+)|(Error:\s+)', '', log_content)
+        log_stdout.close()
+
+        if exitcode != 0:
+            warning = "While processing file {} for variable {}: {}".format(
+                filNam, varNam, log_content)
+            test_passed = False
+            funnel_success = False
         else:
-            return (True, timMaxErr, None)
+            err_path = os.path.join(tmp_dir, 'errors.csv')
+            err_arr = np.genfromtxt(err_path, delimiter=',', skip_header=1).transpose()
+            err_max = np.max(err_arr[1])  # difference between y test value and funnel bounds
+            idx_err_max = np.where(err_arr[1] == err_max)[0][0]
+            t_err_max = err_arr[0][idx_err_max]
+            test_passed = (err_max == 0)
+            if err_max > 0:
+                warning = (
+                    "{}: {} exceeds funnel tolerance with absolute error = {:.3e}. "
+                ).format(filNam, varNam, err_max)
+                if self._isParameter(yOld):
+                    warning += "{} is a parameter.\n".format(varNam)
+                else:
+                    warning += "Maximum error is at t = {}\n".format(t_err_max)
+            funnel_success = True
+
+        if keep_dir and funnel_success:
+            target_path = os.path.join(self._comp_dir, '{}_{}'.format(filNam, varNam))
+            shutil.move(tmp_dir, target_path)
+        else:
+            target_path = None
+            shutil.rmtree(tmp_dir)
+
+        idx = self._init_comp_info(model_name, filNam)
+        self._update_comp_info(idx, varNam, target_path, test_passed, t_err_max, warning, data_idx)
+
+        return (t_err_max, warning)
+
+    def _init_comp_info(self, model_name, file_name):
+        """Update self._comp_info with dict to store comparison results for model_name.
+
+        Returns: index of dict storing results for model_name.
+        """
+        try:
+            idx = next(i for i, el in enumerate(self._comp_info) if el['model'] == model_name)
+        except StopIteration:  # no model_name found in self._comp_info (case dymola): create
+            self._comp_info.append({
+                "model": model_name,
+            })
+            idx = len(self._comp_info) - 1
+        try:
+            self._comp_info[idx]["comparison"]
+        except KeyError:  # no comparison data stored for model_name: create
+            self._comp_info[idx]["comparison"] = {
+                "variables": [],
+                "funnel_dirs": [],
+                "test_passed": [],
+                "file_name": file_name,
+                "success_rate": 0,
+                "var_groups": [],  # index of the group of variables belonging to the same subplot
+                "warnings": [],
+                "t_err_max": [],
+            }
+
+        return idx
+
+    def _update_comp_info(
+            self,
+            idx,
+            var_name,
+            funnel_dir,
+            test_passed,
+            t_err_max,
+            warning,
+            data_idx,
+            var_group=None):
+        """Store comparison info for var_name in self._comp_info."""
+
+        # NOTE: data_idx can differ from idx if simulation failed or variable not available.
+
+        should_update = True
+
+        if var_group is None:
+            try:
+                var_group = next(
+                    iv for iv, vl in enumerate(
+                        self._data[data_idx]["ResultVariables"]) if var_name in vl)
+            except StopIteration:
+                if warning == 'skip':
+                    should_update = False
+                else:
+                    warning = ("Variable {} not found in ResultVariables for model {}. "
+                               "However it was found in reference results file.\n").format(
+                        var_name, self._comp_info[idx]['model'])
+                    self._reporter.writeWarning(warning)
+
+        if should_update:
+            self._comp_info[idx]["comparison"]["variables"].append(var_name)
+            self._comp_info[idx]["comparison"]["funnel_dirs"].append(funnel_dir)
+            self._comp_info[idx]["comparison"]["test_passed"].append(
+                int(test_passed))  # Boolean not JSON serializable
+            self._comp_info[idx]["comparison"]["t_err_max"].append(t_err_max)
+            self._comp_info[idx]["comparison"]["warnings"].append(warning)
+            self._comp_info[idx]["comparison"]["var_groups"].append(var_group)
+            self._comp_info[idx]["comparison"]["success_rate"] = sum(
+                self._comp_info[idx]["comparison"]["test_passed"]) / len(self._comp_info[idx]["comparison"]["variables"])
+
+        return None
+
+    def areResultsEqual(self, tOld, yOld, tNew, yNew, varNam, data_idx):
+        """ Return `True` if the data series are equal within a tolerance.
+
+        :param tOld: List of old time values.
+        :param yOld: Old simulation results.
+        :param tNew: Time stamps of new results.
+        :param yNew: New simulation results.
+        :param varNam: Variable name, used for reporting.
+        :param filNam: File name, used for reporting.
+        :param model_name: Model name, used for reporting.
+        :return: A list with ``False`` if the results are not equal, and the time
+                 of the maximum error, and a warning message or `None`.
+                 In case of errors, the time of the maximum error may by `None`.
+        """
+        try:
+            filNam = self._data[data_idx]['ResultFile']
+            model_name = self._data[data_idx]['model_name']
+        except BaseException:
+            filNam = 'Undefined file name'
+            model_name = 'Undefined model name'
+
+        def getTimeGrid(t, nPoi=self._nPoi):
+            if len(t) == 2:
+                return self._getTimeGrid(t[0], t[-1], nPoi)
+            elif len(t) == nPoi:
+                return t
+            else:
+                s = ("While processing file {} for variable {}: the new time grid has {} points "
+                     "but it must have 2 or {} points.\n"
+                     "Stop processing.\n").format(
+                    filNam,
+                    varNam,
+                    len(tNew),
+                    nPoi)
+                raise ValueError(s)
+
+        # Check if the first and last time stamp are equal
+        tolTim = 1E-3  # Tolerance for time
+        if (abs(tOld[0] - tNew[0]) > tolTim) or abs(tOld[-1] - tNew[-1]) > tolTim:
+            warning = (
+                "While processing file {} for variable {}: different simulation time interval between "
+                "reference and test data.\n"
+                "Old reference points are for {} <= t <= {}\n"
+                "New reference points are for {} <= t <= {}\n").format(
+                    filNam, varNam, tOld[0], tOld[len(tOld) - 1], tNew[0], tNew[len(tNew) - 1])
+            test_passed = False
+            t_err_max = None
+
+        if (abs(tOld[-1] - tNew[-1]) > 1E-5):
+            warning = (
+                "While processing file {} for variable {}: different end time between "
+                "reference and test data.\n"
+                "tNew = [{}, {}]\n"
+                "tOld = [{}, {}]\n").format(filNam, varNam, tNew[0], tNew[-1], tOld[0], tOld[-1])
+            test_passed = False
+            t_err_max = min(tOld[-1], tNew[-1])
+
+        if (abs(tOld[0] - tNew[0]) > 1E-5):
+            warning = (
+                "While processing file {} for variable {}: different start time between "
+                "reference and test data.\n"
+                "tNew = [{}, {}]\n"
+                "tOld = [{}, {}]\n").format(filNam, varNam, tNew[0], tNew[-1], tOld[0], tOld[-1])
+            test_passed = False
+            t_err_max = min(tOld[0], tNew[0])
+
+        # The next test may be true if a simulation stopped with an error prior to
+        # producing sufficient data points
+        if len(yNew) < len(yOld) and len(yNew) > 2:
+            warning = (
+                "While processing file {} for variable {}: fewer data points than reference results.\n"
+                "len(yOld) = {}\n"
+                "len(yNew) = {}\n"
+                "Skipping error checking for this variable.\n").format(
+                filNam, varNam, len(yOld), len(yNew))
+            test_passed = False
+            t_err_max = None
+
+        if self._comp_tool == 'legacy':
+            if len(yNew) > 2:
+                # Some reference results contain already a time grid,
+                # whereas others only contain the first and last time stamp.
+                # Hence, we make sure to have the right time grid before we
+                # call the interpolation.
+                tGriOld = getTimeGrid(tOld, len(yNew))
+                tGriNew = getTimeGrid(tNew, min(len(yNew), self._nPoi))
+            else:
+                tGriOld = tOld
+                tGriNew = tNew
+        elif self._comp_tool == 'funnel':
+            # funnel_comp only needs len(t) = len(y) for Old and New time series
+            if len(yNew) > 2:
+                tNew = getTimeGrid(tNew, len(yNew))
+            if len(yOld) > 2:
+                tOld = getTimeGrid(tOld, len(yOld))
+
+        if self._comp_tool == 'legacy':
+            try:  # In case a warning has been raised before: no comparison performed.
+                warning
+            except NameError:
+                t_err_max, warning = self.legacy_comp(
+                    tOld, yOld, tNew, yNew, tGriOld, tGriNew, varNam, filNam, self._tol['ay'])
+        else:
+            idx = self._init_comp_info(model_name, filNam)
+            comp_tmp = self._comp_info[idx]['comparison']
+            try:
+                # Check if the variable has already been tested. (This might happen if the variable is used in several
+                # subplots of different plots.)
+                # In this case we do not want to perform the comparison again but we still want the variable to be
+                # plotted several times as it was originally intended: update _comp_info
+                # with stored data.
+                var_idx = comp_tmp['variables'].index(varNam)
+                fun_dir = comp_tmp['funnel_dirs'][var_idx]
+                test_passed = comp_tmp['test_passed'][var_idx]
+                # variable group already stored for this variable
+                var_group_str = comp_tmp['var_groups'][var_idx]
+                # Now looking for the new variable group to be stored.
+                var_group = var_group_str + 1 + next(iv for iv, vl in enumerate(
+                    self._data[data_idx]["ResultVariables"][(var_group_str + 1):]) if varNam in vl)
+                warning = comp_tmp['warnings'][var_idx]
+                t_err_max = comp_tmp['t_err_max'][var_idx]
+                self._update_comp_info(
+                    idx,
+                    varNam,
+                    fun_dir,
+                    test_passed,
+                    t_err_max,
+                    warning,
+                    data_idx,
+                    var_group)
+            except (ValueError, StopIteration):
+                try:  # In case a warning has been raised before: no comparison performed.
+                    self._update_comp_info(
+                        idx, varNam, None, test_passed, t_err_max, warning, data_idx)
+                except NameError:
+                    t_err_max, warning = self.funnel_comp(
+                        tOld, yOld, tNew, yNew, varNam, filNam, model_name, self._tol, data_idx)
+
+        test_passed = True
+        if warning is not None:
+            test_passed = False
+
+        return (test_passed, t_err_max, warning)
 
     def _isParameter(self, dataSeries):
         """ Return `True` if `dataSeries` is from a parameter.
@@ -1524,7 +1892,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                 r = True
         return r
 
-    def _compareResults(self, matFilNam, oldRefFulFilNam, y_sim, y_tra, refFilNam, ans):
+    def _compareResults(self, data_idx, oldRefFulFilNam, y_sim, y_tra, refFilNam, ans):
         """ Compares the new and the old results.
 
             :param matFilNam: Matlab file name.
@@ -1534,11 +1902,13 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             :param y_tra: A dictionary with the translation statistics.
             :param refFilNam: Name of the file with reference results (used for reporting only).
             :param ans: A previously entered answer, either ``y``, ``Y``, ``n`` or ``N``.
+            :param model_name: Model name, used for reporting.
             :return: A triple ``(updateReferenceData, foundError, ans)`` where ``updateReferenceData``
                      and ``foundError`` are booleans, and ``ans`` is ``y``, ``Y``, ``n`` or ``N``.
 
         """
-        import matplotlib.pyplot as plt
+        matFilNam = self._data[data_idx]['ResultFile']
+        model_name = self._data[data_idx]['model_name']
 
         # Reset answer, unless it is set to Y or N
         if not (ans == "Y" or ans == "N"):
@@ -1565,29 +1935,20 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         # Iterate over the pairs of data that are to be plotted together
         timOfMaxErr = dict()
         noOldResults = []  # List of variables for which no old results have been found
+
+        list_var_ref = [el for el in y_ref.keys() if not re.search('time', el, re.I)]
+        list_var_sim = [el for gr in y_sim for el in gr.keys() if not re.search('time', el, re.I)]
+        for var in list_var_ref:  # reference variables not available in simulation results
+            if var not in list_var_sim:
+                idx = self._init_comp_info(model_name, matFilNam)
+                # We skip warning considering it is only the case for x variables against which y variables
+                # are plotted.
+                self._update_comp_info(idx, var, None, False, 0, 'skip', data_idx)
+
         for pai in y_sim:
             t_sim = pai['time']
             if not verifiedTime:
                 verifiedTime = True
-
-                # Check if the first and last time stamp are equal
-                tolTim = 1E-3  # Tolerance for time
-                if (abs(t_ref[0] - t_sim[0]) > tolTim) or abs(t_ref[-1] - t_sim[-1]) > tolTim:
-                    print(
-                        "*** Warning: Different simulation time interval in {} and {}".format(refFilNam, matFilNam))
-                    print("             Old reference points are for {} <= t <= {}".format(
-                        t_ref[0], t_ref[len(t_ref) - 1]))
-                    print("             New reference points are for {} <= t <= {}".format(
-                        t_sim[0], t_sim[len(t_sim) - 1]))
-                    foundError = True
-                    while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
-                        print("             Accept new results and update reference file in library?")
-                        ans = input(
-                            "             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
-                    if ans == "y" or ans == "Y":
-                        # Write results to reference file
-                        updateReferenceData = True
-                        return (updateReferenceData, foundError, ans)
 
             # The time interval is the same for the stored and the current data.
             # Check the accuracy of the simulation.
@@ -1601,9 +1962,11 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                         else:
                             t = t_sim
 
-                        (res, timMaxErr, warning) = self.areResultsEqual(t_ref, y_ref[varNam],
-                                                                         t, pai[varNam],
-                                                                         varNam, matFilNam)
+                        # Compare times series.
+                        (res, timMaxErr, warning) = self.areResultsEqual(
+                            t_ref, y_ref[varNam], t, pai[varNam], varNam, data_idx
+                        )
+
                         if warning:
                             self._reporter.writeWarning(warning)
                         if not res:
@@ -1623,11 +1986,12 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         # 2. The old reference results have statistics, and they are the same or different.
         # Statistics of the simulation model
         newStatistics = False
-        for stage in ['initialization', 'simulation']:
-            # Updated newStatistics if there is a new statistic. The other
-            # arguments remain unchanged.
-            newStatistics = self._check_statistics(
-                old_results, y_tra, stage, foundError, newStatistics, matFilNam)
+        if self._modelica_tool != 'jmodelica':
+            for stage in ['initialization', 'simulation']:
+                # Updated newStatistics if there is a new statistic. The other
+                # arguments remain unchanged.
+                newStatistics = self._check_statistics(
+                    old_results, y_tra, stage, foundError, newStatistics, matFilNam)
 
         # If the users selected "Y" or "N" (to not accept or reject any new results) in previous tests,
         # or if the script is run in batch mode, then don't plot the results.
@@ -1636,72 +2000,111 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         if (foundError or newStatistics) and (not self._batch) and (
                 not ans == "N") and (not ans == "Y"):
             print("             For {},".format(refFilNam))
-            print("             accept new file and update reference files? (Close plot window to continue.)")
-            nPlo = len(y_sim)
-            iPlo = 0
-            plt.clf()
-            for pai in y_sim:
-                iPlo += 1
+            print("             accept new file and update reference files?")
 
-                plt.subplot(nPlo, 1, iPlo)
-                # Iterate over the variable names that are to be plotted together
-                color = ['k', 'r', 'b', 'g', 'c', 'm']
-                iPai = -1
-                t_sim = pai['time']
-                for varNam in list(pai.keys()):
-                    iPai += 1
-                    if iPai > len(color) - 1:
-                        iPai = 0
-                    if varNam != 'time':
-                        if self._isParameter(pai[varNam]):
-                            plt.plot([min(t_sim), max(t_sim)], pai[varNam],
-                                     color[iPai] + '-', label='New ' + varNam)
-                        else:
-                            plt.plot(self._getTimeGrid(t_sim[0], t_sim[-1], len(pai[varNam])),
-                                     pai[varNam],
-                                     color[iPai] + '-', label='New ' + varNam)
-
-                        # Test to make sure that this variable has been found in the old results
-                        if noOldResults.count(varNam) == 0:
-                            if self._isParameter(y_ref[varNam]):
-                                # for parameters, don't just draw a dot, as these are hard to see as
-                                # they are on the box
-                                plt.plot([min(t_ref), max(t_ref)], y_ref[varNam],
-                                         color[iPai] + 'x', markersize=10, label='Old ' + varNam)
-                            else:
-                                plt.plot(self._getTimeGrid(t_ref[0], t_ref[-1], len(y_ref[varNam])),
-                                         y_ref[varNam],
-                                         color[iPai] + '.', label='Old ' + varNam)
-                        # Plot the location of the maximum error
-                        if varNam in timOfMaxErr:
-                            plt.axvline(x=timOfMaxErr[varNam])
-
-                leg = plt.legend(loc='right', fancybox=True)
-                leg.get_frame().set_alpha(0.5)  # transparent legend
-                plt.xlabel('time')
-                plt.grid(True)
-                if iPlo == 1:
-                    plt.title(matFilNam)
-
-            # Store the graphic objects.
-            # The first plot is shown using the default size.
-            # Afterwards, the plot is resized to have the same size as
-            # the previous plot.
-            gcf = plt.gcf()
-            if self._figSize is not None:
-                gcf.set_size_inches(self._figSize, forward=True)
-
-            # Display the plot
-            plt.show()
-            # Store the size for reuse in the next plot.
-            self._figSize = gcf.get_size_inches()
+            if self._comp_tool == 'legacy':
+                print("(Close plot window to continue.)")
+                self.legacy_plot(y_sim, t_ref, y_ref, noOldResults, timOfMaxErr, matFilNam)
+            else:
+                self.funnel_plot(model_name)
 
             while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
                 ans = input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
+
             if ans == "y" or ans == "Y":
                 # update the flag
                 updateReferenceData = True
+
         return (updateReferenceData, foundError, ans)
+
+    def funnel_plot(self, model_name, browser=None):
+        idx = next(i for i, el in enumerate(self._comp_info) if el['model'] == model_name)
+        comp_data = self._comp_info[idx]['comparison']
+        dict_var_info = defaultdict(list)
+        list_files = []
+        for iv, v in enumerate(comp_data['variables']):
+            dict_var_info[v].append({'group': comp_data['var_groups'][iv],
+                                     'dir': comp_data['funnel_dirs'][iv]})
+        for d in dict_var_info.values():  # performed outside previous iteration for right order
+            for el in ['reference.csv', 'test.csv', 'errors.csv']:
+                # d3.js will only load first element
+                list_files.append('{}/{}'.format(d[0]['dir'], el))
+        # Custom the plot.
+        plot_title = comp_data['file_name']
+        max_plot_per100 = 4
+        height = 100 * \
+            (1 + max(0, max(comp_data['var_groups']) - max_plot_per100) / max_plot_per100)
+        err_plot_height = 0.18 * 100 / height
+
+        with open(self._PLOT_TEMPLATE, 'r') as f:
+            template = f.read()
+        content = re.sub(r'\$PAGE_TITLE', plot_title, template)
+        content = re.sub(r'\$TITLE', plot_title, content)
+        content = re.sub(r'\$DICT_VAR_INFO', json.dumps(dict_var_info), content)
+        content = re.sub(r'\$HEIGHT', '{}%'.format(height), content)
+        content = re.sub(r'\$ERR_PLOT_HEIGHT', str(err_plot_height), content)
+        server = pyfunnel.MyHTTPServer(('', 0), pyfunnel.CORSRequestHandler,
+                                       str_html=content, url_html='funnel')
+        server.browse(list_files, browser=browser)
+
+    def legacy_plot(self, y_sim, t_ref, y_ref, noOldResults, timOfMaxErr, matFilNam):
+        nPlo = len(y_sim)
+        iPlo = 0
+        plt.clf()
+        for pai in y_sim:
+            iPlo += 1
+            plt.subplot(nPlo, 1, iPlo)
+            # Iterate over the variable names that are to be plotted together
+            color = ['k', 'r', 'b', 'g', 'c', 'm']
+            iPai = -1
+            t_sim = pai['time']
+            for varNam in list(pai.keys()):
+                iPai += 1
+                if iPai > len(color) - 1:
+                    iPai = 0
+                if varNam != 'time':
+                    if self._isParameter(pai[varNam]):
+                        plt.plot([min(t_sim), max(t_sim)], pai[varNam],
+                                 color[iPai] + '-', label='New ' + varNam)
+                    else:
+                        plt.plot(self._getTimeGrid(t_sim[0], t_sim[-1], len(pai[varNam])),
+                                 pai[varNam],
+                                 color[iPai] + '-', label='New ' + varNam)
+
+                    # Test to make sure that this variable has been found in the old results
+                    if noOldResults.count(varNam) == 0:
+                        if self._isParameter(y_ref[varNam]):
+                            # for parameters, don't just draw a dot, as these are hard to see as
+                            # they are on the box
+                            plt.plot([min(t_ref), max(t_ref)], y_ref[varNam],
+                                     color[iPai] + 'x', markersize=10, label='Old ' + varNam)
+                        else:
+                            plt.plot(self._getTimeGrid(t_ref[0], t_ref[-1], len(y_ref[varNam])),
+                                     y_ref[varNam],
+                                     color[iPai] + '.', label='Old ' + varNam)
+                    # Plot the location of the maximum error
+                    if varNam in timOfMaxErr:
+                        plt.axvline(x=timOfMaxErr[varNam])
+
+            leg = plt.legend(loc='right', fancybox=True)
+            leg.get_frame().set_alpha(0.5)  # transparent legend
+            plt.xlabel('time')
+            plt.grid(True)
+            if iPlo == 1:
+                plt.title(matFilNam)
+
+        # Store the graphic objects.
+        # The first plot is shown using the default size.
+        # Afterwards, the plot is resized to have the same size as
+        # the previous plot.
+        gcf = plt.gcf()
+        if self._figSize is not None:
+            gcf.set_size_inches(self._figSize, forward=True)
+
+        # Display the plot
+        plt.show()
+        # Store the size for reuse in the next plot.
+        self._figSize = gcf.get_size_inches()
 
     def are_statistics_equal(self, s1, s2):
         """ Compare the simulation statistics `s1` and `s2` and
@@ -1891,16 +2294,12 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         # Return a dictionary with all warnings
         return lis
 
-    def _check_jmodelica_runs(self):
+    def _verify_jmodelica_runs(self):
         """ Check the results of the JModelica tests.
 
             This function returns 0 if no errors occurred,
             or a positive non-zero number otherwise.
         """
-        import os
-        import glob
-        import json
-
         iTra = 0
         iSim = 0
         iOmiSim = 0
@@ -1973,26 +2372,15 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         with open(self._simulator_log_file, 'w', encoding="utf-8-sig") as sim_log:
             sim_log.write("{}\n".format(json.dumps(all_res, indent=2, sort_keys=True)))
 
-        # Write summary messages
-        for _, v in list(self._error_dict.get_dictionary().items()):
-            counter = v['counter']
-            if counter > 0:
-                print(v['summary_message'].format(counter))
+        return self._writeSummaryMessages()
 
-        self._reporter.writeOutput("Script that runs unit tests had " +
-                                   str(self._reporter.getNumberOfWarnings()) +
-                                   " warnings and " +
-                                   str(self._reporter.getNumberOfErrors()) +
-                                   " errors.\n")
-        sys.stdout.write("See '{}' for details.\n".format(self._simulator_log_file))
-
-        if self._reporter.getNumberOfErrors() > 0:
-            return 1
-        if self._reporter.getNumberOfWarnings() > 0:
-            return 2
-        else:
-            self._reporter.writeOutput("Unit tests completed successfully.\n")
-            return 0
+    def _get_size_dir(self, start_path):
+        total_size = 0
+        for dirpath, dirnames, filenames in os.walk(start_path):
+            for f in filenames:
+                fp = os.path.join(dirpath, f)
+                total_size += os.path.getsize(fp)
+        return total_size
 
     def _checkReferencePoints(self, ans):
         """ Check reference points from each regression test and compare it with the previously
@@ -2002,10 +2390,10 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             If there is no ``.mat`` file of the reference points in the library home folder,
             ask the user whether it should be generated.
 
-            This function return 1 if reading reference results or reading the translation
+            This function returns ``1`` if reading reference results or reading the translation
             statistics failed. In this case, the calling method should not attempt to do
-            further processing. The function returns 0 if there were no problems. In
-            case of wrong simulation results, this function also returns 0, as this is
+            further processing. The function returns ``0`` if there were no problems. In
+            case of wrong simulation results, this function also returns ``0``, as this is
             not considered an error in executing this function.
         """
         # Check if the directory
@@ -2016,32 +2404,58 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             os.makedirs(refDir)
 
         ret_val = 0
-        for data in self._data:
+        for data_idx, data in enumerate(self._data):
             # Only check data that need to be simulated. This excludes the FMU export
             # from this test.
-            if self._includeFile(data['ScriptFile']) and data['mustSimulate']:
+            # Nota for JModelica: data['jmodelica']['simulate']=True is an additional condition.
+            check_condition = self._includeFile(data['ScriptFile']) and data['mustSimulate']
+            if self._modelica_tool == 'jmodelica':
+                check_condition = check_condition and data[self._modelica_tool]['simulate']
+            if check_condition:
                 get_user_prompt = True
                 # Convert 'aa/bb.mos' to 'aa_bb.txt'
                 mosFulFilNam = os.path.join(self.getLibraryName(), data['ScriptFile'])
                 mosFulFilNam = mosFulFilNam.replace(os.sep, '_')
                 refFilNam = os.path.splitext(mosFulFilNam)[0] + ".txt"
-
                 try:
-                    # extract reference points from the ".mat" file corresponding to "filNam"
+                    # extract simulation results from the ".mat" file corresponding to "filNam"
                     warnings = []
                     errors = []
                     # Get the simulation results
                     y_sim = self._getSimulationResults(data, warnings, errors)
                     # Get the translation statistics
-                    y_tra = self._getTranslationStatistics(data, warnings, errors)
+                    if self._modelica_tool != 'jmodelica':
+                        y_tra = self._getTranslationStatistics(data, warnings, errors)
+                    else:
+                        y_tra = None
                     for entry in warnings:
                         self._reporter.writeWarning(entry)
                     for entry in errors:
                         self._reporter.writeError(entry)
-                        # If there were errors when getting the results or translation statistics,
-                        # then return
+                    if len(errors) > 0:
+                        # If there were errors when getting the results or translation statistics
+                        # update self._comp_info to log errors and turn flags to return
+                        matFilNam = data['ResultFile']
+                        model_name = data['model_name']
+                        idx = self._init_comp_info(model_name, matFilNam)
+                        list_var_ref = [el for gr in data['ResultVariables'] for el in gr]
+                        for iv, var_ref in enumerate(list_var_ref):
+                            if iv == 0:
+                                self._update_comp_info(
+                                    idx,
+                                    var_ref,
+                                    None,
+                                    False,
+                                    0,
+                                    'Translation, simulation or extracting simulation results failed. {}'.format(
+                                        '\n'.join(errors)),
+                                    data_idx)
+                            else:
+                                self._update_comp_info(idx, var_ref, None, False, 0, '', data_idx)
+                        # flags to return
                         ret_val = 1
                         get_user_prompt = False
+
                 except UnicodeDecodeError as e:
                     em = "UnicodeDecodeError({0}): {1}".format(e.errno, e)
                     em += "Output file of " + data['ScriptFile'] + " is excluded from unit tests.\n"
@@ -2055,16 +2469,16 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                         # Reset answer, unless it is set to Y or N
                         if not (ans == "Y" or ans == "N"):
                             ans = "-"
-
                         updateReferenceData = False
-                        # check if reference results already exists in library
+                        # check if reference results already exist in library
                         oldRefFulFilNam = os.path.join(refDir, refFilNam)
                         # If the reference file exists, and if the reference file contains
                         # results, compare the results.
                         if os.path.exists(oldRefFulFilNam):
-                            # compare the new reference data with the old one
+                            # print('Found results for ' + oldRefFulFilNam)
                             [updateReferenceData, _, ans] = self._compareResults(
-                                data['ResultFile'], oldRefFulFilNam, y_sim, y_tra, refFilNam, ans)
+                                data_idx, oldRefFulFilNam, y_sim, y_tra, refFilNam, ans,
+                            )
                         else:
                             # Reference file does not exist
                             print(
@@ -2084,6 +2498,20 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                 if not data['mustExportFMU']:
                     self._reporter.writeWarning(
                         "Output file of " + data['ScriptFile'] + " is excluded from result test.")
+
+        # Write all results to comparison log file and inform user.
+        with open(self._comp_log_file, 'w', encoding="utf-8-sig") as comp_log:
+            comp_log.write("{}\n".format(json.dumps(self._comp_info, indent=2, sort_keys=True)))
+
+        if self._comp_tool == 'funnel':
+            s = (
+                "Comparison files output by funnel are stored in the directory "
+                "'{}' of size {:.1f} MB.\nRun 'report' method of class 'Tester' "
+                "to access a summary of the comparison results.\n").format(
+                self._comp_dir,
+                self._get_size_dir(self._comp_dir) * 1e-6)
+            self._reporter.writeOutput(s)
+
         return ret_val
 
     def _performTranslationErrorChecks(self, logFil, stat):
@@ -2164,29 +2592,42 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         if iFMU > 0:
             print("Number of models that failed to export as an FMU             : {}".format(iFMU))
 
-        # Write summary messages
+        return self._writeSummaryMessages()
+
+    def _writeSummaryMessages(self, silent=True):
+        """Write summary messages"""
+
         for _, v in list(self._error_dict.get_dictionary().items()):
             counter = v['counter']
-            if counter > 0:
+            if counter > 0 and not silent:
                 print(v['summary_message'].format(counter))
 
-        self._reporter.writeOutput("Script that runs unit tests had " +
-                                   str(self._reporter.getNumberOfWarnings()) +
-                                   " warnings and " +
-                                   str(self._reporter.getNumberOfErrors()) +
-                                   " errors.\n")
-        sys.stdout.write("See '{}' for details.\n".format(self._simulator_log_file))
+        if not silent:
+            self._reporter.writeOutput(
+                "Script that runs unit tests had {} warnings and {} errors.\n".format(
+                    self._reporter.getNumberOfWarnings(),
+                    self._reporter.getNumberOfErrors(),
+                )
+            )
+            sys.stdout.write("See '{}' for details.\n".format(self._simulator_log_file))
 
         if self._reporter.getNumberOfErrors() > 0:
-            return 1
-        if self._reporter.getNumberOfWarnings() > 0:
-            return 2
+            retval = 1
+        elif self._reporter.getNumberOfWarnings() > 0:
+            retval = 2
         else:
-            self._reporter.writeOutput("Unit tests completed successfully.\n")
-            return 0
+            retval = 0
+            if not silent:
+                self._reporter.writeOutput("Unit tests completed successfully.\n")
+        sys.stdout.flush()
+
+        return retval
 
     def get_number_of_tests(self):
         """ Returns the number of regression tests that will be run for the current library and configuration.
+
+            Note: Needs to be run within the run method (where elements of self._data requiring no simulation
+            are first removed).
         """
         return len(self._data)
 
@@ -2248,7 +2689,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         return retVal
 
     def _removePlotCommands(self, mosFilNam):
-        """ Remove all plot commands from the mos file.
+        """Remove all plot commands from the mos file.
 
         :param mosFilNam: The name of the ``*.mos`` file
 
@@ -2275,8 +2716,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                 filWri.write(lines[linWri[i]])
 
     def _write_runscripts(self):
-        """
-        Create the runAll.mos scripts, one per processor (self._nPro)
+        """Create the runAll.mos scripts, one per processor (self._nPro).
 
         The commands in the script depend on the tool: 'dymola', 'jmodelica' or 'omc'
         """
@@ -2307,15 +2747,17 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             self.setNumberOfThreads(nTes)
 
         # For files that do not require a simulation, we need to set the path of the result files.
-        for dat in self._data:
-            if not dat['mustSimulate'] and not dat['mustExportFMU']:
-                matFil = dat['ResultFile']
-                for allDat in self._data:
-                    if allDat['mustSimulate']:
-                        resFil = allDat['ResultFile']
-                        if resFil == matFil:
-                            dat['ResultDirectory'] = allDat['ResultDirectory']
-                            break
+        # Not useful anymore since _write_runscripts is called only after the files that do not require
+        # a simulation have already been removed from self_data (see run method).
+        # for dat in self._data:
+        #     if not dat['mustSimulate'] and not dat['mustExportFMU']:
+        #         matFil = dat['ResultFile']
+        #         for allDat in self._data:
+        #             if allDat['mustSimulate']:
+        #                 resFil = allDat['ResultFile']
+        #                 if resFil == matFil:
+        #                     dat['ResultDirectory'] = allDat['ResultDirectory']
+        #                     break
 
         for iPro in range(self._nPro):
 
@@ -2554,7 +2996,9 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             elif self._modelica_tool == 'jmodelica':
                 data = []
                 for i in range(iPro, nTes, self._nPro):
-                    # Copy data used for this process only
+                    # Store ResultDirectory into data dict.
+                    self._data[i]['ResultDirectory'] = self._temDir[iPro]
+                    # Copy data used for this process only.
                     data.append(self._data[i])
                     nUniTes = nUniTes + 1
                 self._write_jmodelica_runfile(self._temDir[iPro], data)
@@ -2606,7 +3050,9 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                 else:
                     dat['jmodelica']['rtol'] = 1E-6
             # Note that if dat['mustSimulate'] == false, then only the FMU export is tested, but no
-            # simulation should be done
+            # simulation should be done.
+            # filter argument must respect glob syntax ([ is escaped with []]) + JModelica mat file
+            # stores matrix variables with no space e.g. [1,1].
             txt = tem_mod.render(
                 model=model,
                 ncp=dat['jmodelica']['ncp'],
@@ -2614,7 +3060,10 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                 solver=dat['jmodelica']['solver'],
                 simulate=dat['jmodelica']['simulate'] and dat['mustSimulate'],
                 time_out=dat['jmodelica']['time_out'],
-                filter=result_variables)
+                filter=[re.sub('\[|\]',
+                               lambda m: '[{}]'.format(m.group()),
+                               re.sub(' ', '', x)) for x in result_variables]
+            )
             file_name = os.path.join(directory, "{}.py".format(model.replace(".", "_")))
             with open(file_name, mode="w", encoding="utf-8") as fil:
                 fil.write(txt)
@@ -2632,9 +3081,6 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
 
     # Create the list of temporary directories that will be used to run the unit tests
     def _setTemporaryDirectories(self):
-        import tempfile
-        import shutil
-
         self._temDir = []
 
         # Make temporary directory, copy library into the directory and
@@ -2656,7 +3102,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
     def run(self):
         """ Run all regression tests and checks the results.
 
-        :return: 0 if no errros and no warnings occurred during the regression tests,
+        :return: 0 if no errors and no warnings occurred during the regression tests,
                  otherwise a non-zero value.
 
         This method
@@ -2677,28 +3123,17 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         - returns 0 if no errors and no warnings occurred, or non-zero otherwise.
 
         """
-        import buildingspy.development.validator as v
-
-        import multiprocessing
-        import shutil
-        import time
-        import functools
-        import json
-        import glob
-
-        # import pdb;pdb.set_trace()
-
         self.checkPythonModuleAvailability()
 
         if self.get_number_of_tests() == 0:
+            print('No package specified or no unit test found for the specified package. '
+                  'All unit tests of the root package will be run.')
             self.setDataDictionary(self._rootPackage)
 
-        # Remove all data that do not require a simulation or an FMU export.
-        # Otherwise, some processes may have no simulation to run and then
-        # the json output file would have an invalid syntax
-        for ele in self._data[:]:
-            if not (ele['mustSimulate'] or ele['mustExportFMU']):
-                self._data.remove(ele)
+        # (Delete and) Create directory for storing funnel data.
+        if self._comp_tool == 'funnel':
+            shutil.rmtree(self._comp_dir, ignore_errors=True)
+            os.makedirs(self._comp_dir)
 
         # Reset the number of processors to use no more processors than there are
         # examples to be run
@@ -2734,6 +3169,11 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
         # Initialize data structure to check results
         self._initialize_error_dict()
 
+        # Inform the user if regression tests are skipped
+        if self._skip_verification:
+            self._reporter.writeOutput(
+                "Time series of simulation results will not be verified.")
+
         # Print number of processors
         print("Using {!s} of {!s} processors to run unit tests for {!s}.".format(
             self._nPro,
@@ -2755,6 +3195,7 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                 tem_dir.append(os.path.join(di, libNam))
 
         self._write_runscripts()
+
         if not self._useExistingResults:
             if self._modelica_tool == 'dymola':
                 if self._showGUI:
@@ -2770,8 +3211,11 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
                 po.map(functools.partial(runSimulation,
                                          cmd=cmd),
                        [x for x in tem_dir])
+                po.close()
+                po.join()
             else:
-                runSimulation(tem_dir[0], cmd)
+                if len(self._data) > 0:
+                    runSimulation(tem_dir[0], cmd)
 
             # Concatenate simulator output files into one file
             with open(self._simulator_log_file, mode="w", encoding="utf-8") as logFil:
@@ -2836,26 +3280,48 @@ len(yNew)    = %d.""" % (filNam, varNam, len(tGriOld), len(tGriNew), len(yNew))
             if retVal != 0:
                 retVal = 4
 
-        if self._modelica_tool == 'dymola':
-            r = self._checkReferencePoints(ans)
-            if r != 0:
-                retVal = 4
-
-        if self._modelica_tool == 'jmodelica':
-            if retVal == 0:
-                retVal = self._check_jmodelica_runs()
-            else:
-                self._check_jmodelica_runs()
-
-        # Check for errors
-        if self._modelica_tool == 'dymola':
             if retVal == 0:
                 retVal = self._checkSimulationError(self._simulator_log_file)
             else:
                 self._checkSimulationError(self._simulator_log_file)
 
-        # Delete temporary directories, or write message that they are not deleted
+            if not self._skip_verification:
+                r = self._checkReferencePoints(ans)
+                if r != 0:  # In case of comparison error. Comparison warnings are handled
+                    if retVal != 0:  # We keep the translation or simulation error code.
+                        pass
+                    else:
+                        retVal = 4
 
+        if self._modelica_tool == 'jmodelica':
+            if retVal == 0:
+                retVal = self._verify_jmodelica_runs()
+            else:
+                self._verify_jmodelica_runs()
+
+            if not self._skip_verification:
+                # For JModelica: store available translation and simulation info
+                # into self._comp_info used for reporting.
+                # To be implemented for Dymola once translation and simulation info
+                # are available in JSON format (HTML file to large to parse for now).
+                with open(self._simulator_log_file, 'r') as f:
+                    self._comp_info = simplejson.loads(f.read())
+
+                r = self._checkReferencePoints(ans='N')
+                if r != 0:
+                    if retVal != 0:  # We keep the translation or simulation error code.
+                        pass
+                    else:
+                        retVal = 4
+
+        # Update exit code after comparing with reference points
+        # and print summary messages.
+        if retVal == 0:
+            retVal = self._writeSummaryMessages(silent=False)
+        else:  # We keep the translation or simulation error code.
+            self._writeSummaryMessages(silent=False)
+
+        # Delete temporary directories, or write message that they are not deleted
         for d in self._temDir:
             if self._deleteTemporaryDirectories:
                 shutil.rmtree(d)

@@ -1,0 +1,5 @@
+[submodule "buildingspy/funnel"]
+	path = buildingspy/funnel
+	url = https://github.com/lbl-srg/funnel.git
+	branch = master
+
