@@ -75,6 +75,8 @@ class IBPSA(object):
                                 os.path.join(ibpsa_dir, "*.mos"),
                                 os.path.join(ibpsa_dir, "*.mof"),
                                 os.path.join(ibpsa_dir, "nohup.out"),
+                                os.path.join(ibpsa_dir, "funnel_comp", "plot.html"),
+                                os.path.join(ibpsa_dir, "funnel_comp", "**", "*.csv"),
                                 os.path.join(ibpsa_dir, "Fluid", "package.mo"),
                                 os.path.join(ibpsa_dir, "Resources",
                                              "Scripts", "Dymola", "ConvertIBPSA_from_*.mos"),
