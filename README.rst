@@ -21,7 +21,7 @@ The license is at buildingspy/license.txt
 Cloning Instructions
 ~~~~~~~~~~~~~~~~~~~~
 
-Version `2.0.0` includes the comparison tool `funnel` as a `git` submodule.
+Version ``2.0.0`` includes the comparison tool ``funnel`` as a ``git`` submodule.
 
-* To clone the repository for the first time run: `git clone --recurse-submodules https://github.com/lbl-srg/BuildingsPy.git`
-* If you have already cloned the repository, checkout the master branch and run: `git submodule update --init --recursive`
+* To clone the repository for the first time run: ``git clone --recurse-submodules https://github.com/lbl-srg/BuildingsPy.git``
+* If you have already cloned the repository, checkout the master branch and run: ``git submodule update --init --recursive``
