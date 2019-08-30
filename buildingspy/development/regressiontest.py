@@ -259,8 +259,10 @@ class Tester(object):
         else:
             raise ValueError(
                 "Value of 'tool' of constructor 'Tester' must be 'dymola', 'omc' or 'jmodelica'. Received '{}'.".format(tool))
-        # File to which the console output of the simulator is written to
+        # File to which the console output of the simulator is written
         self._simulator_log_file = "simulator-{}.log".format(tool)
+        #  File to which the console output of the simulator of failed simulations is written
+        self._failed_simulator_log_file = "failed-simulator-{}.log".format(tool)
         # File to which statistics is written to
         self._statistics_log = "statistics.json"
         self._nPro = multiprocessing.cpu_count()
@@ -2555,12 +2557,21 @@ class Tester(object):
         iCom = 0
         iSim = 0
         iFMU = 0
+
+        # Header for dump file
+        with open(self._failed_simulator_log_file, "w") as f:
+            f.write("Automatically generated BuildingsPy dump file for failed translations.\n\n")
+
         # Check for errors
+        hasTranslationErrors=False
         for ele in stat:
+            hasTranslationError=False
             if 'check' in ele and ele['check']['result'] is False:
+                hasTranslationError=True
                 iChe = iChe + 1
                 self._reporter.writeError("Model check failed for '%s'." % ele["model"])
             if 'simulate' in ele and ele['simulate']['result'] is False:
+                hasTranslationError=True
                 iSim = iSim + 1
                 self._reporter.writeError("Simulation failed for '%s'." %
                                           ele["simulate"]["command"])
@@ -2585,13 +2596,24 @@ class Tester(object):
                         self._reporter.writeWarning(v["model_message"].format(ele[key]["command"]))
                         self._error_dict.increment_counter(k)
 
+            if hasTranslationError:
+                hasTranslationErrors=True
+                with open(self._failed_simulator_log_file, "a") as f:
+                    f.write("===============================\n")
+                    f.write("=====START OF NEW LOG FILE=====\n")
+                    f.write("===============================\n")
+                    with open(logFil, "r") as f2:
+                        f.write(f2.read())
+                    f.write("\n\n\n")            
+
         if iChe > 0:
             print("Number of models that failed check                           : {}".format(iChe))
         if iSim > 0:
             print("Number of models that failed to simulate                     : {}".format(iSim))
         if iFMU > 0:
             print("Number of models that failed to export as an FMU             : {}".format(iFMU))
-
+        if hasTranslationErrors: 
+            print("Check or simulation failed, see {} for more details about the failed models.".format(self._failed_simulator_log_file))
         return self._writeSummaryMessages()
 
     def _writeSummaryMessages(self, silent=True):
