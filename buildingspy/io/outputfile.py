@@ -172,8 +172,8 @@ class Reader(object):
     """
 
     def __init__(self, fileName, simulator):
-        if simulator != "dymola":
-            raise ValueError('Argument "simulator" needs to be set to "dymola".')
+        if simulator not in ['dymola', 'jmodelica']:
+            raise ValueError('Argument "simulator" needs to be set to "dymola" or "jmodelica".')
 
         self.fileName = fileName
         self._data_ = DyMatFile(fileName)

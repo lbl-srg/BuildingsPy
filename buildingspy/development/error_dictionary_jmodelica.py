@@ -47,12 +47,12 @@ class ErrorDictionary(ed.ErrorDictionary):
             'summary_message': "Number of models with assuming 'each'                           : {}\n"}
 
         # Search for strings such as Iteration variable "chi_y.QCon_flow" is missing start value!
-        self._error_dict["iteration variable missing start value"] = {
-            'tool_message': "is missing start value",
-            'counter': 0,
-            #            'buildingspy_var': "iIteMis",
-            #            'model_message': "Keyword 'each' applied to scalar in '{}'.",
-            'summary_message': "Number of models with missing start value for iteration variable: {}\n"}
+#        self._error_dict["iteration variable missing start value"] = {
+#            'tool_message': "is missing start value",
+#            'counter': 0,
+        #            'buildingspy_var': "iIteMis",
+        #            'model_message': "Keyword 'each' applied to scalar in '{}'.",
+#            'summary_message': "Number of models with missing start value for iteration variable: {}\n"}
 
         # Search for strings such as Iteration variable "chi_y.QCon_flow" is missing start value!
         self._error_dict["redeclare of non-replaceable"] = {

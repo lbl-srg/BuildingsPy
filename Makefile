@@ -2,7 +2,7 @@ BPDIR=buildingspy
 BPDOC=doc
 
 PEP8_ARGS=--recursive --max-line-length=100 \
-  --exclude="*/thirdParty/*" \
+  --exclude="*/thirdParty/*,*/funnel/*" \
   --ignore="E402" \
   --aggressive --aggressive --aggressive \
   buildingspy
@@ -43,19 +43,25 @@ doctest:
 dist:	clean doctest unittest doc
 	@# Make sure README.rst are consistent
 	cmp -s README.rst buildingspy/README.rst
-	python setup.py sdist --formats=zip
-	python setup.py bdist_egg
+	python setup.py sdist bdist_wheel
 	rm -rf build
 	rm -rf buildingspy.egg-info
-	twine upload dist/*
 	@echo "Source distribution is in directory dist"
 	@echo "To post to server, run postBuildingsPyToWeb.sh"
+	@echo "To upload to PyPi, run 'twine upload dist/*'"
 
 
 upload-test:
 	@# Make sure README.rst are consistent
 	cmp -s README.rst buildingspy/README.rst
-	python setup.py sdist --formats=gztar,zip bdist_egg upload -r https://testpypi.python.org/pypi
+	twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+#	python setup.py sdist --formats=gztar,zip bdist_egg upload -r https://testpypi.python.org/pypi
+
+upload:
+	@# Make sure README.rst are consistent
+	cmp -s README.rst buildingspy/README.rst
+	twine upload dist/*
+
 
 clean-dist:
 	rm -rf build

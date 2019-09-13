@@ -97,12 +97,12 @@ createPlot(id=1, y={"Test.x"});
             {'ret_val': 2,
              'mo_content': """Modelica.Blocks.Sources.Constant b[2](k=0) ;""",
              'description': "Missing each on array of components."},
-            {'ret_val': 2,
+            {'ret_val': 0,
              'mo_content': """
                               Real x;
                               equation
                               Modelica.Math.exp(x)=1;""",
-             'description': "Missing start value."},
+             'description': "Missing start value, which should be ignored."},
             {'ret_val': 0,
              'mo_content': """
                               Real x(start=0);
@@ -128,7 +128,7 @@ createPlot(id=1, y={"Test.x"});
             print("*** Running test for '{}'".format(des))
             mo_content = test['mo_content']
             dir_name = self._write_test(mo_content)
-            rt = r.Tester(check_html=False, tool="jmodelica")
+            rt = r.Tester(skip_verification=True, check_html=False, tool="jmodelica")
             rt.setLibraryRoot(dir_name)
             ret_val = rt.run()
             # Check return value to see if test suceeded
@@ -145,7 +145,7 @@ createPlot(id=1, y={"Test.x"});
 
     def test_regressiontest(self):
         import buildingspy.development.regressiontest as r
-        rt = r.Tester(check_html=False, tool="jmodelica")
+        rt = r.Tester(skip_verification=True, check_html=False, tool="jmodelica")
         myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
         rt.deleteTemporaryDirectories(True)
         rt.setLibraryRoot(myMoLib)

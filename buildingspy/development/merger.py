@@ -16,6 +16,7 @@ from future import standard_library
 standard_library.install_aliases()
 from builtins import *
 from io import open
+from shutil import copyfile
 # end of from future import
 
 
@@ -74,7 +75,11 @@ class IBPSA(object):
                                 os.path.join(ibpsa_dir, "*.mos"),
                                 os.path.join(ibpsa_dir, "*.mof"),
                                 os.path.join(ibpsa_dir, "nohup.out"),
+                                os.path.join(ibpsa_dir, "funnel_comp", "plot.html"),
+                                os.path.join(ibpsa_dir, "funnel_comp", "**", "*.csv"),
                                 os.path.join(ibpsa_dir, "Fluid", "package.mo"),
+                                os.path.join(ibpsa_dir, "Resources",
+                                             "Scripts", "Dymola", "ConvertIBPSA_from_*.mos"),
                                 os.path.join(ibpsa_dir, "Resources",
                                              "Scripts", "travis", "Makefile"),
                                 os.path.join(ibpsa_dir, "Resources",
@@ -130,15 +135,61 @@ class IBPSA(object):
             :param rep: Dictionary where each key is the string to be replaced in the new file with its value.
         """
         from collections import OrderedDict
-        with open(src, mode="r", encoding="utf-8-sig") as f_sou:
-            lines = list()
-            for _, lin in enumerate(f_sou):
-                for ori, new in list(rep.items()):
-                    lin = lin.replace(ori, new)
-                lines.append(lin)
+
+        lines = list()
+        try:
+            with open(src, mode="r", encoding="utf-8") as f_sou:
+                for _, lin in enumerate(f_sou):
+                    for ori, new in list(rep.items()):
+                        lin = lin.replace(ori, new)
+                    lines.append(lin)
+        except UnicodeDecodeError as e:
+            msg = "UnicodeDecodeError when processing '{}'. {}".format(f_sou, e.reason)
+            e.reason = msg
+            raise e
+        # Remove library specific documentation.
+        lines = self.remove_library_specific_documentation(lines, self._new_library_name)
         # Write the lines to the new file
         with open(des, mode="w", encoding="utf-8") as f_des:
             f_des.writelines(lines)
+
+    @staticmethod
+    def remove_library_specific_documentation(file_lines, library_name):
+        """ Remove library specific content.
+
+            For example, for the `Buildings` and `IDEAS` libraries, include the
+            section in the commented block below, but keep the comment as an html-comment
+            for other libraries.
+
+            .. code-block:: html
+
+               <!-- @include_Buildings @include_IDEAS
+               some documentation to be used for
+               Buildings and IDEAS library only.
+               -->
+
+        :param file_lines: The lines of the file to be merged.
+        :return: The lines of the files, with comments removed as indicated by the tag(s) in the comment line.
+        """
+
+        lines = list()
+        pattern_start = "<!--"
+        library_token = "@include_{}".format(library_name)
+        pattern_end = "-->"
+        search_start = True
+        for lin in file_lines:
+            if search_start and pattern_start in lin and library_token in lin:
+                # Found the start of the commented section for this library.
+                # Remove this line
+                search_start = False
+            elif (not search_start) and pattern_end in lin:
+                # Found the end of the line
+                # Reove this line
+                search_start = True
+            else:
+                lines.append(lin)
+
+        return lines
 
     @staticmethod
     def filter_files(file_list, pattern):
@@ -167,9 +218,9 @@ class IBPSA(object):
             if len(pat) is not 2:
                 ValueError("Pattern {} is not supported.".format(pattern))
             # Make sure it has the same number of directories
-            ret = filter(lambda x: (x.count(os.path.sep) == pattern.count(os.path.sep)) and
-                         x.startswith(pat[0]) and
-                         x.endswith(pat[1]),
+            ret = filter(lambda x: (x.count(os.path.sep) == pattern.count(os.path.sep))
+                         and x.startswith(pat[0])
+                         and x.endswith(pat[1]),
                          file_list)
             return list(ret)
         else:
@@ -334,7 +385,20 @@ class IBPSA(object):
                         copiedFiles.append(new_file)
                         rep = dict()
                         rep[self._src_library_name] = self._new_library_name
-                        self._copy_rename(srcFil, new_file, rep)
+                        # If it is a binary file, simply copy it. Otherwise, the copy/replace/write
+                        # will read, search for a string and rewrite the file, leading to a Unicode error.
+                        # This happens for example for the file
+                        # build/html/_static/bootstrap-3.3.6/fonts/glyphicons-halflings-regular.woff2
+                        bin_ext = [".woff", ".woff2", ".ttf", ".eot"]
+                        is_binary = False
+                        for ext in bin_ext:
+                            if srcFil.endswith(ext):
+                                is_binary = True
+                                break
+                        if is_binary:
+                            copyfile(srcFil, new_file)
+                        else:
+                            self._copy_rename(srcFil, new_file, rep)
 
                 # Copy all other files. This may be images, C-source, libraries etc.
                 else:

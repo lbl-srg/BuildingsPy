@@ -24,6 +24,8 @@ pip-log.txt
 .coverage
 .tox
 nosetests.xml
+funnel_comp/*
+*.log
 
 # Translations
 
@@ -34,4 +36,5 @@ nosetests.xml
 .pydevproject
 org.eclipse.core.resources.prefs
 .vs/
+.vscode
 .idea/

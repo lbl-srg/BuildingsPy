@@ -6,7 +6,7 @@ language: python
 
 python:
   - "2.7"
-  - "3.5"
+  - "3.6"
 
 cache: pip
 
@@ -38,13 +38,13 @@ before_install:
   - chmod +x buildingspy/tests/MyModelicaLibrary/Resources/Scripts/travis/bin/jm_ipython.sh
   - sudo cp buildingspy/tests/MyModelicaLibrary/Resources/Scripts/travis/bin/jm_ipython.sh /usr/local/bin/
   - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
-  - docker pull "$DOCKER_USERNAME"/travis_ubuntu-1804_dymola-2019fd01-x86_64
-  - docker pull "$DOCKER_USERNAME"/ubuntu-1604_jmodelica_trunk
+  - docker pull "$DOCKER_USERNAME"/travis_ubuntu-1804_dymola-2020-x86_64
+  - docker pull "$DOCKER_USERNAME"/ubuntu-1804_jmodelica_trunk
 
 install:
   - pip install --upgrade pip setuptools wheel
   - pip install --only-binary=numpy,scipy,matplotlib numpy==1.13.3 scipy==0.19.1 matplotlib==2.1.0
-  - pip install autopep8==1.4.3
+  - pip install autopep8==1.4.4
   - pip install .
 
 # Execute tests
