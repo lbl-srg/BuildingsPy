@@ -93,8 +93,8 @@ def runSimulation(worDir, cmd):
             else:
                 return 0
         except OSError as e:
-            sys.stderr.write("Execution of '" + " ".join(map(str, cmd)) + " failed.\n" +
-                             "Working directory is '" + worDir + "'.")
+            sys.stderr.write("Execution of '" + " ".join(map(str, cmd)) + " failed.\n"
+                             + "Working directory is '" + worDir + "'.")
             raise(e)
         except KeyboardInterrupt as e:
             pro.kill()
@@ -1400,9 +1400,9 @@ class Tester(object):
         for i in range(len(yInt)):
             errAbs[i] = abs(yOld[i] - yInt[i])
             if np.isnan(errAbs[i]):
-                raise ValueError('NaN in errAbs ' + varNam + " " + str(yOld[i]) +
-                                 "  " + str(yInt[i]) + " i, N " + str(i) + " --:" + str(yInt[i - 1]) +
-                                 " ++:", str(yInt[i + 1]))
+                raise ValueError('NaN in errAbs ' + varNam + " " + str(yOld[i])
+                                 + "  " + str(yInt[i]) + " i, N " + str(i) + " --:" + str(yInt[i - 1])
+                                 + " ++:", str(yInt[i + 1]))
             if (abs(yOld[i]) > 10 * tol):
                 errRel[i] = errAbs[i] / abs(yOld[i])
             else:
@@ -1715,8 +1715,8 @@ class Tester(object):
         """
         import numpy as np
         if not (isinstance(dataSeries, np.ndarray) or isinstance(dataSeries, list)):
-            raise TypeError("Program error: dataSeries must be a numpy.ndarr or a list. Received type " +
-                            str(type(dataSeries)) + ".\n")
+            raise TypeError("Program error: dataSeries must be a numpy.ndarr or a list. Received type "
+                            + str(type(dataSeries)) + ".\n")
         return (len(dataSeries) == 2)
 
     def format_float(self, value):
@@ -2563,15 +2563,15 @@ class Tester(object):
             f.write("Automatically generated BuildingsPy dump file for failed translations.\n\n")
 
         # Check for errors
-        hasTranslationErrors=False
+        hasTranslationErrors = False
         for ele in stat:
-            hasTranslationError=False
+            hasTranslationError = False
             if 'check' in ele and ele['check']['result'] is False:
-                hasTranslationError=True
+                hasTranslationError = True
                 iChe = iChe + 1
                 self._reporter.writeError("Model check failed for '%s'." % ele["model"])
             if 'simulate' in ele and ele['simulate']['result'] is False:
-                hasTranslationError=True
+                hasTranslationError = True
                 iSim = iSim + 1
                 self._reporter.writeError("Simulation failed for '%s'." %
                                           ele["simulate"]["command"])
@@ -2597,14 +2597,14 @@ class Tester(object):
                         self._error_dict.increment_counter(k)
 
             if hasTranslationError:
-                hasTranslationErrors=True
+                hasTranslationErrors = True
                 with open(self._failed_simulator_log_file, "a") as f:
                     f.write("===============================\n")
                     f.write("=====START OF NEW LOG FILE=====\n")
                     f.write("===============================\n")
                     with open(logFil, "r") as f2:
                         f.write(f2.read())
-                    f.write("\n\n\n")            
+                    f.write("\n\n\n")
 
         if iChe > 0:
             print("Number of models that failed check                           : {}".format(iChe))
@@ -2612,8 +2612,10 @@ class Tester(object):
             print("Number of models that failed to simulate                     : {}".format(iSim))
         if iFMU > 0:
             print("Number of models that failed to export as an FMU             : {}".format(iFMU))
-        if hasTranslationErrors: 
-            print("Check or simulation failed, see {} for more details about the failed models.".format(self._failed_simulator_log_file))
+        if hasTranslationErrors:
+            print(
+                "Check or simulation failed, see {} for more details about the failed models.".format(
+                    self._failed_simulator_log_file))
         return self._writeSummaryMessages()
 
     def _writeSummaryMessages(self, silent=True):
@@ -2746,8 +2748,8 @@ class Tester(object):
         def _write_translation_stats(runFil, values):
 
             # Close the bracket for the JSON object
-            runFil.write("""Modelica.Utilities.Streams.print("      }", """ +
-                         '"' + values['statisticsLog'] + '"' + ");\n")
+            runFil.write("""Modelica.Utilities.Streams.print("      }", """
+                         + '"' + values['statisticsLog'] + '"' + ");\n")
 
         def _print_end_of_json(isLastItem, fileHandle, logFileName):
             if isLastItem:
@@ -2871,8 +2873,8 @@ class Tester(object):
                             "translationLog": os.path.join(
                                 self._temDir[iPro],
                                 self.getLibraryName(),
-                                self._data[i]['model_name'] +
-                                ".translation.log").replace(
+                                self._data[i]['model_name']
+                                + ".translation.log").replace(
                                 "\\",
                                 "/"),
                             "simulatorLog": self._simulator_log_file.replace(
@@ -3545,8 +3547,8 @@ class Tester(object):
                 return retcode
 
         except OSError as e:
-            raise OSError("Execution of omc +d=initialization " + mosfile + " failed.\n" +
-                          "Working directory is '" + worDir + "'.")
+            raise OSError("Execution of omc +d=initialization " + mosfile + " failed.\n"
+                          + "Working directory is '" + worDir + "'.")
         else:
             # process the log file
             print("Logfile created: {}".format(logFilNam))
