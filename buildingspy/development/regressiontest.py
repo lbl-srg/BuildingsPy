@@ -75,6 +75,7 @@ def runSimulation(worDir, cmd):
         try:
             retcode = pro.wait()
             if retcode != 0:
+                print("*** Execution of '{}' failed".format(cmd))
                 print("*** Working directory is {}".format(worDir))
                 print("*** Command is {}\n".format(cmd))
                 print("*** Files in directory {} are\n".format(worDir))
