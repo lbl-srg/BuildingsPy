@@ -4,6 +4,7 @@
 # This script will create a json file that contains translation
 # and simulation information.
 ###############################################################
+import logging
 
 # Configure logging, see https://github.com/lbl-srg/BuildingsPy/issues/300
 logging.basicConfig(
