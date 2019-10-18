@@ -5,6 +5,12 @@
 # and simulation information.
 ###############################################################
 
+# Configure logging, see https://github.com/lbl-srg/BuildingsPy/issues/300
+logging.basicConfig(
+    level=0,
+    format='\n[%(levelname)s] (%(processName)-10s) %(message)s\n',
+)
+
 ##############################################################
 # Capture stdout of a Python function.
 # From https://stackoverflow.com/questions/24277488/in-python-how-to-capture-the-stdout-from-a-c-shared-library-to-a-variable/29834357
