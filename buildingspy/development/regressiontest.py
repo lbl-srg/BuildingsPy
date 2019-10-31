@@ -67,7 +67,7 @@ def runSimulation(worDir, cmd):
     logFilNam = os.path.join(worDir, 'stdout.log')
 #
     with open(logFilNam, mode="w", encoding="utf-8") as logFil:
-        pro = subprocess.Popen(args=cmd,
+        pro = subprocess.Popen(args=[cmd[0], worDir+"/"+cmd[1]] + cmd[2:],
                                stdout=logFil,
                                stderr=logFil,
                                shell=False,
@@ -2808,6 +2808,7 @@ class Tester(object):
                         runFil.write('Advanced.PedanticModelica = true;\n')
                     else:
                         runFil.write('Advanced.PedanticModelica = false;\n')
+                    runFil.write(('cd(\"{}/{}\");\n'.format(self._temDir[iPro], self.getLibraryName())).replace("\\", "/"))
                     runFil.write('openModel("package.mo");\n')
                 elif self._modelica_tool == 'omc':
                     runFil.write('loadModel(Modelica, {"3.2"});\n')
