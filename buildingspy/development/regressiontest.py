@@ -2808,6 +2808,14 @@ class Tester(object):
                         runFil.write('Advanced.PedanticModelica = true;\n')
                     else:
                         runFil.write('Advanced.PedanticModelica = false;\n')
+                    # Deactivate DDE
+                    runFil.write('// Deactivate DDE\n')
+                    runFil.write('    (comp, sett) = GetDymolaCompiler();\n')
+                    posDDE = "9"  # At position 9 DDE settings should be stored.
+                    runFil.write('    DDE_orig = sett[{}];\n'.format(posDDE))
+                    runFil.write('    sett[{}] = \"DDE=0\"; // Disable DDE.\n'.format(posDDE))
+                    runFil.write('    SetDymolaCompiler(comp, sett);\n')
+
                     runFil.write(('cd(\"{}/{}\");\n'.format(self._temDir[iPro], self.getLibraryName())).replace("\\", "/"))
                     runFil.write('openModel("package.mo");\n')
                 elif self._modelica_tool == 'omc':
@@ -3013,6 +3021,11 @@ class Tester(object):
                         self._removePlotCommands(absMosFilNam)
                         nUniTes = nUniTes + 1
                         iItem = iItem + 1
+                if self._modelica_tool == 'dymola':
+                    # Reset DDE to original settings
+                    runFil.write('// Reset DDE settings like before\n')
+                    runFil.write('    sett[{}] = DDE_orig;\n'.format(posDDE))
+                    runFil.write('    SetDymolaCompiler(comp, sett);\n')
                 runFil.write("exit();\n")
                 runFil.close()
             ###################################################################################
