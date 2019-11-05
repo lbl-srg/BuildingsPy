@@ -67,7 +67,8 @@ def runSimulation(worDir, cmd):
     logFilNam = os.path.join(worDir, 'stdout.log')
 #
     with open(logFilNam, mode="w", encoding="utf-8") as logFil:
-        pro = subprocess.Popen(args=cmd,
+        # Here we add worDir to cmd[1], see https://github.com/lbl-srg/BuildingsPy/issues/303
+        pro = subprocess.Popen(args=[cmd[0], worDir + "/" + cmd[1]] + cmd[2:],
                                stdout=logFil,
                                stderr=logFil,
                                shell=False,
@@ -2744,6 +2745,7 @@ class Tester(object):
 
         The commands in the script depend on the tool: 'dymola', 'jmodelica' or 'omc'
         """
+        import platform
 
         def _write_translation_stats(runFil, values):
 
@@ -2808,6 +2810,17 @@ class Tester(object):
                         runFil.write('Advanced.PedanticModelica = true;\n')
                     else:
                         runFil.write('Advanced.PedanticModelica = false;\n')
+                    # Deactivate DDE
+                    if platform.system() == "Windows":
+                        runFil.write('// Deactivate DDE\n')
+                        runFil.write('    (comp, sett) = GetDymolaCompiler();\n')
+                        posDDE = "9"  # At position 9 DDE settings should be stored.
+                        runFil.write('    DDE_orig = sett[{}];\n'.format(posDDE))
+                        runFil.write('    sett[{}] = \"DDE=0\"; // Disable DDE.\n'.format(posDDE))
+                        runFil.write('    SetDymolaCompiler(comp, sett);\n')
+
+                    runFil.write(
+                        ('cd(\"{}/{}\");\n'.format(self._temDir[iPro], self.getLibraryName())).replace("\\", "/"))
                     runFil.write('openModel("package.mo");\n')
                 elif self._modelica_tool == 'omc':
                     runFil.write('loadModel(Modelica, {"3.2"});\n')
@@ -3012,6 +3025,11 @@ class Tester(object):
                         self._removePlotCommands(absMosFilNam)
                         nUniTes = nUniTes + 1
                         iItem = iItem + 1
+                if self._modelica_tool == 'dymola' and platform.system() == 'Windows':
+                    # Reset DDE to original settings
+                    runFil.write('// Reset DDE settings like before\n')
+                    runFil.write('    sett[{}] = DDE_orig;\n'.format(posDDE))
+                    runFil.write('    SetDymolaCompiler(comp, sett);\n')
                 runFil.write("exit();\n")
                 runFil.close()
             ###################################################################################
