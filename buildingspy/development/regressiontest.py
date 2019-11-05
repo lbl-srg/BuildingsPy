@@ -2819,7 +2819,8 @@ class Tester(object):
                         runFil.write('    sett[{}] = \"DDE=0\"; // Disable DDE.\n'.format(posDDE))
                         runFil.write('    SetDymolaCompiler(comp, sett);\n')
 
-                    runFil.write(('cd(\"{}/{}\");\n'.format(self._temDir[iPro], self.getLibraryName())).replace("\\", "/"))
+                    runFil.write(
+                        ('cd(\"{}/{}\");\n'.format(self._temDir[iPro], self.getLibraryName())).replace("\\", "/"))
                     runFil.write('openModel("package.mo");\n')
                 elif self._modelica_tool == 'omc':
                     runFil.write('loadModel(Modelica, {"3.2"});\n')
