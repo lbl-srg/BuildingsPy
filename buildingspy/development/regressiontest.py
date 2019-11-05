@@ -75,26 +75,26 @@ def runSimulation(worDir, cmd):
         try:
             retcode = pro.wait()
             if retcode != 0:
+                print("*** Execution of command '{}' failed".format(cmd))
                 print("*** Working directory is {}".format(worDir))
-                print("*** Command is {}\n".format(cmd))
                 print("*** Files in directory {} are\n".format(worDir))
                 for fil in os.listdir(worDir):
                     print("     {}".format(fil))
-                print("*** stdout.log is \n")
+                print("*** The command returned the following output: \n")
                 if os.path.isfile(logFilNam):
                     with open(logFilNam, 'r') as f:
                         print(f.read())
                 else:
                     print("The file {} does not exist.\n".format(logFilNam))
-                print("*** end of stdout.log\n")
+                print("*** end of command output\n")
 
                 print("Child was terminated by signal {}".format(retcode))
                 return retcode
             else:
                 return 0
         except OSError as e:
-            sys.stderr.write("Execution of '" + " ".join(map(str, cmd)) + " failed.\n" +
-                             "Working directory is '" + worDir + "'.")
+            sys.stderr.write("Execution of '" + " ".join(map(str, cmd)) + " failed.\n"
+                             + "Working directory is '" + worDir + "'.")
             raise(e)
         except KeyboardInterrupt as e:
             pro.kill()
@@ -259,8 +259,10 @@ class Tester(object):
         else:
             raise ValueError(
                 "Value of 'tool' of constructor 'Tester' must be 'dymola', 'omc' or 'jmodelica'. Received '{}'.".format(tool))
-        # File to which the console output of the simulator is written to
+        # File to which the console output of the simulator is written
         self._simulator_log_file = "simulator-{}.log".format(tool)
+        #  File to which the console output of the simulator of failed simulations is written
+        self._failed_simulator_log_file = "failed-simulator-{}.log".format(tool)
         # File to which statistics is written to
         self._statistics_log = "statistics.json"
         self._nPro = multiprocessing.cpu_count()
@@ -1398,9 +1400,9 @@ class Tester(object):
         for i in range(len(yInt)):
             errAbs[i] = abs(yOld[i] - yInt[i])
             if np.isnan(errAbs[i]):
-                raise ValueError('NaN in errAbs ' + varNam + " " + str(yOld[i]) +
-                                 "  " + str(yInt[i]) + " i, N " + str(i) + " --:" + str(yInt[i - 1]) +
-                                 " ++:", str(yInt[i + 1]))
+                raise ValueError('NaN in errAbs ' + varNam + " " + str(yOld[i])
+                                 + "  " + str(yInt[i]) + " i, N " + str(i) + " --:" + str(yInt[i - 1])
+                                 + " ++:", str(yInt[i + 1]))
             if (abs(yOld[i]) > 10 * tol):
                 errRel[i] = errAbs[i] / abs(yOld[i])
             else:
@@ -1713,8 +1715,8 @@ class Tester(object):
         """
         import numpy as np
         if not (isinstance(dataSeries, np.ndarray) or isinstance(dataSeries, list)):
-            raise TypeError("Program error: dataSeries must be a numpy.ndarr or a list. Received type " +
-                            str(type(dataSeries)) + ".\n")
+            raise TypeError("Program error: dataSeries must be a numpy.ndarr or a list. Received type "
+                            + str(type(dataSeries)) + ".\n")
         return (len(dataSeries) == 2)
 
     def format_float(self, value):
@@ -2555,12 +2557,21 @@ class Tester(object):
         iCom = 0
         iSim = 0
         iFMU = 0
+
+        # Header for dump file
+        with open(self._failed_simulator_log_file, "w") as f:
+            f.write("Automatically generated BuildingsPy dump file for failed translations.\n\n")
+
         # Check for errors
+        hasTranslationErrors = False
         for ele in stat:
+            hasTranslationError = False
             if 'check' in ele and ele['check']['result'] is False:
+                hasTranslationError = True
                 iChe = iChe + 1
                 self._reporter.writeError("Model check failed for '%s'." % ele["model"])
             if 'simulate' in ele and ele['simulate']['result'] is False:
+                hasTranslationError = True
                 iSim = iSim + 1
                 self._reporter.writeError("Simulation failed for '%s'." %
                                           ele["simulate"]["command"])
@@ -2585,13 +2596,26 @@ class Tester(object):
                         self._reporter.writeWarning(v["model_message"].format(ele[key]["command"]))
                         self._error_dict.increment_counter(k)
 
+            if hasTranslationError:
+                hasTranslationErrors = True
+                with open(self._failed_simulator_log_file, "a") as f:
+                    f.write("===============================\n")
+                    f.write("=====START OF NEW LOG FILE=====\n")
+                    f.write("===============================\n")
+                    with open(logFil, "r") as f2:
+                        f.write(f2.read())
+                    f.write("\n\n\n")
+
         if iChe > 0:
             print("Number of models that failed check                           : {}".format(iChe))
         if iSim > 0:
             print("Number of models that failed to simulate                     : {}".format(iSim))
         if iFMU > 0:
             print("Number of models that failed to export as an FMU             : {}".format(iFMU))
-
+        if hasTranslationErrors:
+            print(
+                "Check or simulation failed, see {} for more details about the failed models.".format(
+                    self._failed_simulator_log_file))
         return self._writeSummaryMessages()
 
     def _writeSummaryMessages(self, silent=True):
@@ -2724,8 +2748,8 @@ class Tester(object):
         def _write_translation_stats(runFil, values):
 
             # Close the bracket for the JSON object
-            runFil.write("""Modelica.Utilities.Streams.print("      }", """ +
-                         '"' + values['statisticsLog'] + '"' + ");\n")
+            runFil.write("""Modelica.Utilities.Streams.print("      }", """
+                         + '"' + values['statisticsLog'] + '"' + ");\n")
 
         def _print_end_of_json(isLastItem, fileHandle, logFileName):
             if isLastItem:
@@ -2849,8 +2873,8 @@ class Tester(object):
                             "translationLog": os.path.join(
                                 self._temDir[iPro],
                                 self.getLibraryName(),
-                                self._data[i]['model_name'] +
-                                ".translation.log").replace(
+                                self._data[i]['model_name']
+                                + ".translation.log").replace(
                                 "\\",
                                 "/"),
                             "simulatorLog": self._simulator_log_file.replace(
@@ -3523,8 +3547,8 @@ class Tester(object):
                 return retcode
 
         except OSError as e:
-            raise OSError("Execution of omc +d=initialization " + mosfile + " failed.\n" +
-                          "Working directory is '" + worDir + "'.")
+            raise OSError("Execution of omc +d=initialization " + mosfile + " failed.\n"
+                          + "Working directory is '" + worDir + "'.")
         else:
             # process the log file
             print("Logfile created: {}".format(logFilNam))
