@@ -48,7 +48,7 @@ import buildingspy.io.outputfile as of
 import buildingspy.io.reporter as rep
 
 
-    def runSimulation(worDir, cmd):
+def runSimulation(worDir, cmd):
     """ Run the simulation.
 
     :param worDir: The working directory.
