@@ -48,7 +48,7 @@ import buildingspy.io.outputfile as of
 import buildingspy.io.reporter as rep
 
 
-def runSimulation(worDir, cmd):
+    def runSimulation(worDir, cmd):
     """ Run the simulation.
 
     :param worDir: The working directory.
@@ -67,7 +67,8 @@ def runSimulation(worDir, cmd):
     logFilNam = os.path.join(worDir, 'stdout.log')
 #
     with open(logFilNam, mode="w", encoding="utf-8") as logFil:
-        pro = subprocess.Popen(args=[cmd[0], worDir+"/"+cmd[1]] + cmd[2:],
+        # Here we add worDir to cmd[1], see https://github.com/lbl-srg/BuildingsPy/issues/303
+        pro = subprocess.Popen(args=[cmd[0], worDir + "/" + cmd[1]] + cmd[2:],
                                stdout=logFil,
                                stderr=logFil,
                                shell=False,
@@ -2744,9 +2745,8 @@ class Tester(object):
 
         The commands in the script depend on the tool: 'dymola', 'jmodelica' or 'omc'
         """
-        
         import platform
-        
+
         def _write_translation_stats(runFil, values):
 
             # Close the bracket for the JSON object
@@ -2818,7 +2818,7 @@ class Tester(object):
                         runFil.write('    DDE_orig = sett[{}];\n'.format(posDDE))
                         runFil.write('    sett[{}] = \"DDE=0\"; // Disable DDE.\n'.format(posDDE))
                         runFil.write('    SetDymolaCompiler(comp, sett);\n')
-                    
+
                     runFil.write(('cd(\"{}/{}\");\n'.format(self._temDir[iPro], self.getLibraryName())).replace("\\", "/"))
                     runFil.write('openModel("package.mo");\n')
                 elif self._modelica_tool == 'omc':
