@@ -7,6 +7,8 @@ Version 2.0.1, July 17, 2019 -- Release 2.0
   UnicodeDecodeError. (Issue 272)
 - In regression tests, issue error if the name of the reference results
   is too long. (Issue 274)
+- Added compiler option nle_solver_tol_factor with value of 1e-2 for jmodelica
+  regression test. (Issue 301)
 
 Version 2.0.0, July 15, 2019 -- Release 2.0
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
