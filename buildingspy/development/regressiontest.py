@@ -2911,8 +2911,18 @@ class Tester(object):
                         ########################################################################
                         # Write line for model check
                         if self._modelica_tool == 'dymola':
+                            if values("model_name").startswith("Obsolete.", beg=values("model_name").find(".")):
+                                # This model is in IBPSA.Obsolete, or Buildings.Obsolete etc.
+                                values["set_non_pedantic"] = "Advanced.PedanticModelica = false;\n";
+                                values["set_pedantic"]     = "Advanced.PedanticModelica = true;\n";
+                            else: # Set to empty string as for non-obsolete models, we don't switch to non-pedantic mode
+                                values["set_non_pedantic"] = "";
+                                values["set_pedantic"]     = "";
+
                             template = r"""
+    {set_non_pedantic}
     rCheck = {checkCommand};
+    {set_pedantic}
     Modelica.Utilities.Streams.print("    {{ \"file\" :  \"{mosWithPath}\",", "{statisticsLog}");
     Modelica.Utilities.Streams.print("      \"model\" : \"{model_name}\",", "{statisticsLog}");
     Modelica.Utilities.Streams.print("      \"check\" : {{", "{statisticsLog}");
@@ -2935,7 +2945,9 @@ class Tester(object):
                             # The stack of functions is:
                             # Modelica.Utilities.Streams.readFile
                             template = r"""
+    {set_non_pedantic}
     rScript=RunScript("Resources/Scripts/Dymola/{scriptFile}");
+    {set_pedantic}
     savelog("{model_name}.translation.log");
     if Modelica.Utilities.Files.exist("dslog.txt") then
       Modelica.Utilities.Files.move("dslog.txt", "{model_name}.dslog.log");
