@@ -3502,7 +3502,7 @@ class Tester(object):
              <BLANKLINE>
              <BLANKLINE>
              ######################################################################
-             Tested 4 models:
+             Tested 5 models:
                * 0 compiled successfully (=0.0%)
              <BLANKLINE>
              Successfully checked models:
