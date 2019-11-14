@@ -3511,6 +3511,7 @@ class Tester(object):
                * BuildingsPy.buildingspy.tests.MyModelicaLibrary.Examples.Constants
                * BuildingsPy.buildingspy.tests.MyModelicaLibrary.Examples.MyStep
                * BuildingsPy.buildingspy.tests.MyModelicaLibrary.Examples.ParameterEvaluation
+               * BuildingsPy.buildingspy.tests.MyModelicaLibrary.Obsolete.Examples.Constant
              <BLANKLINE>
              More detailed information is stored in self._omstats
              ######################################################################
