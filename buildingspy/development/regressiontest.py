@@ -94,8 +94,8 @@ def runSimulation(worDir, cmd):
             else:
                 return 0
         except OSError as e:
-            sys.stderr.write("Execution of '" + " ".join(map(str, cmd)) + " failed.\n"
-                             + "Working directory is '" + worDir + "'.")
+            sys.stderr.write("Execution of '" + " ".join(map(str, cmd)) + " failed.\n" +
+                             "Working directory is '" + worDir + "'.")
             raise(e)
         except KeyboardInterrupt as e:
             pro.kill()
@@ -1401,9 +1401,9 @@ class Tester(object):
         for i in range(len(yInt)):
             errAbs[i] = abs(yOld[i] - yInt[i])
             if np.isnan(errAbs[i]):
-                raise ValueError('NaN in errAbs ' + varNam + " " + str(yOld[i])
-                                 + "  " + str(yInt[i]) + " i, N " + str(i) + " --:" + str(yInt[i - 1])
-                                 + " ++:", str(yInt[i + 1]))
+                raise ValueError('NaN in errAbs ' + varNam + " " + str(yOld[i]) +
+                                 "  " + str(yInt[i]) + " i, N " + str(i) + " --:" + str(yInt[i - 1]) +
+                                 " ++:", str(yInt[i + 1]))
             if (abs(yOld[i]) > 10 * tol):
                 errRel[i] = errAbs[i] / abs(yOld[i])
             else:
@@ -1716,8 +1716,8 @@ class Tester(object):
         """
         import numpy as np
         if not (isinstance(dataSeries, np.ndarray) or isinstance(dataSeries, list)):
-            raise TypeError("Program error: dataSeries must be a numpy.ndarr or a list. Received type "
-                            + str(type(dataSeries)) + ".\n")
+            raise TypeError("Program error: dataSeries must be a numpy.ndarr or a list. Received type " +
+                            str(type(dataSeries)) + ".\n")
         return (len(dataSeries) == 2)
 
     def format_float(self, value):
@@ -2750,8 +2750,8 @@ class Tester(object):
         def _write_translation_stats(runFil, values):
 
             # Close the bracket for the JSON object
-            runFil.write("""Modelica.Utilities.Streams.print("      }", """
-                         + '"' + values['statisticsLog'] + '"' + ");\n")
+            runFil.write("""Modelica.Utilities.Streams.print("      }", """ +
+                         '"' + values['statisticsLog'] + '"' + ");\n")
 
         def _print_end_of_json(isLastItem, fileHandle, logFileName):
             if isLastItem:
@@ -2886,8 +2886,8 @@ class Tester(object):
                             "translationLog": os.path.join(
                                 self._temDir[iPro],
                                 self.getLibraryName(),
-                                self._data[i]['model_name']
-                                + ".translation.log").replace(
+                                self._data[i]['model_name'] +
+                                ".translation.log").replace(
                                 "\\",
                                 "/"),
                             "simulatorLog": self._simulator_log_file.replace(
@@ -2911,13 +2911,14 @@ class Tester(object):
                         ########################################################################
                         # Write line for model check
                         if self._modelica_tool == 'dymola':
-                            if values("model_name").startswith("Obsolete.", beg=values("model_name").find(".")):
+                            if values("model_name").startswith(
+                                    "Obsolete.", beg=values("model_name").find(".")):
                                 # This model is in IBPSA.Obsolete, or Buildings.Obsolete etc.
-                                values["set_non_pedantic"] = "Advanced.PedanticModelica = false;\n";
-                                values["set_pedantic"]     = "Advanced.PedanticModelica = true;\n";
-                            else: # Set to empty string as for non-obsolete models, we don't switch to non-pedantic mode
-                                values["set_non_pedantic"] = "";
-                                values["set_pedantic"]     = "";
+                                values["set_non_pedantic"] = "Advanced.PedanticModelica = false;\n"
+                                values["set_pedantic"] = "Advanced.PedanticModelica = true;\n"
+                            else:  # Set to empty string as for non-obsolete models, we don't switch to non-pedantic mode
+                                values["set_non_pedantic"] = ""
+                                values["set_pedantic"] = ""
 
                             template = r"""
     {set_non_pedantic}
@@ -3577,8 +3578,8 @@ class Tester(object):
                 return retcode
 
         except OSError as e:
-            raise OSError("Execution of omc +d=initialization " + mosfile + " failed.\n"
-                          + "Working directory is '" + worDir + "'.")
+            raise OSError("Execution of omc +d=initialization " + mosfile + " failed.\n" +
+                          "Working directory is '" + worDir + "'.")
         else:
             # process the log file
             print("Logfile created: {}".format(logFilNam))
