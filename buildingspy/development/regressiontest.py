@@ -2911,8 +2911,9 @@ class Tester(object):
                         ########################################################################
                         # Write line for model check
                         if self._modelica_tool == 'dymola':
-                            if values("model_name").startswith(
-                                    "Obsolete.", beg=values("model_name").find(".")):
+                            model_name = values["model_name"]
+                            if model_name.startswith(
+                                    "Obsolete.", model_name.find(".")):
                                 # This model is in IBPSA.Obsolete, or Buildings.Obsolete etc.
                                 values["set_non_pedantic"] = "Advanced.PedanticModelica = false;\n"
                                 values["set_pedantic"] = "Advanced.PedanticModelica = true;\n"
