@@ -1,0 +1,4 @@
+compareVars :=
+  {
+    "const.const.y"
+  };
