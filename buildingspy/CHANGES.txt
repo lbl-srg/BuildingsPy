@@ -3,6 +3,8 @@ BuildingsPy Changelog
 
 Version 2.0.1, July 17, 2019 -- Release 2.0
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- For unit tests, changed to non-pedantic mode in Dymola if a model
+  is in the Obsolete package.
 - For unit tests, corrected problem on Windows if a user enabled DDE.
 - For unit tests, corrected problem if a user saved the startup directory in Dymola.
 - Avoided text replace in binary files when merging libraries, which lead to
