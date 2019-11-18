@@ -134,7 +134,7 @@ class Tester(object):
 
     """
 
-    def __init__(self, check_html=True, tool="dymola", cleanup=True):
+    def __init__(self, check_html=True, tool="dymola", skip_verification=True, cleanup=True):
         """ Constructor.
         """
         import multiprocessing
