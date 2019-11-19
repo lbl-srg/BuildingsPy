@@ -2066,6 +2066,9 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
                 runFil.write(
                     "// File created for execution by {}. Do not edit.\n".format(self._modelica_tool))
 
+                if self._pedanticModelica:
+                    self._reporter.writeWarning("Disabled pedantic mode because of models in Buildings.Obsolete.")
+
                 if self._modelica_tool == 'dymola':
                     # Disable parallel computing as this can give slightly different results.
                     runFil.write('Advanced.ParallelizeCode = false;\n')
@@ -2074,10 +2077,10 @@ Modelica.Utilities.Streams.print("        \"numerical Jacobians\"  : " + String(
                     runFil.write('Advanced.CompileWith64=2;\n')
                     runFil.write('Advanced.EfficientMinorEvents=false;\n')
                     # Set the pedantic Modelica mode
-                    if self._pedanticModelica:
-                        runFil.write('Advanced.PedanticModelica = true;\n')
-                    else:
-                        runFil.write('Advanced.PedanticModelica = false;\n')
+#                    if self._pedanticModelica:
+#                        runFil.write('Advanced.PedanticModelica = true;\n')
+#                    else:
+                    runFil.write('Advanced.PedanticModelica = false;\n')
                     runFil.write('openModel("package.mo");\n')
                 elif self._modelica_tool == 'omc':
                     runFil.write('loadModel(Modelica, {"3.2"});\n')
