@@ -2297,6 +2297,28 @@ class Tester(object):
         # Return a dictionary with all warnings
         return lis
 
+    def _get_jmodelica_record(self, simulation_text, model):
+        """ Return total number of Jacobian evaluations, state events, and elapsed cpu time
+        """
+        jacobianNumber = 0
+        stateEvents = 0
+        elapsedTime = 0
+        for lin in simulation_text:
+            if ("Number of Jacobian evaluations" in lin):
+                temp = lin.split(":")
+                jacobianNumber = int(temp[1].strip())
+            if ("Number of state events" in lin):
+                temp = lin.split(":")
+                stateEvents = int(temp[1].strip())
+            if ("Elapsed simulation time" in lin):
+                temp = lin.split(":")
+                temp1 = temp[1].split()
+                elapsedTime = float(temp1[0])
+        res = {'jacobians': jacobianNumber,
+               'state_events': stateEvents,
+               'elapsed_time': elapsedTime}
+        return res
+
     def _verify_jmodelica_runs(self):
         """ Check the results of the JModelica tests.
 
@@ -2333,6 +2355,17 @@ class Tester(object):
                             res['translation']['warnings'] = warnings
                             # We don't need the stdout anymore, which can be long.
                             del res['translation']['stdout']
+
+                        # Get number of Jacobian evaluations from stdout that was captured from the simulation
+                        if 'stdout' in res['simulation']:
+                            jmRecord = self._get_jmodelica_record(
+                                simulation_text=res['simulation']['stdout'],
+                                model=res['model'])
+                            res['simulation']['jacobians'] = jmRecord['jacobians']
+                            res['simulation']['state_events'] = jmRecord['state_events']
+                            res['simulation']['elapsed_time'] = jmRecord['elapsed_time']
+                            # We don't need the stdout anymore, which can be long.
+                            del res['simulation']['stdout']
 
                         all_res.append(res)
                         if not res['translation']['success']:
