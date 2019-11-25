@@ -2297,7 +2297,7 @@ class Tester(object):
         # Return a dictionary with all warnings
         return lis
 
-    def _get_jmodelica_record(self, simulation_text, model):
+    def _get_simulation_record(self, simulation_text):
         """ Return total number of Jacobian evaluations, state events, and elapsed cpu time
         """
         jacobianNumber = 0
@@ -2358,9 +2358,7 @@ class Tester(object):
 
                         # Get number of Jacobian evaluations from stdout that was captured from the simulation
                         if 'stdout' in res['simulation']:
-                            jmRecord = self._get_jmodelica_record(
-                                simulation_text=res['simulation']['stdout'],
-                                model=res['model'])
+                            jmRecord = self._get_simulation_record(simulation_text=res['simulation']['stdout'])
                             res['simulation']['jacobians'] = jmRecord['jacobians']
                             res['simulation']['state_events'] = jmRecord['state_events']
                             res['simulation']['elapsed_time'] = jmRecord['elapsed_time']
@@ -2988,6 +2986,13 @@ class Tester(object):
       Modelica.Utilities.Files.move("dslog.txt", "{model_name}.dslog.log");
     end if;
     iSuc=0;
+    jacRec="temp";
+    numJac="temp";
+    staRec="temp";
+    numSta="temp";
+    intTimRec="temp";
+    intTimRec2="temp";
+    intTim="temp";
     if Modelica.Utilities.Files.exist("{model_name}.dslog.log") then
       iLin=1;
       endOfFile=false;
@@ -2995,7 +3000,21 @@ class Tester(object):
         (_line, endOfFile)=Modelica.Utilities.Streams.readLine("{model_name}.dslog.log", iLin);
         iLin=iLin+1;
         iSuc=iSuc+Modelica.Utilities.Strings.count(_line, "Integration terminated successfully");
+        if (Modelica.Utilities.Strings.find(_line, "CPU-time for integration") > 0) then
+            intTimRec = _line;
+        end if;
+        if (Modelica.Utilities.Strings.find(_line, "Number of Jacobian-evaluations") > 0) then
+            jacRec = _line;
+        end if;
+        if (Modelica.Utilities.Strings.find(_line, "Number of state events") > 0) then
+            staRec = _line;
+            break;
+        end if;
       end while;
+      intTimRec2=Modelica.Utilities.Strings.replace(intTimRec, "CPU-time for integration                  : ","");
+      intTim=Modelica.Utilities.Strings.replace(intTimRec2, " seconds","");
+      numJac=Modelica.Utilities.Strings.replace(jacRec, "Number of Jacobian-evaluations            : ","");
+      numSta=Modelica.Utilities.Strings.replace(staRec, "Number of state events                    : ","");
       Modelica.Utilities.Streams.close("{model_name}.dslog.log");
     else
       Modelica.Utilities.Streams.print("{model_name}.dslog.log was not generated.", "{model_name}.log");
@@ -3007,6 +3026,9 @@ class Tester(object):
     Modelica.Utilities.Streams.print("      \"simulate\" : {{", "{statisticsLog}");
     Modelica.Utilities.Streams.print("        \"command\" : \"RunScript(\\\"Resources/Scripts/Dymola/{scriptFile}\\\");\",", "{statisticsLog}");
     Modelica.Utilities.Streams.print("        \"translationLog\"  : \"{translationLog}\",", "{statisticsLog}");
+    Modelica.Utilities.Streams.print("        \"elapsed_time\"  :" + intTim + ",", "{statisticsLog}");
+    Modelica.Utilities.Streams.print("        \"jacobians\"  :" + numJac + ",", "{statisticsLog}");
+    Modelica.Utilities.Streams.print("        \"state_events\"  :" + numSta + ",", "{statisticsLog}");
     Modelica.Utilities.Streams.print("        \"result\"  : " + String(iSuc > 0), "{statisticsLog}");
     """
                             runFil.write(template.format(**values))
@@ -3187,6 +3209,24 @@ class Tester(object):
                             symlinks=True,
                             ignore=shutil.ignore_patterns('.svn', '.mat', 'request.', 'status.'))
         return
+
+    def _run_simulation_info(self): 
+        """ Extract simulation data from statistics.json when run unit test with dymola
+        """
+        with open(self._statistics_log, 'r') as f:
+            staVal = simplejson.loads(f.read())
+        data = []
+        for case in staVal['testCase']:
+            temp = {}
+            temp['model'] = case['model']
+            temp['simulation'] = {}
+            temp['simulation']['elapsed_time']=case['simulate']['elapsed_time']
+            temp['simulation']['jacobians']=case['simulate']['jacobians']
+            temp['simulation']['state_events']=case['simulate']['state_events']
+            temp['simulation']['success']=case['simulate']['result']
+            data.append(temp)
+        dataJson = simplejson.dumps(data)
+        return dataJson
 
     def run(self):
         """ Run all regression tests and checks the results.
@@ -3375,6 +3415,11 @@ class Tester(object):
                 self._checkSimulationError(self._simulator_log_file)
 
             if not self._skip_verification:
+                # For Dymola: store available simulation info into 
+                # self._comp_info used for reporting.
+                val = self._run_simulation_info()
+                self._comp_info = simplejson.loads(val)
+
                 r = self._checkReferencePoints(ans)
                 if r != 0:  # In case of comparison error. Comparison warnings are handled
                     if retVal != 0:  # We keep the translation or simulation error code.
@@ -3391,8 +3436,6 @@ class Tester(object):
             if not self._skip_verification:
                 # For JModelica: store available translation and simulation info
                 # into self._comp_info used for reporting.
-                # To be implemented for Dymola once translation and simulation info
-                # are available in JSON format (HTML file to large to parse for now).
                 with open(self._simulator_log_file, 'r') as f:
                     self._comp_info = simplejson.loads(f.read())
 
@@ -3428,8 +3471,8 @@ class Tester(object):
         print("Execution time = {:.3f} s".format(elapsedTime))
 
         # Delete statistics file
-        if self._modelica_tool == 'dymola':
-            os.remove(self._statistics_log)
+        # if self._modelica_tool == 'dymola':
+        #     os.remove(self._statistics_log)
 
         return retVal
 

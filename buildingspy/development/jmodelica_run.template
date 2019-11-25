@@ -178,6 +178,7 @@ def _simulate(proc_num, return_dict):
     out = OutputGrabber()
     out.start()
     res = mod.simulate(options=opts)
+    out.stop()
     start_time = res['time'][0]
     final_time = res['time'][-1]
     return_dict[proc_num] = {'success': True, 'start_time': start_time, 'final_time': final_time, 'stdout': out.capturedtext.split('\n')}
