@@ -2299,6 +2299,7 @@ class Tester(object):
 
     def _get_simulation_record(self, simulation_text):
         """ Return total number of Jacobian evaluations, state events, and elapsed cpu time
+            when run unit test with JModelica
         """
         jacobianNumber = 0
         stateEvents = 0
@@ -3471,8 +3472,8 @@ class Tester(object):
         print("Execution time = {:.3f} s".format(elapsedTime))
 
         # Delete statistics file
-        # if self._modelica_tool == 'dymola':
-        #     os.remove(self._statistics_log)
+        if self._modelica_tool == 'dymola':
+            os.remove(self._statistics_log)
 
         return retVal
 
