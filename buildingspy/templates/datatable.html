@@ -86,9 +86,56 @@
 			console.log('Ignore datatable ajax warning.');
 		}
 		if (!/jmodelica/i.test('$SIMULATOR_LOG')) {
-			["tab-table1", "tab-table2"].forEach(function (v) {
-				document.getElementById(v).innerHTML =
-					"<br /><h5>Simulation and translation statistics are only available for JModelica at the moment.</h5>";
+			document.getElementById("tab-table1").innerHTML = `
+			<table id="myTable1" class="table table-striped table-bordered" cellspacing="0" >
+				<thead>
+					<tr>
+						<th>Model</th>
+						<th>Integration time (s)</th>
+						<th>State events</th>
+						<th>Jacobians</th>
+						<th>Success</th>
+						<th>Message</th>
+					</tr>
+				</thead>
+			</table>
+		`;
+			document.getElementById("tab-table2").innerHTML =
+				"<br /><h5>Translation statistics is not available for Dymola at the moment.</h5>";
+
+			var table1 = $('#myTable1').DataTable({
+				autoWidth: false,
+				aLengthMenu: [
+					[10, 50, 100, -1],
+					[10, 50, 100, "All"]
+				],
+				iDisplayLength: -1,
+				ajax: {
+					url: '$SIMULATOR_LOG',
+					dataSrc: ''
+				},
+				columns: [
+					{
+						data: 'model', width: "30%",
+						render: function (data, type, full) {
+							return data.replace(/\./g, '.<wbr>');
+						}
+					},
+					{
+						data: 'simulation.elapsed_time',
+						render: $.fn.dataTable.render.number(' ', '.', 4)
+					},
+					{
+						data: 'simulation.state_events',
+						render: $.fn.dataTable.render.number(' ', '.', 0)
+					},
+					{
+						data: 'simulation.jacobians',
+						render: $.fn.dataTable.render.number(' ', '.', 0)
+					},
+					{ data: 'simulation.success' },
+					{ data: 'simulation.message', width: "40%" },
+				],
 			});
 		} else {
 			document.getElementById("tab-table1").innerHTML = `
@@ -96,9 +143,11 @@
 				<thead>
 					<tr>
 						<th>Model</th>
-						<th>CPU (s)</th>
+						<th>Integration time (s)</th>
 						<th>Start (s)</th>
 						<th>Final (s)</th>
+						<th>State events</th>
+						<th>Jacobians</th>
 						<th>Success</th>
 						<th>Message</th>
 					</tr>
@@ -136,8 +185,8 @@
 						}
 					},
 					{
-						data: 'simulation.cpu_time',
-						render: $.fn.dataTable.render.number(' ', '.', 2)
+						data: 'simulation.elapsed_time',
+						render: $.fn.dataTable.render.number(' ', '.', 4)
 					},
 					{
 						data: 'simulation.start_time',
@@ -146,6 +195,14 @@
 					{
 						data: 'simulation.final_time',
 						render: $.fn.dataTable.render.number(' ', '.', 2)
+					},
+					{
+						data: 'simulation.state_events',
+						render: $.fn.dataTable.render.number(' ', '.', 0)
+					},
+					{
+						data: 'simulation.jacobians',
+						render: $.fn.dataTable.render.number(' ', '.', 0)
 					},
 					{ data: 'simulation.success' },
 					{ data: 'simulation.message', width: "40%" },
