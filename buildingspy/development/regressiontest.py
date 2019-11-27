@@ -2357,9 +2357,11 @@ class Tester(object):
                             # We don't need the stdout anymore, which can be long.
                             del res['translation']['stdout']
 
-                        # Get number of Jacobian evaluations from stdout that was captured from the simulation
+                        # Get number of Jacobian evaluations from stdout that was captured from
+                        # the simulation
                         if 'stdout' in res['simulation']:
-                            jmRecord = self._get_simulation_record(simulation_text=res['simulation']['stdout'])
+                            jmRecord = self._get_simulation_record(
+                                simulation_text=res['simulation']['stdout'])
                             res['simulation']['jacobians'] = jmRecord['jacobians']
                             res['simulation']['state_events'] = jmRecord['state_events']
                             res['simulation']['elapsed_time'] = jmRecord['elapsed_time']
@@ -2912,6 +2914,8 @@ class Tester(object):
                             "model_name_underscore": self._data[i]['model_name'].replace(
                                 ".",
                                 "_"),
+                            "start_time": self._data[i]['startTime'] if 'startTime' in self._data[i] else 0,
+                            "final_time": self._data[i]['stopTime'],
                             "statisticsLog": self._statistics_log.replace(
                                 "\\",
                                 "/"),
@@ -3030,6 +3034,8 @@ class Tester(object):
     Modelica.Utilities.Streams.print("        \"elapsed_time\"  :" + intTim + ",", "{statisticsLog}");
     Modelica.Utilities.Streams.print("        \"jacobians\"  :" + numJac + ",", "{statisticsLog}");
     Modelica.Utilities.Streams.print("        \"state_events\"  :" + numSta + ",", "{statisticsLog}");
+    Modelica.Utilities.Streams.print("        \"start_time\"  :" + String({start_time}) + ",", "{statisticsLog}");
+    Modelica.Utilities.Streams.print("        \"final_time\"  :" + String({final_time}) + ",", "{statisticsLog}");
     Modelica.Utilities.Streams.print("        \"result\"  : " + String(iSuc > 0), "{statisticsLog}");
     """
                             runFil.write(template.format(**values))
@@ -3211,7 +3217,7 @@ class Tester(object):
                             ignore=shutil.ignore_patterns('.svn', '.mat', 'request.', 'status.'))
         return
 
-    def _run_simulation_info(self): 
+    def _run_simulation_info(self):
         """ Extract simulation data from statistics.json when run unit test with dymola
         """
         with open(self._statistics_log, 'r') as f:
@@ -3221,10 +3227,12 @@ class Tester(object):
             temp = {}
             temp['model'] = case['model']
             temp['simulation'] = {}
-            temp['simulation']['elapsed_time']=case['simulate']['elapsed_time']
-            temp['simulation']['jacobians']=case['simulate']['jacobians']
-            temp['simulation']['state_events']=case['simulate']['state_events']
-            temp['simulation']['success']=case['simulate']['result']
+            temp['simulation']['elapsed_time'] = case['simulate']['elapsed_time']
+            temp['simulation']['start_time'] = case['simulate']['start_time']
+            temp['simulation']['final_time'] = case['simulate']['final_time']
+            temp['simulation']['jacobians'] = case['simulate']['jacobians']
+            temp['simulation']['state_events'] = case['simulate']['state_events']
+            temp['simulation']['success'] = case['simulate']['result']
             data.append(temp)
         dataJson = simplejson.dumps(data)
         return dataJson
@@ -3416,7 +3424,7 @@ class Tester(object):
                 self._checkSimulationError(self._simulator_log_file)
 
             if not self._skip_verification:
-                # For Dymola: store available simulation info into 
+                # For Dymola: store available simulation info into
                 # self._comp_info used for reporting.
                 val = self._run_simulation_info()
                 self._comp_info = simplejson.loads(val)

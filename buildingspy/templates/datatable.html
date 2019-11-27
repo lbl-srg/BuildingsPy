@@ -92,6 +92,8 @@
 					<tr>
 						<th>Model</th>
 						<th>Integration time (s)</th>
+						<th>Start (s)</th>
+						<th>Final (s)</th>
 						<th>State events</th>
 						<th>Jacobians</th>
 						<th>Success</th>
@@ -124,6 +126,14 @@
 					{
 						data: 'simulation.elapsed_time',
 						render: $.fn.dataTable.render.number(' ', '.', 4)
+					},
+					{
+						data: 'simulation.start_time',
+						render: $.fn.dataTable.render.number(' ', '.', 2)
+					},
+					{
+						data: 'simulation.final_time',
+						render: $.fn.dataTable.render.number(' ', '.', 2)
 					},
 					{
 						data: 'simulation.state_events',
