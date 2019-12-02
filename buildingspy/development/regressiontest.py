@@ -2915,7 +2915,7 @@ class Tester(object):
                                 ".",
                                 "_"),
                             "start_time": self._data[i]['startTime'] if 'startTime' in self._data[i] else 0,
-                            "final_time": self._data[i]['stopTime'],
+                            "final_time": self._data[i]['stopTime'] if 'stopTime' in self._data[i] else 0,
                             "statisticsLog": self._statistics_log.replace(
                                 "\\",
                                 "/"),
@@ -3224,16 +3224,17 @@ class Tester(object):
             staVal = simplejson.loads(f.read())
         data = []
         for case in staVal['testCase']:
-            temp = {}
-            temp['model'] = case['model']
-            temp['simulation'] = {}
-            temp['simulation']['elapsed_time'] = case['simulate']['elapsed_time']
-            temp['simulation']['start_time'] = case['simulate']['start_time']
-            temp['simulation']['final_time'] = case['simulate']['final_time']
-            temp['simulation']['jacobians'] = case['simulate']['jacobians']
-            temp['simulation']['state_events'] = case['simulate']['state_events']
-            temp['simulation']['success'] = case['simulate']['result']
-            data.append(temp)
+            if not 'FMUExport' in case:
+                temp = {}
+                temp['model'] = case['model']
+                temp['simulation'] = {}
+                temp['simulation']['elapsed_time'] = case['simulate']['elapsed_time']
+                temp['simulation']['start_time'] = case['simulate']['start_time']
+                temp['simulation']['final_time'] = case['simulate']['final_time']
+                temp['simulation']['jacobians'] = case['simulate']['jacobians']
+                temp['simulation']['state_events'] = case['simulate']['state_events']
+                temp['simulation']['success'] = case['simulate']['result']
+                data.append(temp)
         dataJson = simplejson.dumps(data)
         return dataJson
 
