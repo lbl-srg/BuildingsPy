@@ -3023,13 +3023,13 @@ class Tester(object):
       end while;
       timRecCol = Modelica.Utilities.Strings.find(intTimRec, ":");
       timRecSpa = Modelica.Utilities.Strings.findLast(intTimRec, " ");
-      intTim = Modelica.Utilities.String.substring(intTimRec, timRecCol, timRecSpa);
+      intTim = Modelica.Utilities.Strings.substring(intTimRec, timRecCol+1, timRecSpa-1);
       jacRecCol = Modelica.Utilities.Strings.find(jacRec, ":");
       jacRecLen = Modelica.Utilities.Strings.length(jacRec);
-      numJac = Modelica.Utilities.String.substring(jacRec, jacRecCol, jacRecLen);
+      numJac = Modelica.Utilities.Strings.substring(jacRec, jacRecCol+1, jacRecLen);
       staRecCol = Modelica.Utilities.Strings.find(staRec, ":");
       staRecLen = Modelica.Utilities.Strings.length(staRec);
-      numSta = Modelica.Utilities.String.substring(staRec, staRecCol, staRecLen);
+      numSta = Modelica.Utilities.Strings.substring(staRec, staRecCol+1, staRecLen);
       Modelica.Utilities.Streams.close("{model_name}.dslog.log");
     else
       Modelica.Utilities.Streams.print("{model_name}.dslog.log was not generated.", "{model_name}.log");
@@ -3389,12 +3389,6 @@ class Tester(object):
                     stat = list()
                     for d in self._temDir:
                         temLogFilNam = os.path.join(d, self.getLibraryName(), self._statistics_log)
-                        print("-----------------------")
-                        print(temLogFilNam)
-                        print("-----------------------")
-                        with open(temLogFilNam) as testFil:
-                            for line in testFil:
-                                print(line)
                         if os.path.exists(temLogFilNam):
                             with open(temLogFilNam.replace('Temp\tmp', 'Temp\\tmp'), mode="r", encoding="utf-8-sig") as temSta:
                                 try:
