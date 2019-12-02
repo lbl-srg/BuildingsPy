@@ -3224,7 +3224,7 @@ class Tester(object):
             staVal = simplejson.loads(f.read())
         data = []
         for case in staVal['testCase']:
-            if not 'FMUExport' in case:
+            if 'FMUExport' not in case:
                 temp = {}
                 temp['model'] = case['model']
                 temp['simulation'] = {}
