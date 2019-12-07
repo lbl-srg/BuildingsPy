@@ -340,6 +340,9 @@ class Tester(object):
         self._data = []
         self._reporter = rep.Reporter(os.path.join(os.getcwd(), "unitTests-{}.log".format(tool)))
 
+        # packages set by test single packages flag
+        self._packages = []
+
         # By default, include export of FMUs.
         self._include_fmu_test = True
 
@@ -757,11 +760,12 @@ class Tester(object):
 
         # Set data dictionary as it may have been generated earlier for the whole library.
         self._data = []
-
+        self._packages = []
         for pac in packages:
             pacSep = pac.find('.')
             pacPat = pac[pacSep + 1:]
             pacPat = pacPat.replace('.', os.sep)
+            self._packages.append(pacPat)
             rooPat = os.path.join(self._libHome, 'Resources', 'Scripts', 'Dymola', pacPat)
             # Verify that the directory indeed exists
             if not os.path.isdir(rooPat):
@@ -3660,7 +3664,7 @@ class Tester(object):
         print("\nMore detailed information is stored in self._omstats")
         print(70 * '#')
 
-    def get_test_example_coverage(self):
+    def get_models_coverage(self):
         """
         Analyse how many examples are tested.
 
@@ -3673,23 +3677,24 @@ class Tester(object):
         # Remove all data that do not require a simulation or an FMU export.
         # Otherwise, some processes may have no simulation to run and then
         # the json output file would have an invalid syntax
+
+        # to not interact with other code here, we use the temp_data list
+
+        temp_data = []
+
         for ele in self._data[:]:
-            if not (ele['mustSimulate'] or ele['mustExportFMU']):
-                self._data.remove(ele)
+            if (ele['mustSimulate'] or ele['mustExportFMU']):
+                temp_data.append(ele)
 
         # now we got clean _data to compare
         # next step get all examples in the package (whether whole library or
         # single package)
 
-        packages = list(dict.fromkeys(
-            [pac['ScriptFile'].split(os.sep)[0] for pac in self._data]))
-
         tested_model_names = [
-            nam['ScriptFile'].split(os.sep)[-1][:-1] for nam in self._data]
+            nam['ScriptFile'].split(os.sep)[-1][:-1] for nam in temp_data]
 
-        # this needs to be adjusted for also subdirectories
         total_examples = []
-        for pac in packages:
+        for pac in self._packages:
             for (dirpath, dirnames, filenames) in os.walk(
                     os.path.join(self._libHome, pac)):
                 for f in filenames:
@@ -3703,21 +3708,21 @@ class Tester(object):
         total_examples = [i for i in total_examples if not i.endswith(
             ('package.mo', '.order'))]
 
-        coverage = round(len(self._data) / len(total_examples), 2) * 100
+        coverage = round(len(temp_data) / len(total_examples), 2) * 100
 
-        print('***\n\nCoverage: ', str(int(coverage)) + '%')
+        print('***\n\nModel Coverage: ', str(int(coverage)) + '%')
         print(
             '***\n\nYou are testing : ',
-            len(self._data),
+            len(temp_data),
             ' out of ',
             len(total_examples),
             'total examples in ')
-        for pac in packages:
+        for pac in self._packages:
             print(pac)
         print('\n')
 
         tested_model_names = [
-            nam['ScriptFile'].split(os.sep)[-1][:-1] for nam in self._data]
+            nam['ScriptFile'].split(os.sep)[-1][:-1] for nam in temp_data]
 
         missing_examples = [
             i for i in total_examples if not any(
