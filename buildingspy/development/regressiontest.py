@@ -3664,7 +3664,7 @@ class Tester(object):
         print("\nMore detailed information is stored in self._omstats")
         print(70 * '#')
 
-    def get_models_coverage(self):
+    def get_test_example_coverage(self):
         """
         Analyse how many examples are tested.
 
