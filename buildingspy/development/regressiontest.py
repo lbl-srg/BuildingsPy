@@ -3690,11 +3690,17 @@ class Tester(object):
         # next step get all examples in the package (whether whole library or
         # single package)
 
+        if self._packages:
+            packs = self._packages
+        else:
+            packs = list(dict.fromkeys(
+                [pac['ScriptFile'].split(os.sep)[0] for pac in self._data]))
+
         tested_model_names = [
             nam['ScriptFile'].split(os.sep)[-1][:-1] for nam in temp_data]
 
         total_examples = []
-        for pac in self._packages:
+        for pac in packs:
             for (dirpath, dirnames, filenames) in os.walk(
                     os.path.join(self._libHome, pac)):
                 for f in filenames:
@@ -3717,7 +3723,7 @@ class Tester(object):
             ' out of ',
             len(total_examples),
             'total examples in ')
-        for pac in self._packages:
+        for pac in packs:
             print(pac)
         print('\n')
 
