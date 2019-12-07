@@ -149,7 +149,7 @@ class Test_regressiontest_Tester(unittest.TestCase):
             ret_val,
             "Test failed with return value {}, expected 2.".format(ret_val))
         # Check for correct number of tests
-        self.assertEqual(1, rt.get_number_of_tests())
+        self.assertEqual(2, rt.get_number_of_tests())
 
     def test_areResultsEqual(self):
         """To test legacy comparison tool (funnel tests are part of funnel module)."""

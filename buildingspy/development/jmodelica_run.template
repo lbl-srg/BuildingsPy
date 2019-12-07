@@ -122,7 +122,8 @@ def _translate(proc_num, return_dict):
     fmu_name = compile_fmu("{{ model }}",
                            version="2.0",
                            compiler_log_level='warning',
-                           compiler_options = {"generate_html_diagnostics" : False})
+                           compiler_options = {"generate_html_diagnostics" : False,
+                                               "nle_solver_tol_factor": 1e-2})
     out.stop()
     # The standard output is returned as a list, with each line being an element
     return_dict[proc_num] = {'success': True, 'fmu_name': str(fmu_name), 'stdout': out.capturedtext.split('\n')}
