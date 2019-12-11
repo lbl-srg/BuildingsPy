@@ -925,8 +925,9 @@ class Tester(object):
                 posEnd = min(posComma, posBracket)
                 if posEnd < 0:
                     posEnd = max(posComma, posBracket)
-                entry = line[posEq + 1:posEnd]
-                dat[keyword] = re.sub(r'^"|"$', '', entry)
+                if (posEq < posEnd):
+                    entry = line[posEq + 1:posEnd]
+                    dat[keyword] = re.sub(r'^"|"$', '', entry)
             return
 
         old_len = self.get_number_of_tests()
