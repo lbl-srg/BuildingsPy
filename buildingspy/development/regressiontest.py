@@ -916,8 +916,8 @@ class Tester(object):
                 :param dat: The data dictionary to which dat[keyword] = value will be written.
 
             """
-
-            pos = lin.find(keyword)
+            line = re.sub(' ', '', line)
+            pos = line.find(keyword)
             if pos > -1:
                 posEq = line.find('=', pos)
                 posComma = line.find(',', pos)
@@ -925,7 +925,7 @@ class Tester(object):
                 posEnd = min(posComma, posBracket)
                 if posEnd < 0:
                     posEnd = max(posComma, posBracket)
-                if (posEq < posEnd):
+                if posEq == pos + len(keyword):  # Ensure that keyword is on the left side of = sign.
                     entry = line[posEq + 1:posEnd]
                     dat[keyword] = re.sub(r'^"|"$', '', entry)
             return
