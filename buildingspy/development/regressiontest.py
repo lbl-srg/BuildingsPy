@@ -2995,15 +2995,15 @@ class Tester(object):
     intTimRec="temp";
     timRecCol=0;
     timRecSpa=0;
-    intTim="temp";
+    intTim="0";
     jacRec="temp";
     jacRecCol=0;
     jacRecLen=0;
-    numJac="temp";
+    numJac="0";
     staRec="temp";
     staRecCol=0;
     staRecLen=0;
-    numSta="temp";
+    numSta="0";
     if Modelica.Utilities.Files.exist("{model_name}.dslog.log") then
       iLin=1;
       endOfFile=false;
