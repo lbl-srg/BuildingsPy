@@ -925,7 +925,8 @@ class Tester(object):
                 posEnd = min(posComma, posBracket)
                 if posEnd < 0:
                     posEnd = max(posComma, posBracket)
-                if posEq == pos + len(keyword):  # Ensure that keyword is directly located before the next = sign.
+                # Ensure that keyword is directly located before the next = sign
+                if posEq == pos + len(keyword):
                     entry = line[posEq + 1:posEnd]
                     dat[keyword] = re.sub(r'^"|"$', '', entry)
             return
