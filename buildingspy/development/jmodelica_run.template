@@ -130,7 +130,7 @@ def _translate(proc_num, return_dict):
 
   except Exception as e:
     return_dict[proc_num] = {'success': False,
-                             'exception': '{}: {}'.format(type(e).__name__, e.message)}
+                             'exception': '{}: {}'.format(type(e).__name__, e)}
   return
 
 def _simulate(proc_num, return_dict):
@@ -181,7 +181,7 @@ def _simulate(proc_num, return_dict):
 
   except Exception as e:
     return_dict[proc_num] = {'success': False,
-                             'exception': '{}: {}'.format(type(e).__name__, e.message)}
+                             'exception': '{}: {}'.format(type(e).__name__, e)}
   return return_dict
 
 def run():
