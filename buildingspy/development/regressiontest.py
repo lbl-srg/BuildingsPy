@@ -2994,9 +2994,17 @@ class Tester(object):
     end if;
     iSuc=0;
     intTimRec="temp";
+    timRecCol=0;
+    timRecSpa=0;
+    intTim="0";
     jacRec="temp";
+    jacRecCol=0;
+    jacRecLen=0;
+    numJac="0";
     staRec="temp";
-
+    staRecCol=0;
+    staRecLen=0;
+    numSta="0";
     if Modelica.Utilities.Files.exist("{model_name}.dslog.log") then
       iLin=1;
       endOfFile=false;
@@ -3004,50 +3012,33 @@ class Tester(object):
         (_line, endOfFile)=Modelica.Utilities.Streams.readLine("{model_name}.dslog.log", iLin);
         iLin=iLin+1;
         iSuc=iSuc+Modelica.Utilities.Strings.count(_line, "Integration terminated successfully");
-        
+        if (Modelica.Utilities.Strings.find(_line, "CPU-time for integration") > 0) then
+            intTimRec = _line;
+        end if;
+        if (Modelica.Utilities.Strings.find(_line, "Number of Jacobian-evaluations") > 0) then
+            jacRec = _line;
+        end if;
+        if (Modelica.Utilities.Strings.find(_line, "Number of state events") > 0) then
+            staRec = _line;
+            break;
+        end if;
       end while;
-      
+      if iSuc > 0 then
+        timRecCol = Modelica.Utilities.Strings.find(intTimRec, ":");
+        timRecSpa = Modelica.Utilities.Strings.findLast(intTimRec, " ");
+        intTim = Modelica.Utilities.Strings.substring(intTimRec, timRecCol+1, timRecSpa-1);
+        jacRecCol = Modelica.Utilities.Strings.find(jacRec, ":");
+        jacRecLen = Modelica.Utilities.Strings.length(jacRec);
+        numJac = Modelica.Utilities.Strings.substring(jacRec, jacRecCol+1, jacRecLen);
+        staRecCol = Modelica.Utilities.Strings.find(staRec, ":");
+        staRecLen = Modelica.Utilities.Strings.length(staRec);
+        numSta = Modelica.Utilities.Strings.substring(staRec, staRecCol+1, staRecLen);
+      end if;
       Modelica.Utilities.Streams.close("{model_name}.dslog.log");
     else
       Modelica.Utilities.Streams.print("{model_name}.dslog.log was not generated.", "{model_name}.log");
     end if;
     """
-    
-    # timRecCol=0;
-    # timRecSpa=0;
-    # intTim="0";
-    
-    # jacRecCol=0;
-    # jacRecLen=0;
-    # numJac="0";
-    
-    # staRecCol=0;
-    # staRecLen=0;
-    # numSta="0";
-
-    # timRecCol = Modelica.Utilities.Strings.find(intTimRec, ":");
-    #   timRecSpa = Modelica.Utilities.Strings.findLast(intTimRec, " ");
-    #   intTim = Modelica.Utilities.Strings.substring(intTimRec, timRecCol+1, timRecSpa-1);
-    #   jacRecCol = Modelica.Utilities.Strings.find(jacRec, ":");
-    #   jacRecLen = Modelica.Utilities.Strings.length(jacRec);
-    #   numJac = Modelica.Utilities.Strings.substring(jacRec, jacRecCol+1, jacRecLen);
-    #   staRecCol = Modelica.Utilities.Strings.find(staRec, ":");
-    #   staRecLen = Modelica.Utilities.Strings.length(staRec);
-    #   numSta = Modelica.Utilities.Strings.substring(staRec, staRecCol+1, staRecLen);
-
-# if (Modelica.Utilities.Strings.find(_line, "CPU-time for integration") > 0) then
-#             intTimRec = _line;
-#         end if;
-#         if (Modelica.Utilities.Strings.find(_line, "Number of Jacobian-evaluations") > 0) then
-#             jacRec = _line;
-#         end if;
-#         if (Modelica.Utilities.Strings.find(_line, "Number of state events") > 0) then
-#             staRec = _line;
-#             break;
-#         end if;
-
-
-
                             runFil.write(template.format(**values))
 
                             template = r"""
@@ -3370,11 +3361,9 @@ class Tester(object):
                 cmd = [self.getModelicaCommand(), "run.py"]
             if self._nPro > 1:
                 po = multiprocessing.Pool(self._nPro)
-                print("I am here-1!")
                 po.map(functools.partial(runSimulation,
                                          cmd=cmd),
                        [x for x in tem_dir])
-                print("I am here-2!")
                 po.close()
                 po.join()
             else:
