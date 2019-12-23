@@ -3024,15 +3024,21 @@ class Tester(object):
         end if;
       end while;
       if iSuc > 0 then
-        timRecCol = Modelica.Utilities.Strings.find(intTimRec, ":");
-        timRecSpa = Modelica.Utilities.Strings.findLast(intTimRec, " ");
-        intTim = Modelica.Utilities.Strings.substring(intTimRec, timRecCol+1, timRecSpa-1);
-        jacRecCol = Modelica.Utilities.Strings.find(jacRec, ":");
-        jacRecLen = Modelica.Utilities.Strings.length(jacRec);
-        numJac = Modelica.Utilities.Strings.substring(jacRec, jacRecCol+1, jacRecLen);
-        staRecCol = Modelica.Utilities.Strings.find(staRec, ":");
-        staRecLen = Modelica.Utilities.Strings.length(staRec);
-        numSta = Modelica.Utilities.Strings.substring(staRec, staRecCol+1, staRecLen);
+        if not Modelica.Utilities.Strings.isEqual(intTimRec,"temp") then
+            timRecCol = Modelica.Utilities.Strings.find(intTimRec, ":");
+            timRecSpa = Modelica.Utilities.Strings.findLast(intTimRec, " ");
+            intTim = Modelica.Utilities.Strings.substring(intTimRec, timRecCol+1, timRecSpa-1);
+        end if;
+        if not Modelica.Utilities.Strings.isEqual(jacRec,"temp") then
+            jacRecCol = Modelica.Utilities.Strings.find(jacRec, ":");
+            jacRecLen = Modelica.Utilities.Strings.length(jacRec);
+            numJac = Modelica.Utilities.Strings.substring(jacRec, jacRecCol+1, jacRecLen);
+        end if;
+        if not Modelica.Utilities.Strings.isEqual(staRec,"temp") then
+            staRecCol = Modelica.Utilities.Strings.find(staRec, ":");
+            staRecLen = Modelica.Utilities.Strings.length(staRec);
+            numSta = Modelica.Utilities.Strings.substring(staRec, staRecCol+1, staRecLen);
+        end if;
       end if;
       Modelica.Utilities.Streams.close("{model_name}.dslog.log");
     else
