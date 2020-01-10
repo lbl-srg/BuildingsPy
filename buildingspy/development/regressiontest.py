@@ -173,7 +173,6 @@ class Tester(object):
        >>> myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
        >>> rt.setLibraryRoot(myMoLib)
        >>> rt.run() # doctest: +ELLIPSIS
-       No package specified or no unit test found for the specified package. All unit tests of the root package will be run.
        Using ... of ... processors to run unit tests for dymola.
        Number of models   : ...
                  blocks   : 0
@@ -3285,8 +3284,6 @@ class Tester(object):
         self.checkPythonModuleAvailability()
 
         if self.get_number_of_tests() == 0:
-            print('No package specified or no unit test found for the specified package. '
-                  'All unit tests of the root package will be run.')
             self.setDataDictionary(self._rootPackage)
 
         # (Delete and) Create directory for storing funnel data.
