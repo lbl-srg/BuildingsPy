@@ -43,7 +43,7 @@ class OutputGrabber(object):
         # Save a copy of the stream:
         self.streamfd = os.dup(self.origstreamfd)
         # Replace the original stream with our write pipe:
-        os.dup2(self.pipe_in, self.origstreamfd)
+        os.dup2(self.origstreamfd, self.pipe_in)
         if self.threaded:
             # Start thread that will read the stream:
             self.workerThread = threading.Thread(target=self.readOutput)
