@@ -916,8 +916,8 @@ class Tester(object):
                 :param dat: The data dictionary to which dat[keyword] = value will be written.
 
             """
-
-            pos = lin.find(keyword)
+            line = re.sub(' ', '', line)
+            pos = line.find(keyword)
             if pos > -1:
                 posEq = line.find('=', pos)
                 posComma = line.find(',', pos)
@@ -925,8 +925,10 @@ class Tester(object):
                 posEnd = min(posComma, posBracket)
                 if posEnd < 0:
                     posEnd = max(posComma, posBracket)
-                entry = line[posEq + 1:posEnd]
-                dat[keyword] = re.sub(r'^"|"$', '', entry)
+                # Ensure that keyword is directly located before the next = sign
+                if posEq == pos + len(keyword):
+                    entry = line[posEq + 1:posEnd]
+                    dat[keyword] = re.sub(r'^"|"$', '', entry)
             return
 
         old_len = self.get_number_of_tests()
@@ -2297,6 +2299,29 @@ class Tester(object):
         # Return a dictionary with all warnings
         return lis
 
+    def _get_simulation_record(self, simulation_text):
+        """ Return total number of Jacobian evaluations, state events, and elapsed cpu time
+            when run unit test with JModelica
+        """
+        jacobianNumber = 0
+        stateEvents = 0
+        elapsedTime = 0
+        for lin in simulation_text:
+            if ("Number of Jacobian evaluations" in lin):
+                temp = lin.split(":")
+                jacobianNumber = int(temp[1].strip())
+            if ("Number of state events" in lin):
+                temp = lin.split(":")
+                stateEvents = int(temp[1].strip())
+            if ("Elapsed simulation time" in lin):
+                temp = lin.split(":")
+                temp1 = temp[1].split()
+                elapsedTime = float(temp1[0])
+        res = {'jacobians': jacobianNumber,
+               'state_events': stateEvents,
+               'elapsed_time': elapsedTime}
+        return res
+
     def _verify_jmodelica_runs(self):
         """ Check the results of the JModelica tests.
 
@@ -2333,6 +2358,17 @@ class Tester(object):
                             res['translation']['warnings'] = warnings
                             # We don't need the stdout anymore, which can be long.
                             del res['translation']['stdout']
+
+                        # Get number of Jacobian evaluations from stdout that was captured from
+                        # the simulation
+                        if 'stdout' in res['simulation']:
+                            jmRecord = self._get_simulation_record(
+                                simulation_text=res['simulation']['stdout'])
+                            res['simulation']['jacobians'] = jmRecord['jacobians']
+                            res['simulation']['state_events'] = jmRecord['state_events']
+                            res['simulation']['elapsed_time'] = jmRecord['elapsed_time']
+                            # We don't need the stdout anymore, which can be long.
+                            del res['simulation']['stdout']
 
                         all_res.append(res)
                         if not res['translation']['success']:
@@ -2880,6 +2916,8 @@ class Tester(object):
                             "model_name_underscore": self._data[i]['model_name'].replace(
                                 ".",
                                 "_"),
+                            "start_time": self._data[i]['startTime'] if 'startTime' in self._data[i] else 0,
+                            "final_time": self._data[i]['stopTime'] if 'stopTime' in self._data[i] else 0,
                             "statisticsLog": self._statistics_log.replace(
                                 "\\",
                                 "/"),
@@ -2955,6 +2993,18 @@ class Tester(object):
       Modelica.Utilities.Files.move("dslog.txt", "{model_name}.dslog.log");
     end if;
     iSuc=0;
+    intTimRec="temp";
+    timRecCol=0;
+    timRecSpa=0;
+    intTim="0";
+    jacRec="temp";
+    jacRecCol=0;
+    jacRecLen=0;
+    numJac="0";
+    staRec="temp";
+    staRecCol=0;
+    staRecLen=0;
+    numSta="0";
     if Modelica.Utilities.Files.exist("{model_name}.dslog.log") then
       iLin=1;
       endOfFile=false;
@@ -2962,7 +3012,34 @@ class Tester(object):
         (_line, endOfFile)=Modelica.Utilities.Streams.readLine("{model_name}.dslog.log", iLin);
         iLin=iLin+1;
         iSuc=iSuc+Modelica.Utilities.Strings.count(_line, "Integration terminated successfully");
+        if (Modelica.Utilities.Strings.find(_line, "CPU-time for integration") > 0) then
+            intTimRec = _line;
+        end if;
+        if (Modelica.Utilities.Strings.find(_line, "Number of Jacobian-evaluations") > 0) then
+            jacRec = _line;
+        end if;
+        if (Modelica.Utilities.Strings.find(_line, "Number of state events") > 0) then
+            staRec = _line;
+            break;
+        end if;
       end while;
+      if iSuc > 0 then
+        if not Modelica.Utilities.Strings.isEqual(intTimRec,"temp") then
+            timRecCol = Modelica.Utilities.Strings.find(intTimRec, ":");
+            timRecSpa = Modelica.Utilities.Strings.findLast(intTimRec, " ");
+            intTim = Modelica.Utilities.Strings.substring(intTimRec, timRecCol+1, timRecSpa-1);
+        end if;
+        if not Modelica.Utilities.Strings.isEqual(jacRec,"temp") then
+            jacRecCol = Modelica.Utilities.Strings.find(jacRec, ":");
+            jacRecLen = Modelica.Utilities.Strings.length(jacRec);
+            numJac = Modelica.Utilities.Strings.substring(jacRec, jacRecCol+1, jacRecLen);
+        end if;
+        if not Modelica.Utilities.Strings.isEqual(staRec,"temp") then
+            staRecCol = Modelica.Utilities.Strings.find(staRec, ":");
+            staRecLen = Modelica.Utilities.Strings.length(staRec);
+            numSta = Modelica.Utilities.Strings.substring(staRec, staRecCol+1, staRecLen);
+        end if;
+      end if;
       Modelica.Utilities.Streams.close("{model_name}.dslog.log");
     else
       Modelica.Utilities.Streams.print("{model_name}.dslog.log was not generated.", "{model_name}.log");
@@ -2974,6 +3051,11 @@ class Tester(object):
     Modelica.Utilities.Streams.print("      \"simulate\" : {{", "{statisticsLog}");
     Modelica.Utilities.Streams.print("        \"command\" : \"RunScript(\\\"Resources/Scripts/Dymola/{scriptFile}\\\");\",", "{statisticsLog}");
     Modelica.Utilities.Streams.print("        \"translationLog\"  : \"{translationLog}\",", "{statisticsLog}");
+    Modelica.Utilities.Streams.print("        \"elapsed_time\"  :" + intTim + ",", "{statisticsLog}");
+    Modelica.Utilities.Streams.print("        \"jacobians\"  :" + numJac + ",", "{statisticsLog}");
+    Modelica.Utilities.Streams.print("        \"state_events\"  :" + numSta + ",", "{statisticsLog}");
+    Modelica.Utilities.Streams.print("        \"start_time\"  :" + String({start_time}) + ",", "{statisticsLog}");
+    Modelica.Utilities.Streams.print("        \"final_time\"  :" + String({final_time}) + ",", "{statisticsLog}");
     Modelica.Utilities.Streams.print("        \"result\"  : " + String(iSuc > 0), "{statisticsLog}");
     """
                             runFil.write(template.format(**values))
@@ -3154,6 +3236,27 @@ class Tester(object):
                             symlinks=True,
                             ignore=shutil.ignore_patterns('.svn', '.mat', 'request.', 'status.'))
         return
+
+    def _run_simulation_info(self):
+        """ Extract simulation data from statistics.json when run unit test with dymola
+        """
+        with open(self._statistics_log, 'r') as f:
+            staVal = simplejson.loads(f.read())
+        data = []
+        for case in staVal['testCase']:
+            if 'FMUExport' not in case:
+                temp = {}
+                temp['model'] = case['model']
+                temp['simulation'] = {}
+                temp['simulation']['elapsed_time'] = case['simulate']['elapsed_time']
+                temp['simulation']['start_time'] = case['simulate']['start_time']
+                temp['simulation']['final_time'] = case['simulate']['final_time']
+                temp['simulation']['jacobians'] = case['simulate']['jacobians']
+                temp['simulation']['state_events'] = case['simulate']['state_events']
+                temp['simulation']['success'] = case['simulate']['result']
+                data.append(temp)
+        dataJson = simplejson.dumps(data)
+        return dataJson
 
     def run(self):
         """ Run all regression tests and checks the results.
@@ -3342,6 +3445,11 @@ class Tester(object):
                 self._checkSimulationError(self._simulator_log_file)
 
             if not self._skip_verification:
+                # For Dymola: store available simulation info into
+                # self._comp_info used for reporting.
+                val = self._run_simulation_info()
+                self._comp_info = simplejson.loads(val)
+
                 r = self._checkReferencePoints(ans)
                 if r != 0:  # In case of comparison error. Comparison warnings are handled
                     if retVal != 0:  # We keep the translation or simulation error code.
@@ -3358,8 +3466,6 @@ class Tester(object):
             if not self._skip_verification:
                 # For JModelica: store available translation and simulation info
                 # into self._comp_info used for reporting.
-                # To be implemented for Dymola once translation and simulation info
-                # are available in JSON format (HTML file to large to parse for now).
                 with open(self._simulator_log_file, 'r') as f:
                     self._comp_info = simplejson.loads(f.read())
 
