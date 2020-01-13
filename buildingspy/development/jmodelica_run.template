@@ -43,7 +43,7 @@ class OutputGrabber(object):
         # Save a copy of the stream:
         self.streamfd = os.dup(self.origstreamfd)
         # Replace the original stream with our write pipe:
-        os.dup2(self.origstreamfd, self.pipe_in)
+        os.dup2(self.pipe_in, self.origstreamfd)
         if self.threaded:
             # Start thread that will read the stream:
             self.workerThread = threading.Thread(target=self.readOutput)
@@ -83,9 +83,9 @@ class OutputGrabber(object):
         import os
         while True:
             char = os.read(self.pipe_out, 1)
-            if not char or self.escape_char in char:
+            if not char or str.encode(self.escape_char) in char:
                 break
-            self.capturedtext += char
+            self.capturedtext += str(char, 'utf-8')
 ##############################################################
 
 def process_with_timeout(target, timeout):
