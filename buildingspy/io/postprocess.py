@@ -221,7 +221,7 @@ class Plotter(object):
         # Make equidistant grid for the whole simulation period, such as 0, 1, ... 47
         # for two days
         tMax = max(t)
-        tGrid = np.linspace(0, tMax - increment, num=round(tMax / increment).astype(np.int))
+        tGrid = np.linspace(0, tMax - increment, num=int(round(tMax / increment)))
 
         # Interpolate to hourly time stamps
         yGrid = Plotter.interpolate(tGrid, t, y)
