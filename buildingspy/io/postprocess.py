@@ -147,7 +147,7 @@ class Plotter(object):
 
     def boxplot(t, y, increment=3600, nIncrement=24,
                 notch=0, sym='b+', vert=1, whis=1.5,
-                positions=None, widths=None, patch_artist=False, bootstrap=None, hold=None):
+                positions=None, widths=None, patch_artist=False, bootstrap=None):
         """ Create a boxplot of time data.
 
         :param t: The support points in time as received from the *Reader*.
@@ -221,7 +221,7 @@ class Plotter(object):
         # Make equidistant grid for the whole simulation period, such as 0, 1, ... 47
         # for two days
         tMax = max(t)
-        tGrid = np.linspace(0, tMax - increment, num=round(tMax / increment))
+        tGrid = np.linspace(0, tMax - increment, num=round(tMax / increment).astype(np.int))
 
         # Interpolate to hourly time stamps
         yGrid = Plotter.interpolate(tGrid, t, y)
@@ -237,6 +237,6 @@ class Plotter(object):
                     notch=notch,
                     sym=sym, vert=vert, whis=whis,
                     widths=widths,
-                    patch_artist=patch_artist, bootstrap=bootstrap, hold=hold)
+                    patch_artist=patch_artist, bootstrap=bootstrap)
         return plt
     boxplot = staticmethod(boxplot)
