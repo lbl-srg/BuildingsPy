@@ -85,7 +85,7 @@ class OutputGrabber(object):
             char = os.read(self.pipe_out, 1)
             if not char or self.escape_char.encode('utf-8') in char:
                 break
-            self.capturedtext += char.decode('utf-8')
+            self.capturedtext += char.decode('utf-8', 'ignore')
 ##############################################################
 
 def process_with_timeout(target, timeout):
