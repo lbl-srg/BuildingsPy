@@ -83,9 +83,9 @@ class OutputGrabber(object):
         import os
         while True:
             char = os.read(self.pipe_out, 1)
-            if not char or self.escape_char in char:
+            if not char or self.escape_char.encode('utf-8') in char:
                 break
-            self.capturedtext += char
+            self.capturedtext += char.decode('utf-8', 'ignore')
 ##############################################################
 
 def process_with_timeout(target, timeout):
@@ -130,7 +130,7 @@ def _translate(proc_num, return_dict):
 
   except Exception as e:
     return_dict[proc_num] = {'success': False,
-                             'exception': '{}: {}'.format(type(e).__name__, e.message)}
+                             'exception': '{}: {}'.format(type(e).__name__, e)}
   return
 
 def _simulate(proc_num, return_dict):
@@ -185,7 +185,7 @@ def _simulate(proc_num, return_dict):
 
   except Exception as e:
     return_dict[proc_num] = {'success': False,
-                             'exception': '{}: {}'.format(type(e).__name__, e.message)}
+                             'exception': '{}: {}'.format(type(e).__name__, e)}
   return return_dict
 
 def run():

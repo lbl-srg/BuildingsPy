@@ -82,7 +82,7 @@ class Test_io_Plotter(unittest.TestCase):
         # Create plot
         Plotter.boxplot(t, y, increment=0.5, nIncrement=2 * 24,
                         notch=0, sym='b+', vert=1, whis=1.5,
-                        positions=None, widths=None, patch_artist=False, bootstrap=None, hold=None)
+                        positions=None, widths=None, patch_artist=False, bootstrap=None)
 
 
 if __name__ == '__main__':
