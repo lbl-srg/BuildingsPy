@@ -2341,11 +2341,15 @@ class Tester(object):
                 json_name = fil.replace(".py", "_run.json")
                 if not os.path.exists(json_name):
                     em = "Did not find {}. Is JModelica properly installed?".format(json_name)
-                    with open('stdout', 'r', encoding="utf-8-sig") as tem:
-                        for lin in tem:
-                            em = em + "**** stdout file: {}\n".format(lin)
-                        em = em + "**** end of stdout file\n"
-                    self._reporter.writeError(em)
+                    stdOutFil = os.path.abspath('stdout')
+                    if os.path.exists(stdOutFil):
+                        with open(stdOutFil, 'r', encoding="utf-8-sig") as tem:
+                            for lin in tem:
+                                em = em + "**** stdout file: {}\n".format(lin)
+                            em = em + "**** end of stdout file\n"
+                        self._reporter.writeError(em)
+                    else:
+                        self._reporter.writeError("Did not find file '{}'".format(stdOutFil))
                     iTra = iTra + 1
                 else:
                     with open(json_name, 'r', encoding="utf-8-sig") as json_file:
