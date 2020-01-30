@@ -2348,8 +2348,6 @@ class Tester(object):
                                 em = em + "**** stdout file: {}\n".format(lin)
                             em = em + "**** end of stdout file\n"
                         self._reporter.writeError(em)
-                    else:
-                        self._reporter.writeError("Did not find file '{}'".format(stdOutFil))
                     iTra = iTra + 1
                 else:
                     with open(json_name, 'r', encoding="utf-8-sig") as json_file:
