@@ -220,7 +220,7 @@ Modelica package. Expected file '%s'."
                 ".\n" +
                 self._capitalize_first(name) +
                 " contains invalid expressions such as x * y. Only literal expressions are allowed " +
-                "by JModelica and OpenModelica unit tests.\n")
+                "by OPTIMICA, JModelica and OpenModelica unit tests.\n")
             raise ValueError(s)
 
         delta = abs(eval(val) - eval(value))
@@ -350,8 +350,9 @@ Modelica package. Expected file '%s'."
             f.close()
 
             if (found_sim and not found_tol):
-                s = ("Found mos file={!s} without tolerance defined.\n" +
-                     "A minimum tolerance of 1e-6 is required for JModelica.\n").format(itr)
+                s = (
+                    "Found mos file={!s} without tolerance defined.\n" +
+                    "A minimum tolerance of 1e-6 is required for OPTIMICA and JModelica.\n").format(itr)
                 raise ValueError(s)
 
         return n_tols, mos_non_fmus, mos_fmus
@@ -384,13 +385,13 @@ Modelica package. Expected file '%s'."
             if value is None:
                 s = (
                     "Found mos file={!s} without tolerance specified.\n" +
-                    "A minimum tolerance of 1e-6 is required for JModelica for unit tests.\n").format(mos_file)
+                    "A minimum tolerance of 1e-6 is required for OPTIMICA and JModelica for unit tests.\n").format(mos_file)
                 raise ValueError(s)
             else:
                 if(float(value) > 1e-6):
                     s = ("Found mos file={!s} with tolerance={!s}.\n"
                          "The tolerance found is bigger than 1e-6, the maximum required by "
-                         "JModelica for unit tests.\n").format(mos_file, value)
+                         "OPTIMICA and JModelica for unit tests.\n").format(mos_file, value)
                     raise ValueError(s)
 
         if (name + "=" == "stopTime="):
@@ -457,7 +458,7 @@ Modelica package. Expected file '%s'."
 
         s = (
             "Found mos file={!s} with invalid expression={!s}.\n" +
-            "This is not allowed for cross validation with JModelica.\n").format(
+            "This is not allowed for cross validation with OPTIMICA and JModelica.\n").format(
             mos_file,
             name +
             '=' +

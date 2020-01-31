@@ -41,6 +41,7 @@ import simplejson
 # Code repository sub-package imports.
 from buildingspy.funnel.bin import pyfunnel
 from buildingspy.development import error_dictionary_jmodelica
+from buildingspy.development import error_dictionary_optimica
 from buildingspy.development import error_dictionary_dymola
 from buildingspy.io.outputfile import Reader
 from buildingspy.io.postprocess import Plotter
@@ -120,7 +121,8 @@ class Tester(object):
 
     :param check_html: bool (default=True). Specify whether to load tidylib and
         perform validation of html documentation
-    :param tool: {``dymola``, ``omc``, ``jmodelica``}.  Default is ``dymola``, specifies the
+    :param tool: {``dymola``, ``omc``, ``optimica``, ``jmodelica``}.
+        Default is ``dymola``, specifies the
         tool to use for running the regression test with :func:`~buildingspy.development.Tester.run`.
     :param cleanup: bool (default=True).  Specify whether to delete temporary directories.
     :param comp_tool: string (default='funnel'). Specify the comparison tool ('funnel' or 'legacy').
@@ -192,22 +194,23 @@ class Tester(object):
     To run regression tests only for a single package, call :func:`setSinglePackage`
     prior to :func:`run`.
 
-    *Regression testing using JModelica*
+    *Regression testing using OPTIMICA or JModelica*
 
-    For JModelica, the selection of test cases is done the same
+    For OPTIMICA and JModelica, the selection of test cases is done the same
     way as for Dymola. However, the solver tolerance is obtained
     from the `.mo` file by reading the annotation
     `Tolerance="value"`.
 
-    For JModelica, a JSON file stored as
+    For OPTIMICA and JModelica, a JSON file stored as
     ``Resources/Scripts/BuildingsPy/conf.json`` can be used
-    to further configure tests. The file has the syntax
+    to further configure tests. The file has the syntax below,
+    where ``optimica`` or ``jmodelica`` specifies the tool.
 
     .. code-block:: javascript
 
        [
          {
-           "jmodelica": {
+           "optimica": {
              "ncp": 500,
              "rtol": 1E-6,
              "solver": "CVode",
@@ -236,7 +239,9 @@ class Tester(object):
         skip_verification=False,
     ):
         """ Constructor."""
-        if tool == 'jmodelica':
+        if tool == 'optimica':
+            e = error_dictionary_optimica
+        elif tool == 'jmodelica':
             e = error_dictionary_jmodelica
         else:
             e = error_dictionary_dymola
@@ -254,11 +259,11 @@ class Tester(object):
         self._rootPackage = os.path.join(self._libHome, 'Resources', 'Scripts', 'Dymola')
 
         # Set the tool
-        if tool in ['dymola', 'omc', 'jmodelica']:
+        if tool in ['dymola', 'omc', 'optimica', 'jmodelica']:
             self._modelica_tool = tool
         else:
             raise ValueError(
-                "Value of 'tool' of constructor 'Tester' must be 'dymola', 'omc' or 'jmodelica'. Received '{}'.".format(tool))
+                "Value of 'tool' of constructor 'Tester' must be 'dymola', 'omc', 'optimica' or 'jmodelica'. Received '{}'.".format(tool))
         # File to which the console output of the simulator is written
         self._simulator_log_file = "simulator-{}.log".format(tool)
         #  File to which the console output of the simulator of failed simulations is written
@@ -285,7 +290,7 @@ class Tester(object):
         # Flag to use existing results instead of running a simulation.
         self._useExistingResults = False
 
-        # Flag to compare results against reference points for JModelica.
+        # Flag to compare results against reference points for OPTIMICA and JModelica.
         self._skip_verification = skip_verification
         #self._skip_verification = True
 
@@ -387,7 +392,8 @@ class Tester(object):
         server.browse(browser=browser, timeout=60 * 15)
 
     def get_unit_test_log_file(self):
-        """ Return the name of the log file of the unit tests, such as ``unitTests-jmodelica.log`` or ``unitTests-dymola.log``.
+        """ Return the name of the log file of the unit tests,
+            such as ``unitTests-optimica.log``, ``unitTests-jmodelica.log`` or ``unitTests-dymola.log``.
         """
         return "unitTests-{}.log".format(self._modelica_tool)
 
@@ -395,7 +401,9 @@ class Tester(object):
         """ Initialize the error dictionary.
 
         """
-        if self._modelica_tool == 'jmodelica':
+        if self._modelica_tool == 'optimica':
+            import buildingspy.development.error_dictionary_optimica as e
+        elif self._modelica_tool == 'jmodelica':
             import buildingspy.development.error_dictionary_jmodelica as e
         else:
             import buildingspy.development.error_dictionary_dymola as e
@@ -526,7 +534,7 @@ class Tester(object):
         :return: The name of the modelica executable.
 
         """
-        if self._modelica_tool == 'jmodelica':
+        if self._modelica_tool == 'optimica' or self._modelica_tool == 'jmodelica':
             return 'jm_ipython.sh'
         else:
             return self._modelica_tool
@@ -1004,7 +1012,7 @@ class Tester(object):
                                         dat["model_name"] = dat["modelToOpen"]
 
                         # Get tolerance from mo file. This is used to set the tolerance
-                        # for JModelica.
+                        # for OPTIMICA and JModelica.
                         # Only get the tolerance for the models that need to be simulated,
                         # because those that are only exported as FMU don't need this setting.
                         if dat['mustSimulate']:
@@ -1081,7 +1089,7 @@ class Tester(object):
                                     matFil = matFil + '.mat'
                                     break
 
-                            if self._modelica_tool == 'jmodelica':
+                            if self._modelica_tool == 'optimica' or self._modelica_tool == 'jmodelica':
                                 matFil = '{}_result.mat'.format(
                                     re.sub(r'\.', '_', dat['model_name']))
 
@@ -1133,7 +1141,7 @@ class Tester(object):
         import json
 
         def_dic = {
-            'jmodelica': {
+            self._modelica_tool: {
                 'solver': 'CVode',
                 'simulate': True,
                 'ncp': 500,
@@ -1176,7 +1184,7 @@ class Tester(object):
                                             # Reset plot variables
                                             all_dat['ResultVariables'] = []
                                     elif s == 'translate':
-                                        all_dat['jmodelica'][s] = val
+                                        all_dat[self._modelica_tool][s] = val
                                         # Write a warning if a model is not translated
                                         if not val:
                                             self._reporter.writeOutput(
@@ -1255,7 +1263,7 @@ class Tester(object):
 
         # Get the working directory that contains the ".mat" file
         fulFilNam = os.path.join(data['ResultDirectory'], self.getLibraryName(), data['ResultFile'])
-        if self._modelica_tool == 'jmodelica':
+        if self._modelica_tool == 'optimica' or self._modelica_tool == 'jmodelica':
             fulFilNam = os.path.join(data['ResultDirectory'], data['ResultFile'])
         ret = []
         try:
@@ -1276,8 +1284,9 @@ class Tester(object):
                 val = []
                 try:
                     var_mat = var
-                    # Matrix variables in JModelica are stored in mat file with no space e.g. [1,1].
-                    if self._modelica_tool == 'jmodelica':
+                    # Matrix variables in OPTIMICA and JModelica are stored in mat file with
+                    # no space e.g. [1,1].
+                    if self._modelica_tool == 'optimica' or self._modelica_tool == 'jmodelica':
                         var_mat = re.sub(' ', '', var_mat)
                     (time, val) = r.values(var_mat)
                     # Make time grid to which simulation results
@@ -1990,7 +1999,7 @@ class Tester(object):
         # 2. The old reference results have statistics, and they are the same or different.
         # Statistics of the simulation model
         newStatistics = False
-        if self._modelica_tool != 'jmodelica':
+        if self._modelica_tool == 'optimica' or self._modelica_tool != 'jmodelica':
             for stage in ['initialization', 'simulation']:
                 # Updated newStatistics if there is a new statistic. The other
                 # arguments remain unchanged.
@@ -2300,7 +2309,7 @@ class Tester(object):
 
     def _get_simulation_record(self, simulation_text):
         """ Return total number of Jacobian evaluations, state events, and elapsed cpu time
-            when run unit test with JModelica
+            when unit tests are run with OPTIMICA or JModelica
         """
         jacobianNumber = 0
         stateEvents = 0
@@ -2322,7 +2331,7 @@ class Tester(object):
         return res
 
     def _verify_jmodelica_runs(self):
-        """ Check the results of the JModelica tests.
+        """ Check the results of the OPTIMICA and JModelica tests.
 
             This function returns 0 if no errors occurred,
             or a positive non-zero number otherwise.
@@ -2339,7 +2348,7 @@ class Tester(object):
                 # Check if there is a corresponding json file
                 json_name = fil.replace(".py", "_run.json")
                 if not os.path.exists(json_name):
-                    em = "Did not find {}. Is JModelica properly installed?".format(json_name)
+                    em = "Did not find {}. Is the program properly installed?".format(json_name)
                     stdOutFil = os.path.abspath('stdout')
                     if os.path.exists(stdOutFil):
                         with open(stdOutFil, 'r', encoding="utf-8-sig") as tem:
@@ -2447,9 +2456,10 @@ class Tester(object):
         for data_idx, data in enumerate(self._data):
             # Only check data that need to be simulated. This excludes the FMU export
             # from this test.
-            # Nota for JModelica: data['jmodelica']['simulate']=True is an additional condition.
+            # Note for OPTIMICA and JModelica: data['jmodelica']['simulate']=True is
+            # an additional condition.
             check_condition = self._includeFile(data['ScriptFile']) and data['mustSimulate']
-            if self._modelica_tool == 'jmodelica':
+            if self._modelica_tool == 'optimica' or self._modelica_tool == 'jmodelica':
                 check_condition = check_condition and data[self._modelica_tool]['simulate']
             if check_condition:
                 get_user_prompt = True
@@ -2464,7 +2474,7 @@ class Tester(object):
                     # Get the simulation results
                     y_sim = self._getSimulationResults(data, warnings, errors)
                     # Get the translation statistics
-                    if self._modelica_tool != 'jmodelica':
+                    if self._modelica_tool == 'optimica' or self._modelica_tool != 'jmodelica':
                         y_tra = self._getTranslationStatistics(data, warnings, errors)
                     else:
                         y_tra = None
@@ -2629,7 +2639,7 @@ class Tester(object):
                 logFil = ele[key]["translationLog"]
                 ele[key] = self._performTranslationErrorChecks(logFil, ele[key])
                 for k, v in list(self._error_dict.get_dictionary().items()):
-                    # For JModelica, we neither have simulate nor FMUExport
+                    # For OPTIMICA and JModelica, we neither have simulate nor FMUExport
                     if ele[key][k] > 0:
                         self._reporter.writeWarning(v["model_message"].format(ele[key]["command"]))
                         self._error_dict.increment_counter(k)
@@ -2780,7 +2790,7 @@ class Tester(object):
     def _write_runscripts(self):
         """Create the runAll.mos scripts, one per processor (self._nPro).
 
-        The commands in the script depend on the tool: 'dymola', 'jmodelica' or 'omc'
+        The commands in the script depend on the tool: 'dymola', 'optimica', 'jmodelica' or 'omc'
         """
         import platform
 
@@ -3130,9 +3140,9 @@ class Tester(object):
                 runFil.write("exit();\n")
                 runFil.close()
             ###################################################################################
-            # Case for jmodelica
+            # Case for OPTIMICA and JModelica
             ###################################################################################
-            elif self._modelica_tool == 'jmodelica':
+            elif self._modelica_tool == 'optimica' or self._modelica_tool == 'jmodelica':
                 data = []
                 for i in range(iPro, nTes, self._nPro):
                     # Store ResultDirectory into data dict.
@@ -3153,7 +3163,7 @@ class Tester(object):
         return s
 
     def _write_jmodelica_runfile(self, directory, data):
-        """ Write the JModelica runfile for all experiments in data.
+        """ Write the OPTIMICA or JModelica runfile for all experiments in data.
 
         :param directory: The name of the directory where the files will be written.
         :param data: A list with the data for the experiments.
@@ -3168,11 +3178,11 @@ class Tester(object):
             models_underscore = []
             for dat in data:
                 models_underscore.append(dat['model_name'].replace(".", "_"))
-            template = env.get_template("jmodelica_run_all.template")
+            template = env.get_template("{}_run_all.template".format(self._modelica_tool))
             txt = template.render(models_underscore=sorted(models_underscore))
             fil.write(txt)
 
-        tem_mod = env.get_template("jmodelica_run.template")
+        tem_mod = env.get_template("{}_run.template".format(self._modelica_tool))
 
         for dat in data:
             model = dat['model_name']
@@ -3182,23 +3192,23 @@ class Tester(object):
             else:
                 result_variables = list()
             # Set relative tolerance
-            if 'rtol' not in dat['jmodelica']:
+            if 'rtol' not in dat[self._modelica_tool]:
                 # User did not set tolerance, use the one from the .mo file
                 if 'tolerance' in dat:
-                    dat['jmodelica']['rtol'] = dat['tolerance']
+                    dat[self._modelica_tool]['rtol'] = dat['tolerance']
                 else:
-                    dat['jmodelica']['rtol'] = 1E-6
+                    dat[self._modelica_tool]['rtol'] = 1E-6
             # Note that if dat['mustSimulate'] == false, then only the FMU export is tested, but no
             # simulation should be done.
             # filter argument must respect glob syntax ([ is escaped with []]) + JModelica mat file
             # stores matrix variables with no space e.g. [1,1].
             txt = tem_mod.render(
                 model=model,
-                ncp=dat['jmodelica']['ncp'],
-                rtol=dat['jmodelica']['rtol'],
-                solver=dat['jmodelica']['solver'],
-                simulate=dat['jmodelica']['simulate'] and dat['mustSimulate'],
-                time_out=dat['jmodelica']['time_out'],
+                ncp=dat[self._modelica_tool]['ncp'],
+                rtol=dat[self._modelica_tool]['rtol'],
+                solver=dat[self._modelica_tool]['solver'],
+                simulate=dat[self._modelica_tool]['simulate'] and dat['mustSimulate'],
+                time_out=dat[self._modelica_tool]['time_out'],
                 filter=[re.sub('\[|\]',
                                lambda m: '[{}]'.format(m.group()),
                                re.sub(' ', '', x)) for x in result_variables]
@@ -3347,7 +3357,7 @@ class Tester(object):
         tem_dir = []
         libNam = self.getLibraryName()
         for di in self._temDir:
-            if self._modelica_tool == "jmodelica":
+            if self._modelica_tool == 'optimica' or self._modelica_tool == "jmodelica":
                 tem_dir.append(di)
             else:
                 tem_dir.append(os.path.join(di, libNam))
@@ -3362,7 +3372,7 @@ class Tester(object):
                     cmd = [self.getModelicaCommand(), "runAll.mos", "/nowindow"]
             elif self._modelica_tool == 'omc':
                 cmd = [self.getModelicaCommand(), "runAll.mos"]
-            elif self._modelica_tool == 'jmodelica':
+            elif self._modelica_tool == 'optimica' or self._modelica_tool == 'jmodelica':
                 cmd = [self.getModelicaCommand(), "run.py"]
             if self._nPro > 1:
                 po = multiprocessing.Pool(self._nPro)
@@ -3456,14 +3466,14 @@ class Tester(object):
                     else:
                         retVal = 4
 
-        if self._modelica_tool == 'jmodelica':
+        if self._modelica_tool == 'optimica' or self._modelica_tool == 'jmodelica':
             if retVal == 0:
                 retVal = self._verify_jmodelica_runs()
             else:
                 self._verify_jmodelica_runs()
 
             if not self._skip_verification:
-                # For JModelica: store available translation and simulation info
+                # For OPTIMICA and JModelica: store available translation and simulation info
                 # into self._comp_info used for reporting.
                 with open(self._simulator_log_file, 'r') as f:
                     self._comp_info = simplejson.loads(f.read())
