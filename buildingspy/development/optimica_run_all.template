@@ -1,0 +1,11 @@
+{% for model in models_underscore %}
+def run_{{ model }}():
+    import {{ model }} as m
+    m.run()
+{% endfor %}
+
+
+if __name__=="__main__":
+    {% for model in models_underscore %}
+    run_{{ model }}()
+    {% endfor %}
