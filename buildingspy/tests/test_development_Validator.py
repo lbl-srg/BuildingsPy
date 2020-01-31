@@ -115,8 +115,8 @@ class Test_development_Validator(unittest.TestCase):
 
         ###########################################
         # Checking missing tolerance in mo file
-        self.run_case(val, myMoLib, "experiment(StopTime=1.0),",
-                      "stopTime=1.0,", "A minimum tolerance of 1e-6 is required for OPTIMICA and JModelica.")
+        self.run_case(val, myMoLib, "experiment(StopTime=1.0),", "stopTime=1.0,",
+                      "A minimum tolerance of 1e-6 is required for OPTIMICA and JModelica.")
 
         ###########################################
         # Checking tolerances mismatch
