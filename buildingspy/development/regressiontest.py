@@ -1285,7 +1285,8 @@ class Tester(object):
                 val = []
                 try:
                     var_mat = var
-                    # Matrix variables in OPTIMICA and JModelica are stored in mat file with no space e.g. [1,1].
+                    # Matrix variables in OPTIMICA and JModelica are stored in mat file with
+                    # no space e.g. [1,1].
                     if self._modelica_tool == 'optimica' or self._modelica_tool == 'jmodelica':
                         var_mat = re.sub(' ', '', var_mat)
                     (time, val) = r.values(var_mat)
@@ -2456,7 +2457,8 @@ class Tester(object):
         for data_idx, data in enumerate(self._data):
             # Only check data that need to be simulated. This excludes the FMU export
             # from this test.
-            # Note for OPTIMICA and JModelica: data['jmodelica']['simulate']=True is an additional condition.
+            # Note for OPTIMICA and JModelica: data['jmodelica']['simulate']=True is
+            # an additional condition.
             check_condition = self._includeFile(data['ScriptFile']) and data['mustSimulate']
             if self._modelica_tool == 'optimica' or self._modelica_tool == 'jmodelica':
                 check_condition = check_condition and data[self._modelica_tool]['simulate']

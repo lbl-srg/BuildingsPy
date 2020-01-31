@@ -350,8 +350,9 @@ Modelica package. Expected file '%s'."
             f.close()
 
             if (found_sim and not found_tol):
-                s = ("Found mos file={!s} without tolerance defined.\n" +
-                     "A minimum tolerance of 1e-6 is required for OPTIMICA and JModelica.\n").format(itr)
+                s = (
+                    "Found mos file={!s} without tolerance defined.\n" +
+                    "A minimum tolerance of 1e-6 is required for OPTIMICA and JModelica.\n").format(itr)
                 raise ValueError(s)
 
         return n_tols, mos_non_fmus, mos_fmus
