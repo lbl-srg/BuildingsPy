@@ -172,7 +172,7 @@ class Reader(object):
     """
 
     def __init__(self, fileName, simulator):
-        if simulator not in ['dymola', 'jmodelica']:
+        if simulator not in ['dymola', 'optimica', 'jmodelica']:
             raise ValueError('Argument "simulator" needs to be set to "dymola" or "jmodelica".')
 
         self.fileName = fileName
