@@ -1999,7 +1999,7 @@ class Tester(object):
         # 2. The old reference results have statistics, and they are the same or different.
         # Statistics of the simulation model
         newStatistics = False
-        if self._modelica_tool == 'optimica' or self._modelica_tool != 'jmodelica':
+        if self._modelica_tool == 'dymola':
             for stage in ['initialization', 'simulation']:
                 # Updated newStatistics if there is a new statistic. The other
                 # arguments remain unchanged.
@@ -2474,7 +2474,7 @@ class Tester(object):
                     # Get the simulation results
                     y_sim = self._getSimulationResults(data, warnings, errors)
                     # Get the translation statistics
-                    if self._modelica_tool == 'optimica' or self._modelica_tool != 'jmodelica':
+                    if self._modelica_tool == 'dymola':
                         y_tra = self._getTranslationStatistics(data, warnings, errors)
                     else:
                         y_tra = None
