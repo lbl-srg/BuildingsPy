@@ -1182,7 +1182,8 @@ class Tester(object):
                                             self._reporter.writeOutput(
                                                 "{}: Requested to be excluded from translation.".format(
                                                     all_dat['model_name']))
-                                            # Set simulate to false as well as it can't be simulated if not translated
+                                            # Set simulate to false as well as it can't be simulated
+                                            # if not translated
                                             all_dat[self._modelica_tool]['simulate'] = False
                                     elif s == 'simulate':
                                         all_dat[self._modelica_tool][s] = val
@@ -3194,7 +3195,6 @@ class Tester(object):
             if (len(tra_data) == 0):
                 txt += "   import os;\n"
             fil.write(txt)
-
 
         tem_mod = env.get_template("{}_run.template".format(self._modelica_tool))
 
