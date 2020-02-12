@@ -1143,6 +1143,7 @@ class Tester(object):
         def_dic = {
             self._modelica_tool: {
                 'solver': 'CVode',
+                'translate': True,
                 'simulate': True,
                 'ncp': 500,
                 'time_out': 1200
@@ -1174,22 +1175,24 @@ class Tester(object):
                             if key == self._modelica_tool:
                                 for s in con_dat[self._modelica_tool]:
                                     val = con_dat[self._modelica_tool][s]
-                                    if s == 'simulate':
-                                        all_dat[self._modelica_tool][s] = val
-                                        # Write a warning if a model is not simulated
-                                        if not val:
-                                            self._reporter.writeOutput(
-                                                "{}: Requested to be excluded from simulation".format(
-                                                    all_dat['model_name']))
-                                            # Reset plot variables
-                                            all_dat['ResultVariables'] = []
-                                    elif s == 'translate':
+                                    if s == 'translate':
                                         all_dat[self._modelica_tool][s] = val
                                         # Write a warning if a model is not translated
                                         if not val:
                                             self._reporter.writeOutput(
-                                                "{}: Requested to be excluded from translation".format(
+                                                "{}: Requested to be excluded from translation.".format(
                                                     all_dat['model_name']))
+                                            # Set simulate to false as well as it can't be simulated if not translated
+                                            all_dat[self._modelica_tool]['simulate'] = False
+                                    elif s == 'simulate':
+                                        all_dat[self._modelica_tool][s] = val
+                                        # Write a warning if a model is not simulated
+                                        if not val:
+                                            self._reporter.writeOutput(
+                                                "{}: Requested to be excluded from simulation.".format(
+                                                    all_dat['model_name']))
+                                            # Reset plot variables
+                                            all_dat['ResultVariables'] = []
                                     else:
                                         all_dat[self._modelica_tool][s] = val
                             else:
@@ -3172,19 +3175,30 @@ class Tester(object):
         import buildingspy.development.regressiontest as r
         import jinja2
 
+        # Copy only models that need to be translated
+        tra_data = []
+        for dat in data:
+            if dat[self._modelica_tool]['translate']:
+                tra_data.append(dat)
+
         path_to_template = os.path.dirname(inspect.getfile(r))
         env = jinja2.Environment(loader=jinja2.FileSystemLoader(path_to_template))
         with open(os.path.join(directory, "run.py"), mode="w", encoding="utf-8") as fil:
             models_underscore = []
-            for dat in data:
+            for dat in tra_data:
                 models_underscore.append(dat['model_name'].replace(".", "_"))
             template = env.get_template("{}_run_all.template".format(self._modelica_tool))
             txt = template.render(models_underscore=sorted(models_underscore))
+            # for the special case that no models need to be translated (for this process)
+            # we need to add a python command. Otherwise the python file is not valid.
+            if (len(tra_data) == 0):
+                txt += "   import os;\n"
             fil.write(txt)
+
 
         tem_mod = env.get_template("{}_run.template".format(self._modelica_tool))
 
-        for dat in data:
+        for dat in tra_data:
             model = dat['model_name']
             # Filter the result variables
             if 'ResultVariables' in dat:
