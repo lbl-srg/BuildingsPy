@@ -2359,7 +2359,7 @@ class Tester(object):
                             for lin in tem:
                                 em = em + "**** stdout file: {}\n".format(lin)
                             em = em + "**** end of stdout file\n"
-                        self._reporter.writeError(em)
+                    self._reporter.writeError(em)
                     iTra = iTra + 1
                 else:
                     with open(json_name, 'r', encoding="utf-8-sig") as json_file:
