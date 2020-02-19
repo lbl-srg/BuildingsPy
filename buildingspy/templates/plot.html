@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <title>$PAGE_TITLE</title>
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-1.52.0.min.js"></script>
     <script src="https://d3js.org/d3-queue.v3.min.js"></script>
 </head>
 
@@ -69,6 +69,20 @@
             var error_y_axis_title = 'error [unit of variable]';
             var gen_y_axis_title = 'variable';
             var gen_x_axis_title = 'time [s]';
+            var tickformatstops = [
+                {
+                    'dtickrange': [0, 0.1],
+                    'value': '.2e',
+                },
+                {
+                    'dtickrange': [0.1, 1000],
+                    'value':  '.1f',
+                },
+                {
+                    'dtickrange': [1000, null],
+                    'value':  '.2e',
+                },
+            ];
             // Dummy traces for legend only.
             traces.push(
                 {
@@ -126,6 +140,7 @@
             layout['yaxis' + axis_error_idx] = {
                 domain: [1 - err_plot_height, 1],
                 ticks: 'inside',
+                tickformatstops: tickformatstops,
                 showline: true,
                 zeroline: true,
                 title: error_y_axis_title,
@@ -133,9 +148,9 @@
             layout['xaxis' + axis_error_idx] = {
                 showline: false,
                 zeroline: false,
+                tickformatstops: tickformatstops,
                 showticklabels: false,
                 anchor: 'y' + axis_error_idx,
-                matches: 'x' + (nb_groups + 1)
             };
             // ref & test domains
             var divHeight = parseFloat(document.getElementById('myDiv').style.height).toFixed(2);
@@ -200,6 +215,7 @@
                         showline: true,
                         zeroline: false,
                         title: gen_y_axis_title,
+                        tickformatstops: tickformatstops,
                     };
                     layout['xaxis' + axis_data_idx] = {
                         ticks: 'inside',
@@ -208,13 +224,19 @@
                         mirror: 'ticks',
                         zeroline: false,
                         anchor: 'y' + axis_data_idx,
-                        matches: 'x' + (axis_data_idx - 1)
+                        matches: 'x',
+                        tickformatstops: tickformatstops,
                     };
                 });
             });
             layout['xaxis2']['showticklabels'] = true;
             if (nb_groups > 1) {
                 layout['xaxis2']['side'] = 'top';
+            } else {  // Only onr group: no axis mirroring but add x axis to error plot.
+                layout['xaxis2']['mirror'] = false;
+                layout['yaxis2']['mirror'] = false;
+                layout['xaxis1']['showline'] = true;
+                layout['xaxis1']['showticklabels'] = true;
             }
             layout['xaxis' + (nb_groups + 1)]['showticklabels'] = true;
             layout['xaxis' + (nb_groups + 1)]['title'] = gen_x_axis_title;
