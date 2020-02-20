@@ -260,6 +260,7 @@
 		$('#myTable3').on('click', '.myClass', function () {
 			var tr = $(this).closest('tr');
 			var row_idx = table3.row(tr).index();
+			var model = table3.cell(row_idx, 0).data();
 			var variables = table3.cell(row_idx, 1).data();
 			var file = table3.cell(row_idx, 3).data();
 			var dirs = table3.cell(row_idx, 4).data();
@@ -288,14 +289,13 @@
 					if (navail_vars.length > 0) { title = title.concat('<br />No available results for: ').concat(navail_vars.join(', ')); }
 					var new_data = data.replace('$DICT_VAR_INFO', JSON.stringify(dict_var_info));
 					new_data = new_data.replace('$PAGE_TITLE', title);
-					new_data = new_data.replace('$TITLE', title);
+					new_data = new_data.replace('$TITLE', model);
 					new_data = new_data.replace('$HEIGHT', height + '%');
 					new_data = new_data.replace('$ERR_PLOT_HEIGHT', err_plot_height);
 					var strWindowFeatures = "menubar=yes, location=yes, resizable=yes, scrollbars=yes, status=yes";
 					var win = window.open('', '_blank', strWindowFeatures);
 					win.document.write(new_data);
 					win.document.close();  // necessary for the scripts on the page to be executed
-					// win.document.title = file;
 				} else { alert(warnings.join('\n')); }
 			});
 		});
