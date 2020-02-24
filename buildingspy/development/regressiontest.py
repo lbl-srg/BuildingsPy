@@ -1145,7 +1145,7 @@ class Tester(object):
                 'solver': 'CVode',
                 'translate': True,
                 'simulate': True,
-                'ncp': 500,
+                'ncp': 8761,
                 'time_out': 1200
             }
         }
