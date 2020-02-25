@@ -830,9 +830,9 @@ class Tester(object):
 
           >>> import buildingspy.development.regressiontest as r
           >>> r.Tester.get_plot_variables('y = {"a", "b", "c"}')
-          [u'a', u'b', u'c']
+          ['a', 'b', 'c']
           >>> r.Tester.get_plot_variables('... x}, y = {"a", "b", "c"}, z = {...')
-          [u'a', u'b', u'c']
+          ['a', 'b', 'c']
           >>> r.Tester.get_plot_variables("y=abc") is None
           True
 
