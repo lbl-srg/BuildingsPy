@@ -51,5 +51,5 @@ install:
 script:
   - omc --version
   - make pep8 PEP8_CORRECT_CODE=true
-  - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then make doctest; fi
+  - if [[ $TRAVIS_PYTHON_VERSION != 2.7 ]]; then make doctest; fi
   - make unittest
