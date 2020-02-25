@@ -202,7 +202,7 @@ class Simulator(object):
            >>> s=Simulator("myPackage.myModel", "dymola", packagePath="buildingspy/tests/MyModelicaLibrary")
            >>> s.addParameters({'PID.k': 1.0, 'valve.m_flow_nominal' : 0.1})
            >>> s.getParameters()
-           [(u'valve.m_flow_nominal', 0.1), (u'PID.k', 1.0)]
+           [('PID.k', 1.0), ('valve.m_flow_nominal', 0.1)]
         """
         return list(self._parameters_.items())
 

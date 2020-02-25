@@ -204,11 +204,11 @@ class IBPSA(object):
             A typical usage is
                 >>> import buildingspy.development.merger as m
                 >>> m.IBPSA.filter_files(['a.txt', 'aa/b.txt', 'aa/bb/c.txt'], '*.txt')
-                [u'a.txt']
+                ['a.txt']
                 >>> m.IBPSA.filter_files(['a.txt', 'aa/b.txt', 'aa/bb/c.txt'], 'aa/*.txt')
-                [u'aa/b.txt']
+                ['aa/b.txt']
                 >>> m.IBPSA.filter_files(['a.txt', 'aa/b1.txt', 'aa/b2.txt', 'aa/bb/c.txt'], 'aa/*.txt')
-                [u'aa/b1.txt', u'aa/b2.txt']
+                ['aa/b1.txt', 'aa/b2.txt']
         """
         import fnmatch
         import os

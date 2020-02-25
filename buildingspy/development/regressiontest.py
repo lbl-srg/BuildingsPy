@@ -187,8 +187,6 @@ class Tester(object):
        Script that runs unit tests had 0 warnings and 0 errors.
        <BLANKLINE>
        See 'simulator-....log' for details.
-       Unit tests completed successfully.
-       <BLANKLINE>
        Execution time = ...
 
     To run regression tests only for a single package, call :func:`setSinglePackage`
@@ -830,9 +828,9 @@ class Tester(object):
 
           >>> import buildingspy.development.regressiontest as r
           >>> r.Tester.get_plot_variables('y = {"a", "b", "c"}')
-          [u'a', u'b', u'c']
+          ['a', 'b', 'c']
           >>> r.Tester.get_plot_variables('... x}, y = {"a", "b", "c"}, z = {...')
-          [u'a', u'b', u'c']
+          ['a', 'b', 'c']
           >>> r.Tester.get_plot_variables("y=abc") is None
           True
 

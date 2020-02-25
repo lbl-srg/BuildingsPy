@@ -199,20 +199,20 @@ class Reader(object):
               >>> r=Reader(resultFile, "dymola")
               >>> # Return a list with all variable names
               >>> r.varNames() #doctest: +ELLIPSIS
-              [u'PID.I.y_start', u'PID.Td', u'PID.I.der(y)', ...]
+              ['PID.Dzero.k', 'PID.Dzero.y', 'PID.I.der(y)', 'PID.I.initType', ...]
               >>> # Return ['const.k', 'const.y']
               >>> r.varNames('const')
-              [u'const.k', u'const.y']
+              ['const.k', 'const.y']
               >>> # Returns all variables whose last character is u
               >>> r.varNames('u$')
-              [u'PID.gainPID.u', u'PID.limiter.u', u'PID.gainTrack.u', u'PID.P.u', u'PID.I.u', u'gain.u']
+              ['PID.P.u', 'PID.gainPID.u', 'PID.limiter.u', 'gain.u', 'PID.I.u', 'PID.gainTrack.u']
 
         """
         import re
 
         AllNames = self._data_.names()
         if pattern is None:
-            return AllNames
+            return sorted(AllNames)
         else:
             AllNamesFilt = []    # Filtered variable names
             for item in AllNames:
