@@ -9,18 +9,6 @@ from buildingspy import __version__
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
-
-os_name = platform.system()
-lib_data = 'funnel/lib'
-if os_name == 'Windows':
-    lib_data = '{}/win64/*.dll'.format(lib_data)
-elif os_name == 'Linux':
-    lib_data = '{}/linux64/*.so'.format(lib_data)
-elif os_name == 'Darwin':
-    lib_data = '{}/darwin64/*.dylib'.format(lib_data)
-else:
-    raise RuntimeError('Could not detect standard (system, architecture).')
-
 setup(
     name="buildingspy",
     version=__version__,
@@ -33,15 +21,18 @@ setup(
     keywords="modelica dymola openmodelica mat",
     url="http://simulationresearch.lbl.gov/modelica/",
     install_requires=[
-        'future',
-        'gitpython',
-        'jinja2',
-        'matplotlib',
-        'numpy',
-        'pytidylib',
-        'scipy',
-        'simplejson',
-        'six',
+        'future>=0.16',
+        'gitpython>=2.1',
+        'jinja2>=2.10',
+        'matplotlib>=2.2',
+        'numpy>=1.14',
+        'pytidylib>=0.3.2',
+        'scipy>=1.1',
+        'simplejson>=3.14',
+        'six>=1.11',
+    ],
+    dependency_links=[
+        'git+https://github.com/lbl-srg/funnel.git@issue42_syslogCheck#egg=package-0.1.0',
     ],
     packages=[
         'buildingspy',
@@ -55,9 +46,6 @@ setup(
         'buildingspy/thirdParty.dymat.DyMat',
         'buildingspy/thirdParty.dymat.DyMat.Export',
     ],
-    package_data={
-        '': ['*.template', 'templates/*', lib_data],
-    },
     include_package_data=True,
     classifiers=[
         "Development Status :: 5 - Production/Stable",
