@@ -48,8 +48,6 @@ setup(
         'buildingspy/development',
         'buildingspy/examples',
         'buildingspy/fmi',
-        'buildingspy/funnel',
-        'buildingspy/funnel.bin',
         'buildingspy/io',
         'buildingspy/simulate',
         'buildingspy/thirdParty',
