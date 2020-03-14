@@ -2,17 +2,23 @@ import io
 import platform
 import os
 from setuptools import setup
-from buildingspy import __version__
+
 # Python setup file.
 # See http://packages.python.org/an_example_pypi_project/setuptools.html
 
+# Version.
+version_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'VERSION'))
+with open(version_path) as f:
+    VERSION = f.read().strip()
 
-with io.open('README.rst', encoding='utf-8') as f:  # io.open for Python 2 support with encoding
+# Readme.
+readme_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'README.rst'))
+with io.open(readme_path, encoding='utf-8') as f:  # io.open for Python 2 support with encoding
     README = f.read()
 
 setup(
     name="buildingspy",
-    version=__version__,
+    version=VERSION,
     author="Michael Wetter",
     author_email="mwetter@lbl.gov",
     description=(
