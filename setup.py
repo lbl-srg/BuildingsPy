@@ -6,8 +6,11 @@ from setuptools import setup
 # Python setup file.
 # See http://packages.python.org/an_example_pypi_project/setuptools.html
 
+MAIN_PACKAGE = 'buildingspy'
+PACKAGE_PATH =  os.path.abspath(os.path.join(os.path.dirname(__file__), MAIN_PACKAGE))
+
 # Version.
-version_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'VERSION'))
+version_path = os.path.join(PACKAGE_PATH, 'VERSION')
 with open(version_path) as f:
     VERSION = f.read().strip()
 
@@ -17,7 +20,7 @@ with io.open(readme_path, encoding='utf-8') as f:  # io.open for Python 2 suppor
     README = f.read()
 
 setup(
-    name="buildingspy",
+    name=MAIN_PACKAGE,
     version=VERSION,
     author="Michael Wetter",
     author_email="mwetter@lbl.gov",
@@ -38,13 +41,10 @@ setup(
         'scipy>=1.1',
         'simplejson>=3.14',
         'six>=1.11',
-        'pyfunnel>=0.1.0',
-    ],
-    dependency_links=[
-        'git+https://github.com/lbl-srg/funnel.git@issue42_syslogCheck#egg=pyfunnel-0.1.0',
+        'pyfunnel @ git+https://github.com/lbl-srg/funnel.git@issue42_syslogCheck',
     ],
     packages=[
-        'buildingspy',
+        MAIN_PACKAGE,
         'buildingspy/development',
         'buildingspy/examples',
         'buildingspy/fmi',

@@ -1,4 +1,4 @@
-include VERSION
+include buildingspy/VERSION
 include buildingspy/license.txt
 recursive-include buildingspy/thirdParty *
 recursive-include buildingspy *.txt *.rst *.mo *.template
