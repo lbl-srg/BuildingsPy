@@ -1,3 +1,4 @@
+import io
 import platform
 import os
 from setuptools import setup
@@ -6,8 +7,8 @@ from buildingspy import __version__
 # See http://packages.python.org/an_example_pypi_project/setuptools.html
 
 
-def read(fname):
-    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+with io.open('README.rst', encoding='utf-8') as f:  # io.open for Python 2 support with encoding
+    README = f.read()
 
 setup(
     name="buildingspy",
@@ -16,7 +17,8 @@ setup(
     author_email="mwetter@lbl.gov",
     description=(
         "Package for simulating and testing models from the Modelica Buildings and IBPSA libraries"),
-    long_description=read('README.rst'),
+    long_description=README,
+    long_description_content_type='text/x-rst',
     license="3-clause BSD",
     keywords="modelica dymola openmodelica mat",
     url="http://simulationresearch.lbl.gov/modelica/",
@@ -30,9 +32,10 @@ setup(
         'scipy>=1.1',
         'simplejson>=3.14',
         'six>=1.11',
+        'pyfunnel>=0.1.0',
     ],
     dependency_links=[
-        'git+https://github.com/lbl-srg/funnel.git@issue42_syslogCheck#egg=package-0.1.0',
+        'git+https://github.com/lbl-srg/funnel.git@issue42_syslogCheck#egg=pyfunnel-0.1.0',
     ],
     packages=[
         'buildingspy',
