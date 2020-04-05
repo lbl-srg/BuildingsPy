@@ -27,6 +27,7 @@ class Test_development_refactor(unittest.TestCase):
         __MOD = 0
         __REC = 1
         __PAC = 2
+        __CON = 3
 
         o = [[__PAC, "UsersGuide"],
              [__MOD, "a"],
@@ -34,6 +35,9 @@ class Test_development_refactor(unittest.TestCase):
              [__REC, "a_data"],
              [__PAC, "B"],
              [__PAC, "Z"],
+             [__CON, "zcon_b"],
+             [__CON, "zcon_c"],
+             [__CON, "zcon_a"],
              [__PAC, "Data"],
              [__PAC, "Types"],
              [__PAC, "Examples"],
@@ -44,13 +48,20 @@ class Test_development_refactor(unittest.TestCase):
              [__PAC, "Internal"],
              [__PAC, "Obsolete"]]
 
+        c = [[__CON, "zcon_b"],
+             [__CON, "zcon_c"],
+             [__CON, "zcon_a"]]
         random.seed(1)
         for i in range(10):
             # Copy the list to prevent the original list to be modified.
             s = list(o)
             # Shuffle the list randomly.
             random.shuffle(s)
-            s = r._sort_package_order(s)
+            # Remove and insert constants (whose order need to be preserved between
+            # .mo and package.order
+            s2 = [ele for ele in s if not ele[0] == __CON]
+            s2.extend(c)
+            s = r._sort_package_order(s2)
             self.assertEqual(o, s, "Sorting failed with i=%d." % i)
         # Reset the random number generator.
         random.seed()
