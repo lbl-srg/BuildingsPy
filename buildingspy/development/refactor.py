@@ -63,7 +63,23 @@ def _sort_package_order(package_order):
         return lis
 
     # Sort models alphabetically
-    s = sorted(package_order, key=itemgetter(1))
+
+    # Per the Modelica standard,
+    # "Classes and constants that are stored in package.mo are also present in package.order
+    # but their relative order should be identical to the one in package.mo
+    # (this ensures that the relative order between classes and constants stored in different ways is preserved).
+    # Therefore, we put in the constants in the original order in which they were.
+    # See also https://github.com/lbl-srg/modelica-buildings/pull/1874
+    s_con = []
+    s_oth = []
+    for ele in package_order:
+        if ele[0] == __CON:
+            # We found a constant
+            s_con.append(ele)
+        else:
+            s_oth.append(ele)
+
+    s = sorted(s_oth, key=itemgetter(1))
     s = sorted(s, key=itemgetter(0))
 
     # Some items can be files or they can be in an own directory
@@ -72,6 +88,7 @@ def _sort_package_order(package_order):
     s = moveItemToFront([__PAC, "Tutorial"], s)
     s = moveItemToFront([__MOD, "UsersGuide"], s)
     s = moveItemToFront([__PAC, "UsersGuide"], s)
+    s.extend(s_con)
     s = moveItemToEnd([__PAC, "Data"], s)
     s = moveItemToEnd([__MOD, "Data"], s)
     s = moveItemToEnd([__PAC, "Types"], s)
