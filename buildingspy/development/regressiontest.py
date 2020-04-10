@@ -2534,6 +2534,12 @@ class Tester(object):
                                 data_idx, oldRefFulFilNam, y_sim, y_tra, refFilNam, ans,
                             )
                         else:
+                            noOldResults=[]
+                            # add all names since we do not have any reference results yet
+                            for pai in y_sim:
+                                t_ref=pai["time"]
+                                noOldResults=noOldResults + list(pai.keys())
+                            self.legacy_plot(y_sim, t_ref, {}, noOldResults, dict(), "New results: " + data['ScriptFile'])
                             # Reference file does not exist
                             print(
                                 "*** Warning: Reference file {} does not yet exist.".format(refFilNam))
