@@ -61,7 +61,7 @@ def runSimulation(worDir, cmd):
     """
     # JModelica requires the working directory to be part of MODELICAPATH
     if 'MODELICAPATH' in os.environ:
-        os.environ['MODELICAPATH'] = "{}:{}".format(os.environ['MODELICAPATH'], worDir)
+        os.environ['MODELICAPATH'] = "{}:{}".format(worDir, os.environ['MODELICAPATH'])
     else:
         os.environ['MODELICAPATH'] = worDir
 
