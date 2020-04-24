@@ -177,7 +177,7 @@ class Tester(object):
        >>> rt.run() # doctest: +ELLIPSIS
        Using ... of ... processors to run unit tests for dymola.
        Number of models   : ...
-                 blocks   : 0
+                 blocks   : 2
                  functions: 0
        Generated ... regression tests.
        <BLANKLINE>
