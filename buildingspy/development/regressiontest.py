@@ -1893,6 +1893,12 @@ class Tester(object):
                         self._reporter.writeWarning("%s: Found translation statistics for %s for %s in old but not in new results.\n Old = %s"
                                                     % (mat_file_name, stage, key, old_res['statistics-%s' % stage][key]))
                         r = True
+                for key in y_tra[stage]:
+                    if key not in old_res['statistics-%s' % stage]:
+                        self._reporter.writeWarning(
+                            "%s: Found translation statistics for key %s in %s in new but not in old results." %
+                            (mat_file_name, key, stage))
+                        r = True
             else:
                 # The new results have no such statistics.
                 self._reporter.writeWarning(
