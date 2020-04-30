@@ -177,7 +177,7 @@ class Tester(object):
        >>> rt.run() # doctest: +ELLIPSIS
        Using ... of ... processors to run unit tests for dymola.
        Number of models   : ...
-                 blocks   : 0
+                 blocks   : 2
                  functions: 0
        Generated ... regression tests.
        <BLANKLINE>
@@ -2735,8 +2735,7 @@ class Tester(object):
                 for filNam in files:
                     # find .mo files
                     pos = filNam.find('.mo')
-                    posExa = root.find('Examples')
-                    if pos > -1 and posExa == -1:
+                    if pos > -1 and (root.find('Examples') == -1 or root.find('Validation') == -1):
                         # find classes that are not partial
                         filFulNam = os.path.join(root, filNam)
                         iMod = self._checkKey("model", filFulNam, iMod)
