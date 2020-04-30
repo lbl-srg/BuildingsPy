@@ -71,9 +71,9 @@ class Test_simulate_Simulator(unittest.TestCase):
         """
         with self.assertRaises(ValueError):
             Simulator(
-                modelName = "MyModelicaLibrary.MyModel",
-                simulator = "dymola",
-                packagePath = "THIS IS NOT A VALID PACKAGE PATH")
+                modelName="MyModelicaLibrary.MyModel",
+                simulator="dymola",
+                packagePath="THIS IS NOT A VALID PACKAGE PATH")
 
     def test_addMethods(self):
         """
