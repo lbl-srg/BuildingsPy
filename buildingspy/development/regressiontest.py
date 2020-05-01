@@ -3561,13 +3561,11 @@ class Tester(object):
                 checkroot = True
             else:
                 checkroot = False
-
             if checkroot:
                 # take the path if it's a model
                 for path in paths:
                     if path.endswith('.mo') and not path.endswith('package.mo'):
-                        ful_nam = os.path.join(root, path)
-                        res.append(ful_nam)
+                        res.append(os.path.join(root, path))
         return res
 
     def _model_from_mo(self, mo_file):
@@ -3638,19 +3636,23 @@ class Tester(object):
           1. In a python console or script, cd to the root folder of the library
 
              >>> t = Tester()
-             >>> t.test_OpenModelica() # doctest: +ELLIPSIS, +REPORT_NDIFF
+             >>> t.test_OpenModelica() # doctest: +SKIP
              OpenModelica script ...OMTests.mos created
              Logfile created: ...OMTests.log
              Starting analysis of logfile
              <BLANKLINE>
              <BLANKLINE>
              ######################################################################
-             Tested ...models:
+             Tested 5 models:
                * 0 compiled successfully (=0.0%)
              <BLANKLINE>
              Successfully checked models:
              Failed model checks:
-               * BuildingsPy.buildingspy.tests.MyModelicaLibrary.Examples.BooleanParameters...
+               * BuildingsPy.buildingspy.tests.MyModelicaLibrary.Examples.BooleanParameters
+               * BuildingsPy.buildingspy.tests.MyModelicaLibrary.Examples.Constants
+               * BuildingsPy.buildingspy.tests.MyModelicaLibrary.Examples.MyStep
+               * BuildingsPy.buildingspy.tests.MyModelicaLibrary.Examples.ParameterEvaluation
+               * BuildingsPy.buildingspy.tests.MyModelicaLibrary.Obsolete.Examples.Constant
              <BLANKLINE>
              More detailed information is stored in self._omstats
              ######################################################################
@@ -3671,7 +3673,7 @@ class Tester(object):
 
         # return a list with pathnames of the .mo files to be tested
 
-        tests = self._get_test_models(folder=worDir, packages=packages)
+        tests = self._get_test_models(packages=packages)
         if len(tests) == 0:
             raise RuntimeError("Did not find any examples to test.")
         self._ommodels = sorted([self._model_from_mo(mo_file) for mo_file in tests[:number]])
