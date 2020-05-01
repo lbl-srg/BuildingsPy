@@ -77,7 +77,10 @@ class Test_development_Validator(unittest.TestCase):
                                 'Examples', model_name + '.mos')
 
         with open(path_mos, mode="w", encoding="utf-8") as mos_fil:
-            mos_fil.write(Template(MOS_TEMPLATE).render(experiment=mos_param, model_name=model_name))
+            mos_fil.write(
+                Template(MOS_TEMPLATE).render(
+                    experiment=mos_param,
+                    model_name=model_name))
 
         with self.assertRaises(ValueError) as context:
             val.validateExperimentSetup(mod_lib)
@@ -144,9 +147,13 @@ class Test_development_Validator(unittest.TestCase):
 
         ###########################################
         # Checking stopTime mismatch
-        self.run_case(val, myMoLib, "Test9", "experiment(Tolerance=1e-6, StartTime=2, StopTime=1.0),",
-                      "tolerance=1e-6, stopTime=1.0,",
-                      "The value of StartTime=2 is different from the (default) value=0.0")
+        self.run_case(
+            val,
+            myMoLib,
+            "Test9",
+            "experiment(Tolerance=1e-6, StartTime=2, StopTime=1.0),",
+            "tolerance=1e-6, stopTime=1.0,",
+            "The value of StartTime=2 is different from the (default) value=0.0")
 
         ###########################################
         # Checking stopTime mismatch
@@ -156,9 +163,13 @@ class Test_development_Validator(unittest.TestCase):
 
         ###########################################
         # Checking stopTime mismatch
-        self.run_case(val, myMoLib, "Test11", "experiment(Tolerance=1e-6, StartTime=15, StopTime=1.0),",
-                      "tolerance=1e-6, startTime=10, stopTime=1.0,",
-                      "The value of StartTime=15 is different from the")
+        self.run_case(
+            val,
+            myMoLib,
+            "Test11",
+            "experiment(Tolerance=1e-6, StartTime=15, StopTime=1.0),",
+            "tolerance=1e-6, startTime=10, stopTime=1.0,",
+            "The value of StartTime=15 is different from the")
 
         ###########################################
         # Checking missing StopTime in mo mismatch
@@ -169,9 +180,13 @@ class Test_development_Validator(unittest.TestCase):
         ###########################################
         # Checking wrong data type that can cause an overflow
         # In JModelica's CI testing, the maximum integer is 2147483647
-        self.run_case(val, myMoLib, "Test13", "experiment(Tolerance=1e-6, StartTime=0, StopTime=2147483648),",
-                      "tolerance=1e-6, startTime=0, stopTime=2147483648,",
-                      "Integer overflow: Integers can be -2147483648 to 2147483647, received")
+        self.run_case(
+            val,
+            myMoLib,
+            "Test13",
+            "experiment(Tolerance=1e-6, StartTime=0, StopTime=2147483648),",
+            "tolerance=1e-6, startTime=0, stopTime=2147483648,",
+            "Integer overflow: Integers can be -2147483648 to 2147483647, received")
         self.run_case(
             val,
             myMoLib,
