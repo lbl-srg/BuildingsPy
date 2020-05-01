@@ -3673,7 +3673,7 @@ class Tester(object):
 
         # return a list with pathnames of the .mo files to be tested
 
-        tests = self._get_test_models(packages=packages)
+        tests = self._get_test_models(folder=worDir, packages=packages)
         if len(tests) == 0:
             raise RuntimeError("Did not find any examples to test.")
         self._ommodels = sorted([self._model_from_mo(mo_file) for mo_file in tests[:number]])
