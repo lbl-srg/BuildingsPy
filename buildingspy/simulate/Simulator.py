@@ -48,13 +48,18 @@ class Simulator(bs._BaseSimulator):
         import buildingspy.io.reporter as reporter
         import os
 
-#        if simulator != "dymola":
-#            raise ValueError("Argument 'simulator' needs to be set to 'dymola'.")
+        if simulator != "dymola":
+            raise ValueError("Argument 'simulator' needs to be set to 'dymola'.")
 
         super().__init__(
             modelName=modelName,
             outputDirectory=outputDirectory,
-            packagePath=packagePath)
+            packagePath=packagePath,
+            outputFileList = ['run_simulate.mos', 'run_translate.mos', 'run.mos',
+                              'dsfinal.txt', 'dsin.txt',
+                              'dsmodel*', 'dymosim', 'dymosim.exe'],
+            logFileList = ['BuildingsPy.log', 'run.mos', 'run_simulate.mos',
+                           'run_translate.mos', 'simulator.log', 'translator.log', 'dslog.txt'])
 
         self._preProcessing_ = list()
         self._postProcessing_ = list()
@@ -62,9 +67,8 @@ class Simulator(bs._BaseSimulator):
         self._modelModifiers_ = list()
         self.setSolver("radau")
         self._MODELICA_EXE = 'dymola'
-        self._showProgressBar = False
         self._showGUI = False
-        self._exitSimulator = True
+
 
     def addPreProcessingStatement(self, command):
         """Adds a pre-processing statement to the simulation script.
@@ -169,16 +173,6 @@ class Simulator(bs._BaseSimulator):
         return self.getParameters()
 
 
-    def setNumberOfIntervals(self, n):
-        """Sets the number of output intervals.
-
-        :param n: The number of output intervals.
-
-        The default is unspecified, which defaults by Dymola to 500.
-        """
-        self._simulator_.update(numberOfIntervals=n)
-        return
-
     def exitSimulator(self, exitAfterSimulation=True):
         """ This function allows avoiding that the simulator terminates.
 
@@ -191,6 +185,16 @@ class Simulator(bs._BaseSimulator):
 
         """
         self._exitSimulator = exitAfterSimulation
+        return
+
+    def showProgressBar(self, show=True):
+        """ Enables or disables the progress bar.
+
+        :param show: Set to *false* to disable the progress bar.
+
+        If this function is not called, then a progress bar will be shown as the simulation runs.
+        """
+        self._showProgressBar = show
         return
 
     def _get_dymola_commands(self, working_directory, log_file, model_name, translate_only=False):
@@ -294,8 +298,8 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
 
             # Run simulation
             self._runSimulation(runScriptName,
-                                self._simulator_.get('timeout'),
-                                worDir)
+                            self._simulator_.get('timeout'),
+                            worDir)
             self._check_simulation_errors(worDir)
             self._copyResultFiles(worDir)
             self._deleteTemporaryDirectory(worDir)
@@ -362,23 +366,6 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
                                       "   You need to delete the directory manually.")
             raise
 
-    def deleteOutputFiles(self):
-        """ Deletes the output files of the simulator.
-        """
-        filLis = ['buildlog.txt', 'dsfinal.txt', 'dsin.txt', 'dslog.txt',
-                  'dsmodel*', 'dymosim', 'dymosim.exe',
-                  str(self._simulator_.get('resultFile')) + '.mat',
-                  'request.', 'status', 'failure', 'stop']
-        self._deleteFiles(filLis)
-
-    def deleteLogFiles(self):
-        """ Deletes the log files of the Python simulator, e.g. the
-            files ``BuildingsPy.log``, ``run.mos`` and ``simulator.log``.
-        """
-        filLis = ['BuildingsPy.log', 'run.mos', 'run_simulate.mos',
-                  'run_translate.mos', 'simulator.log', 'translator.log']
-        self._deleteFiles(filLis)
-
     def showGUI(self, show=True):
         """ Call this function to show the GUI of the simulator.
 
@@ -398,44 +385,14 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
                                    "Time             = " + time.asctime() + '\n')
         return
 
-    def _copyResultFiles(self, srcDir):
-        """ Copies the output files of the simulator.
-
-        :param srcDir: The source directory of the files
-
-        """
-        import shutil
-        import os
-
-        if self._outputDir_ != '.':
-            self._createDirectory(self._outputDir_)
-        filLis = ['run_simulate.mos', 'run_translate.mos', 'run.mos', 'translator.log',
-                  'simulator.log', 'dslog.txt', self._simulator_.get('resultFile') + '.mat']
-        for fil in filLis:
-            srcFil = os.path.join(srcDir, fil)
-            newFil = os.path.join(self._outputDir_, fil)
-            try:
-                if os.path.exists(srcFil):
-                    shutil.copy(srcFil, newFil)
-            except IOError as e:
-                self._reporter.writeError("Failed to copy '" +
-                                          srcFil + "' to '" + newFil +
-                                          "; : " + e.strerror)
-
     def _runSimulation(self, mosFile, timeout, directory):
         """Runs a model translation or simulation.
 
-        :param mosFile: The Modelica *mos* file name, including extension
+        :param mosFile: .mos file
         :param timeout: Time out in seconds
         :param directory: The working directory
 
         """
-
-        import sys
-        import subprocess
-        import time
-        import datetime
-
         # Remove the working directory from the mosFile name.
         # This is needed for example if the simulation is run in a docker,
         # which may have a different file structure than the host.
@@ -446,98 +403,8 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         else:
             cmd = [self._MODELICA_EXE, mo_fil, "/nowindow"]
 
-        # Check if executable is on the path
-        if not self._isExecutable(cmd[0]):
-            print(("Error: Did not find executable '", cmd[0], "'."))
-            print("       Make sure it is on the PATH variable of your operating system.")
-            exit(3)
-        # Run command
-        try:
-            staTim = datetime.datetime.now()
-            pro = subprocess.Popen(args=cmd,
-                                   stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE,
-                                   shell=False,
-                                   cwd=directory)
-            killedProcess = False
-            if timeout > 0:
-                while pro.poll() is None:
-                    time.sleep(0.01)
-                    elapsedTime = (datetime.datetime.now() - staTim).seconds
+        super()._runSimulation(cmd, timeout, directory)
 
-                    if elapsedTime > timeout:
-                        # First, terminate the process. Then, if it is still
-                        # running, kill the process
-
-                        if self._showProgressBar and not killedProcess:
-                            killedProcess = True
-                            # This output needed because of the progress bar
-                            sys.stdout.write("\n")
-                            self._reporter.writeError("Terminating simulation in " +
-                                                      directory + ".")
-                            pro.terminate()
-                        else:
-                            self._reporter.writeError("Killing simulation in " +
-                                                      directory + ".")
-                            pro.kill()
-                    else:
-                        if self._showProgressBar:
-                            fractionComplete = float(elapsedTime) / float(timeout)
-                            self._printProgressBar(fractionComplete)
-
-            else:
-                pro.wait()
-            # This output is needed because of the progress bar
-            if self._showProgressBar and not killedProcess:
-                sys.stdout.write("\n")
-
-            if not killedProcess:
-                std_out = pro.stdout.read()
-                if len(std_out) > 0:
-                    self._reporter.writeOutput(
-                        "*** Standard output stream from simulation:\n" + std_out)
-                std_err = pro.stderr.read()
-                if len(std_err) > 0:
-                    self._reporter.writeError(
-                        "*** Standard error stream from simulation:\n" + std_err)
-            else:
-                self._reporter.writeError("Killed process as it computed longer than " +
-                                          str(timeout) + " seconds.")
-
-            pro.stdout.close()
-            pro.stderr.close()
-
-        except OSError as e:
-            print(("Execution of ", cmd, " failed:", e))
-
-    def showProgressBar(self, show=True):
-        """ Enables or disables the progress bar.
-
-        :param show: Set to *false* to disable the progress bar.
-
-        If this function is not called, then a progress bar will be shown as the simulation runs.
-        """
-        self._showProgressBar = show
-        return
-
-    def _printProgressBar(self, fractionComplete):
-        """Prints a progress bar to the console.
-
-        :param fractionComplete: The fraction of the time that is completed.
-
-        """
-        import sys
-        nInc = 50
-        count = int(nInc * fractionComplete)
-        proBar = "|"
-        for i in range(nInc):
-            if i < count:
-                proBar += "-"
-            else:
-                proBar += " "
-        proBar += "|"
-        print((proBar, int(fractionComplete * 100), "%\r",))
-        sys.stdout.flush()
 
     def _declare_parameters(self):
         """ Declare list of parameters

@@ -51,15 +51,12 @@ class Optimica(bs._BaseSimulator):
         super().__init__(
             modelName=modelName,
             outputDirectory=outputDirectory,
-            packagePath=packagePath)
+            packagePath=packagePath,
+            outputFileList = ['*.fmu'],
+            logFileList = ['BuildingsPy.log', '*_log.txt'])
 
         self.setSolver("CVode")
-#        self.setTimeOut(-1)
         self._MODELICA_EXE = 'jm_ipython.sh'
-        self._showProgressBar = False
-        self._showGUI = False
-        self._exitSimulator = True
-
 
     def simulate(self):
         """Simulates the model.
@@ -81,44 +78,76 @@ class Optimica(bs._BaseSimulator):
         """
         import os
         import shutil
+        import jinja2
 
-        print("****************** Fixme: Not yet implemented.")
         # Delete dymola output files
         self.deleteOutputFiles()
 
         # Get directory name. This ensures for example that if the directory is called xx/Buildings
         # then the simulations will be done in tmp??/Buildings
         worDir = self._create_worDir()
+        if not os.path.exists(worDir):
+            os.mkdir(worDir)
+
         self._simulateDir_ = worDir
         # Copy directory
-        shutil.copytree(os.path.abspath(self._packagePath), worDir,
-                        ignore=shutil.ignore_patterns('*.svn', '*.git'))
+#        shutil.copytree(os.path.abspath(self._packagePath), worDir,
+#                        ignore=shutil.ignore_patterns('*.svn', '*.git'))
 
         # Construct the model instance with all parameter values
         # and the package redeclarations
-        dec = self._declare_parameters()
-        dec.extend(self._modelModifiers_)
+#        dec = self._declare_parameters()
+#        dec.extend(self._modelModifiers_)
+#
+#        mi = '"{mn}({dec})"'.format(mn=self.modelName, dec=','.join(dec))
 
-        mi = '"{mn}({dec})"'.format(mn=self.modelName, dec=','.join(dec))
+        path_to_template = os.path.join(os.path.dirname(__file__), os.path.pardir, "development")
+        env = jinja2.Environment(loader=jinja2.FileSystemLoader(path_to_template))
+
+        template = env.get_template("optimica_run.template")
+        # Note that filter argument must respect glob syntax ([ is escaped with []]) + JModelica mat file
+        # stores matrix variables with no space e.g. [1,1].
+        txt = template.render(
+            model=self.modelName,
+            ncp=self._simulator_.get('numberOfIntervals'),
+            rtol=self._simulator_.get('eps'),
+            solver=self._simulator_.get('solver'),
+            start_time=self._simulator_.get('t0'),
+            stop_time = self._simulator_.get('t1'),
+            result_file=self._simulator_.get('resultFile'),
+            simulate=True,
+            time_out=self._simulator_.get('time_out'),
+            filter=["*"])
+
+#            filter=[re.sub('\[|\]',
+#                lambda m: '[{}]'.format(m.group()),
+#                re.sub(' ', '', x)) for x in result_variables]
+
+        print(f"******** Working dir is {worDir}")
+        print(f"******** model name is {self.modelName}")
+
+        file_name = os.path.join(worDir, "{}.py".format(self.modelName.replace(".", "_")))
+        with open(file_name, mode="w", encoding="utf-8") as fil:
+            fil.write(txt)
+        print(f"******** Wrote file {file_name}")
+
+        env = os.environ.copy()
+        mod_path = os.getenv('MODELICAPATH')
+        if mod_path == None:
+            os.putenv("MODELICAPATH", os.getcwd())
+        else:
+            os.putenv("MODELICAPATH", os.getcwd() + ":" + os.getenv('MODELICAPATH'))
 
         try:
-            # Write the Modelica script
-            runScriptName = os.path.join(worDir, "run.mos")
-            with open(runScriptName, mode="w", encoding="utf-8") as fil:
-                fil.write(self._get_dymola_commands(
-                    working_directory=worDir,
-                    log_file="simulator.log",
-                    model_name=mi,
-                    translate_only=False))
-            # Copy files to working directory
+            super()._runSimulation(["jm_ipython.sh", file_name],
+                self._simulator_.get('timeout'),
+                worDir,
+                env=env)
 
-            # Run simulation
-            self._runSimulation(runScriptName,
-                                self._simulator_.get('timeout'),
-                                worDir)
             self._check_simulation_errors(worDir)
             self._copyResultFiles(worDir)
             self._deleteTemporaryDirectory(worDir)
+
         except Exception as e:  # Catch all possible exceptions
             em = "Simulation failed in '{worDir}'\n   Exception: {exc}.\n   You need to delete the directory manually.\n".format(
                 worDir=worDir, exc=str(e))

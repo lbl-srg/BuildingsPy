@@ -41,7 +41,13 @@ class _BaseSimulator(object):
               clear what entry should be used.
     """
 
-    def __init__(self, modelName, outputDirectory='.', packagePath=None):
+    def __init__(
+            self,
+            modelName,
+            outputDirectory,
+            packagePath,
+            outputFileList,
+            logFileList):
         import buildingspy.io.reporter as reporter
         import os
 
@@ -62,9 +68,12 @@ class _BaseSimulator(object):
 
         self._simulateDir_ = None
 
+        self.setResultFile(modelName)
+        self._outputFileList = outputFileList
+        self._logFileList = logFileList
+
         # This call is needed so that the reporter can write to the working directory
         self._createDirectory(outputDirectory)
-        self.setResultFile(modelName)
 
 #        # This call is needed so that the reporter can write to the working directory
 #        self._createDirectory(outputDirectory)
@@ -75,13 +84,14 @@ class _BaseSimulator(object):
         self.setStartTime(0)
         self.setStopTime(1)
         self.setTolerance(1E-6)
+        self.setNumberOfIntervals()
 #        self.setSolver("radau")
         self.setTimeOut(-1)
         self._MODELICA_EXE = None
         self._reporter = reporter.Reporter(fileName=logFilNam)
-#        self._showProgressBar = False
-#        self._showGUI = False
-#        self._exitSimulator = True
+        self._showProgressBar = False
+        self._showGUI = False
+        self._exitSimulator = True
 
     def setPackagePath(self, packagePath):
         """ Set the path specified by ``packagePath``.
@@ -195,6 +205,16 @@ class _BaseSimulator(object):
         self._simulator_.update(solver=solver)
         return
 
+    def setNumberOfIntervals(self, n=500):
+        """Sets the number of output intervals.
+
+        :param n: The number of output intervals.
+
+        The default is unspecified, which defaults to 500.
+        """
+        self._simulator_.update(numberOfIntervals=n)
+        return
+
     def _deleteFiles(self, fileList):
         """ Deletes the output files of the simulator.
 
@@ -301,3 +321,146 @@ class _BaseSimulator(object):
         rs = resultFile.split(".")
         self._simulator_.update(resultFile=rs[len(rs) - 1])
         return
+
+    def _runSimulation(self, cmd, timeout, directory, env=None):
+        """Runs a model translation or simulation.
+
+        :param cmd: Array with command arguments
+        :param timeout: Time out in seconds
+        :param directory: The working directory
+
+        """
+
+        import sys
+        import subprocess
+        import time
+        import datetime
+
+        # Check if executable is on the path
+        if not self._isExecutable(cmd[0]):
+            print(("Error: Did not find executable '", cmd[0], "'."))
+            print("       Make sure it is on the PATH variable of your operating system.")
+            exit(3)
+        # Run command
+        try:
+            staTim = datetime.datetime.now()
+            if env is None:
+                pro = subprocess.Popen(args=cmd,
+                                       stdout=subprocess.PIPE,
+                                       stderr=subprocess.PIPE,
+                                       shell=False,
+                                       cwd=directory)
+            else:
+                pro = subprocess.Popen(args=cmd,
+                                       stdout=subprocess.PIPE,
+                                       stderr=subprocess.PIPE,
+                                       shell=False,
+                                       cwd=directory,
+                                       env=env)
+
+            killedProcess = False
+            if timeout > 0:
+                while pro.poll() is None:
+                    time.sleep(0.01)
+                    elapsedTime = (datetime.datetime.now() - staTim).seconds
+
+                    if elapsedTime > timeout:
+                        # First, terminate the process. Then, if it is still
+                        # running, kill the process
+
+                        if self._showProgressBar and not killedProcess:
+                            killedProcess = True
+                            # This output needed because of the progress bar
+                            sys.stdout.write("\n")
+                            self._reporter.writeError("Terminating simulation in " +
+                                                      directory + ".")
+                            pro.terminate()
+                        else:
+                            self._reporter.writeError("Killing simulation in " +
+                                                      directory + ".")
+                            pro.kill()
+                    else:
+                        if self._showProgressBar:
+                            fractionComplete = float(elapsedTime) / float(timeout)
+                            self._printProgressBar(fractionComplete)
+
+            else:
+                pro.wait()
+            # This output is needed because of the progress bar
+            if self._showProgressBar and not killedProcess:
+                sys.stdout.write("\n")
+
+            if not killedProcess:
+                std_out = pro.stdout.read()
+                if len(std_out) > 0:
+                    self._reporter.writeOutput(
+                        "*** Standard output stream from simulation:\n" + std_out)
+                std_err = pro.stderr.read()
+                if len(std_err) > 0:
+                    self._reporter.writeError(
+                        "*** Standard error stream from simulation:\n" + std_err)
+            else:
+                self._reporter.writeError("Killed process as it computed longer than " +
+                                          str(timeout) + " seconds.")
+
+            pro.stdout.close()
+            pro.stderr.close()
+
+        except OSError as e:
+            print(("Execution of ", cmd, " failed:", e))
+
+    def _printProgressBar(self, fractionComplete):
+        """Prints a progress bar to the console.
+
+        :param fractionComplete: The fraction of the time that is completed.
+
+        """
+        import sys
+        nInc = 50
+        count = int(nInc * fractionComplete)
+        proBar = "|"
+        for i in range(nInc):
+            if i < count:
+                proBar += "-"
+            else:
+                proBar += " "
+        proBar += "|"
+        print((proBar, int(fractionComplete * 100), "%\r",))
+        sys.stdout.flush()
+
+    def _copyResultFiles(self, srcDir):
+        """ Copies the output and log files of the simulator.
+
+        :param srcDir: The source directory of the files
+
+        """
+        import shutil
+        import os
+
+        if self._outputDir_ != '.':
+            self._createDirectory(self._outputDir_)
+        filLis = self._outputFileList + self._logFileList
+        filLis.append(self._simulator_.get('resultFile') + ".mat")
+
+        for fil in filLis:
+            srcFil = os.path.join(srcDir, fil)
+            newFil = os.path.join(self._outputDir_, fil)
+            try:
+                if os.path.exists(srcFil):
+                    shutil.copy(srcFil, newFil)
+            except IOError as e:
+                self._reporter.writeError("Failed to copy '" +
+                                          srcFil + "' to '" + newFil +
+                                          "; : " + e.strerror)
+
+    def deleteOutputFiles(self):
+        """ Deletes the output files of the simulator.
+        """
+        self._deleteFiles(self._outputFileList)
+        self._deleteFiles([self._simulator_.get('resultFile') + ".mat"])
+
+    def deleteLogFiles(self):
+        """ Deletes the log files of the Python simulator, e.g. the
+            files ``BuildingsPy.log``, ``run.mos`` and ``simulator.log``.
+        """
+        self._deleteFiles(self._logFileList)
