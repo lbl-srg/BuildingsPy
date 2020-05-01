@@ -504,8 +504,8 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
                 self._reporter.writeError("Killed process as it computed longer than " +
                                           str(timeout) + " seconds.")
 
-            pro.stderr.close()
             pro.stdout.close()
+            pro.stderr.close()
 
         except OSError as e:
             print(("Execution of ", cmd, " failed:", e))
