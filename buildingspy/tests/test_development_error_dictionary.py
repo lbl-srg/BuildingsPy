@@ -41,7 +41,7 @@ class Test_development_error_dictionary(unittest.TestCase):
                              'unused connector',
                              'stateGraphRoot missing',
                              'mismatched displayUnits',
-                             'which is suspicious'])
+                             'suspicious attributes'])
 
         self.assertEqual(len(k), len(k_expected), "Wrong number of keys.")
         for i in range(len(k)):

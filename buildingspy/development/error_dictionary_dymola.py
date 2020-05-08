@@ -142,4 +142,4 @@ class ErrorDictionary(ed.ErrorDictionary):
             'counter': 0,
             'buildingspy_var': "iSus",
             'model_message': "Check min and max attributes in '{}'.\n",
-            'summary_message': "Number of models with mismatched displayUnit                 : {}\n"}
+            'summary_message': "Number of models with suspicious attributes (likely min/max) : {}\n"}
