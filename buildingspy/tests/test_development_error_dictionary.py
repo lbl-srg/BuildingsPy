@@ -40,7 +40,8 @@ class Test_development_error_dictionary(unittest.TestCase):
                              'unspecified initial conditions',
                              'unused connector',
                              'stateGraphRoot missing',
-                             'mismatched displayUnits'])
+                             'mismatched displayUnits',
+                             'suspicious attributes'])
 
         self.assertEqual(len(k), len(k_expected), "Wrong number of keys.")
         for i in range(len(k)):
@@ -65,7 +66,8 @@ class Test_development_error_dictionary(unittest.TestCase):
                              'Dymola has selected default initial condition',
                              'Warning: The following connector variables are not used in the model',
                              "A \\\"stateGraphRoot\\\" component was automatically introduced.",
-                             "Mismatched displayUnit"])
+                             "Mismatched displayUnit",
+                             "which is suspicious"])
 
         self.assertEqual(len(k), len(k_expected), "Wrong number of tool messages.")
         for i in range(len(k)):
