@@ -98,19 +98,22 @@ def process_with_timeout(target, timeout):
     p = multiprocessing.Process(target=target, args=(0, return_dict))
     start = time.time()
     p.start()
-    while time.time() - start <= timeout:
-        if p.is_alive():
-            time.sleep(0.01)
+    if timeout > 0:
+        while time.time() - start <= timeout:
+            if p.is_alive():
+                time.sleep(0.01)
         else:
-            cpu_time = time.time()-start
-            ret = copy.copy(return_dict[0])
-            ret.update({'cpu_time': cpu_time})
-            return ret
+            # Entered if there was a timeout
+            p.terminate()
+            p.join()
+            raise RuntimeError("Process timeout")
     else:
-        # Entered if there was a timeout
-        p.terminate()
         p.join()
-        raise RuntimeError("Process timeout")
+
+    cpu_time = time.time()-start
+    ret = copy.copy(return_dict[0])
+    ret.update({'cpu_time': cpu_time})
+    return ret
 
 def _translate(proc_num, return_dict):
   from pymodelica import compile_fmu
@@ -119,10 +122,10 @@ def _translate(proc_num, return_dict):
     # Grab the stdoutput
     out = OutputGrabber()
     out.start()
-    fmu_name = compile_fmu("{{ model }}",
+    fmu_name = compile_fmu("{{ model }}{{ model_modifier }}",
                            version="2.0",
                            compiler_log_level='warning',
-                           compiler_options = {"generate_html_diagnostics" : False,
+                           compiler_options = {"generate_html_diagnostics" : {{ generate_html_diagnostics }},
                                                "nle_solver_tol_factor": 1e-2})
     out.stop()
     # The standard output is returned as a list, with each line being an element
@@ -142,8 +145,6 @@ def _simulate(proc_num, return_dict):
     return return_dict
 
   # Simulate the model
-#
-
   try:
     fmu_name = "{{ model }}".replace(".", "_") + ".fmu"
     mod = load_fmu(fmu_name)
@@ -161,23 +162,27 @@ def _simulate(proc_num, return_dict):
     else:
       atol = rtol
 
-    if opts['solver'].lower() == 'cvode':
+    if opts['solver'] == 'CVode':
       # Set user-specified tolerance if it is smaller than the tolerance in the .mo file
       opts['CVode_options'] = {
         'external_event_detection': False,
-        'maxh': (mod.get_default_experiment_stop_time()-mod.get_default_experiment_stop_time())/float(opts['ncp']),
         'iter': 'Newton',
         'discr': 'BDF',
-        'rtol': rtol,
-        'atol': atol,
         'store_event_points': True
     }
 
+    opts['{{ solver }}_options']['rtol'] = rtol
+    opts['{{ solver }}_options']['atol'] = atol
     opts['filter'] = {{ filter }}
+    opts['result_file_name'] = "{{ result_file_name }}"
+
     # Grab the stdoutput
     out = OutputGrabber()
     out.start()
-    res = mod.simulate(options=opts)
+    res = mod.simulate(
+        options=opts,
+        start_time={{ start_time }},
+        final_time={{ final_time }})
     out.stop()
     start_time = res['time'][0]
     final_time = res['time'][-1]
@@ -206,7 +211,7 @@ def run():
               "simulation": {"success": False}}
 
     # Compile model
-    log_file = "{}_run.json".format(model.replace(".", "_"))
+    log_file = "{}_buidingspy.json".format(model.replace(".", "_"))
     try:
         os.remove(log_file)
     except OSError:

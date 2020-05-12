@@ -80,6 +80,8 @@ class Test_simulate_Optimica(unittest.TestCase):
         from buildingspy.io.outputfile import Reader
 
         s = Optimica("MyModelicaLibrary.MyModel", packagePath=self._packagePath)
+        s.addModelModifier(
+            "redeclare Modelica.Blocks.Sources.Step source(offset=-0.1, height=1.1, startTime=0.5)")
         s.setStartTime(-1)
         s.setStopTime(5)
         s.setTimeOut(600)
@@ -100,89 +102,136 @@ class Test_simulate_Optimica(unittest.TestCase):
         s.deleteOutputFiles()
         s.deleteLogFiles()
 
-#     def test_addGetParameters(self):
-#         """
-#         Tests the :mod:`buildingspy.simulate.Simulator.addParameters`
-#         and the :mod:`buildingspy.simulate.Simulator.getParameters`
-#         functions.
-#         """
-#         s = Simulator("myPackage.myModel", "dymola", packagePath=self._packagePath)
-#         # Make sure values are added correctly
-#         s.addParameters({'PID.k': 1.0, 'valve.m_flow_nominal': 0.1})
-#         self.assertEqual(sorted(s.getParameters()), [('PID.k', 1.0), ('valve.m_flow_nominal', 0.1)])
-#         # Add one more parameter
-#         s.addParameters({'PID.t': 10.0})
-#         self.assertEqual(sorted(s.getParameters()), [
-#                          ('PID.k', 1.0), ('PID.t', 10.0), ('valve.m_flow_nominal', 0.1)])
-#         # Arguments must be a dictionary
-#         self.assertRaises(ValueError, s.addParameters, ["aaa", "bbb"])
+    def test_addGetParameters(self):
+        """
+        Tests the :mod:`buildingspy.simulate.Simulator.addParameters`
+        and the :mod:`buildingspy.simulate.Simulator.getParameters`
+        functions.
+        """
+        s = Optimica("myPackage.myModel", packagePath=self._packagePath)
+        # Make sure values are added correctly
+        s.addParameters({'PID.k': 1.0, 'valve.m_flow_nominal': 0.1})
+        self.assertEqual(sorted(s.getParameters()), [('PID.k', 1.0), ('valve.m_flow_nominal', 0.1)])
+        # Add one more parameter
+        s.addParameters({'PID.t': 10.0})
+        self.assertEqual(sorted(s.getParameters()), [
+                         ('PID.k', 1.0), ('PID.t', 10.0), ('valve.m_flow_nominal', 0.1)])
+        # Arguments must be a dictionary
+        self.assertRaises(ValueError, s.addParameters, ["aaa", "bbb"])
 
-#     def test_addVectorOfParameterValues(self):
-#         """
-#         Tests the :mod:`buildingspy.simulate.Simulator.addParameters`
-#         function for the situation where values for a parameter that is
-#         a vector is added.
-#         """
-#         import numpy as np
-#         from buildingspy.io.outputfile import Reader
-#         # Delete output file
-#         resultFile = os.path.join("Constants.mat")
-#         if os.path.exists(resultFile):
-#             os.remove(resultFile)
+    def test_addVectorOfParameterValues(self):
+        """
+        Tests the :mod:`buildingspy.simulate.Simulator.addParameters`
+        function for the situation where values for a parameter that is
+        a vector is added.
+        """
+        import numpy as np
+        from buildingspy.io.outputfile import Reader
 
-#         s = Simulator("MyModelicaLibrary.Examples.Constants",
-#                       "dymola", packagePath=self._packagePath)
-#         s.addParameters({'const1.k': [2, 3]})
-#         s.addParameters({'const2.k': [[1.1, 1.2], [2.1, 2.2], [3.1, 3.2]]})
-#         s.addParameters({'const3.k': 0})
-#         s.simulate()
+        model = "MyModelicaLibrary.Examples.Constants"
+        resultFile = f"{model.replace('.', '_')}_result.mat"
 
-#         r = Reader(resultFile, "dymola")
+        # Delete output file
+        if os.path.exists(resultFile):
+            os.remove(resultFile)
+        s = Optimica(model, packagePath=self._packagePath)
+        s.addParameters({'const1.k': [2, 3]})
+        s.addParameters({'const2.k': [[1.1, 1.2], [2.1, 2.2], [3.1, 3.2]]})
+        s.addParameters({'const3.k': 0})
+        s.simulate()
+        r = Reader(resultFile, "dymola")
+        np.testing.assert_allclose(2, r.max('const1[1].y'))
+        np.testing.assert_allclose(3, r.max('const1[2].y'))
+        np.testing.assert_allclose(1.1, r.max('const2[1,1].y'))
+        np.testing.assert_allclose(1.2, r.max('const2[1,2].y'))
+        np.testing.assert_allclose(2.1, r.max('const2[2,1].y'))
+        np.testing.assert_allclose(2.2, r.max('const2[2,2].y'))
+        np.testing.assert_allclose(3.1, r.max('const2[3,1].y'))
+        np.testing.assert_allclose(3.2, r.max('const2[3,2].y'))
+        np.testing.assert_allclose(0, r.max('const3.y'))
+        # Delete output files
+        s.deleteOutputFiles()
+        s.deleteLogFiles()
 
-#         np.testing.assert_allclose(2, r.max('const1[1].y'))
-#         np.testing.assert_allclose(3, r.max('const1[2].y'))
+    def test_setBooleanParameterValues(self):
+        """
+        Tests the :mod:`buildingspy.simulate.Simulator.addParameters`
+        function for boolean parameters.
+        """
+        from buildingspy.io.outputfile import Reader
 
-#         np.testing.assert_allclose(1.1, r.max('const2[1, 1].y'))
-#         np.testing.assert_allclose(1.2, r.max('const2[1, 2].y'))
-#         np.testing.assert_allclose(2.1, r.max('const2[2, 1].y'))
-#         np.testing.assert_allclose(2.2, r.max('const2[2, 2].y'))
-#         np.testing.assert_allclose(3.1, r.max('const2[3, 1].y'))
-#         np.testing.assert_allclose(3.2, r.max('const2[3, 2].y'))
+        model = "MyModelicaLibrary.Examples.BooleanParameters"
+        resultFile = f"{model.replace('.', '_')}_result.mat"
 
-#         np.testing.assert_allclose(0, r.max('const3.y'))
-#         # Delete output files
-#         s.deleteOutputFiles()
-#         s.deleteLogFiles()
+        # Delete output file
+        if os.path.exists(resultFile):
+            os.remove(resultFile)
+        s = Optimica(model, packagePath=self._packagePath)
+        s.addParameters({'p1': True})
+        s.addParameters({'p2': False})
+        s.simulate()
+        r = Reader(resultFile, "dymola")
+        (_, p) = r.values('p1')
+        self.assertEqual(p[0], 1.0)
+        (_, p) = r.values('p2')
+        self.assertEqual(p[0], 0.0)
+        # Delete output files
+        s.deleteOutputFiles()
+        s.deleteLogFiles()
 
-#     def test_setBooleanParameterValues(self):
-#         """
-#         Tests the :mod:`buildingspy.simulate.Simulator.addParameters`
-#         function for boolean parameters.
-#         """
+    def test_setResultFilter(self):
+        """
+        Tests the :mod:`buildingspy.simulate.Optimica.setResultFilter`
+        function.
+        """
+        from buildingspy.io.outputfile import Reader
 
-#         from buildingspy.io.outputfile import Reader
-#         # Delete output file
-#         resultFile = os.path.join("BooleanParameters.mat")
+        model = "MyModelicaLibrary.Examples.MyStep"
+        resultFile = f"{model.replace('.', '_')}_result.mat"
 
-#         if os.path.exists(resultFile):
-#             os.remove(resultFile)
+        # Delete output file
+        if os.path.exists(resultFile):
+            os.remove(resultFile)
 
-#         s = Simulator("MyModelicaLibrary.Examples.BooleanParameters",
-#                       "dymola", packagePath=self._packagePath)
-#         s.addParameters({'p1': True})
-#         s.addParameters({'p2': False})
-#         s.simulate()
+        s = Optimica(model, packagePath=self._packagePath)
+        s.setResultFilter(["myStep.source.y"])
+        s.simulate()
+        r = Reader(resultFile, "dymola")
+        (_, _) = r.values('myStep.source.y')
+        # This output should not be stored
+        with self.assertRaises(KeyError):
+            r.values("y")
 
-#         r = Reader(resultFile, "dymola")
+        # Delete output files
+        s.deleteOutputFiles()
+        s.deleteLogFiles()
 
-#         (_, p) = r.values('p1')
-#         self.assertEqual(p[0], 1.0)
-#         (_, p) = r.values('p2')
-#         self.assertEqual(p[0], 0.0)
-#         # Delete output files
-#         s.deleteOutputFiles()
-#         s.deleteLogFiles()
+    def test_setResultFilterRegExp(self):
+        """
+        Tests the :mod:`buildingspy.simulate.Optimica.setResultFilter`
+        function.
+        """
+        from buildingspy.io.outputfile import Reader
 
+        model = "MyModelicaLibrary.Examples.MyStep"
+        resultFile = f"{model.replace('.', '_')}_result.mat"
+
+        # Delete output file
+        if os.path.exists(resultFile):
+            os.remove(resultFile)
+
+        s = Optimica(model, packagePath=self._packagePath)
+        s.setResultFilter(["*source.y"])
+        s.simulate()
+        r = Reader(resultFile, "dymola")
+        (_, _) = r.values('myStep.source.y')
+        # This output should not be stored
+        with self.assertRaises(KeyError):
+            r.values("y")
+
+        # Delete output files
+        s.deleteOutputFiles()
+        s.deleteLogFiles()
 
 if __name__ == '__main__':
     unittest.main()

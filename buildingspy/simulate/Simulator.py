@@ -63,8 +63,14 @@ class Simulator(bs._BaseSimulator):
 
         self._preProcessing_ = list()
         self._postProcessing_ = list()
-        self._parameters_ = {}
-        self._modelModifiers_ = list()
+        self.setStartTime(0)
+        self.setStopTime(1)
+        # If modelName=aa.bb.cc, then split returns [aa, bb, cc]
+        # This is needed to get the short model name
+#        rs = resultFile.split(".")
+#        self._simulator_.update(resultFile=rs[len(rs) - 1])
+        self.setResultFile(modelName.split(".")[-1])
+
         self.setSolver("radau")
         self._MODELICA_EXE = 'dymola'
         self._showGUI = False
@@ -98,67 +104,6 @@ class Simulator(bs._BaseSimulator):
         self._postProcessing_.append(command)
         return
 
-    def addParameters(self, dictionary):
-        """Adds parameter declarations to the simulator.
-
-        :param dictionary: A dictionary with the parameter values
-
-        Usage: Type
-           >>> from buildingspy.simulate.Simulator import Simulator
-           >>> s=Simulator("myPackage.myModel", "dymola", packagePath="buildingspy/tests/MyModelicaLibrary")
-           >>> s.addParameters({'PID.k': 1.0, 'valve.m_flow_nominal' : 0.1})
-           >>> s.addParameters({'PID.t': 10.0})
-
-        This will add the three parameters ``PID.k``, ``valve.m_flow_nominal``
-        and ``PID.t`` to the list of model parameters.
-
-        For parameters that are arrays, use a syntax such as
-           >>> from buildingspy.simulate.Simulator import Simulator
-           >>> s = Simulator("MyModelicaLibrary.Examples.Constants", "dymola", packagePath="buildingspy/tests/MyModelicaLibrary")
-           >>> s.addParameters({'const1.k' : [2, 3]})
-           >>> s.addParameters({'const2.k' : [[1.1, 1.2], [2.1, 2.2], [3.1, 3.2]]})
-
-        Do not use curly brackets for the values of parameters, such as
-        ``s.addParameters({'const1.k' : {2, 3}})``
-        as Python converts this entry to ``{'const1.k': set([2, 3])}``.
-
-        """
-        self._parameters_.update(dictionary)
-        return
-
-    def getParameters(self):
-        """Returns a list of parameters as (key, value)-tuples.
-
-        :return: A list of parameters as (key, value)-tuples.
-
-        Usage: Type
-           >>> from buildingspy.simulate.Simulator import Simulator
-           >>> s=Simulator("myPackage.myModel", "dymola", packagePath="buildingspy/tests/MyModelicaLibrary")
-           >>> s.addParameters({'PID.k': 1.0, 'valve.m_flow_nominal' : 0.1})
-           >>> s.getParameters()
-           [('PID.k', 1.0), ('valve.m_flow_nominal', 0.1)]
-        """
-        return list(self._parameters_.items())
-
-
-    def addModelModifier(self, modelModifier):
-        """Adds a model modifier.
-
-        :param dictionary: A model modifier.
-
-        Usage: Type
-           >>> from buildingspy.simulate.Simulator import Simulator
-           >>> s=Simulator("myPackage.myModel", "dymola", packagePath="buildingspy/tests/MyModelicaLibrary")
-           >>> s.addModelModifier('redeclare package MediumA = Buildings.Media.IdealGases.SimpleAir')
-
-        This method adds a model modifier. The modifier is added to the list
-        of model parameters. For example, the above statement would yield the
-        command
-        ``simulateModel(myPackage.myModel(redeclare package MediumA = Buildings.Media.IdealGases.SimpleAir), startTime=...``
-
-        """
-        self._modelModifiers_.append(modelModifier)
-        return
 
     def getSimulatorSettings(self):
         """Returns a list of settings for the parameter as (key, value)-tuples.
@@ -304,8 +249,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
             self._copyResultFiles(worDir)
             self._deleteTemporaryDirectory(worDir)
         except Exception as e:  # Catch all possible exceptions
-            em = "Simulation failed in '{worDir}'\n   Exception: {exc}.\n   You need to delete the directory manually.\n".format(
-                worDir=worDir, exc=str(e))
+            em = f"Simulation failed in '{worDir}'\n   Exception: {e}.\n   You need to delete the directory manually.\n"
             self._reporter.writeError(em)
 
     def translate(self):
@@ -405,36 +349,6 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
 
         super()._runSimulation(cmd, timeout, directory)
 
-
-    def _declare_parameters(self):
-        """ Declare list of parameters
-        """
-        def to_modelica(arg):
-            """ Convert to Modelica array.
-            """
-            # Check for strings and booleans
-            if isinstance(arg, basestring):
-                return '\\"' + arg + '\\"'
-            elif isinstance(arg, bool):
-                if arg is True:
-                    return 'true'
-                else:
-                    return 'false'
-            try:
-                return '{' + ", ".join(to_modelica(x) for x in arg) + '}'
-            except TypeError:
-                return repr(arg)
-        dec = list()
-
-        for k, v in list(self._parameters_.items()):
-            # Dymola requires vectors of parameters to be set in the format
-            # p = {1, 2, 3} rather than in the format of python arrays, which
-            # is p = [1, 2, 3].
-            # Hence, we convert the value of the parameter if required.
-            s = to_modelica(v)
-            dec.append('{param}={value}'.format(param=k, value=s))
-
-        return dec
 
     def _check_simulation_errors(self, worDir):
         """ Method that checks if errors occured during simulation.

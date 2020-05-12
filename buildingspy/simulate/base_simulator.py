@@ -62,13 +62,15 @@ class _BaseSimulator(object):
             self.setPackagePath(packagePath)
 
         self.modelName = modelName
+        self._parameters_ = {}
+        self._modelModifiers_ = list()
 
         self._simulator_ = {}
+
         self._outputDir_ = outputDirectory
 
         self._simulateDir_ = None
 
-        self.setResultFile(modelName)
         self._outputFileList = outputFileList
         self._logFileList = logFileList
 
@@ -81,8 +83,8 @@ class _BaseSimulator(object):
 #        self._postProcessing_ = list()
 #        self._parameters_ = {}
 #        self._modelModifiers_ = list()
-        self.setStartTime(0)
-        self.setStopTime(1)
+        self.setStartTime(None)
+        self.setStopTime(None)
         self.setTolerance(1E-6)
         self.setNumberOfIntervals()
 #        self.setSolver("radau")
@@ -116,6 +118,69 @@ class _BaseSimulator(object):
 
         # All the checks have been successfully passed
         self._packagePath = packagePath
+
+    def addParameters(self, dictionary):
+        """Adds parameter declarations to the simulator.
+
+        :param dictionary: A dictionary with the parameter values
+
+        Usage: Type
+           >>> from buildingspy.simulate.Simulator import Simulator
+           >>> s=Simulator("myPackage.myModel", "dymola", packagePath="buildingspy/tests/MyModelicaLibrary")
+           >>> s.addParameters({'PID.k': 1.0, 'valve.m_flow_nominal' : 0.1})
+           >>> s.addParameters({'PID.t': 10.0})
+
+        This will add the three parameters ``PID.k``, ``valve.m_flow_nominal``
+        and ``PID.t`` to the list of model parameters.
+
+        For parameters that are arrays, use a syntax such as
+           >>> from buildingspy.simulate.Simulator import Simulator
+           >>> s = Simulator("MyModelicaLibrary.Examples.Constants", "dymola", packagePath="buildingspy/tests/MyModelicaLibrary")
+           >>> s.addParameters({'const1.k' : [2, 3]})
+           >>> s.addParameters({'const2.k' : [[1.1, 1.2], [2.1, 2.2], [3.1, 3.2]]})
+
+        Do not use curly brackets for the values of parameters, such as
+        ``s.addParameters({'const1.k' : {2, 3}})``
+        as Python converts this entry to ``{'const1.k': set([2, 3])}``.
+
+        """
+        self._parameters_.update(dictionary)
+        return
+
+    def getParameters(self):
+        """Returns a list of parameters as (key, value)-tuples.
+
+        :return: A list of parameters as (key, value)-tuples.
+
+        Usage: Type
+           >>> from buildingspy.simulate.Simulator import Simulator
+           >>> s=Simulator("myPackage.myModel", "dymola", packagePath="buildingspy/tests/MyModelicaLibrary")
+           >>> s.addParameters({'PID.k': 1.0, 'valve.m_flow_nominal' : 0.1})
+           >>> s.getParameters()
+           [('PID.k', 1.0), ('valve.m_flow_nominal', 0.1)]
+        """
+        return list(self._parameters_.items())
+
+
+    def addModelModifier(self, modelModifier):
+        """Adds a model modifier.
+
+        :param dictionary: A model modifier.
+
+        Usage: Type
+           >>> from buildingspy.simulate.Simulator import Simulator
+           >>> s=Simulator("myPackage.myModel", "dymola", packagePath="buildingspy/tests/MyModelicaLibrary")
+           >>> s.addModelModifier('redeclare package MediumA = Buildings.Media.IdealGases.SimpleAir')
+
+        This method adds a model modifier. The modifier is added to the list
+        of model parameters. For example, the above statement would yield the
+        command
+        ``simulateModel(myPackage.myModel(redeclare package MediumA = Buildings.Media.IdealGases.SimpleAir), startTime=...``
+
+        """
+        self._modelModifiers_.append(modelModifier)
+        return
+
 
     def _createDirectory(self, directoryName):
         """ Creates the directory *directoryName*
@@ -243,9 +308,13 @@ class _BaseSimulator(object):
         if worDir is None:
             return
 
-        # Walk one level up, since we appended the name of the current directory
+        # For Dymola, walk one level up, since we appended the name of the current directory
         # to the name of the working directory
-        dirNam = os.path.split(worDir)[0]
+        if self._simulator_ is 'dymola':
+            dirNam = os.path.split(worDir)[0]
+        else:
+            dirNam = worDir
+
         # Make sure we don't delete a root directory
         if dirNam.find('tmp-simulator-') == -1:
             self._reporter.writeError(
@@ -318,9 +387,40 @@ class _BaseSimulator(object):
         """
         # If resultFile=aa.bb.cc, then split returns [aa, bb, cc]
         # This is needed to get the short model name
-        rs = resultFile.split(".")
-        self._simulator_.update(resultFile=rs[len(rs) - 1])
+#        rs = resultFile.split(".")
+#        self._simulator_.update(resultFile=rs[len(rs) - 1])
+        self._simulator_.update(resultFile=resultFile)
         return
+
+    def _declare_parameters(self):
+        """ Declare list of parameters
+        """
+        def to_modelica(arg):
+            """ Convert to Modelica array.
+            """
+            # Check for strings and booleans
+            if isinstance(arg, basestring):
+                return '\\"' + arg + '\\"'
+            elif isinstance(arg, bool):
+                if arg is True:
+                    return 'true'
+                else:
+                    return 'false'
+            try:
+                return '{' + ", ".join(to_modelica(x) for x in arg) + '}'
+            except TypeError:
+                return repr(arg)
+        dec = list()
+
+        for k, v in list(self._parameters_.items()):
+            # Dymola requires vectors of parameters to be set in the format
+            # p = {1, 2, 3} rather than in the format of python arrays, which
+            # is p = [1, 2, 3].
+            # Hence, we convert the value of the parameter if required.
+            s = to_modelica(v)
+            dec.append('{param}={value}'.format(param=k, value=s))
+
+        return dec
 
     def _runSimulation(self, cmd, timeout, directory, env=None):
         """Runs a model translation or simulation.
@@ -343,7 +443,7 @@ class _BaseSimulator(object):
             exit(3)
         # Run command
         try:
-            staTim = datetime.datetime.now()
+            self._simulationStartTime = datetime.datetime.now()
             if env is None:
                 pro = subprocess.Popen(args=cmd,
                                        stdout=subprocess.PIPE,
@@ -362,7 +462,7 @@ class _BaseSimulator(object):
             if timeout > 0:
                 while pro.poll() is None:
                     time.sleep(0.01)
-                    elapsedTime = (datetime.datetime.now() - staTim).seconds
+                    elapsedTime = (datetime.datetime.now() - self._simulationStartTime).seconds
 
                     if elapsedTime > timeout:
                         # First, terminate the process. Then, if it is still
@@ -393,15 +493,18 @@ class _BaseSimulator(object):
             if not killedProcess:
                 std_out = pro.stdout.read()
                 if len(std_out) > 0:
-                    self._reporter.writeOutput(
-                        "*** Standard output stream from simulation:\n" + std_out)
+                    self._reporter.writeOutput(f"*** Standard output stream from simulation:\n{std_out}")
+
                 std_err = pro.stderr.read()
                 if len(std_err) > 0:
-                    self._reporter.writeError(
-                        "*** Standard error stream from simulation:\n" + std_err)
+                    if pro.returncode != 0:
+                        self._reporter.writeError(f"*** Standard error stream from simulation:\n{std_err}")
+                    else:
+                        # Optimica writes warnings such as missing IPOPT installation to stderr,
+                        # but in this situation we want to continue unless it returns a non-zero exit code.
+                        self._reporter.writeOutput(f"*** Standard error stream from simulation:\n{std_err}")
             else:
-                self._reporter.writeError("Killed process as it computed longer than " +
-                                          str(timeout) + " seconds.")
+                self._reporter.writeError(f"Killed process as it computed longer than {str(timeout)} seconds.")
 
             pro.stdout.close()
             pro.stderr.close()
@@ -436,28 +539,33 @@ class _BaseSimulator(object):
         """
         import shutil
         import os
+        import time
 
-        if self._outputDir_ != '.':
-            self._createDirectory(self._outputDir_)
-        filLis = self._outputFileList + self._logFileList
-        filLis.append(self._simulator_.get('resultFile') + ".mat")
+        for root, dirs, files in os.walk(srcDir):
+          for name in files:
+            filename = os.path.join(root, name)
+            if os.path.getmtime(filename) > self._simulationStartTime.timestamp():
+                relativeName = filename[len(srcDir)+1:]
+                self.__copy_file(filename, os.path.join(self._outputDir_, relativeName))
 
-        for fil in filLis:
-            srcFil = os.path.join(srcDir, fil)
-            newFil = os.path.join(self._outputDir_, fil)
-            try:
-                if os.path.exists(srcFil):
-                    shutil.copy(srcFil, newFil)
-            except IOError as e:
-                self._reporter.writeError("Failed to copy '" +
-                                          srcFil + "' to '" + newFil +
-                                          "; : " + e.strerror)
+    def __copy_file(self, srcFil, newFil):
+        import os
+        import shutil
+
+        try:
+            if os.path.exists(srcFil):
+                shutil.copy(srcFil, newFil)
+        except IOError as e:
+            self._reporter.writeError("Failed to copy '" +
+                                      srcFil + "' to '" + newFil +
+                                      "; : " + e.strerror)
+
 
     def deleteOutputFiles(self):
         """ Deletes the output files of the simulator.
         """
         self._deleteFiles(self._outputFileList)
-        self._deleteFiles([self._simulator_.get('resultFile') + ".mat"])
+        self._deleteFiles([self._simulator_.get('resultFile') + "_result.mat"])
 
     def deleteLogFiles(self):
         """ Deletes the log files of the Python simulator, e.g. the

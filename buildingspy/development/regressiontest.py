@@ -2356,7 +2356,7 @@ class Tester(object):
             # The python file have names such as class_class_class.py
             for fil in glob.glob("{}{}*_*.py".format(d, os.path.sep)):
                 # Check if there is a corresponding json file
-                json_name = fil.replace(".py", "_run.json")
+                json_name = fil.replace(".py", "_buidingspy.json")
                 if not os.path.exists(json_name):
                     em = "Did not find {}. Is the program properly installed?".format(json_name)
                     stdOutFil = os.path.abspath('stdout')
@@ -3233,8 +3233,11 @@ class Tester(object):
                 ncp=dat[self._modelica_tool]['ncp'],
                 rtol=dat[self._modelica_tool]['rtol'],
                 solver=dat[self._modelica_tool]['solver'],
+                start_time='mod.get_default_experiment_start_time()',
+                final_time='mod.get_default_experiment_stop_time()',
                 simulate=dat[self._modelica_tool]['simulate'] and dat['mustSimulate'],
                 time_out=dat[self._modelica_tool]['time_out'],
+                generate_html_diagnostics = False,
                 filter=[re.sub('\[|\]',
                                lambda m: '[{}]'.format(m.group()),
                                re.sub(' ', '', x)) for x in result_variables]

@@ -234,9 +234,12 @@ class Reader(object):
            >>> r=Reader(resultFile, "dymola")
            >>> (time, heatFlow) = r.values('preHea.port.Q_flow')
         """
-        d = self._data_.data(varName)
-        a = self._data_.abscissa(blockOrName=varName, valuesOnly=True)
-        return a, d
+        try:
+            d = self._data_.data(varName)
+            a = self._data_.abscissa(blockOrName=varName, valuesOnly=True)
+            return a, d
+        except KeyError:
+            raise KeyError(f"Did not find variable '{varName}' in '{self.fileName}'")
 
     def integral(self, varName):
         """Get the integral of the data series.
