@@ -42,7 +42,7 @@ setup(
         'scipy>=1.1',
         'simplejson>=3.14',
         'six>=1.11',
-        'pyfunnel@git+https://github.com/lbl-srg/funnel.git@issue42_syslogCheck',
+        'pyfunnel@git+https://github.com/lbl-srg/funnel.git@master',
     ],
     packages=[
         MAIN_PACKAGE,
