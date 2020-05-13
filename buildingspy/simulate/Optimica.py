@@ -35,13 +35,9 @@ class Optimica(bs._BaseSimulator):
     when the simulation is completed.
     Outputs from the python functions will be written to ``outputDirectory/BuildingsPy.log``.
 
-    If the parameter ``packagePath`` is specified, the Simulator will copy this directory
-    and all its subdirectories to a temporary directory when running the simulations.
+    If the parameter ``packagePath`` is specified, then this directory
+    and all its subdirectories will be copied to a temporary directory when running the simulations.
 
-    .. note:: Up to version 1.4, the environmental variable ``MODELICAPATH``
-              has been used as the default value. This has been changed as
-              ``MODELICAPATH`` can have multiple entries in which case it is not
-              clear what entry should be used.
     """
 
     def __init__(self, modelName, outputDirectory='.', packagePath=None):

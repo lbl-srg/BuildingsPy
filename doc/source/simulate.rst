@@ -1,8 +1,18 @@
 Running simulations
 ===================
 
-.. automodule:: buildingspy.simulate 
-.. automodule:: buildingspy.simulate.Simulator
-.. autoclass:: buildingspy.simulate.Simulator.Simulator
+.. automodule:: buildingspy.simulate
+
+Optimica
+--------
+
+.. autoclass:: buildingspy.simulate.Optimica.Optimica
+   :members:
+
+
+Dymola
+------
+
+.. autoclass:: buildingspy.simulate.Dymola.Dymola
    :members:
 
