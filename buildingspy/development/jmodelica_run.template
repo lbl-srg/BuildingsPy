@@ -98,19 +98,23 @@ def process_with_timeout(target, timeout):
     p = multiprocessing.Process(target=target, args=(0, return_dict))
     start = time.time()
     p.start()
-    while time.time() - start <= timeout:
-        if p.is_alive():
-            time.sleep(0.01)
-        else:
-            cpu_time = time.time()-start
-            ret = copy.copy(return_dict[0])
-            ret.update({'cpu_time': cpu_time})
-            return ret
+    if timeout > 0:
+        p.join(timeout)
     else:
-        # Entered if there was a timeout
-        p.terminate()
         p.join()
-        raise RuntimeError("Process timeout")
+
+    cpu_time = time.time()-start
+
+    if p.exitcode != 0:
+        if cpu_time >= timeout:
+            msg = "Process timeout"
+        else:
+            msg = "Process terminated by signal {}".format(-p.exitcode)
+        raise RuntimeError(msg)
+
+    ret = copy.copy(return_dict[0])
+    ret.update({'cpu_time': cpu_time})
+    return ret
 
 def _translate(proc_num, return_dict):
   from pymodelica import compile_fmu

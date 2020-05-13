@@ -99,18 +99,19 @@ def process_with_timeout(target, timeout):
     start = time.time()
     p.start()
     if timeout > 0:
-        while time.time() - start <= timeout:
-            if p.is_alive():
-                time.sleep(0.01)
-        else:
-            # Entered if there was a timeout
-            p.terminate()
-            p.join()
-            raise RuntimeError("Process timeout")
+        p.join(timeout)
     else:
         p.join()
 
     cpu_time = time.time()-start
+
+    if p.exitcode != 0:
+        if cpu_time >= timeout:
+            msg = "Process timeout"
+        else:
+            msg = "Process terminated by signal {}".format(-p.exitcode)
+        raise RuntimeError(msg)
+
     ret = copy.copy(return_dict[0])
     ret.update({'cpu_time': cpu_time})
     return ret
