@@ -13,7 +13,7 @@ from io import open
 # end of from future import
 
 from multiprocessing import Pool
-import buildingspy.simulate.Simulator as si
+import buildingspy.simulate.Dymola as si
 
 
 # Function to set common parameters and to run the simulation

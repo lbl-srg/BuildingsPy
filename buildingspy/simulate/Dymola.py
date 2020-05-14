@@ -1,5 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+"""
+
+  Class that translates and simulates a Modelica model with Dymola.
+
+  For a similar class that uses OPTIMICA, see :func:`buildingspy.simulate.Optimica`.
+
+"""
+
 #
 # import from future to make Python2 behave like Python3
 from __future__ import absolute_import
@@ -8,7 +16,7 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from future import standard_library
 standard_library.install_aliases()
-from builtins import *
+#from builtins import *
 from io import open
 # end of from future import
 
@@ -26,7 +34,6 @@ class Dymola(bs._BaseSimulator):
     """Class to simulate a Modelica model.
 
     :param modelName: The name of the Modelica model.
-    :param simulator: The simulation engine. Currently, the only supported value is ``dymola``.
     :param outputDirectory: An optional output directory.
     :param packagePath: An optional path where the Modelica ``package.mo`` file is located.
 
@@ -44,12 +51,9 @@ class Dymola(bs._BaseSimulator):
               clear what entry should be used.
     """
 
-    def __init__(self, modelName, simulator, outputDirectory='.', packagePath=None):
+    def __init__(self, modelName, outputDirectory='.', packagePath=None):
         import buildingspy.io.reporter as reporter
         import os
-
-        if simulator != "dymola":
-            raise ValueError("Argument 'simulator' needs to be set to 'dymola'.")
 
         super().__init__(
             modelName=modelName,
@@ -191,6 +195,68 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
             s += "Modelica.Utilities.System.exit();\n"
         return s
 
+    def addParameters(self, dictionary):
+        """Adds parameter declarations to the simulator.
+
+        :param dictionary: A dictionary with the parameter values
+
+        Usage: Type
+           >>> from buildingspy.simulate.Dymola import Dymola
+           >>> s=Dymola("myPackage.myModel", packagePath="buildingspy/tests/MyModelicaLibrary")
+           >>> s.addParameters({'PID.k': 1.0, 'valve.m_flow_nominal' : 0.1})
+           >>> s.addParameters({'PID.t': 10.0})
+
+        This will add the three parameters ``PID.k``, ``valve.m_flow_nominal``
+        and ``PID.t`` to the list of model parameters.
+
+        For parameters that are arrays, use a syntax such as
+           >>> from buildingspy.simulate.Dymola import Dymola
+           >>> s = Dymola("MyModelicaLibrary.Examples.Constants", packagePath="buildingspy/tests/MyModelicaLibrary")
+           >>> s.addParameters({'const1.k' : [2, 3]})
+           >>> s.addParameters({'const2.k' : [[1.1, 1.2], [2.1, 2.2], [3.1, 3.2]]})
+
+        Do not use curly brackets for the values of parameters, such as
+        ``s.addParameters({'const1.k' : {2, 3}})``
+        as Python converts this entry to ``{'const1.k': set([2, 3])}``.
+
+        """
+        self._parameters_.update(dictionary)
+        return
+
+    def getParameters(self):
+        """Returns a list of parameters as (key, value)-tuples.
+
+        :return: A list of parameters as (key, value)-tuples.
+
+        Usage: Type
+           >>> from buildingspy.simulate.Dymola import Dymola
+           >>> s=Dymola("myPackage.myModel", packagePath="buildingspy/tests/MyModelicaLibrary")
+           >>> s.addParameters({'PID.k': 1.0, 'valve.m_flow_nominal' : 0.1})
+           >>> s.getParameters()
+           [('PID.k', 1.0), ('valve.m_flow_nominal', 0.1)]
+        """
+        return list(self._parameters_.items())
+
+
+    def addModelModifier(self, modelModifier):
+        """Adds a model modifier.
+
+        :param dictionary: A model modifier.
+
+        Usage: Type
+           >>> from buildingspy.simulate.Dymola import Dymola
+           >>> s=Dymola("myPackage.myModel", packagePath="buildingspy/tests/MyModelicaLibrary")
+           >>> s.addModelModifier('redeclare package MediumA = Buildings.Media.IdealGases.SimpleAir')
+
+        This method adds a model modifier. The modifier is added to the list
+        of model parameters. For example, the above statement would yield the
+        command
+        ``simulateModel(myPackage.myModel(redeclare package MediumA = Buildings.Media.IdealGases.SimpleAir), startTime=...``
+
+        """
+        self._modelModifiers_.append(modelModifier)
+        return
+
     def simulate(self):
         """Simulates the model.
 
@@ -310,6 +376,16 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
                                       "   You need to delete the directory manually.")
             raise
 
+    def setSolver(self, solver):
+        """Sets the solver.
+
+        :param solver: The name of the solver.
+
+        The default solver is *radau*.
+        """
+        self._simulator_.update(solver=solver)
+        return
+
     def showGUI(self, show=True):
         """ Call this function to show the GUI of the simulator.
 
@@ -363,3 +439,50 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
             for li in ret["errors"]:
                 self._reporter.writeError(li)
             raise IOError
+
+# Classes that are inherited. These are listed here
+# so that they appear in the documentation.
+
+    def setPackagePath(self, packagePath):
+        super().setPackagePath(packagePath)
+
+    def getOutputDirectory(self):
+        return super().getOutputDirectory()
+
+    def setOutputDirectory(self, outputDirectory):
+        return super().setOutputDirectory(outputDirectory)
+
+    def getPackagePath(self):
+        return self._packagePath
+
+    def setStartTime(self, t0):
+        super().setStartTime(t0)
+        return
+
+    def setStopTime(self, t1):
+        super().setStopTime(t1)
+        return
+
+    def setTolerance(self, eps):
+        super().setTolerance(eps)
+
+    def setNumberOfIntervals(self, n=500):
+        super().setNumberOfIntervals(n=n)
+
+    def deleteSimulateDirectory(self):
+        super().deleteSimulateDirectory()
+        return
+
+    def setTimeOut(self, sec):
+        super().setTimeOut(sec=sec)
+
+    def setResultFile(self, resultFile):
+        super().setResultFile(resultFile=resultFile)
+        return
+
+    def deleteOutputFiles(self):
+        super().deleteOutputFiles()
+        super()._deleteFiles([self._simulator_.get('resultFile') + "_result.mat"])
+
+    def deleteLogFiles(self):
+        super().deleteLogFiles()

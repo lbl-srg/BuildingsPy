@@ -8,11 +8,11 @@ from __future__ import print_function
 from __future__ import unicode_literals
 from future import standard_library
 standard_library.install_aliases()
-from builtins import *
+#from builtins import *
 from io import open
 # end of from future import
 
-import buildingspy.simulate.Dymola as d
+import buildingspy.simulate.Dymola as dym
 
 try:
     # Python 2
@@ -22,7 +22,7 @@ except NameError:
     basestring = str
 
 
-class Simulator(d.Dymola):
+class Simulator(dym.Dymola):
     """Class to simulate a Modelica model.
 
     :param modelName: The name of the Modelica model.
@@ -47,7 +47,6 @@ class Simulator(d.Dymola):
     def __init__(self, modelName, simulator, outputDirectory='.', packagePath=None):
         super().__init__(
             modelName=modelName,
-            simulator=simulator,
             outputDirectory=outputDirectory,
             packagePath=packagePath)
 

@@ -38,7 +38,6 @@ class Test_simulate_Dymola(unittest.TestCase):
         """
         Dymola(
             modelName="MyModelicaLibrary.myModel",
-            simulator="dymola",
             outputDirectory = "notSupported",
             packagePath=self._packagePath)
 
@@ -46,7 +45,6 @@ class Test_simulate_Dymola(unittest.TestCase):
         with self.assertRaises(ValueError):
             Dymola(
                 modelName="MyModelicaLibrary.myModel",
-                simulator="dymola",
                 outputDirectory = "notSupported",
                 packagePath="ThisIsAWrongPath")
 
@@ -70,7 +68,6 @@ class Test_simulate_Dymola(unittest.TestCase):
         with self.assertRaises(ValueError):
             Dymola(
                 modelName="MyModelicaLibrary.MyModel",
-                simulator="dymola",
                 outputDirectory=".",
                 packagePath="THIS IS NOT A VALID PACKAGE PATH")
 
@@ -143,7 +140,7 @@ class Test_simulate_Dymola(unittest.TestCase):
             os.remove(resultFile)
 
         s = Dymola("MyModelicaLibrary.Examples.Constants",
-                      "dymola", packagePath=self._packagePath)
+                      packagePath=self._packagePath)
         s.addParameters({'const1.k': [2, 3]})
         s.addParameters({'const2.k': [[1.1, 1.2], [2.1, 2.2], [3.1, 3.2]]})
         s.addParameters({'const3.k': 0})
@@ -180,7 +177,7 @@ class Test_simulate_Dymola(unittest.TestCase):
             os.remove(resultFile)
 
         s = Dymola("MyModelicaLibrary.Examples.BooleanParameters",
-                      "dymola", packagePath=self._packagePath)
+                      packagePath=self._packagePath)
         s.addParameters({'p1': True})
         s.addParameters({'p2': False})
         s.simulate()

@@ -10,6 +10,8 @@ from future import standard_library
 standard_library.install_aliases()
 from builtins import *
 from io import open
+import abc
+
 # end of from future import
 
 try:
@@ -119,68 +121,6 @@ class _BaseSimulator(object):
         # All the checks have been successfully passed
         self._packagePath = packagePath
 
-    def addParameters(self, dictionary):
-        """Adds parameter declarations to the simulator.
-
-        :param dictionary: A dictionary with the parameter values
-
-        Usage: Type
-           >>> from buildingspy.simulate.Simulator import Simulator
-           >>> s=Simulator("myPackage.myModel", "dymola", packagePath="buildingspy/tests/MyModelicaLibrary")
-           >>> s.addParameters({'PID.k': 1.0, 'valve.m_flow_nominal' : 0.1})
-           >>> s.addParameters({'PID.t': 10.0})
-
-        This will add the three parameters ``PID.k``, ``valve.m_flow_nominal``
-        and ``PID.t`` to the list of model parameters.
-
-        For parameters that are arrays, use a syntax such as
-           >>> from buildingspy.simulate.Simulator import Simulator
-           >>> s = Simulator("MyModelicaLibrary.Examples.Constants", "dymola", packagePath="buildingspy/tests/MyModelicaLibrary")
-           >>> s.addParameters({'const1.k' : [2, 3]})
-           >>> s.addParameters({'const2.k' : [[1.1, 1.2], [2.1, 2.2], [3.1, 3.2]]})
-
-        Do not use curly brackets for the values of parameters, such as
-        ``s.addParameters({'const1.k' : {2, 3}})``
-        as Python converts this entry to ``{'const1.k': set([2, 3])}``.
-
-        """
-        self._parameters_.update(dictionary)
-        return
-
-    def getParameters(self):
-        """Returns a list of parameters as (key, value)-tuples.
-
-        :return: A list of parameters as (key, value)-tuples.
-
-        Usage: Type
-           >>> from buildingspy.simulate.Simulator import Simulator
-           >>> s=Simulator("myPackage.myModel", "dymola", packagePath="buildingspy/tests/MyModelicaLibrary")
-           >>> s.addParameters({'PID.k': 1.0, 'valve.m_flow_nominal' : 0.1})
-           >>> s.getParameters()
-           [('PID.k', 1.0), ('valve.m_flow_nominal', 0.1)]
-        """
-        return list(self._parameters_.items())
-
-
-    def addModelModifier(self, modelModifier):
-        """Adds a model modifier.
-
-        :param dictionary: A model modifier.
-
-        Usage: Type
-           >>> from buildingspy.simulate.Simulator import Simulator
-           >>> s=Simulator("myPackage.myModel", "dymola", packagePath="buildingspy/tests/MyModelicaLibrary")
-           >>> s.addModelModifier('redeclare package MediumA = Buildings.Media.IdealGases.SimpleAir')
-
-        This method adds a model modifier. The modifier is added to the list
-        of model parameters. For example, the above statement would yield the
-        command
-        ``simulateModel(myPackage.myModel(redeclare package MediumA = Buildings.Media.IdealGases.SimpleAir), startTime=...``
-
-        """
-        self._modelModifiers_.append(modelModifier)
-        return
-
 
     def _createDirectory(self, directoryName):
         """ Creates the directory *directoryName*
@@ -203,6 +143,11 @@ class _BaseSimulator(object):
             # Check write permission
             if not os.access(directoryName, os.W_OK):
                 raise ValueError("Write permission to '" + directoryName + "' denied.")
+
+
+    @abc.abstractmethod
+    def setSolver(self, solver):
+        return
 
     def getOutputDirectory(self):
         """Returns the name of the output directory.
@@ -260,15 +205,6 @@ class _BaseSimulator(object):
         self._simulator_.update(eps=eps)
         return
 
-    def setSolver(self, solver):
-        """Sets the solver.
-
-        :param solver: The name of the solver.
-
-        The default solver is *radau*.
-        """
-        self._simulator_.update(solver=solver)
-        return
 
     def setNumberOfIntervals(self, n=500):
         """Sets the number of output intervals.
@@ -279,6 +215,47 @@ class _BaseSimulator(object):
         """
         self._simulator_.update(numberOfIntervals=n)
         return
+
+
+    def deleteSimulateDirectory(self):
+        """ Deletes the simulate directory. Can be called when simulation failed.
+        """
+        self._deleteTemporaryDirectory(self._simulateDir_)
+
+    def setTimeOut(self, sec):
+        """Sets the time out after which the simulation will be killed.
+
+        :param sec: The time out after which the simulation will be killed.
+
+        The default value is -1, which means that the simulation will
+        never be killed.
+        """
+        self._simulator_.update(timeout=sec)
+        return
+
+    def setResultFile(self, resultFile):
+        """Sets the name of the result file (without extension).
+
+        :param resultFile: The name of the result file (without extension).
+
+        """
+        # If resultFile=aa.bb.cc, then split returns [aa, bb, cc]
+        # This is needed to get the short model name
+#        rs = resultFile.split(".")
+#        self._simulator_.update(resultFile=rs[len(rs) - 1])
+        self._simulator_.update(resultFile=resultFile)
+        return
+
+    def deleteOutputFiles(self):
+        """ Deletes the output files of the simulator.
+        """
+        self._deleteFiles(self._outputFileList)
+
+    def deleteLogFiles(self):
+        """ Deletes the log files of the Python simulator, e.g. the
+            files ``BuildingsPy.log``, ``run.mos`` and ``simulator.log``.
+        """
+        self._deleteFiles(self._logFileList)
 
     def _deleteFiles(self, fileList):
         """ Deletes the output files of the simulator.
@@ -329,11 +306,6 @@ class _BaseSimulator(object):
                 self._reporter.writeError("Failed to delete '" +
                                           worDir + ": " + e.strerror)
 
-    def deleteSimulateDirectory(self):
-        """ Deletes the simulate directory. Can be called when simulation failed.
-        """
-        self._deleteTemporaryDirectory(self._simulateDir_)
-
     def _isExecutable(self, program):
         import os
         import platform
@@ -368,29 +340,6 @@ class _BaseSimulator(object):
             prefix='tmp-simulator-' + getpass.getuser() + '-'), dirNam)
         return worDir
 
-    def setTimeOut(self, sec):
-        """Sets the time out after which the simulation will be killed.
-
-        :param sec: The time out after which the simulation will be killed.
-
-        The default value is -1, which means that the simulation will
-        never be killed.
-        """
-        self._simulator_.update(timeout=sec)
-        return
-
-    def setResultFile(self, resultFile):
-        """Sets the name of the result file (without extension).
-
-        :param resultFile: The name of the result file (without extension).
-
-        """
-        # If resultFile=aa.bb.cc, then split returns [aa, bb, cc]
-        # This is needed to get the short model name
-#        rs = resultFile.split(".")
-#        self._simulator_.update(resultFile=rs[len(rs) - 1])
-        self._simulator_.update(resultFile=resultFile)
-        return
 
     def _declare_parameters(self):
         """ Declare list of parameters
@@ -559,16 +508,3 @@ class _BaseSimulator(object):
             self._reporter.writeError("Failed to copy '" +
                                       srcFil + "' to '" + newFil +
                                       "; : " + e.strerror)
-
-
-    def deleteOutputFiles(self):
-        """ Deletes the output files of the simulator.
-        """
-        self._deleteFiles(self._outputFileList)
-        self._deleteFiles([self._simulator_.get('resultFile') + "_result.mat"])
-
-    def deleteLogFiles(self):
-        """ Deletes the log files of the Python simulator, e.g. the
-            files ``BuildingsPy.log``, ``run.mos`` and ``simulator.log``.
-        """
-        self._deleteFiles(self._logFileList)

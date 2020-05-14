@@ -6,25 +6,20 @@ To install the *BuildingsPy* module, install
 
 .. parsed-literal::
 
-   pip install buildingspy
-
-On Linux or Mac OS X, run
-
-.. parsed-literal::
-
-   sudo pip install buildingspy
+   python -m pip install --user buildingspy
 
 To uninstall, run
 
 .. parsed-literal::
 
-   pip uninstall buildingspy
+   python -m pip uninstall buildingspy
 
-On Linux or Mac OS X, run
+To install the latest development version, run
 
 .. parsed-literal::
 
-   sudo pip uninstall buildingspy
+   python -m pip install --user buildingspy@git+https://github.com/lbl-srg/buildingspy.git@master
+
 
 To run regression tests with *BuildingsPy*,
 *PyTidyLib* needs to be installed. On Ubuntu, this can be done using
