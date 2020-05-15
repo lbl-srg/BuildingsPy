@@ -33,6 +33,7 @@ except NameError:
     # Python 3 or newer
     basestring = str
 
+
 class Optimica(bs._BaseSimulator):
     """Class to simulate a Modelica model with OPTIMICA.
 
@@ -58,8 +59,8 @@ class Optimica(bs._BaseSimulator):
             modelName=modelName,
             outputDirectory=outputDirectory,
             packagePath=packagePath,
-            outputFileList = ['*.fmu'],
-            logFileList = ['BuildingsPy.log', '*_log.txt'])
+            outputFileList=['*.fmu'],
+            logFileList=['BuildingsPy.log', '*_log.txt'])
 
         self.setSolver("CVode")
         self._MODELICA_EXE = 'jm_ipython.sh'
@@ -111,7 +112,6 @@ class Optimica(bs._BaseSimulator):
         """
         return list(self._parameters_.items())
 
-
     def addModelModifier(self, modelModifier):
         """Adds a model modifier.
 
@@ -151,7 +151,6 @@ class Optimica(bs._BaseSimulator):
         """
         return self._translate_and_simulate(simulate=True)
 
-
     def translate(self):
         """Translates the model to generate a Functional Mockup Unit.
 
@@ -171,7 +170,6 @@ class Optimica(bs._BaseSimulator):
 
         """
         return self._translate_and_simulate(simulate=False)
-
 
     def _translate_and_simulate(self, simulate):
         """ Translates and optionally simulates the model.
@@ -220,10 +218,10 @@ class Optimica(bs._BaseSimulator):
         else:
             model_modifier = '({dec})'.format(mn=self.modelName, dec=','.join(dec))
 
-
         file_name = os.path.join(worDir, "{}.py".format(self.modelName.replace(".", "_")))
         with open(file_name, mode="w", encoding="utf-8") as fil:
-            path_to_template = os.path.join(os.path.dirname(__file__), os.path.pardir, "development")
+            path_to_template = os.path.join(
+                os.path.dirname(__file__), os.path.pardir, "development")
             env = jinja2.Environment(loader=jinja2.FileSystemLoader(path_to_template))
 
             template = env.get_template("optimica_run.template")
@@ -236,19 +234,21 @@ class Optimica(bs._BaseSimulator):
                 ncp=self._simulator_.get('numberOfIntervals'),
                 rtol=self._simulator_.get('eps'),
                 solver=self._simulator_.get('solver'),
-                start_time=self._simulator_.get('t0') if self._simulator_.get('t0') is not None else 'mod.get_default_experiment_start_time()',
-                final_time = self._simulator_.get('t1') if self._simulator_.get('t1') is not None else 'mod.get_default_experiment_stop_time()',
+                start_time=self._simulator_.get('t0') if self._simulator_.get(
+                    't0') is not None else 'mod.get_default_experiment_start_time()',
+                final_time=self._simulator_.get('t1') if self._simulator_.get(
+                    't1') is not None else 'mod.get_default_experiment_stop_time()',
                 result_file_name=f"{self._simulator_.get('resultFile')}.mat",
                 simulate=simulate,
-                time_out=-1, # timeout is handled by BuildingsPy directly and not by the generated script
+                time_out=-1,  # timeout is handled by BuildingsPy directly and not by the generated script
                 filter=self._result_filter,
-                generate_html_diagnostics = self._generate_html_diagnostics)
+                generate_html_diagnostics=self._generate_html_diagnostics)
 
             fil.write(txt)
 
         env = os.environ.copy()
         mod_path = os.getenv('MODELICAPATH')
-        if mod_path == None:
+        if mod_path is None:
             os.environ["MODELICAPATH"] = os.getcwd()
         else:
             os.environ["MODELICAPATH"] = ":".join([os.getcwd(), os.getenv('MODELICAPATH')])
@@ -256,9 +256,9 @@ class Optimica(bs._BaseSimulator):
 #        print(f"****** Starting simulation in {worDir}")
         try:
             super()._runSimulation(["jm_ipython.sh", file_name],
-                self._simulator_.get('timeout'),
-                worDir,
-                env=env)
+                                   self._simulator_.get('timeout'),
+                                   worDir,
+                                   env=env)
 
             self._check_simulation_errors(worDir)
             self._copyResultFiles(worDir)
@@ -267,7 +267,6 @@ class Optimica(bs._BaseSimulator):
         except Exception as e:  # Catch all possible exceptions
             em = f"Simulation failed in '{worDir}'\n   Exception: {e}.\n   You need to delete the directory manually.\n"
             self._reporter.writeError(em)
-
 
     def setResultFilter(self, filter):
         """ Specifies a list of variables that should be stored in the result file.
@@ -289,7 +288,6 @@ class Optimica(bs._BaseSimulator):
         """
         self._result_filter = filter
 
-
     def setSolver(self, solver):
         """Sets the solver.
 
@@ -297,7 +295,15 @@ class Optimica(bs._BaseSimulator):
 
         The default solver is *CVode*.
         """
-        solvers = ["CVode", "Radau5ODE", "RungeKutta34", "Dopri5", "RodasODE", "LSODAR", "ExplicitEuler", "ImplicitEuler"]
+        solvers = [
+            "CVode",
+            "Radau5ODE",
+            "RungeKutta34",
+            "Dopri5",
+            "RodasODE",
+            "LSODAR",
+            "ExplicitEuler",
+            "ImplicitEuler"]
         if solver in solvers:
             self._simulator_.update(solver=solver)
         else:

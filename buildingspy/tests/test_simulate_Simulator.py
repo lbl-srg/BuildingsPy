@@ -40,7 +40,7 @@ class Test_simulate_Simulator(unittest.TestCase):
             Simulator(
                 modelName="MyModelicaLibrary.myModel",
                 simulator="dymola",
-                outputDirectory = "notSupported",
+                outputDirectory="notSupported",
                 packagePath=self._packagePath)
 
 

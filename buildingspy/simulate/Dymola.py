@@ -59,11 +59,11 @@ class Dymola(bs._BaseSimulator):
             modelName=modelName,
             outputDirectory=outputDirectory,
             packagePath=packagePath,
-            outputFileList = ['run_simulate.mos', 'run_translate.mos', 'run.mos',
-                              'dsfinal.txt', 'dsin.txt',
-                              'dsmodel*', 'dymosim', 'dymosim.exe'],
-            logFileList = ['BuildingsPy.log', 'run.mos', 'run_simulate.mos',
-                           'run_translate.mos', 'simulator.log', 'translator.log', 'dslog.txt'])
+            outputFileList=['run_simulate.mos', 'run_translate.mos', 'run.mos',
+                            'dsfinal.txt', 'dsin.txt',
+                            'dsmodel*', 'dymosim', 'dymosim.exe'],
+            logFileList=['BuildingsPy.log', 'run.mos', 'run_simulate.mos',
+                         'run_translate.mos', 'simulator.log', 'translator.log', 'dslog.txt'])
 
         self._preProcessing_ = list()
         self._postProcessing_ = list()
@@ -78,7 +78,6 @@ class Dymola(bs._BaseSimulator):
         self.setSolver("radau")
         self._MODELICA_EXE = 'dymola'
         self._showGUI = False
-
 
     def addPreProcessingStatement(self, command):
         """Adds a pre-processing statement to the simulation script.
@@ -108,7 +107,6 @@ class Dymola(bs._BaseSimulator):
         self._postProcessing_.append(command)
         return
 
-
     def getSimulatorSettings(self):
         """Returns a list of settings for the parameter as (key, value)-tuples.
 
@@ -120,7 +118,6 @@ class Dymola(bs._BaseSimulator):
         raise DeprecationWarning(
             "The method Dymola.getSimulatorSettings() is deprecated. Use Dymola.getParameters() instead.")
         return self.getParameters()
-
 
     def exitSimulator(self, exitAfterSimulation=True):
         """ This function allows avoiding that the simulator terminates.
@@ -237,7 +234,6 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         """
         return list(self._parameters_.items())
 
-
     def addModelModifier(self, modelModifier):
         """Adds a model modifier.
 
@@ -309,8 +305,8 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
 
             # Run simulation
             self._runSimulation(runScriptName,
-                            self._simulator_.get('timeout'),
-                            worDir)
+                                self._simulator_.get('timeout'),
+                                worDir)
             self._check_simulation_errors(worDir)
             self._copyResultFiles(worDir)
             self._deleteTemporaryDirectory(worDir)
@@ -424,7 +420,6 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
             cmd = [self._MODELICA_EXE, mo_fil, "/nowindow"]
 
         super()._runSimulation(cmd, timeout, directory)
-
 
     def _check_simulation_errors(self, worDir):
         """ Method that checks if errors occured during simulation.

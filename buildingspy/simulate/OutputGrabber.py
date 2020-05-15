@@ -1,6 +1,8 @@
 ##############################################################
 # Capture stdout of a Python function.
-# From https://stackoverflow.com/questions/24277488/in-python-how-to-capture-the-stdout-from-a-c-shared-library-to-a-variable/29834357
+# From
+# https://stackoverflow.com/questions/24277488/in-python-how-to-capture-the-stdout-from-a-c-shared-library-to-a-variable/29834357
+
 
 class OutputGrabber(object):
     """

@@ -38,14 +38,14 @@ class Test_simulate_Optimica(unittest.TestCase):
         """
         Optimica(
             modelName="MyModelicaLibrary.myModel",
-            outputDirectory = "notSupported",
+            outputDirectory="notSupported",
             packagePath=self._packagePath)
 
         # Check that this path does not exists
         with self.assertRaises(ValueError):
             Optimica(
                 modelName="MyModelicaLibrary.myModel",
-                outputDirectory = "notSupported",
+                outputDirectory="notSupported",
                 packagePath="ThisIsAWrongPath")
 
     def test_setPackagePath(self):
@@ -232,6 +232,7 @@ class Test_simulate_Optimica(unittest.TestCase):
         # Delete output files
         s.deleteOutputFiles()
         s.deleteLogFiles()
+
 
 if __name__ == '__main__':
     unittest.main()

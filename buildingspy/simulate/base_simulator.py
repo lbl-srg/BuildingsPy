@@ -121,7 +121,6 @@ class _BaseSimulator(object):
         # All the checks have been successfully passed
         self._packagePath = packagePath
 
-
     def _createDirectory(self, directoryName):
         """ Creates the directory *directoryName*
 
@@ -143,7 +142,6 @@ class _BaseSimulator(object):
             # Check write permission
             if not os.access(directoryName, os.W_OK):
                 raise ValueError("Write permission to '" + directoryName + "' denied.")
-
 
     @abc.abstractmethod
     def setSolver(self, solver):
@@ -173,7 +171,6 @@ class _BaseSimulator(object):
 
         """
         return self._packagePath
-
 
     def setStartTime(self, t0):
         """Sets the start time.
@@ -205,7 +202,6 @@ class _BaseSimulator(object):
         self._simulator_.update(eps=eps)
         return
 
-
     def setNumberOfIntervals(self, n=500):
         """Sets the number of output intervals.
 
@@ -215,7 +211,6 @@ class _BaseSimulator(object):
         """
         self._simulator_.update(numberOfIntervals=n)
         return
-
 
     def deleteSimulateDirectory(self):
         """ Deletes the simulate directory. Can be called when simulation failed.
@@ -340,7 +335,6 @@ class _BaseSimulator(object):
             prefix='tmp-simulator-' + getpass.getuser() + '-'), dirNam)
         return worDir
 
-
     def _declare_parameters(self):
         """ Declare list of parameters
         """
@@ -450,7 +444,8 @@ class _BaseSimulator(object):
                         self._reporter.writeError(f"*** Standard error stream from simulation:\n{std_err}")
                     else:
                         # Optimica writes warnings such as missing IPOPT installation to stderr,
-                        # but in this situation we want to continue unless it returns a non-zero exit code.
+                        # but in this situation we want to continue unless it returns a non-zero
+                        # exit code.
                         self._reporter.writeOutput(f"*** Standard error stream from simulation:\n{std_err}")
             else:
                 self._reporter.writeError(f"Killed process as it computed longer than {str(timeout)} seconds.")
@@ -491,11 +486,11 @@ class _BaseSimulator(object):
         import time
 
         for root, dirs, files in os.walk(srcDir):
-          for name in files:
-            filename = os.path.join(root, name)
-            if os.path.getmtime(filename) > self._simulationStartTime.timestamp():
-                relativeName = filename[len(srcDir)+1:]
-                self.__copy_file(filename, os.path.join(self._outputDir_, relativeName))
+            for name in files:
+                filename = os.path.join(root, name)
+                if os.path.getmtime(filename) > self._simulationStartTime.timestamp():
+                    relativeName = filename[len(srcDir) + 1:]
+                    self.__copy_file(filename, os.path.join(self._outputDir_, relativeName))
 
     def __copy_file(self, srcFil, newFil):
         import os

@@ -3237,7 +3237,7 @@ class Tester(object):
                 final_time='mod.get_default_experiment_stop_time()',
                 simulate=dat[self._modelica_tool]['simulate'] and dat['mustSimulate'],
                 time_out=dat[self._modelica_tool]['time_out'],
-                generate_html_diagnostics = False,
+                generate_html_diagnostics=False,
                 filter=[re.sub('\[|\]',
                                lambda m: '[{}]'.format(m.group()),
                                re.sub(' ', '', x)) for x in result_variables]
