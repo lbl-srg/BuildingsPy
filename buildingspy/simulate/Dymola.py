@@ -390,17 +390,6 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         self._showGUI = show
         return
 
-    def printModelAndTime(self):
-        """ Prints the current time and the model name to the standard output.
-
-        This method may be used to print logging information.
-        """
-        import time
-        self._reporter.writeOutput("Model name       = " + self.modelName + '\n' +
-                                   "Output directory = " + self._outputDir_ + '\n' +
-                                   "Time             = " + time.asctime() + '\n')
-        return
-
     def _runSimulation(self, mosFile, timeout, directory):
         """Runs a model translation or simulation.
 

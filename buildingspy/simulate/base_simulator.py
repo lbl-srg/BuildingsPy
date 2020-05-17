@@ -241,6 +241,17 @@ class _BaseSimulator(object):
         self._simulator_.update(resultFile=resultFile)
         return
 
+    def printModelAndTime(self):
+        """ Prints the current time and the model name to the standard output.
+
+        This method may be used to print logging information.
+        """
+        import time
+        self._reporter.writeOutput("Model name       = " + self.modelName + '\n' +
+                                   "Output directory = " + self._outputDir_ + '\n' +
+                                   "Time             = " + time.asctime() + '\n')
+        return
+
     def deleteOutputFiles(self):
         """ Deletes the output files of the simulator.
         """
