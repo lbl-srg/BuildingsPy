@@ -436,7 +436,8 @@ class _BaseSimulator(object):
             if not killedProcess:
                 std_out = pro.stdout.read()
                 if len(std_out) > 0:
-                    self._reporter.writeOutput(f"*** Standard output stream from simulation:\n{std_out}")
+                    self._reporter.writeOutput(
+                        f"*** Standard output stream from simulation:\n{std_out}")
 
                 std_err = pro.stderr.read()
                 if len(std_err) > 0:
@@ -446,7 +447,8 @@ class _BaseSimulator(object):
                         # Optimica writes warnings such as missing IPOPT installation to stderr,
                         # but in this situation we want to continue unless it returns a non-zero
                         # exit code.
-                        self._reporter.writeOutput(f"*** Standard error stream from simulation:\n{std_err}")
+                        self._reporter.writeOutput(
+                            f"*** Standard error stream from simulation:\n{std_err}")
             else:
                 self._reporter.writeError(f"Killed process as it computed longer than {str(timeout)} seconds.")
 

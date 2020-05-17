@@ -307,7 +307,8 @@ class Optimica(bs._BaseSimulator):
         if solver in solvers:
             self._simulator_.update(solver=solver)
         else:
-            self._reporter.writeWarning(f"Solver {solver} is not supported. Supported are: {', '.join(solvers)}.")
+            self._reporter.writeWarning(
+                f"Solver {solver} is not supported. Supported are: {', '.join(solvers)}.")
         return
 
     def generateHtmlDiagnostics(self, generate=False):
