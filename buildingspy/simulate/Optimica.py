@@ -64,7 +64,6 @@ class Optimica(bs._BaseSimulator):
 
         self.setSolver("CVode")
         self._MODELICA_EXE = 'jm_ipython.sh'
-
         self.setResultFile(f"{modelName.replace('.', '_')}_result")
 
         self._result_filter = []
@@ -261,7 +260,7 @@ class Optimica(bs._BaseSimulator):
                                    env=env)
 
             self._check_simulation_errors(worDir)
-            self._copyResultFiles(worDir)
+            self._copyNewFiles(worDir)
             self._deleteTemporaryDirectory(worDir)
 
         except Exception as e:  # Catch all possible exceptions
