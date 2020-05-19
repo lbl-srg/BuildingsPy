@@ -10,8 +10,9 @@ python:
 cache: pip
 
 env:
-  - MPLBACKEND=agg
-  - PYTHONPATH=${TRAVIS_BUILD_DIR}  # Points to /home/travis/build/lbl-srg/BuildingsPy. Needed for import buildingspy.simulate.OutputGrabber as og
+  global:
+    - MPLBACKEND=agg
+    - PYTHONPATH=${TRAVIS_BUILD_DIR}  # Points to /home/travis/build/lbl-srg/BuildingsPy. Needed for import buildingspy.simulate.OutputGrabber as og
 
 notifications:
   email: false
