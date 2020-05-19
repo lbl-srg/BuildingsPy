@@ -46,7 +46,7 @@ def main():
     ax.plot(time1 / 3600, T1 - 273.15, 'r', label='$T_1$')
     ax.plot(time2 / 3600, T2 - 273.15, 'b', label='$T_2$')
     ax.set_xlabel('time [h]')
-    ax.set_ylabel('temperature [$^\circ$C]')
+    ax.set_ylabel(r'temperature [$^\circ$C]')
     ax.set_xticks(list(range(25)))
     ax.set_xlim([0, 24])
     ax.legend()
