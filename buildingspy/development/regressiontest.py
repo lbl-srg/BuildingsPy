@@ -39,7 +39,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import simplejson
 # Code repository sub-package imports.
-from buildingspy.funnel.bin import pyfunnel
+import pyfunnel
 from buildingspy.development import error_dictionary_jmodelica
 from buildingspy.development import error_dictionary_optimica
 from buildingspy.development import error_dictionary_dymola

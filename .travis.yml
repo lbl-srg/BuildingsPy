@@ -40,12 +40,10 @@ before_install:
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
   - docker pull "$DOCKER_USERNAME"/travis_ubuntu-1804_dymola-2020x-x86_64
   - docker pull "$DOCKER_USERNAME"/ubuntu-1804_jmodelica_trunk
+  - python -m pip install --upgrade pip
 
 install:
-  - pip install --upgrade pip setuptools wheel
-  - if [[ $TRAVIS_PYTHON_VERSION != 2.7 ]]; then pip install --only-binary=numpy,scipy,matplotlib numpy==1.17.4 scipy==1.2.0 matplotlib==3.0.2; fi
-  - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then pip install --only-binary=numpy,scipy,matplotlib numpy==1.13.3 scipy==0.19.1 matplotlib==2.1.0; fi
-  - pip install autopep8==1.4.4
+  - pip install -r requirements.txt
   - pip install .
 
 # Execute tests
