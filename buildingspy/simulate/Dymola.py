@@ -273,6 +273,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         """
         import os
         import shutil
+        import datetime
 
         # Delete dymola output files
         self.deleteOutputFiles()
@@ -291,6 +292,8 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         dec.extend(self._modelModifiers_)
 
         mi = '"{mn}({dec})"'.format(mn=self.modelName, dec=','.join(dec))
+
+        self._time_stamp_old_files = datetime.datetime.now()
 
         try:
             # Write the Modelica script

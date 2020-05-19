@@ -191,6 +191,7 @@ class Optimica(bs._BaseSimulator):
         import os
         import shutil
         import jinja2
+        import datetime
 
         # Delete dymola output files
         self.deleteOutputFiles()
@@ -218,6 +219,7 @@ class Optimica(bs._BaseSimulator):
             model_modifier = '({dec})'.format(mn=self.modelName, dec=','.join(dec))
 
         file_name = os.path.join(worDir, "{}.py".format(self.modelName.replace(".", "_")))
+        self._time_stamp_old_files = datetime.datetime.now()
         with open(file_name, mode="w", encoding="utf-8") as fil:
             path_to_template = os.path.join(
                 os.path.dirname(__file__), os.path.pardir, "development")

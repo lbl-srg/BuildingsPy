@@ -96,6 +96,7 @@ class _BaseSimulator(object):
         self._showProgressBar = False
         self._showGUI = False
         self._exitSimulator = True
+        self._time_stamp_old_files = None
 
     def setPackagePath(self, packagePath):
         """ Set the path specified by ``packagePath``.
@@ -501,7 +502,7 @@ class _BaseSimulator(object):
         for root, dirs, files in os.walk(srcDir):
             for name in files:
                 filename = os.path.join(root, name)
-                if os.path.getmtime(filename) > self._simulationStartTime.timestamp():
+                if os.path.getmtime(filename) > self._time_stamp_old_files.timestamp():
                     relativeName = filename[len(srcDir) + 1:]
                     self.__copy_file(filename, os.path.join(self._outputDir_, relativeName))
 
