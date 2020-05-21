@@ -135,13 +135,10 @@ class Optimica(bs._BaseSimulator):
 
         This method
           1. Deletes output files
-          2. Copies the current directory, or the directory specified by the ``packagePath``
-             parameter of the constructor, to a temporary directory.
-          3. Writes a script to the temporary directory.
-          4. Starts the Modelica simulation environment from the temporary directory.
-          5. Translates and simulates the model.
-          6. Closes the Modelica simulation environment.
-          7. Copies output files and deletes the temporary directory.
+          2. Writes a script to simulate the model.
+          3. Starts the Modelica simulation environment.
+          4. Translates and simulates the model.
+          5. Closes the Modelica simulation environment.
 
         This method requires that the directory that contains the executable *jm_ipython.sh*
         is on the system PATH variable. If it is not found, the function returns with
@@ -155,13 +152,10 @@ class Optimica(bs._BaseSimulator):
 
         This method
           1. Deletes output files
-          2. Copies the current directory, or the directory specified by the ``packagePath``
-             parameter of the constructor, to a temporary directory.
-          3. Writes a script to the temporary directory.
-          4. Starts the Modelica simulation environment from the temporary directory.
-          5. Translates the model.
-          6. Closes the Modelica simulation environment.
-          7. Copies output files and deletes the temporary directory.
+          2. Writes a script to simulate the model.
+          3. Starts the Modelica simulation environment.
+          4. Translates the model.
+          5. Closes the Modelica simulation environment.
 
         This method requires that the directory that contains the executable *jm_ipython.sh*
         is on the system PATH variable. If it is not found, the function returns with
@@ -175,13 +169,10 @@ class Optimica(bs._BaseSimulator):
 
         This method
           1. Deletes output files
-          2. Copies the current directory, or the directory specified by the ``packagePath``
-             parameter of the constructor, to a temporary directory.
-          3. Writes a script to the temporary directory.
-          4. Starts the Modelica simulation environment from the temporary directory.
-          5. Translates and simulates the model.
-          6. Closes the Modelica simulation environment.
-          7. Copies output files and deletes the temporary directory.
+          2. Writes a script to simulate the model.
+          3. Starts the Modelica simulation environment.
+          4. Translates and simulates the model.
+          5. Closes the Modelica simulation environment.
 
         This method requires that the directory that contains the executable *jm_ipython.sh*
         is on the system PATH variable. If it is not found, the function returns with
@@ -193,20 +184,21 @@ class Optimica(bs._BaseSimulator):
         import jinja2
         import datetime
 
-        # Delete dymola output files
+        # Delete output files
         self.deleteOutputFiles()
 
-        # Get directory name. This ensures for example that if the directory is called xx/Buildings
-        # then the simulations will be done in tmp??/Buildings
-        worDirLib = self._create_worDir()
+##        # Get directory name. This ensures for example that if the directory is called xx/Buildings
+##        # then the simulations will be done in tmp??/Buildings
+##        worDirLib = self._create_worDir()
 
-        # Optimica is usually started on level higher than Dymoal
-        worDir = os.path.abspath(os.path.join(worDirLib, os.path.pardir))
+        # Optimica is usually started on level higher than the Buildings library
+##        worDir = os.path.abspath(os.path.join(worDirLib, os.path.pardir))
+        worDir = self._outputDir_
 
         self._simulateDir_ = worDir
         # Copy directory
-        shutil.copytree(os.path.abspath(self._packagePath), worDirLib,
-                        ignore=shutil.ignore_patterns('*.svn', '*.git'))
+##        shutil.copytree(os.path.abspath(self._packagePath), worDirLib,
+##                        ignore=shutil.ignore_patterns('*.svn', '*.git'))
 
         # Construct the model instance with all parameter values
         # and the package redeclarations
@@ -219,7 +211,7 @@ class Optimica(bs._BaseSimulator):
             model_modifier = '({dec})'.format(mn=self.modelName, dec=','.join(dec))
 
         file_name = os.path.join(worDir, "{}.py".format(self.modelName.replace(".", "_")))
-        self._time_stamp_old_files = datetime.datetime.now()
+##        self._time_stamp_old_files = datetime.datetime.now()
         with open(file_name, mode="w", encoding="utf-8") as fil:
             path_to_template = os.path.join(
                 os.path.dirname(__file__), os.path.pardir, "development")
@@ -247,23 +239,18 @@ class Optimica(bs._BaseSimulator):
 
             fil.write(txt)
 
-        env = os.environ.copy()
-        mod_path = os.getenv('MODELICAPATH')
-        if mod_path is None:
-            os.environ["MODELICAPATH"] = os.getcwd()
-        else:
-            os.environ["MODELICAPATH"] = ":".join([os.getcwd(), os.getenv('MODELICAPATH')])
+        #osEnv = self.prependToModelicaPath(os.environ.copy(), os.getcwd())
 
 #        print(f"****** Starting simulation in {worDir}")
         try:
             super()._runSimulation(["jm_ipython.sh", file_name],
                                    self._simulator_.get('timeout'),
                                    worDir,
-                                   env=env)
+                                   env=None)
 
             self._check_simulation_errors(worDir)
-            self._copyNewFiles(worDir)
-            self._deleteTemporaryDirectory(worDir)
+##            self._copyNewFiles(worDir)
+##            self._deleteTemporaryDirectory(worDir)
 
         except Exception as e:  # Catch all possible exceptions
             em = f"Simulation failed in '{worDir}'\n   Exception: {e}.\n   You need to delete the directory manually.\n"

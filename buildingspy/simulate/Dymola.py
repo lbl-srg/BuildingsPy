@@ -257,14 +257,11 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         """Simulates the model.
 
         This method
-          1. Deletes dymola output files
-          2. Copies the current directory, or the directory specified by the ``packagePath``
-             parameter of the constructor, to a temporary directory.
-          3. Writes a Modelica script to the temporary directory.
-          4. Starts the Modelica simulation environment from the temporary directory.
-          5. Translates and simulates the model.
-          6. Closes the Modelica simulation environment.
-          7. Copies output files and deletes the temporary directory.
+          1. Deletes output files
+          2. Writes a script to simulate the model.
+          3. Starts the Modelica simulation environment.
+          4. Translates and simulates the model.
+          5. Closes the Modelica simulation environment.
 
         This method requires that the directory that contains the executable *dymola*
         is on the system PATH variable. If it is not found, the function returns with
@@ -275,16 +272,16 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         import shutil
         import datetime
 
-        # Delete dymola output files
+        # Delete output files
         self.deleteOutputFiles()
 
         # Get directory name. This ensures for example that if the directory is called xx/Buildings
         # then the simulations will be done in tmp??/Buildings
-        worDir = self._create_worDir()
+        worDir = self._outputDir_
         self._simulateDir_ = worDir
         # Copy directory
-        shutil.copytree(os.path.abspath(self._packagePath), worDir,
-                        ignore=shutil.ignore_patterns('*.svn', '*.git'))
+##        shutil.copytree(os.path.abspath(self._packagePath), worDir,
+##                        ignore=shutil.ignore_patterns('*.svn', '*.git'))
 
         # Construct the model instance with all parameter values
         # and the package redeclarations
@@ -293,7 +290,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
 
         mi = '"{mn}({dec})"'.format(mn=self.modelName, dec=','.join(dec))
 
-        self._time_stamp_old_files = datetime.datetime.now()
+##        self._time_stamp_old_files = datetime.datetime.now()
 
         try:
             # Write the Modelica script
@@ -311,8 +308,8 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
                                 self._simulator_.get('timeout'),
                                 worDir)
             self._check_simulation_errors(worDir)
-            self._copyNewFiles(worDir)
-            self._deleteTemporaryDirectory(worDir)
+##            self._copyNewFiles(worDir)
+##            self._deleteTemporaryDirectory(worDir)
         except Exception as e:  # Catch all possible exceptions
             em = f"Simulation failed in '{worDir}'\n   Exception: {e}.\n   You need to delete the directory manually.\n"
             self._reporter.writeError(em)
@@ -321,14 +318,11 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         """Translates the model.
 
         This method
-          1. Deletes dymola output files
-          2. Copies the current directory, or the directory specified by the ``packagePath``
-             parameter of the constructor, to a temporary directory.
-          3. Writes a Modelica script to the temporary directory.
-          4. Starts the Modelica simulation environment from the temporary directory.
-          5. Translates the model.
-          6. Closes the Modelica simulation environment.
-          7. Keeps translated output files in the temporary directory.
+          1. Deletes output files
+          2. Writes a script to simulate the model.
+          3. Starts the Modelica simulation environment.
+          4. Translates the model.
+          5. Closes the Modelica simulation environment.
 
         This method requires that the directory that contains the executable *dymola*
         is on the system PATH variable. If it is not found, the function returns with
@@ -338,15 +332,15 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         import os
         import shutil
 
-        # Delete dymola output files
+        # Delete output files
         self.deleteOutputFiles()
 
         # Get directory name. This ensures for example that if the directory is called xx/Buildings
         # then the simulations will be done in tmp??/Buildings
-        worDir = self._create_worDir()
+        worDir = os.getcwd()
         self._translateDir_ = worDir
         # Copy directory
-        shutil.copytree(os.path.abspath(self._packagePath), worDir)
+##        shutil.copytree(os.path.abspath(self._packagePath), worDir)
 
         # Construct the model instance with all parameter values
         # and the package redeclarations

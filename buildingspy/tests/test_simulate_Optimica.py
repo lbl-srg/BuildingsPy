@@ -29,7 +29,7 @@ class Test_simulate_Optimica(unittest.TestCase):
         that contains a Modelica package.
         """
         self._packagePath = os.path.abspath(os.path.join(
-            "buildingspy", "tests", "MyModelicaLibrary"))
+            "buildingspy", "tests"))
 
     def test_Constructor(self):
         """
@@ -55,7 +55,7 @@ class Test_simulate_Optimica(unittest.TestCase):
         s = Optimica("MyModelicaLibrary.MyModel", packagePath=self._packagePath)
 
         # Try to load an existing path.
-        p = os.path.abspath(os.path.join("buildingspy", "tests", "MyModelicaLibrary"))
+        p = os.path.abspath(os.path.join("buildingspy", "tests"))
         s.setPackagePath(p)
 
         # Try to load a none existing path.
