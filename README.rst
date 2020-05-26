@@ -21,6 +21,6 @@ The license is at buildingspy/license.txt
 pyfunnel dependency
 ~~~~~~~~~~~~~~~~~~~
 
-It would require the comparison tool [funnel] (https://github.com/lbl-srg/funnel) to run
-regression tests. To install it run:
-``python3 -m pip install --user pyfunnel@git+https://github.com/lbl-srg/funnel.git@v0.1.0``.
+The default comparison tool used for regressin test is ``funnel`` (https://github.com/lbl-srg/funnel).
+
+* To install it run: ``python3 -m pip install --user pyfunnel@git+https://github.com/lbl-srg/funnel.git@v0.1.0``.
