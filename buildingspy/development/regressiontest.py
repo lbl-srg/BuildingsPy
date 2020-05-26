@@ -39,7 +39,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import simplejson
 # Code repository sub-package imports.
-from buildingspy.funnel.bin import pyfunnel
+import pyfunnel
 from buildingspy.development import error_dictionary_jmodelica
 from buildingspy.development import error_dictionary_optimica
 from buildingspy.development import error_dictionary_dymola
@@ -61,7 +61,7 @@ def runSimulation(worDir, cmd):
     """
     # JModelica requires the working directory to be part of MODELICAPATH
     if 'MODELICAPATH' in os.environ:
-        os.environ['MODELICAPATH'] = "{}:{}".format(os.environ['MODELICAPATH'], worDir)
+        os.environ['MODELICAPATH'] = "{}:{}".format(worDir, os.environ['MODELICAPATH'])
     else:
         os.environ['MODELICAPATH'] = worDir
 
@@ -177,7 +177,7 @@ class Tester(object):
        >>> rt.run() # doctest: +ELLIPSIS
        Using ... of ... processors to run unit tests for dymola.
        Number of models   : ...
-                 blocks   : 0
+                 blocks   : 2
                  functions: 0
        Generated ... regression tests.
        <BLANKLINE>
@@ -830,9 +830,9 @@ class Tester(object):
 
           >>> import buildingspy.development.regressiontest as r
           >>> r.Tester.get_plot_variables('y = {"a", "b", "c"}')
-          [u'a', u'b', u'c']
+          ['a', 'b', 'c']
           >>> r.Tester.get_plot_variables('... x}, y = {"a", "b", "c"}, z = {...')
-          [u'a', u'b', u'c']
+          ['a', 'b', 'c']
           >>> r.Tester.get_plot_variables("y=abc") is None
           True
 
@@ -1893,6 +1893,12 @@ class Tester(object):
                         self._reporter.writeWarning("%s: Found translation statistics for %s for %s in old but not in new results.\n Old = %s"
                                                     % (mat_file_name, stage, key, old_res['statistics-%s' % stage][key]))
                         r = True
+                for key in y_tra[stage]:
+                    if key not in old_res['statistics-%s' % stage]:
+                        self._reporter.writeWarning(
+                            "%s: Found translation statistics for key %s in %s in new but not in old results." %
+                            (mat_file_name, key, stage))
+                        r = True
             else:
                 # The new results have no such statistics.
                 self._reporter.writeWarning(
@@ -2534,6 +2540,13 @@ class Tester(object):
                                 data_idx, oldRefFulFilNam, y_sim, y_tra, refFilNam, ans,
                             )
                         else:
+                            noOldResults = []
+                            # add all names since we do not have any reference results yet
+                            for pai in y_sim:
+                                t_ref = pai["time"]
+                                noOldResults = noOldResults + list(pai.keys())
+                            self.legacy_plot(y_sim, t_ref, {}, noOldResults, dict(),
+                                             "New results: " + data['ScriptFile'])
                             # Reference file does not exist
                             print(
                                 "*** Warning: Reference file {} does not yet exist.".format(refFilNam))
@@ -2722,8 +2735,7 @@ class Tester(object):
                 for filNam in files:
                     # find .mo files
                     pos = filNam.find('.mo')
-                    posExa = root.find('Examples')
-                    if pos > -1 and posExa == -1:
+                    if pos > -1 and (root.find('Examples') == -1 or root.find('Validation') == -1):
                         # find classes that are not partial
                         filFulNam = os.path.join(root, filNam)
                         iMod = self._checkKey("model", filFulNam, iMod)
@@ -3624,7 +3636,7 @@ class Tester(object):
           1. In a python console or script, cd to the root folder of the library
 
              >>> t = Tester()
-             >>> t.test_OpenModelica() # doctest: +ELLIPSIS, +REPORT_NDIFF
+             >>> t.test_OpenModelica() # doctest: +SKIP
              OpenModelica script ...OMTests.mos created
              Logfile created: ...OMTests.log
              Starting analysis of logfile

@@ -3,6 +3,10 @@ BuildingsPy Changelog
 
 Version 2.0.1, July 17, 2019 -- Release 2.0
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- Update dependency to pyfunnel, add 'requirements.txt'.
+- For unit tests, display plots before asking to add new reference results. (Issue 344)
+- When writing package.order, preserved the ordering of constants from the .mo file.
+- Changed doctest to Python 3.6.
 - For unit tests, added support for OPTIMICA.
 - For unit tests, changed to non-pedantic mode in Dymola if a model
   is in the Obsolete package.

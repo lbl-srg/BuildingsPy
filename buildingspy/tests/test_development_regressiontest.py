@@ -152,7 +152,7 @@ class Test_regressiontest_Tester(unittest.TestCase):
         self.assertEqual(2, rt.get_number_of_tests())
 
     def test_areResultsEqual(self):
-        """To test legacy comparison tool (funnel tests are part of funnel module)."""
+        """Test legacy comparison tool."""
         import buildingspy.development.regressiontest as r
         rt = r.Tester(comp_tool='legacy')
         tMin = 10

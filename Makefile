@@ -2,7 +2,7 @@ BPDIR=buildingspy
 BPDOC=doc
 
 PEP8_ARGS=--recursive --max-line-length=100 \
-  --exclude="*/thirdParty/*,*/funnel/*" \
+  --exclude="*/thirdParty/*" \
   --ignore="E402" \
   --aggressive --aggressive --aggressive \
   buildingspy
@@ -30,7 +30,7 @@ unittest:
 	python -m unittest discover buildingspy/tests
 
 doctest:
-	python -m doctest \
+	python3 -m doctest \
 	buildingspy/fmi/*.py \
 	buildingspy/io/*.py \
 	buildingspy/examples/*.py \

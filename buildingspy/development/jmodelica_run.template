@@ -165,7 +165,6 @@ def _simulate(proc_num, return_dict):
       # Set user-specified tolerance if it is smaller than the tolerance in the .mo file
       opts['CVode_options'] = {
         'external_event_detection': False,
-        'maxh': (mod.get_default_experiment_stop_time()-mod.get_default_experiment_stop_time())/float(opts['ncp']),
         'iter': 'Newton',
         'discr': 'BDF',
         'rtol': rtol,

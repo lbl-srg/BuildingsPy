@@ -69,9 +69,11 @@ class Test_simulate_Simulator(unittest.TestCase):
         """
         Tests reporting the exception if a simulation fails.
         """
-        self.failUnlessRaises(
-            ValueError, Simulator, "MyModelicaLibrary.MyModel"
-            "dymola", "THIS IS NOT A VALID PACKAGE PATH")
+        with self.assertRaises(ValueError):
+            Simulator(
+                modelName="MyModelicaLibrary.MyModel",
+                simulator="dymola",
+                packagePath="THIS IS NOT A VALID PACKAGE PATH")
 
     def test_addMethods(self):
         """
