@@ -68,6 +68,7 @@ class Optimica(bs._BaseSimulator):
 
         self._result_filter = []
         self._generate_html_diagnostics = False
+        self._debug_solver = False
 
     def addParameters(self, dictionary):
         """Adds parameter declarations to the simulator.
@@ -235,7 +236,8 @@ class Optimica(bs._BaseSimulator):
                 simulate=simulate,
                 time_out=-1,  # timeout is handled by BuildingsPy directly and not by the generated script
                 filter=self._result_filter,
-                generate_html_diagnostics=self._generate_html_diagnostics)
+                generate_html_diagnostics=self._generate_html_diagnostics,
+                debug_solver=self._debug_solver)
 
             fil.write(txt)
 
@@ -311,6 +313,22 @@ class Optimica(bs._BaseSimulator):
                   and increase translation time.
         """
         self._generate_html_diagnostics = generate
+
+    def generateSolverDiagnostics(self, generate=False):
+        """ If set to `true`, solver debug information will be generated
+            and displayed.
+
+        The html diagnostics will be generated in
+        a file whose name is equal to the model name,
+        with "." replaced by "_", and the string
+        "_debug.txt" appended.
+
+        This is currently only used for the `CVode` solver.
+
+        .. note:: This can generate huge files
+                  and increase simulation time.
+        """
+        self._debug_solver = generate
 
     def _check_simulation_errors(self, worDir):
         """ Method that checks if errors occured during simulation.

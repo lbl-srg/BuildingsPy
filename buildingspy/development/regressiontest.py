@@ -3243,6 +3243,7 @@ class Tester(object):
                 simulate=dat[self._modelica_tool]['simulate'] and dat['mustSimulate'],
                 time_out=dat[self._modelica_tool]['time_out'],
                 generate_html_diagnostics=False,
+                debug_solver=False,
                 filter=[re.sub('\[|\]',
                                lambda m: '[{}]'.format(m.group()),
                                re.sub(' ', '', x)) for x in result_variables]
