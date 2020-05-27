@@ -27,4 +27,5 @@ However, when cloning BuildingsPy, ``funnel`` needs to be installed manually.
 Hence, to clone BuildingsPy, run
 
   git clone git@github.com:lbl-srg/BuildingsPy.git
+
   python3 -m pip install --user pyfunnel@git+https://github.com/lbl-srg/funnel.git@v0.1.0
