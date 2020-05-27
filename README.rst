@@ -18,10 +18,14 @@ Documentation is available at http://simulationresearch.lbl.gov/modelica/buildin
 
 The license is at buildingspy/license.txt
 
-Cloning Instructions
+Cloning instructions
 ~~~~~~~~~~~~~~~~~~~~
 
-Version ``2.0.0`` includes the comparison tool ``funnel`` as a ``git`` submodule.
+The default comparison tool used for regression tests is ``funnel`` (https://github.com/lbl-srg/funnel),
+which is automatically installed when installing BuildingsPy.
+However, when cloning BuildingsPy, ``funnel`` needs to be installed manually.
+Hence, to clone BuildingsPy, run
 
-* To clone the repository for the first time run: ``git clone --recurse-submodules https://github.com/lbl-srg/BuildingsPy.git``
-* If you have already cloned the repository, checkout the master branch and run: ``git submodule update --init --recursive``
+  git clone git@github.com:lbl-srg/BuildingsPy.git
+
+  python3 -m pip install --user pyfunnel@git+https://github.com/lbl-srg/funnel.git@v0.1.0
