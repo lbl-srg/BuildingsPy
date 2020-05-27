@@ -18,9 +18,11 @@ Documentation is available at http://simulationresearch.lbl.gov/modelica/buildin
 
 The license is at buildingspy/license.txt
 
-pyfunnel dependency
-~~~~~~~~~~~~~~~~~~~
+Cloning instructions
+~~~~~~~~~~~~~~~~~~~~
 
-The default comparison tool used for regressin test is ``funnel`` (https://github.com/lbl-srg/funnel).
+The default comparison tool used for regressin test is ``funnel`` (https://github.com/lbl-srg/funnel),
+which is automatically installed when installing BuildingsPy.
+However, when cloning BuildingsPy, ``funnel`` needs to be installed using
 
-* To install it run: ``python3 -m pip install --user pyfunnel@git+https://github.com/lbl-srg/funnel.git@v0.1.0``.
+  python3 -m pip install --user pyfunnel@git+https://github.com/lbl-srg/funnel.git@v0.1.0
