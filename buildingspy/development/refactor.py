@@ -668,8 +668,9 @@ def move_class(source, target):
     Usage: Type
 
         >>> import buildingspy.development.refactor as r
-        >>> r.move_class("Buildings.Fluid.Movers.FlowControlled_dp", \
-        >>>              "Buildings.Fluid.Movers.Flow_dp") #doctest: +SKIP
+        >>> old = "Buildings.Fluid.Movers.FlowControlled_dp"
+        >>> new = "Buildings.Fluid.Movers.Flow_dp"
+        >>> r.move_class(old, new) #doctest: +SKIP
 
     """
     ##############################################################
