@@ -46,6 +46,7 @@ dist:	clean doctest unittest doc
 	python setup.py sdist bdist_wheel
 	rm -rf build
 	rm -rf buildingspy.egg-info
+	twine check -h
 	@echo "Source distribution is in directory dist"
 	@echo "To post to server, run postBuildingsPyToWeb.sh"
 	@echo "To upload to PyPi, run 'twine upload dist/*'"
@@ -54,13 +55,12 @@ dist:	clean doctest unittest doc
 upload-test:
 	@# Make sure README.rst are consistent
 	cmp -s README.rst buildingspy/README.rst
-	twine upload --repository-url https://test.pypi.org/legacy/ dist/*
-#	python setup.py sdist --formats=gztar,zip bdist_egg upload -r https://testpypi.python.org/pypi
+	twine upload --verbose --repository buildingspy_test dist/*
 
 upload:
 	@# Make sure README.rst are consistent
 	cmp -s README.rst buildingspy/README.rst
-	twine upload dist/*
+	twine upload --repository buildingspy_production_upload dist/*
 
 
 clean-dist:
