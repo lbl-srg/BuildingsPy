@@ -1,9 +1,9 @@
 BuildingsPy Changelog
 ---------------------
 
-Version 2.0.1, July 17, 2019 -- Release 2.0
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-- Update dependency to pyfunnel, add 'requirements.txt'.
+Version 2.1.0, May 28, 2020 -- Release 2.1
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- Updated dependency to pyfunnel, and added requirements.txt file.
 - For unit tests, display plots before asking to add new reference results. (Issue 344)
 - When writing package.order, preserved the ordering of constants from the .mo file.
 - Changed doctest to Python 3.6.

@@ -21,7 +21,9 @@ from shutil import copyfile
 
 
 class IBPSA(object):
-    """ Class that merges a Modelica library with the `IBPSA` library.
+    """ Class that merges the
+        `Modelica IBPSA Library <https://github.com/ibpsa/modelica-ibpsa>`_
+        with other Modelica libraries.
 
         Both libraries need to have the same package structure.
 
