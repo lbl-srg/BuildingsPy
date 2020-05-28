@@ -46,7 +46,7 @@ dist:	clean doctest unittest doc
 	python setup.py sdist bdist_wheel
 	rm -rf build
 	rm -rf buildingspy.egg-info
-	twine check -h
+	twine check dist/*
 	@echo "Source distribution is in directory dist"
 	@echo "To post to server, run postBuildingsPyToWeb.sh"
 	@echo "To upload to PyPi, run 'twine upload dist/*'"
