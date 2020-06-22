@@ -12,7 +12,7 @@ gitpython==2.1.15; python_version~='2.7'
 pytidylib==0.3.2
 simplejson==3.17.0
 six==1.14.0
-pyfunnel==0.2.1
+pyfunnel==0.2.2
 
 # For documentation and testing.
 setuptools==46.0.0; python_version>='3.6'

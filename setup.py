@@ -42,7 +42,7 @@ setup(
         'scipy>=1.1',
         'simplejson>=3.14',
         'six>=1.11',
-        'pyfunnel>=0.2.1',
+        'pyfunnel>=0.2.2',
     ],
     packages=[
         MAIN_PACKAGE,
