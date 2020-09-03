@@ -11,6 +11,9 @@ PEP8_ARGS=--recursive --max-line-length=100 \
 .PHONY: doc clean
 
 doc:
+	@echo "*** Verifying that readme file used by git and pip are consistent"
+	cmp -s README.rst buildingspy/README.rst
+	@echo "*** Generating documentation"
 	(cd $(BPDOC); make html linkcheck)
 
 pep8:
@@ -39,6 +42,7 @@ doctest:
 	buildingspy/development/*.py
 	@rm -f plot.pdf plot.png roomTemperatures.png dymola.log MyModel.mat dslog.txt package.order \
 	   run_simulate.mos run_translate.mos simulator.log translator.log
+
 
 dist:	clean doctest unittest doc
 	@# Make sure README.rst are consistent
