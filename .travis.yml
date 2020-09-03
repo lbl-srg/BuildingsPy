@@ -1,6 +1,4 @@
-group: deprecated-2017Q2
-
-dist: trusty
+dist: bionic
 
 language: python
 
