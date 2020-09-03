@@ -202,7 +202,7 @@ class Simulator(object):
            >>> s=Simulator("myPackage.myModel", "dymola", packagePath="buildingspy/tests/MyModelicaLibrary")
            >>> s.addParameters({'PID.k': 1.0, 'valve.m_flow_nominal' : 0.1})
            >>> s.getParameters()
-           [(u'valve.m_flow_nominal', 0.1), (u'PID.k', 1.0)]
+           [('PID.k', 1.0), ('valve.m_flow_nominal', 0.1)]
         """
         return list(self._parameters_.items())
 
@@ -733,6 +733,9 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
             else:
                 self._reporter.writeError("Killed process as it computed longer than " +
                                           str(timeout) + " seconds.")
+
+            pro.stdout.close()
+            pro.stderr.close()
 
         except OSError as e:
             print(("Execution of ", cmd, " failed:", e))

@@ -90,7 +90,7 @@ class Plotter(object):
         yNew.append(y[iMax])
 
         for i in range(1, len(tNew)):
-            if tNew[i] < tNew[i - 1] + 0.9 * tTol:
+            if tNew[i - 1] >= tNew[i]:
                 raise ValueError('Time t is not strictly increasing.')
         for i in range(1, len(tSup)):
             if tSup[i] <= tSup[i - 1]:
@@ -147,7 +147,7 @@ class Plotter(object):
 
     def boxplot(t, y, increment=3600, nIncrement=24,
                 notch=0, sym='b+', vert=1, whis=1.5,
-                positions=None, widths=None, patch_artist=False, bootstrap=None, hold=None):
+                positions=None, widths=None, patch_artist=False, bootstrap=None):
         """ Create a boxplot of time data.
 
         :param t: The support points in time as received from the *Reader*.
@@ -189,9 +189,9 @@ class Plotter(object):
            >>>
            >>> # Decorate, save and show the plot
            >>> plt.xlabel('Time [h]')
-           Text(0.5,0,u'Time [h]')
+           Text(0.5, 0, 'Time [h]')
            >>> plt.ylabel(u'Room temperature [°C]') #doctest: +ELLIPSIS
-           Text(0,0.5,u'Room temperature [...C]')
+           Text(0, 0.5, 'Room temperature [°C]')
            >>> plt.grid()
            >>> plt.savefig("roomTemperatures.png")
            >>> plt.show() # doctest: +SKIP
@@ -221,7 +221,7 @@ class Plotter(object):
         # Make equidistant grid for the whole simulation period, such as 0, 1, ... 47
         # for two days
         tMax = max(t)
-        tGrid = np.linspace(0, tMax - increment, num=round(tMax / increment))
+        tGrid = np.linspace(0, tMax - increment, num=int(round(tMax / increment)))
 
         # Interpolate to hourly time stamps
         yGrid = Plotter.interpolate(tGrid, t, y)
@@ -237,6 +237,6 @@ class Plotter(object):
                     notch=notch,
                     sym=sym, vert=vert, whis=whis,
                     widths=widths,
-                    patch_artist=patch_artist, bootstrap=bootstrap, hold=hold)
+                    patch_artist=patch_artist, bootstrap=bootstrap)
         return plt
     boxplot = staticmethod(boxplot)

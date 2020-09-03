@@ -149,11 +149,12 @@ class Test_regressiontest_Tester(unittest.TestCase):
             ret_val,
             "Test failed with return value {}, expected 2.".format(ret_val))
         # Check for correct number of tests
-        self.assertEqual(1, rt.get_number_of_tests())
+        self.assertEqual(2, rt.get_number_of_tests())
 
     def test_areResultsEqual(self):
+        """Test legacy comparison tool."""
         import buildingspy.development.regressiontest as r
-        rt = r.Tester()
+        rt = r.Tester(comp_tool='legacy')
         tMin = 10
         tMax = 50
         nPoi = 101

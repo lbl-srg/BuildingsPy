@@ -1,13 +1,27 @@
 BuildingsPy Changelog
 ---------------------
 
-Version 2.0.1, July 17, 2019 -- Release 2.0
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-- In development.Tester(), added error if a reference result does not yet exist.
+Version 2.2.0, xxx, 2020 -- Release 2.2
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- xxx
+
+Version 2.1.0, May 28, 2020 -- Release 2.1
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- Updated dependency to pyfunnel, and added requirements.txt file.
+- For unit tests, display plots before asking to add new reference results. (Issue 344)
+- When writing package.order, preserved the ordering of constants from the .mo file.
+- Changed doctest to Python 3.6.
+- For unit tests, added support for OPTIMICA.
+- For unit tests, changed to non-pedantic mode in Dymola if a model
+  is in the Obsolete package.
+- For unit tests, corrected problem on Windows if a user enabled DDE.
+- For unit tests, corrected problem if a user saved the startup directory in Dymola.
 - Avoided text replace in binary files when merging libraries, which lead to
   UnicodeDecodeError. (Issue 272)
 - In regression tests, issue error if the name of the reference results
   is too long. (Issue 274)
+- Added compiler option nle_solver_tol_factor with value of 1e-2 for jmodelica
+  regression test. (Issue 301)
 
 Version 2.0.0, July 15, 2019 -- Release 2.0
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

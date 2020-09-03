@@ -19,16 +19,16 @@ import os
 # python buildingspy/tests/test_development_regressiontest.py
 
 
-class Test_regressiontest_jmodelica_Tester(unittest.TestCase):
+class Test_regressiontest_optimica_Tester(unittest.TestCase):
     """
        This class contains the unit tests for
-       :mod:`buildingspy.regressiontest.Tester` for jmodelica.
+       :mod:`buildingspy.regressiontest.Tester` for optimica.
     """
 
     def test_unit_test_log_file(self):
         import buildingspy.development.regressiontest as r
-        rt = r.Tester(check_html=False, tool="jmodelica")
-        self.assertEqual('unitTests-jmodelica.log', rt.get_unit_test_log_file())
+        rt = r.Tester(check_html=False, tool="optimica")
+        self.assertEqual('unitTests-optimica.log', rt.get_unit_test_log_file())
 
     @staticmethod
     def _write_test(content):
@@ -76,7 +76,7 @@ createPlot(id=1, y={"Test.x"});
         return dir_name
 
     def test_regressiontest_diagnostics(self):
-        """ Test that warnings and errors reported by JModelica are reported.
+        """ Test that warnings and errors reported by optimica are reported.
         """
         import shutil
         import buildingspy.development.regressiontest as r
@@ -128,7 +128,7 @@ createPlot(id=1, y={"Test.x"});
             print("*** Running test for '{}'".format(des))
             mo_content = test['mo_content']
             dir_name = self._write_test(mo_content)
-            rt = r.Tester(skip_verification=True, check_html=False, tool="jmodelica")
+            rt = r.Tester(skip_verification=True, check_html=False, tool="optimica")
             rt.setLibraryRoot(dir_name)
             ret_val = rt.run()
             # Check return value to see if test suceeded
@@ -145,7 +145,7 @@ createPlot(id=1, y={"Test.x"});
 
     def test_regressiontest(self):
         import buildingspy.development.regressiontest as r
-        rt = r.Tester(skip_verification=True, check_html=False, tool="jmodelica")
+        rt = r.Tester(skip_verification=True, check_html=False, tool="optimica")
         myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
         rt.deleteTemporaryDirectories(True)
         rt.setLibraryRoot(myMoLib)

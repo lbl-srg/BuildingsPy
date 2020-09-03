@@ -134,5 +134,12 @@ class ErrorDictionary(ed.ErrorDictionary):
             'tool_message': "Mismatched displayUnit",
             'counter': 0,
             'buildingspy_var': "iMisDisUni",
-            'model_message': "\"Mismatched displayUnit in '{}'.\n",
+            'model_message': "Mismatched displayUnit in '{}'.\n",
             'summary_message': "Number of models with mismatched displayUnit                 : {}\n"}
+
+        self._error_dict["suspicious attributes"] = {
+            'tool_message': "which is suspicious",
+            'counter': 0,
+            'buildingspy_var': "iSus",
+            'model_message': "Check min and max attributes in '{}'.\n",
+            'summary_message': "Number of models with suspicious attributes (likely min/max) : {}\n"}

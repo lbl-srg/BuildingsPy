@@ -21,7 +21,9 @@ from shutil import copyfile
 
 
 class IBPSA(object):
-    """ Class that merges a Modelica library with the `IBPSA` library.
+    """ Class that merges the
+        `Modelica IBPSA Library <https://github.com/ibpsa/modelica-ibpsa>`_
+        with other Modelica libraries.
 
         Both libraries need to have the same package structure.
 
@@ -75,6 +77,8 @@ class IBPSA(object):
                                 os.path.join(ibpsa_dir, "*.mos"),
                                 os.path.join(ibpsa_dir, "*.mof"),
                                 os.path.join(ibpsa_dir, "nohup.out"),
+                                os.path.join(ibpsa_dir, "funnel_comp", "plot.html"),
+                                os.path.join(ibpsa_dir, "funnel_comp", "**", "*.csv"),
                                 os.path.join(ibpsa_dir, "Fluid", "package.mo"),
                                 os.path.join(ibpsa_dir, "Resources",
                                              "Scripts", "Dymola", "ConvertIBPSA_from_*.mos"),
@@ -202,11 +206,11 @@ class IBPSA(object):
             A typical usage is
                 >>> import buildingspy.development.merger as m
                 >>> m.IBPSA.filter_files(['a.txt', 'aa/b.txt', 'aa/bb/c.txt'], '*.txt')
-                [u'a.txt']
+                ['a.txt']
                 >>> m.IBPSA.filter_files(['a.txt', 'aa/b.txt', 'aa/bb/c.txt'], 'aa/*.txt')
-                [u'aa/b.txt']
+                ['aa/b.txt']
                 >>> m.IBPSA.filter_files(['a.txt', 'aa/b1.txt', 'aa/b2.txt', 'aa/bb/c.txt'], 'aa/*.txt')
-                [u'aa/b1.txt', u'aa/b2.txt']
+                ['aa/b1.txt', 'aa/b2.txt']
         """
         import fnmatch
         import os
@@ -216,9 +220,9 @@ class IBPSA(object):
             if len(pat) is not 2:
                 ValueError("Pattern {} is not supported.".format(pattern))
             # Make sure it has the same number of directories
-            ret = filter(lambda x: (x.count(os.path.sep) == pattern.count(os.path.sep))
-                         and x.startswith(pat[0])
-                         and x.endswith(pat[1]),
+            ret = filter(lambda x: (x.count(os.path.sep) == pattern.count(os.path.sep)) and
+                         x.startswith(pat[0]) and
+                         x.endswith(pat[1]),
                          file_list)
             return list(ret)
         else:

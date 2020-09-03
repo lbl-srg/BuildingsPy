@@ -1,0 +1,305 @@
+<html>
+
+<head>
+	<meta charset="utf-8" />
+	<link rel="stylesheet" type="text/css"
+		href="https://cdn.datatables.net/v/bs-3.3.7/jq-3.3.1/jszip-2.5.0/dt-1.10.18/b-1.5.4/b-colvis-1.5.4/b-flash-1.5.4/b-html5-1.5.4/datatables.min.css" />
+	<style>
+		/* TODO
+	white-space: break-word;
+	word-break: break-all;
+	use JS to pre-process your content to perhaps insert zero-width spaces after commas, or perhaps do that on the server side. */
+		th {
+			font-size: 14px;
+		}
+
+		td {
+			font-size: 14px;
+		}
+
+		.dataTable tbody td {
+			word-break: break-word;
+			vertical-align: top;
+		}
+
+		.table-responsive {
+			max-width: 90%;
+			margin-left: auto;
+			margin-right: auto;
+			overflow-x: visible
+		}
+	</style>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/pdfmake.min.js"></script>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/vfs_fonts.js"></script>
+	<script type="text/javascript"
+		src="https://cdn.datatables.net/v/bs-3.3.7/jq-3.3.1/jszip-2.5.0/dt-1.10.18/b-1.5.4/b-colvis-1.5.4/b-flash-1.5.4/b-html5-1.5.4/datatables.min.js"></script>
+</head>
+
+<body>
+	<div class="table-responsive">
+		<div>
+			<ul class="nav nav-tabs" role="tablist">
+				<li>
+					<a href="#tab-table1" data-toggle="tab">Simulation</a>
+				</li>
+				<li>
+					<a href="#tab-table2" data-toggle="tab">Translation</a>
+				</li>
+				<li class="active">
+					<a href="#tab-table3" data-toggle="tab">Comparison</a>
+				</li>
+			</ul>
+		</div>
+		<div>
+			<p margin-top="1em"> </p>
+		</div>
+		<div class="tab-content">
+			<div class="tab-pane" id="tab-table1">
+			</div>
+			<div class="tab-pane" id="tab-table2">
+			</div>
+			<div class="tab-pane active" id="tab-table3">
+				<table id="myTable3" class="table table-striped table-bordered" cellspacing="0">
+					<thead>
+						<tr>
+							<th>Model</th>
+							<th>Variables</th>
+							<th>Success</th>
+							<th>Results File</th>
+							<th>comp_dirs</th>
+						</tr>
+					</thead>
+				</table>
+				<p><u>Color Legend</u></p>
+				<p style="color:red;">Translation, simulation or extracting simulation results failed: see message in
+					alert box.</p>
+				<p style="color:brown;">Funnel comparison failed: see message in alert box.</p>
+				<p style="color:orange;">Result verification detected error, see plot.</p>
+				<p>Test passed.</p>
+			</div>
+		</div>
+	</div>
+
+</body>
+<script>
+	$(document).ready(function () {
+		$.fn.dataTable.ext.errMode = function () {
+			console.log('Ignore datatable ajax warning.');
+		}
+		document.getElementById("tab-table1").innerHTML = `
+			<table id="myTable1" class="table table-striped table-bordered" cellspacing="0" >
+				<thead>
+					<tr>
+						<th>Model</th>
+						<th>Simulation time (s)</th>
+						<th>Start (s)</th>
+						<th>Final (s)</th>
+						<th>State events</th>
+						<th>Jacobians</th>
+						<th>Success</th>
+						<th>Message</th>
+					</tr>
+				</thead>
+			</table>
+		`;
+		var table1 = $('#myTable1').DataTable({
+				autoWidth: false,
+				aLengthMenu: [
+					[10, 50, 100, -1],
+					[10, 50, 100, "All"]
+				],
+				iDisplayLength: -1,
+				ajax: {
+					url: '$SIMULATOR_LOG',
+					dataSrc: ''
+				},
+				columns: [
+					{
+						data: 'model', width: "30%",
+						render: function (data, type, full) {
+							return data.replace(/\./g, '.<wbr>');
+						}
+					},
+					{
+						data: 'simulation.elapsed_time',
+						render: $.fn.dataTable.render.number(' ', '.', 2)
+					},
+					{
+						data: 'simulation.start_time',
+						render: $.fn.dataTable.render.number(' ', '.', 0)
+					},
+					{
+						data: 'simulation.final_time',
+						render: $.fn.dataTable.render.number(' ', '.', 0)
+					},
+					{
+						data: 'simulation.state_events',
+						render: $.fn.dataTable.render.number(' ', '.', 0)
+					},
+					{
+						data: 'simulation.jacobians',
+						render: $.fn.dataTable.render.number(' ', '.', 0)
+					},
+					{ data: 'simulation.success' },
+					{ data: 'simulation.message', width: "40%" },
+				],
+		});
+		if (!/jmodelica/i.test('$SIMULATOR_LOG')) {
+			document.getElementById("tab-table2").innerHTML =
+				"<br /><h5>Translation statistics are not available for Dymola at the moment.</h5>";
+		} else {
+			document.getElementById("tab-table2").innerHTML = `
+				<table id="myTable2" class="table table-striped table-bordered" cellspacing="0">
+					<thead>
+						<tr>
+							<th>Model</th>
+							<th>Translation time (s)</th>
+							<th>Success</th>
+							<th>Warnings</th>
+						</tr>
+					</thead>
+				</table>
+			`;
+			var table2 = $('#myTable2').DataTable({
+				autoWidth: false,
+				aLengthMenu: [
+					[10, 50, 100, -1],
+					[10, 50, 100, "All"]
+				],
+				iDisplayLength: -1,
+				ajax: {
+					url: '$SIMULATOR_LOG',
+					dataSrc: ''
+				},
+				columns: [
+					{
+						data: 'model', width: "30%",
+						render: function (data, type, full) {
+							return data.replace(/\./g, '.<wbr>');
+						}
+					},
+					{
+						data: 'translation.cpu_time',
+						render: $.fn.dataTable.render.number(' ', '.', 2)
+					},
+					{ data: 'translation.success' },
+					{ data: 'translation.warnings', width: "40%" },
+				],
+			});
+		}
+		var table3 = $('#myTable3').DataTable({
+			autoWidth: false,
+			aLengthMenu: [
+				[10, 50, 100, -1],
+				[10, 50, 100, "All"]
+			],
+			iDisplayLength: -1,
+			ajax: {
+				url: '$SIMULATOR_LOG',
+				dataSrc: ''
+			},
+			columns: [
+				{
+					data: 'model', width: "30%",
+					render: function (data, type, full) {
+						return data.replace(/\./g, '.<wbr>');
+					}
+				},
+				{
+					data: 'comparison.variables', width: "60%",
+					render: function (data, type, row, meta) {
+						var out = "";
+						if (typeof data !== 'undefined') {
+							out = data.map(function (e, var_idx) {
+								var warnings = table3.cell(meta.row, 6).data();
+								var color;
+								if ((warnings[0] != null) && (warnings[0].includes('failed'))) {
+									color = 'red';
+								}
+								else if (warnings[var_idx] != null) {
+									if (warnings[var_idx].includes('not found in')) {
+										color = 'red';
+									}
+									else if (warnings[var_idx].includes('While processing file')) {
+										color = 'brown';
+									}
+									else if (warnings[var_idx].includes('exceeds funnel')) {
+										color = 'orange';
+									}
+								}
+								if (color != null) {
+									return '<wbr> ' + e.fontcolor(color);
+								}
+								else {
+									return '<wbr> ' + e;
+								}
+							});
+						} else { out = 'No simulation results available.' }
+						return out;
+					}
+				},
+				{
+					data: 'comparison.success_rate',
+					render: function (data, type, full) {
+						var out = "";
+						if (typeof data !== 'undefined') {
+							out = data.toLocaleString('en-US', { style: "percent" });
+						} else { out = '0%' }
+						return '<a class="myClass">' + out + '</a>';;
+					}
+				},
+				{ data: 'comparison.file_name' },
+				{ data: 'comparison.funnel_dirs' },
+				{ data: 'comparison.var_groups' },
+				{ data: 'comparison.warnings' },
+			],
+			columnDefs: [
+				{ visible: false, searchable: false, targets: [3, 4, 5, 6] },
+			],
+		});
+		$('#myTable3').on('click', '.myClass', function () {
+			var tr = $(this).closest('tr');
+			var row_idx = table3.row(tr).index();
+			var model = table3.cell(row_idx, 0).data();
+			var variables = table3.cell(row_idx, 1).data();
+			var file = table3.cell(row_idx, 3).data();
+			var dirs = table3.cell(row_idx, 4).data();
+			var groups = table3.cell(row_idx, 5).data();
+			var warnings = table3.cell(row_idx, 6).data();
+			var avail_groups = [];
+			var navail_vars = [];
+			var dict_var_info = {};  // dict of array of dicts (to handle multiple plots for one variable)
+			if (variables != null) {
+				variables.forEach(function (v, idx) {
+					if (dirs[idx] != null) {
+						(dict_var_info[v] = dict_var_info[v] || []).push({ group: groups[idx], dir: dirs[idx] });
+						avail_groups.push(groups[idx]);
+					} else { navail_vars.push(v); }
+				});
+			} else {
+				alert('Funnel comparison could not be executed for this file.');
+			}
+			var uniq_groups = [...new Set(avail_groups)];
+			var max_plot_per100 = 4;
+			var height = 100 * (1 + Math.max(0, uniq_groups.length - max_plot_per100) / max_plot_per100);
+			var err_plot_height = 0.18 * 100 / height;
+			$.get('$COMP_DIR/plot.html', function (data) {
+				if (uniq_groups.length > 0) {
+					var title = file;
+					if (navail_vars.length > 0) { title = title.concat('<br />No available results for: ').concat(navail_vars.join(', ')); }
+					var new_data = data.replace('$DICT_VAR_INFO', JSON.stringify(dict_var_info));
+					new_data = new_data.replace('$PAGE_TITLE', title);
+					new_data = new_data.replace('$TITLE', model);
+					new_data = new_data.replace('$HEIGHT', height + '%');
+					new_data = new_data.replace('$ERR_PLOT_HEIGHT', err_plot_height);
+					var strWindowFeatures = "menubar=yes, location=yes, resizable=yes, scrollbars=yes, status=yes";
+					var win = window.open('', '_blank', strWindowFeatures);
+					win.document.write(new_data);
+					win.document.close();  // necessary for the scripts on the page to be executed
+				} else { alert(warnings.join('\n')); }
+			});
+		});
+	});
+</script>
+
+</html>

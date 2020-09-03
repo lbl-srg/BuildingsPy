@@ -23,8 +23,8 @@ Validator of syntax
 .. autoclass:: buildingspy.development.validator.Validator
    :members:
 
-Merging Annex60 library
------------------------
+Merging Modelica IBPSA Library
+------------------------------
 
 .. automodule:: buildingspy.development.merger
 .. autoclass:: buildingspy.development.merger.IBPSA

@@ -6,7 +6,7 @@ language: python
 
 python:
   - "2.7"
-  - "3.5"
+  - "3.6"
 
 cache: pip
 
@@ -37,19 +37,39 @@ before_install:
   - sudo cp buildingspy/tests/MyModelicaLibrary/Resources/Scripts/travis/bin/dymola /usr/local/bin/
   - chmod +x buildingspy/tests/MyModelicaLibrary/Resources/Scripts/travis/bin/jm_ipython.sh
   - sudo cp buildingspy/tests/MyModelicaLibrary/Resources/Scripts/travis/bin/jm_ipython.sh /usr/local/bin/
-  - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD";
-  - docker pull "$DOCKER_USERNAME"/travis_ubuntu-1804_dymola-2020-x86_64
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+  - docker pull "$DOCKER_USERNAME"/travis_ubuntu-1804_dymola-2020x-x86_64
   - docker pull "$DOCKER_USERNAME"/ubuntu-1804_jmodelica_trunk
+  - python -m pip install --upgrade pip
 
 install:
-  - pip install --upgrade pip setuptools wheel
-  - pip install --only-binary=numpy,scipy,matplotlib numpy==1.13.3 scipy==0.19.1 matplotlib==2.1.0
-  - pip install autopep8==1.4.3
+  - pip install -r requirements.txt
   - pip install .
+  - if [[ $TRAVIS_PYTHON_VERSION != 2.7 ]]; then
+      pip install sphinx==2.1.2 \
+        sphinx-bootstrap-theme==0.7.1 \
+        sphinxcontrib-bibtex==0.4.2 \
+        sphinxcontrib-plantuml==0.17 \
+        alabaster==0.7.12 \
+        MarkupSafe==1.1.1 \
+        Pygments==2.4.2 \
+        snowballstemmer==1.9.0 \
+        docutils==0.15.2 \
+        Babel==2.7.0 \
+        requests==2.22.0 \
+        Jinja2==2.10.1 \
+        latexcodec==1.0.7 \
+        pybtex==0.22.2
+        pybtex-docutils==0.2.1 \
+        oset==0.1.3 \
+        PyYAML==5.1.2;
+    fi;
+
 
 # Execute tests
 script:
   - omc --version
   - make pep8 PEP8_CORRECT_CODE=true
-  - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then make doctest; fi
+  - if [[ $TRAVIS_PYTHON_VERSION != 2.7 ]]; then make doctest; fi
   - make unittest
+  - if [[ $TRAVIS_PYTHON_VERSION != 2.7 ]]; then make doc; fi
