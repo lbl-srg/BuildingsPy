@@ -2957,8 +2957,8 @@ class Tester(object):
                             "translationLog": os.path.join(
                                 self._temDir[iPro],
                                 self.getLibraryName(),
-                                self._data[i]['model_name']
-                                + ".translation.log").replace(
+                                self._data[i]['model_name'] +
+                                ".translation.log").replace(
                                 "\\",
                                 "/"),
                             "simulatorLog": self._simulator_log_file.replace(
