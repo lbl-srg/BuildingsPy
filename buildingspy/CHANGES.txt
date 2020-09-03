@@ -1,6 +1,10 @@
 BuildingsPy Changelog
 ---------------------
 
+Version 2.2.0, xxx, 2020 -- Release 2.2
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- xxx
+
 Version 2.1.0, May 28, 2020 -- Release 2.1
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 - Updated dependency to pyfunnel, and added requirements.txt file.
