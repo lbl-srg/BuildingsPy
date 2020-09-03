@@ -163,15 +163,13 @@ def _simulate(proc_num, return_dict):
 
     if opts['solver'].lower() == 'cvode':
       # Set user-specified tolerance if it is smaller than the tolerance in the .mo file
-      opts['CVode_options'] = {
-        'external_event_detection': False,
-        'maxh': (mod.get_default_experiment_stop_time()-mod.get_default_experiment_stop_time())/float(opts['ncp']),
-        'iter': 'Newton',
-        'discr': 'BDF',
-        'rtol': rtol,
-        'atol': atol,
-        'store_event_points': True
-    }
+      opts['CVode_options']['external_event_detection'] = False
+      opts['CVode_options']['maxh'] = (mod.get_default_experiment_stop_time()-mod.get_default_experiment_start_time())/float(opts['ncp'])
+      opts['CVode_options']['iter'] = 'Newton'
+      opts['CVode_options']['discr'] = 'BDF'
+      opts['CVode_options']['rtol'] = rtol
+      opts['CVode_options']['atol'] = atol
+      opts['CVode_options']['store_event_points'] = True # True is default, set to false if many events
 
     opts['filter'] = {{ filter }}
     # Grab the stdoutput
