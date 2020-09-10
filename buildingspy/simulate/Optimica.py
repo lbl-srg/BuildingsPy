@@ -141,7 +141,7 @@ class Optimica(bs._BaseSimulator):
           4. Translates and simulates the model.
           5. Closes the Modelica simulation environment.
 
-        This method requires that the directory that contains the executable *jm_ipython.sh*
+        This method requires that the directory that contains the executable ``jm_ipython.sh``
         is on the system PATH variable. If it is not found, the function returns with
         an error message.
 
@@ -158,7 +158,7 @@ class Optimica(bs._BaseSimulator):
           4. Translates the model.
           5. Closes the Modelica simulation environment.
 
-        This method requires that the directory that contains the executable *jm_ipython.sh*
+        This method requires that the directory that contains the executable ``jm_ipython.sh``
         is on the system PATH variable. If it is not found, the function returns with
         an error message.
 
@@ -175,7 +175,7 @@ class Optimica(bs._BaseSimulator):
           4. Translates and simulates the model.
           5. Closes the Modelica simulation environment.
 
-        This method requires that the directory that contains the executable *jm_ipython.sh*
+        This method requires that the directory that contains the executable ``jm_ipython.sh``
         is on the system PATH variable. If it is not found, the function returns with
         an error message.
 
@@ -269,7 +269,7 @@ class Optimica(bs._BaseSimulator):
            >>> s=Optimica("myPackage.myModel", packagePath="buildingspy/tests/MyModelicaLibrary")
            >>> s.setResultFilter(["myStep.source.*"])
 
-        To list all variables whose name ends in "y", type
+        To list all variables whose name ends in ``y``, type
 
            >>> from buildingspy.simulate.Optimica import Optimica
            >>> s=Optimica("myPackage.myModel", packagePath="buildingspy/tests/MyModelicaLibrary")
