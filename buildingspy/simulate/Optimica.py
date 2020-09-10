@@ -306,8 +306,8 @@ class Optimica(bs._BaseSimulator):
 
         The html diagnostics will be generated in
         a directory whose name is equal to the model name,
-        with "." replaced by "_", and the string
-        "_html_diagnostics" appended.
+        with ``.`` replaced by ``_``, and the string
+        ``_html_diagnostics`` appended.
 
         .. note:: For large models, this can generate huge files
                   and increase translation time.
@@ -317,11 +317,6 @@ class Optimica(bs._BaseSimulator):
     def generateSolverDiagnostics(self, generate=False):
         """ If set to `true`, solver debug information will be generated
             and displayed.
-
-        The html diagnostics will be generated in
-        a file whose name is equal to the model name,
-        with "." replaced by "_", and the string
-        "_debug.txt" appended.
 
         This is currently only used for the `CVode` solver.
 
