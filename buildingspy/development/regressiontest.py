@@ -98,8 +98,8 @@ def runSimulation(worDir, libDir, cmd):
             else:
                 return 0
         except OSError as e:
-            sys.stderr.write("Execution of '" + " ".join(map(str, cmd)) + " failed.\n" +
-                             "Working directory is '" + worDir + "'.")
+            sys.stderr.write("Execution of '" + " ".join(map(str, cmd)) + " failed.\n"
+                             + "Working directory is '" + worDir + "'.")
             raise(e)
         except KeyboardInterrupt as e:
             pro.kill()
@@ -1419,9 +1419,9 @@ class Tester(object):
         for i in range(len(yInt)):
             errAbs[i] = abs(yOld[i] - yInt[i])
             if np.isnan(errAbs[i]):
-                raise ValueError('NaN in errAbs ' + varNam + " " + str(yOld[i]) +
-                                 "  " + str(yInt[i]) + " i, N " + str(i) + " --:" + str(yInt[i - 1]) +
-                                 " ++:", str(yInt[i + 1]))
+                raise ValueError('NaN in errAbs ' + varNam + " " + str(yOld[i])
+                                 + "  " + str(yInt[i]) + " i, N " + str(i) + " --:" + str(yInt[i - 1])
+                                 + " ++:", str(yInt[i + 1]))
             if (abs(yOld[i]) > 10 * tol):
                 errRel[i] = errAbs[i] / abs(yOld[i])
             else:
@@ -1734,8 +1734,8 @@ class Tester(object):
         """
         import numpy as np
         if not (isinstance(dataSeries, np.ndarray) or isinstance(dataSeries, list)):
-            raise TypeError("Program error: dataSeries must be a numpy.ndarr or a list. Received type " +
-                            str(type(dataSeries)) + ".\n")
+            raise TypeError("Program error: dataSeries must be a numpy.ndarr or a list. Received type "
+                            + str(type(dataSeries)) + ".\n")
         return (len(dataSeries) == 2)
 
     def format_float(self, value):
@@ -2184,17 +2184,17 @@ class Tester(object):
 
         # Check whether the reference results exist.
         if not os.path.exists(abs_ref_fil_nam):
-            print("*** Warning: Reference file {} does not yet exist.".format(reference_file_name))
+            print("Warning ***: Reference file {} does not yet exist.".format(reference_file_name))
             while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
                 print("             Create new file?")
                 ans = input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
             if ans == "y" or ans == "Y":
                 self._writeReferenceResults(abs_ref_fil_nam, None, y_tra)
-                self._reporter.writeWarning("*** Warning: Wrote new reference file %s." %
-                                            reference_file_name)
+                self._reporter.writeOutput("Wrote new reference file %s." %
+                                           reference_file_name)
             else:
-                self._reporter.writeWarning("*** Warning: Did not write new reference file %s." %
-                                            reference_file_name)
+                self._reporter.writeError("Did not write new reference file %s." %
+                                          reference_file_name)
             return [True, ans]
 
         # The file that may contain the reference results exist.
@@ -2559,9 +2559,15 @@ class Tester(object):
                                     "             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
                             if ans == "y" or ans == "Y":
                                 updateReferenceData = True
+                            else:
+                                self._reporter.writeError("Did not write new reference file %s." %
+                                                          oldRefFulFilNam)
                         if updateReferenceData:    # If the reference data of any variable was updated
                             # Make dictionary to save the results and the svn information
                             self._writeReferenceResults(oldRefFulFilNam, y_sim, y_tra)
+                            self._reporter.writeOutput("Wrote new reference file %s." %
+                                                       oldRefFulFilNam)
+
             else:
                 # Tests that export FMUs do not have an output file. Hence, we do not warn
                 # about these cases.
@@ -2816,8 +2822,8 @@ class Tester(object):
         def _write_translation_stats(runFil, values):
 
             # Close the bracket for the JSON object
-            runFil.write("""Modelica.Utilities.Streams.print("      }", """ +
-                         '"' + values['statisticsLog'] + '"' + ");\n")
+            runFil.write("""Modelica.Utilities.Streams.print("      }", """
+                         + '"' + values['statisticsLog'] + '"' + ");\n")
 
         def _print_end_of_json(isLastItem, fileHandle, logFileName):
             if isLastItem:
@@ -3741,8 +3747,8 @@ class Tester(object):
                 return retcode
 
         except OSError as e:
-            raise OSError("Execution of omc +d=initialization " + mosfile + " failed.\n" +
-                          "Working directory is '" + worDir + "'.")
+            raise OSError("Execution of omc +d=initialization " + mosfile + " failed.\n"
+                          + "Working directory is '" + worDir + "'.")
         else:
             # process the log file
             print("Logfile created: {}".format(logFilNam))

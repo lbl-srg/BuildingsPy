@@ -94,14 +94,11 @@ def _simulate(proc_num, return_dict):
 
     if opts['solver'] == 'CVode':
       # Set user-specified tolerance if it is smaller than the tolerance in the .mo file
-      opts['CVode_options'] = {
-        'external_event_detection': False,
-        'iter': 'Newton',
-        'discr': 'BDF',
-        'store_event_points': True
-      }
-      if debug_solver:
-        opts['CVode_options']['clock_step'] = True
+      opts['CVode_options']['external_event_detection'] = False
+      opts['CVode_options']['maxh'] = (mod.get_default_experiment_stop_time()-mod.get_default_experiment_start_time())/float(opts['ncp'])
+      opts['CVode_options']['iter'] = 'Newton'
+      opts['CVode_options']['discr'] = 'BDF'
+      opts['CVode_options']['store_event_points'] = True # True is default, set to false if many events
 
     if debug_solver:
       opts["logging"] = True #<- Turn on solver debug logging
