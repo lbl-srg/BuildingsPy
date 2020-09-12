@@ -292,6 +292,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
 
 ##        self._time_stamp_old_files = datetime.datetime.now()
 
+        print(f"****** Starting simulation in {worDir}")
         try:
             # Write the Modelica script
             runScriptName = os.path.join(worDir, "run.mos")
@@ -395,6 +396,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         :param directory: The working directory
 
         """
+        import os
         # Remove the working directory from the mosFile name.
         # This is needed for example if the simulation is run in a docker,
         # which may have a different file structure than the host.
@@ -405,7 +407,9 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         else:
             cmd = [self._MODELICA_EXE, mo_fil, "/nowindow"]
 
-        super()._runSimulation(cmd, timeout, directory)
+        env=super().prependToModelicaPath(os.environ.copy(), self._packagePath)
+
+        super()._runSimulation(cmd, timeout, directory, env)
 
     def _check_simulation_errors(self, worDir):
         """ Method that checks if errors occured during simulation.

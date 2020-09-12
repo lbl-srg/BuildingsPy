@@ -398,11 +398,6 @@ class _BaseSimulator(object):
             print("       Make sure it is on the PATH variable of your operating system.")
             exit(3)
 
-        if env is None:
-            envMod = self.prependToModelicaPath(os.environ.copy(), self._packagePath)
-        else:
-            envMod = self.prependToModelicaPath(env, self._packagePath)
-
         # Run command
         try:
             self._simulationStartTime = datetime.datetime.now()
@@ -411,7 +406,7 @@ class _BaseSimulator(object):
                                    stderr=subprocess.PIPE,
                                    shell=False,
                                    cwd=directory,
-                                   env=envMod)
+                                   env=env)
 
             killedProcess = False
             if timeout > 0:
@@ -547,4 +542,3 @@ class _BaseSimulator(object):
         else:
             env['MODELICAPATH'] = path
         return env
-

@@ -111,7 +111,7 @@ def _simulate(proc_num, return_dict):
     opts['result_file_name'] = "{{ result_file_name }}"
 
 
-    # Grab the stdoutput
+    # Grab the std output
     out = og.OutputGrabber()
     out.start()
     res = mod.simulate(
@@ -128,7 +128,7 @@ def _simulate(proc_num, return_dict):
       debug = CVodeDebugInformation("{{ model }}".replace(".", "_")+"_debug.txt")
 
       ### Below are options to plot the order, error and step-size evolution.
-      ### The error methos also take a threshold and a region if you want to
+      ### The error methods also take a threshold and a region if you want to
       ### limit the plot to a certain interval.
 
 
@@ -170,6 +170,8 @@ def run():
     import pymodelica
     # Increase memory
     pymodelica.environ['JVM_ARGS'] = '-Xmx4096m'
+    # Set environment variable to include the path to the Modelica package.
+    {{ environment_variable_update }}
 
     time_out = {{ time_out }}
     model = "{{ model }}"

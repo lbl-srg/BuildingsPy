@@ -134,6 +134,11 @@ class Optimica(bs._BaseSimulator):
     def simulate(self):
         """Translates and simulates the model.
 
+        Usage: Type
+           >>> from buildingspy.simulate.Optimica import Optimica
+           >>> s=Optimica("MyModelicaLibrary.Examples.Constants", packagePath="buildingspy/tests")
+           >>> s.simulate()
+
         This method
           1. Deletes output files
           2. Writes a script to simulate the model.
@@ -150,6 +155,11 @@ class Optimica(bs._BaseSimulator):
 
     def translate(self):
         """Translates the model to generate a Functional Mockup Unit.
+
+        Usage: Type
+           >>> from buildingspy.simulate.Optimica import Optimica
+           >>> s=Optimica("MyModelicaLibrary.Examples.Constants", packagePath="buildingspy/tests")
+           >>> s.translate()
 
         This method
           1. Deletes output files
@@ -214,6 +224,9 @@ class Optimica(bs._BaseSimulator):
         file_name = os.path.join(worDir, "{}.py".format(self.modelName.replace(".", "_")))
 ##        self._time_stamp_old_files = datetime.datetime.now()
         with open(file_name, mode="w", encoding="utf-8") as fil:
+            osEnv = os.environ.copy()
+            osEnv = super().prependToModelicaPath(osEnv, self._packagePath)
+
             path_to_template = os.path.join(
                 os.path.dirname(__file__), os.path.pardir, "development")
             env = jinja2.Environment(loader=jinja2.FileSystemLoader(path_to_template))
@@ -237,13 +250,15 @@ class Optimica(bs._BaseSimulator):
                 time_out=-1,  # timeout is handled by BuildingsPy directly and not by the generated script
                 filter=self._result_filter,
                 generate_html_diagnostics=self._generate_html_diagnostics,
-                debug_solver=self._debug_solver)
+                debug_solver=self._debug_solver,
+                environment_variable_update='pymodelica.environ["MODELICAPATH"] = ":".join(["{}", pymodelica.environ["MODELICAPATH"]])'.format(
+                    self._packagePath))
 
             fil.write(txt)
 
         #osEnv = self.prependToModelicaPath(os.environ.copy(), os.getcwd())
 
-#        print(f"****** Starting simulation in {worDir}")
+        print(f"****** Starting simulation in {worDir}")
         try:
             super()._runSimulation(["jm_ipython.sh", file_name],
                                    self._simulator_.get('timeout'),
@@ -343,11 +358,11 @@ class Optimica(bs._BaseSimulator):
             js = json.loads(f.read())
             for step in ['translation', 'simulation']:
                 if step not in js:
-                    msg = f"Failed to invoke {step} for model {self.modelName}."
+                    msg = f"Failed to invoke {step} for model {self.modelName}. Check {logFil}."
                     self._reporter.writeError(msg)
                     return
                 if js[step]['success'] is not True:
-                    msg = f"The {step} of {self.modelName} failed. Check {logFil}"
+                    msg = f"The {step} of {self.modelName} failed. Check {logFil}."
                     self._reporter.writeError(msg)
                     return
         return
