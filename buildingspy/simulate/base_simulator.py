@@ -445,7 +445,6 @@ class _BaseSimulator(object):
                 if len(std_out) > 0:
                     self._reporter.writeOutput(
                         f"*** Standard output stream from simulation:\n{std_out}")
-
                 std_err = pro.stderr.read()
                 if len(std_err) > 0:
                     if pro.returncode != 0:

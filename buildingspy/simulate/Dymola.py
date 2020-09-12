@@ -292,7 +292,6 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
 
 ##        self._time_stamp_old_files = datetime.datetime.now()
 
-        print(f"****** Starting simulation in {worDir}")
         try:
             # Write the Modelica script
             runScriptName = os.path.join(worDir, "run.mos")

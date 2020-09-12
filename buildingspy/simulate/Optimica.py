@@ -137,7 +137,7 @@ class Optimica(bs._BaseSimulator):
         Usage: Type
            >>> from buildingspy.simulate.Optimica import Optimica
            >>> s=Optimica("MyModelicaLibrary.Examples.Constants", packagePath="buildingspy/tests")
-           >>> s.simulate()
+           >>> s.simulate() # doctest: +SKIP
 
         This method
           1. Deletes output files
@@ -159,7 +159,7 @@ class Optimica(bs._BaseSimulator):
         Usage: Type
            >>> from buildingspy.simulate.Optimica import Optimica
            >>> s=Optimica("MyModelicaLibrary.Examples.Constants", packagePath="buildingspy/tests")
-           >>> s.translate()
+           >>> s.translate() # doctest: +SKIP
 
         This method
           1. Deletes output files
@@ -258,7 +258,6 @@ class Optimica(bs._BaseSimulator):
 
         #osEnv = self.prependToModelicaPath(os.environ.copy(), os.getcwd())
 
-        print(f"****** Starting simulation in {worDir}")
         try:
             super()._runSimulation(["jm_ipython.sh", file_name],
                                    self._simulator_.get('timeout'),
