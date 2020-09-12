@@ -107,7 +107,6 @@ class Test_simulate_Dymola(unittest.TestCase):
         np.testing.assert_allclose(-0.1, r.min('source.y'))
         # Delete output files
         s.deleteOutputFiles()
-        s.deleteLogFiles()
 
     def test_addGetParameters(self):
         """
@@ -161,7 +160,6 @@ class Test_simulate_Dymola(unittest.TestCase):
         np.testing.assert_allclose(0, r.max('const3.y'))
         # Delete output files
         s.deleteOutputFiles()
-        s.deleteLogFiles()
 
     def test_setBooleanParameterValues(self):
         """
@@ -190,7 +188,6 @@ class Test_simulate_Dymola(unittest.TestCase):
         self.assertEqual(p[0], 0.0)
         # Delete output files
         s.deleteOutputFiles()
-        s.deleteLogFiles()
 
 
 if __name__ == '__main__':

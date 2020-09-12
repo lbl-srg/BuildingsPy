@@ -34,7 +34,7 @@ except NameError:
     basestring = str
 
 
-class Optimica(bs._BaseSimulator):
+class Simulator(bs._BaseSimulator):
     """Class to simulate a Modelica model with OPTIMICA.
 
     :param modelName: The name of the Modelica model.
@@ -61,8 +61,9 @@ class Optimica(bs._BaseSimulator):
             modelName=modelName,
             outputDirectory=outputDirectory,
             packagePath=packagePath,
-            outputFileList=[f"{modelNameUnderscore}.fmu"],
-            logFileList=['BuildingsPy.log', f"{modelNameUnderscore}_log.txt"])
+            outputFileList=[f"{modelNameUnderscore}.fmu",
+                            'BuildingsPy.log',
+                            f"{modelNameUnderscore}_log.txt"])
 
         self.setSolver("CVode")
         self._MODELICA_EXE = 'jm_ipython.sh'
@@ -411,6 +412,3 @@ class Optimica(bs._BaseSimulator):
     def deleteOutputFiles(self):
         super().deleteOutputFiles()
         self._deleteFiles([self._simulator_.get('resultFile') + ".mat"])
-
-    def deleteLogFiles(self):
-        super().deleteLogFiles()

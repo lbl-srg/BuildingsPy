@@ -48,8 +48,7 @@ class _BaseSimulator(object):
             modelName,
             outputDirectory,
             packagePath,
-            outputFileList,
-            logFileList):
+            outputFileList):
         import buildingspy.io.reporter as reporter
         import os
 
@@ -74,7 +73,6 @@ class _BaseSimulator(object):
         self._simulateDir_ = None
 
         self._outputFileList = outputFileList
-        self._logFileList = logFileList
 
         # This call is needed so that the reporter can write to the working directory
         self._createDirectory(outputDirectory)
@@ -257,12 +255,6 @@ class _BaseSimulator(object):
         """ Deletes the output files of the simulator.
         """
         self._deleteFiles(self._outputFileList)
-
-    def deleteLogFiles(self):
-        """ Deletes the log files of the Python simulator, e.g. the
-            files ``BuildingsPy.log``, ``run.mos`` and ``simulator.log``.
-        """
-        self._deleteFiles(self._logFileList)
 
     def _deleteFiles(self, fileList):
         """ Deletes the output files of the simulator.

@@ -57,9 +57,9 @@ class Dymola(bs._BaseSimulator):
             packagePath=packagePath,
             outputFileList=['run_simulate.mos', 'run_translate.mos', 'run.mos',
                             'dsfinal.txt', 'dsin.txt',
-                            'dsmodel*', 'dymosim', 'dymosim.exe'],
-            logFileList=['BuildingsPy.log', 'run.mos', 'run_simulate.mos',
-                         'run_translate.mos', 'simulator.log', 'translator.log', 'dslog.txt'])
+                            'dsmodel*', 'dymosim', 'dymosim.exe' ,
+                            'BuildingsPy.log', 'run.mos', 'run_simulate.mos',
+                            'run_translate.mos', 'simulator.log', 'translator.log', 'dslog.txt'])
 
         self._preProcessing_ = list()
         self._postProcessing_ = list()
@@ -463,6 +463,3 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
     def deleteOutputFiles(self):
         super().deleteOutputFiles()
         super()._deleteFiles([self._simulator_.get('resultFile') + "_result.mat"])
-
-    def deleteLogFiles(self):
-        super().deleteLogFiles()
