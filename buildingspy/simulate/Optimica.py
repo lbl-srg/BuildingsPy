@@ -55,16 +55,18 @@ class Optimica(bs._BaseSimulator):
         import buildingspy.io.reporter as reporter
         import os
 
+        modelNameUnderscore = modelName.replace('.', '_')
+
         super().__init__(
             modelName=modelName,
             outputDirectory=outputDirectory,
             packagePath=packagePath,
-            outputFileList=['*.fmu'],
-            logFileList=['BuildingsPy.log', '*_log.txt'])
+            outputFileList=[f"{modelNameUnderscore}.fmu"],
+            logFileList=['BuildingsPy.log', f"{modelNameUnderscore}_log.txt"])
 
         self.setSolver("CVode")
         self._MODELICA_EXE = 'jm_ipython.sh'
-        self.setResultFile(f"{modelName.replace('.', '_')}_result")
+        self.setResultFile(f"{modelNameUnderscore}_result")
 
         self._result_filter = []
         self._generate_html_diagnostics = False
@@ -408,7 +410,7 @@ class Optimica(bs._BaseSimulator):
 
     def deleteOutputFiles(self):
         super().deleteOutputFiles()
-        self._deleteFiles([self._simulator_.get('resultFile') + "_result.mat"])
+        self._deleteFiles([self._simulator_.get('resultFile') + ".mat"])
 
     def deleteLogFiles(self):
         super().deleteLogFiles()
