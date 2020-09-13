@@ -41,7 +41,8 @@ class Test_development_error_dictionary(unittest.TestCase):
                              'unused connector',
                              'stateGraphRoot missing',
                              'mismatched displayUnits',
-                             'suspicious attributes'])
+                             'suspicious attributes',
+                             'wrong derivative specification'])
 
         self.assertEqual(len(k), len(k_expected), "Wrong number of keys.")
         for i in range(len(k)):
@@ -67,7 +68,8 @@ class Test_development_error_dictionary(unittest.TestCase):
                              'Warning: The following connector variables are not used in the model',
                              "A \\\"stateGraphRoot\\\" component was automatically introduced.",
                              "Mismatched displayUnit",
-                             "which is suspicious"])
+                             "which is suspicious",
+                             "did not match argument"])
 
         self.assertEqual(len(k), len(k_expected), "Wrong number of tool messages.")
         for i in range(len(k)):
