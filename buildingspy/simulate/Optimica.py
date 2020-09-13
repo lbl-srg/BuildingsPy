@@ -79,8 +79,8 @@ class Simulator(bs._BaseSimulator):
         :param dictionary: A dictionary with the parameter values
 
         Usage: Type
-           >>> from buildingspy.simulate.Optimica import Optimica
-           >>> s=Optimica("myPackage.myModel", packagePath="buildingspy/tests/MyModelicaLibrary")
+           >>> from buildingspy.simulate.Optimica import Simulator
+           >>> s=Simulator("myPackage.myModel", packagePath="buildingspy/tests/MyModelicaLibrary")
            >>> s.addParameters({'PID.k': 1.0, 'valve.m_flow_nominal' : 0.1})
            >>> s.addParameters({'PID.t': 10.0})
 
@@ -88,8 +88,8 @@ class Simulator(bs._BaseSimulator):
         and ``PID.t`` to the list of model parameters.
 
         For parameters that are arrays, use a syntax such as
-           >>> from buildingspy.simulate.Optimica import Optimica
-           >>> s = Optimica("MyModelicaLibrary.Examples.Constants", packagePath="buildingspy/tests/MyModelicaLibrary")
+           >>> from buildingspy.simulate.Optimica import Simulator
+           >>> s = Simulator("MyModelicaLibrary.Examples.Constants", packagePath="buildingspy/tests/MyModelicaLibrary")
            >>> s.addParameters({'const1.k' : [2, 3]})
            >>> s.addParameters({'const2.k' : [[1.1, 1.2], [2.1, 2.2], [3.1, 3.2]]})
 
@@ -107,8 +107,8 @@ class Simulator(bs._BaseSimulator):
         :return: A list of parameters as (key, value)-tuples.
 
         Usage: Type
-           >>> from buildingspy.simulate.Optimica import Optimica
-           >>> s=Optimica("myPackage.myModel", packagePath="buildingspy/tests/MyModelicaLibrary")
+           >>> from buildingspy.simulate.Optimica import Simulator
+           >>> s=Simulator("myPackage.myModel", packagePath="buildingspy/tests/MyModelicaLibrary")
            >>> s.addParameters({'PID.k': 1.0, 'valve.m_flow_nominal' : 0.1})
            >>> s.getParameters()
            [('PID.k', 1.0), ('valve.m_flow_nominal', 0.1)]
@@ -121,8 +121,8 @@ class Simulator(bs._BaseSimulator):
         :param dictionary: A model modifier.
 
         Usage: Type
-           >>> from buildingspy.simulate.Optimica import Optimica
-           >>> s=Optimica("myPackage.myModel", packagePath="buildingspy/tests/MyModelicaLibrary")
+           >>> from buildingspy.simulate.Optimica import Simulator
+           >>> s=Simulator("myPackage.myModel", packagePath="buildingspy/tests/MyModelicaLibrary")
            >>> s.addModelModifier('redeclare package MediumA = Buildings.Media.IdealGases.SimpleAir')
 
         This method adds a model modifier. The modifier is added to the list
@@ -138,8 +138,8 @@ class Simulator(bs._BaseSimulator):
         """Translates and simulates the model.
 
         Usage: Type
-           >>> from buildingspy.simulate.Optimica import Optimica
-           >>> s=Optimica("MyModelicaLibrary.Examples.Constants", packagePath="buildingspy/tests")
+           >>> from buildingspy.simulate.Optimica import Simulator
+           >>> s=Simulator("MyModelicaLibrary.Examples.Constants", packagePath="buildingspy/tests")
            >>> s.simulate() # doctest: +SKIP
 
         This method
@@ -160,8 +160,8 @@ class Simulator(bs._BaseSimulator):
         """Translates the model to generate a Functional Mockup Unit.
 
         Usage: Type
-           >>> from buildingspy.simulate.Optimica import Optimica
-           >>> s=Optimica("MyModelicaLibrary.Examples.Constants", packagePath="buildingspy/tests")
+           >>> from buildingspy.simulate.Optimica import Simulator
+           >>> s=Simulator("MyModelicaLibrary.Examples.Constants", packagePath="buildingspy/tests")
            >>> s.translate() # doctest: +SKIP
 
         This method
@@ -282,14 +282,14 @@ class Simulator(bs._BaseSimulator):
 
         Usage: To list only the variables of the instance `myStep.source`, type
 
-           >>> from buildingspy.simulate.Optimica import Optimica
-           >>> s=Optimica("myPackage.myModel", packagePath="buildingspy/tests/MyModelicaLibrary")
+           >>> from buildingspy.simulate.Optimica import Simulator
+           >>> s=Simulator("myPackage.myModel", packagePath="buildingspy/tests/MyModelicaLibrary")
            >>> s.setResultFilter(["myStep.source.*"])
 
         To list all variables whose name ends in ``y``, type
 
-           >>> from buildingspy.simulate.Optimica import Optimica
-           >>> s=Optimica("myPackage.myModel", packagePath="buildingspy/tests/MyModelicaLibrary")
+           >>> from buildingspy.simulate.Optimica import Simulator
+           >>> s=Simulator("myPackage.myModel", packagePath="buildingspy/tests/MyModelicaLibrary")
            >>> s.setResultFilter(["*y"])
 
         """

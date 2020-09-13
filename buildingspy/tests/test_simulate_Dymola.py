@@ -14,10 +14,10 @@ from io import open
 
 import unittest
 import os
-from buildingspy.simulate.Dymola import Dymola
+from buildingspy.simulate.Dymola import Simulator
 
 
-class Test_simulate_Dymola(unittest.TestCase):
+class Test_simulate_Simulator(unittest.TestCase):
     """
        This class contains the unit tests for
        :mod:`buildingspy.simulate.Dymola`.
@@ -36,14 +36,14 @@ class Test_simulate_Dymola(unittest.TestCase):
         Tests the :mod:`buildingspy.simulate.Dymola`
         constructor.
         """
-        Dymola(
+        Simulator(
             modelName="MyModelicaLibrary.myModel",
             outputDirectory="notSupported",
             packagePath=self._packagePath)
 
         # Check that this path does not exists
         with self.assertRaises(ValueError):
-            Dymola(
+            Simulator(
                 modelName="MyModelicaLibrary.myModel",
                 outputDirectory="notSupported",
                 packagePath="ThisIsAWrongPath")
@@ -52,7 +52,7 @@ class Test_simulate_Dymola(unittest.TestCase):
         """
         Tests the ``setPackagePath'' method.
         """
-        s = Dymola("MyModelicaLibrary.MyModel", "dymola", packagePath=self._packagePath)
+        s = Simulator("MyModelicaLibrary.MyModel", "dymola", packagePath=self._packagePath)
 
         # Try to load an existing path.
         p = os.path.abspath(os.path.join("buildingspy", "tests", "MyModelicaLibrary"))
@@ -66,7 +66,7 @@ class Test_simulate_Dymola(unittest.TestCase):
         Tests reporting the exception if a simulation fails.
         """
         with self.assertRaises(ValueError):
-            Dymola(
+            Simulator(
                 modelName="MyModelicaLibrary.MyModel",
                 outputDirectory=".",
                 packagePath="THIS IS NOT A VALID PACKAGE PATH")
@@ -79,7 +79,7 @@ class Test_simulate_Dymola(unittest.TestCase):
 
         from buildingspy.io.outputfile import Reader
 
-        s = Dymola("MyModelicaLibrary.MyModel", "dymola", packagePath=self._packagePath)
+        s = Simulator("MyModelicaLibrary.MyModel", "dymola", packagePath=self._packagePath)
         s.addPreProcessingStatement("Advanced.StoreProtectedVariables:= true;")
         s.addPostProcessingStatement("Advanced.StoreProtectedVariables:= false;")
         s.addModelModifier(
@@ -114,7 +114,7 @@ class Test_simulate_Dymola(unittest.TestCase):
         and the :mod:`buildingspy.simulate.Dymola.getParameters`
         functions.
         """
-        s = Dymola("myPackage.myModel", "dymola", packagePath=self._packagePath)
+        s = Simulator("myPackage.myModel", "dymola", packagePath=self._packagePath)
         # Make sure values are added correctly
         s.addParameters({'PID.k': 1.0, 'valve.m_flow_nominal': 0.1})
         self.assertEqual(sorted(s.getParameters()), [('PID.k', 1.0), ('valve.m_flow_nominal', 0.1)])
@@ -138,7 +138,7 @@ class Test_simulate_Dymola(unittest.TestCase):
         if os.path.exists(resultFile):
             os.remove(resultFile)
 
-        s = Dymola("MyModelicaLibrary.Examples.Constants",
+        s = Simulator("MyModelicaLibrary.Examples.Constants",
                    packagePath=self._packagePath)
         s.addParameters({'const1.k': [2, 3]})
         s.addParameters({'const2.k': [[1.1, 1.2], [2.1, 2.2], [3.1, 3.2]]})
@@ -174,7 +174,7 @@ class Test_simulate_Dymola(unittest.TestCase):
         if os.path.exists(resultFile):
             os.remove(resultFile)
 
-        s = Dymola("MyModelicaLibrary.Examples.BooleanParameters",
+        s = Simulator("MyModelicaLibrary.Examples.BooleanParameters",
                    packagePath=self._packagePath)
         s.addParameters({'p1': True})
         s.addParameters({'p2': False})

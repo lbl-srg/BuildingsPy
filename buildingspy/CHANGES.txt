@@ -4,6 +4,7 @@ BuildingsPy Changelog
 Version 2.2.0, xxx, 2020 -- Release 2.2
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 - xxx
+- Refactored class buildingspy.simulate.Dymola, and added buildingspy.simulate.Optimica
 
 Version 2.1.0, May 28, 2020 -- Release 2.1
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

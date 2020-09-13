@@ -266,11 +266,11 @@ class _BaseSimulator(object):
         import glob
 
         for ent in fileList:
-            print(f"*** checking whether to delete {ent}")
+#            print(f"*** checking whether to delete {ent}")
             for fil in glob.glob(ent):
                 try:
                     if os.path.exists(fil):
-                        print(f"    Deleting file: {fil}")
+ #                       print(f"    Deleting file: {fil}")
                         os.remove(fil)
                 except OSError as e:
                     self._reporter.writeError("Failed to delete '" + fil + "' : " + e.strerror)
@@ -526,8 +526,8 @@ class _BaseSimulator(object):
         Usage:
 
             >>> import os
-            >>> from buildingspy.simulate.Optimica import Optimica
-            >>> s=Optimica("myPackage.myModel", packagePath="buildingspy/tests/MyModelicaLibrary")
+            >>> from buildingspy.simulate.Optimica import Simulator
+            >>> s=Simulator("myPackage.myModel", packagePath="buildingspy/tests/MyModelicaLibrary")
             >>> env = os.environ.copy()
             >>> env = s.prependToModelicaPath(env, os.getcwd())
 

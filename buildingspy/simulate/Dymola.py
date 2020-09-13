@@ -30,7 +30,7 @@ except NameError:
     basestring = str
 
 
-class Dymola(bs._BaseSimulator):
+class Simulator(bs._BaseSimulator):
     """Class to simulate a Modelica model.
 
     :param modelName: The name of the Modelica model.
@@ -81,8 +81,8 @@ class Dymola(bs._BaseSimulator):
         :param command: A script statement.
 
         Usage: Type
-           >>> from buildingspy.simulate.Dymola import Dymola
-           >>> s=Dymola("myPackage.myModel", "dymola", packagePath="buildingspy/tests/MyModelicaLibrary")
+           >>> from buildingspy.simulate.Dymola import Simulator
+           >>> s=Simulator("myPackage.myModel", "dymola", packagePath="buildingspy/tests/MyModelicaLibrary")
            >>> s.addPreProcessingStatement("Advanced.StoreProtectedVariables:= true;")
            >>> s.addPreProcessingStatement("Advanced.GenerateTimers = true;")
 
@@ -194,8 +194,8 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         :param dictionary: A dictionary with the parameter values
 
         Usage: Type
-           >>> from buildingspy.simulate.Dymola import Dymola
-           >>> s=Dymola("myPackage.myModel", packagePath="buildingspy/tests/MyModelicaLibrary")
+           >>> from buildingspy.simulate.Dymola import Simulator
+           >>> s=Simulator("myPackage.myModel", packagePath="buildingspy/tests/MyModelicaLibrary")
            >>> s.addParameters({'PID.k': 1.0, 'valve.m_flow_nominal' : 0.1})
            >>> s.addParameters({'PID.t': 10.0})
 
@@ -203,8 +203,8 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         and ``PID.t`` to the list of model parameters.
 
         For parameters that are arrays, use a syntax such as
-           >>> from buildingspy.simulate.Dymola import Dymola
-           >>> s = Dymola("MyModelicaLibrary.Examples.Constants", packagePath="buildingspy/tests/MyModelicaLibrary")
+           >>> from buildingspy.simulate.Dymola import Simulator
+           >>> s = Simulator("MyModelicaLibrary.Examples.Constants", packagePath="buildingspy/tests/MyModelicaLibrary")
            >>> s.addParameters({'const1.k' : [2, 3]})
            >>> s.addParameters({'const2.k' : [[1.1, 1.2], [2.1, 2.2], [3.1, 3.2]]})
 
@@ -222,8 +222,8 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         :return: A list of parameters as (key, value)-tuples.
 
         Usage: Type
-           >>> from buildingspy.simulate.Dymola import Dymola
-           >>> s=Dymola("myPackage.myModel", packagePath="buildingspy/tests/MyModelicaLibrary")
+           >>> from buildingspy.simulate.Dymola import Simulator
+           >>> s=Simulator("myPackage.myModel", packagePath="buildingspy/tests/MyModelicaLibrary")
            >>> s.addParameters({'PID.k': 1.0, 'valve.m_flow_nominal' : 0.1})
            >>> s.getParameters()
            [('PID.k', 1.0), ('valve.m_flow_nominal', 0.1)]
@@ -236,8 +236,8 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         :param dictionary: A model modifier.
 
         Usage: Type
-           >>> from buildingspy.simulate.Dymola import Dymola
-           >>> s=Dymola("myPackage.myModel", packagePath="buildingspy/tests/MyModelicaLibrary")
+           >>> from buildingspy.simulate.Dymola import Simulator
+           >>> s=Simulator("myPackage.myModel", packagePath="buildingspy/tests/MyModelicaLibrary")
            >>> s.addModelModifier('redeclare package MediumA = Buildings.Media.IdealGases.SimpleAir')
 
         This method adds a model modifier. The modifier is added to the list

@@ -14,10 +14,10 @@ from io import open
 
 import unittest
 import os
-from buildingspy.simulate.Optimica import Optimica
+from buildingspy.simulate.Optimica import Simulator
 
 
-class Test_simulate_Optimica(unittest.TestCase):
+class Test_simulate_Simulator(unittest.TestCase):
     """
        This class contains the unit tests for
        :mod:`buildingspy.simulate.Simulator`.
@@ -36,14 +36,14 @@ class Test_simulate_Optimica(unittest.TestCase):
         Tests the :mod:`buildingspy.simulate.Simulator`
         constructor.
         """
-        Optimica(
+        Simulator(
             modelName="MyModelicaLibrary.myModel",
             outputDirectory="notSupported",
             packagePath=self._packagePath)
 
         # Check that this path does not exists
         with self.assertRaises(ValueError):
-            Optimica(
+            Simulator(
                 modelName="MyModelicaLibrary.myModel",
                 outputDirectory="notSupported",
                 packagePath="ThisIsAWrongPath")
@@ -52,7 +52,7 @@ class Test_simulate_Optimica(unittest.TestCase):
         """
         Tests the ``setPackagePath'' method.
         """
-        s = Optimica("MyModelicaLibrary.MyModel", packagePath=self._packagePath)
+        s = Simulator("MyModelicaLibrary.MyModel", packagePath=self._packagePath)
 
         # Try to load an existing path.
         p = os.path.abspath(os.path.join("buildingspy", "tests"))
@@ -67,7 +67,7 @@ class Test_simulate_Optimica(unittest.TestCase):
         Tests reporting the exception if a simulation fails.
         """
         with self.assertRaises(ValueError):
-            s = Optimica(
+            s = Simulator(
                 modelName="MyModelicaLibrary.MyModel",
                 packagePath="THIS IS NOT A VALID PACKAGE PATH")
 
@@ -79,7 +79,7 @@ class Test_simulate_Optimica(unittest.TestCase):
 
         from buildingspy.io.outputfile import Reader
 
-        s = Optimica("MyModelicaLibrary.MyModel", packagePath=self._packagePath)
+        s = Simulator("MyModelicaLibrary.MyModel", packagePath=self._packagePath)
         s.addModelModifier(
             "redeclare Modelica.Blocks.Sources.Step source(offset=-0.1, height=1.1, startTime=0.5)")
         s.setStartTime(-1)
@@ -107,7 +107,7 @@ class Test_simulate_Optimica(unittest.TestCase):
         and the :mod:`buildingspy.simulate.Simulator.getParameters`
         functions.
         """
-        s = Optimica("myPackage.myModel", packagePath=self._packagePath)
+        s = Simulator("myPackage.myModel", packagePath=self._packagePath)
         # Make sure values are added correctly
         s.addParameters({'PID.k': 1.0, 'valve.m_flow_nominal': 0.1})
         self.assertEqual(sorted(s.getParameters()), [('PID.k', 1.0), ('valve.m_flow_nominal', 0.1)])
@@ -133,7 +133,7 @@ class Test_simulate_Optimica(unittest.TestCase):
         # Delete output file
         if os.path.exists(resultFile):
             os.remove(resultFile)
-        s = Optimica(model, packagePath=self._packagePath)
+        s = Simulator(model, packagePath=self._packagePath)
         s.addParameters({'const1.k': [2, 3]})
         s.addParameters({'const2.k': [[1.1, 1.2], [2.1, 2.2], [3.1, 3.2]]})
         s.addParameters({'const3.k': 0})
@@ -164,7 +164,7 @@ class Test_simulate_Optimica(unittest.TestCase):
         # Delete output file
         if os.path.exists(resultFile):
             os.remove(resultFile)
-        s = Optimica(model, packagePath=self._packagePath)
+        s = Simulator(model, packagePath=self._packagePath)
         s.addParameters({'p1': True})
         s.addParameters({'p2': False})
         s.simulate()
@@ -190,7 +190,7 @@ class Test_simulate_Optimica(unittest.TestCase):
         if os.path.exists(resultFile):
             os.remove(resultFile)
 
-        s = Optimica(model, packagePath=self._packagePath)
+        s = Simulator(model, packagePath=self._packagePath)
         s.setResultFilter(["myStep.source.y"])
         s.simulate()
         r = Reader(resultFile, "dymola")
@@ -201,7 +201,6 @@ class Test_simulate_Optimica(unittest.TestCase):
 
         # Delete output files
         s.deleteOutputFiles()
-        s.()
 
     def test_setResultFilterRegExp(self):
         """
@@ -217,7 +216,7 @@ class Test_simulate_Optimica(unittest.TestCase):
         if os.path.exists(resultFile):
             os.remove(resultFile)
 
-        s = Optimica(model, packagePath=self._packagePath)
+        s = Simulator(model, packagePath=self._packagePath)
         s.setResultFilter(["*source.y"])
         s.simulate()
         r = Reader(resultFile, "dymola")
