@@ -57,7 +57,7 @@ class Simulator(bs._BaseSimulator):
             packagePath=packagePath,
             outputFileList=['run_simulate.mos', 'run_translate.mos', 'run.mos',
                             'dsfinal.txt', 'dsin.txt',
-                            'dsmodel*', 'dymosim', 'dymosim.exe' ,
+                            'dsmodel*', 'dymosim', 'dymosim.exe',
                             'BuildingsPy.log', 'run.mos', 'run_simulate.mos',
                             'run_translate.mos', 'simulator.log', 'translator.log', 'dslog.txt'])
 
@@ -276,8 +276,8 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         worDir = self._outputDir_
         self._simulateDir_ = worDir
         # Copy directory
-##        shutil.copytree(os.path.abspath(self._packagePath), worDir,
-##                        ignore=shutil.ignore_patterns('*.svn', '*.git'))
+# shutil.copytree(os.path.abspath(self._packagePath), worDir,
+# ignore=shutil.ignore_patterns('*.svn', '*.git'))
 
         # Construct the model instance with all parameter values
         # and the package redeclarations
@@ -304,8 +304,8 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
                                 self._simulator_.get('timeout'),
                                 worDir)
             self._check_simulation_errors(worDir)
-##            self._copyNewFiles(worDir)
-##            self._deleteTemporaryDirectory(worDir)
+# self._copyNewFiles(worDir)
+# self._deleteTemporaryDirectory(worDir)
         except Exception as e:  # Catch all possible exceptions
             em = f"Simulation failed in '{worDir}'\n   Exception: {e}.\n   You need to delete the directory manually.\n"
             self._reporter.writeError(em)
@@ -402,7 +402,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         else:
             cmd = [self._MODELICA_EXE, mo_fil, "/nowindow"]
 
-        env=super().prependToModelicaPath(os.environ.copy(), self._packagePath)
+        env = super().prependToModelicaPath(os.environ.copy(), self._packagePath)
 
         super()._runSimulation(cmd, timeout, directory, env)
 

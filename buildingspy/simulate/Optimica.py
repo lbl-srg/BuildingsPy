@@ -201,8 +201,8 @@ class Simulator(bs._BaseSimulator):
         # Delete output files
         self.deleteOutputFiles()
 
-##        # Get directory name. This ensures for example that if the directory is called xx/Buildings
-##        # then the simulations will be done in tmp??/Buildings
+# Get directory name. This ensures for example that if the directory is called xx/Buildings
+# then the simulations will be done in tmp??/Buildings
 ##        worDirLib = self._create_worDir()
 
         # Optimica is usually started on level higher than the Buildings library
@@ -211,8 +211,8 @@ class Simulator(bs._BaseSimulator):
 
         self._simulateDir_ = worDir
         # Copy directory
-##        shutil.copytree(os.path.abspath(self._packagePath), worDirLib,
-##                        ignore=shutil.ignore_patterns('*.svn', '*.git'))
+# shutil.copytree(os.path.abspath(self._packagePath), worDirLib,
+# ignore=shutil.ignore_patterns('*.svn', '*.git'))
 
         # Construct the model instance with all parameter values
         # and the package redeclarations
@@ -268,8 +268,8 @@ class Simulator(bs._BaseSimulator):
                                    env=None)
 
             self._check_simulation_errors(worDir)
-##            self._copyNewFiles(worDir)
-##            self._deleteTemporaryDirectory(worDir)
+# self._copyNewFiles(worDir)
+# self._deleteTemporaryDirectory(worDir)
 
         except Exception as e:  # Catch all possible exceptions
             em = f"Simulation failed in '{worDir}'\n   Exception: {e}.\n   You need to delete the directory manually.\n"

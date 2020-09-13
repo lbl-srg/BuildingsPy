@@ -139,7 +139,7 @@ class Test_simulate_Simulator(unittest.TestCase):
             os.remove(resultFile)
 
         s = Simulator("MyModelicaLibrary.Examples.Constants",
-                   packagePath=self._packagePath)
+                      packagePath=self._packagePath)
         s.addParameters({'const1.k': [2, 3]})
         s.addParameters({'const2.k': [[1.1, 1.2], [2.1, 2.2], [3.1, 3.2]]})
         s.addParameters({'const3.k': 0})
@@ -175,7 +175,7 @@ class Test_simulate_Simulator(unittest.TestCase):
             os.remove(resultFile)
 
         s = Simulator("MyModelicaLibrary.Examples.BooleanParameters",
-                   packagePath=self._packagePath)
+                      packagePath=self._packagePath)
         s.addParameters({'p1': True})
         s.addParameters({'p2': False})
         s.simulate()
