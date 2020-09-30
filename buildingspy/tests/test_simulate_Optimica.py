@@ -256,9 +256,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         Tests the :mod:`buildingspy.simulate.Optimica.generateSolverDiagnostics`
         function.
         """
-        import matplotlib
         from buildingspy.io.outputfile import Reader
-        matplotlib.use('Agg')
 
         model = "MyModelicaLibrary.Examples.MyStep"
         resultFile = f"{model.replace('.', '_')}_debug.txt"

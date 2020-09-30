@@ -341,6 +341,9 @@ class Simulator(bs._BaseSimulator):
         This function calls :mod:`buildingspy.simulate.Optimica.generateSolverDiagnostics`
         to generate the debug files, and then displays them after the simulation.
 
+        This function must be called prior to :mod:`buildingspy.simulate.Optimica.simulate`
+        because the debugging is invoked immediately after the simulation.
+
         .. note:: This can generate huge files
                   and increase simulation time.
         """
