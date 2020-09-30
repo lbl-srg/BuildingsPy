@@ -35,12 +35,11 @@ class Test_simulate_Simulator(unittest.TestCase):
         Tests the :mod:`buildingspy.simulate.Dymola`
         constructor.
         """
-        with self.assertRaises(DeprecationWarning):
-            _BaseSimulator(
-                modelName="MyModelicaLibrary.myModel",
-                simulator="dymola",
-                outputDirectory="notSupported",
-                packagePath=self._packagePath)
+        _BaseSimulator(
+            modelName="MyModelicaLibrary.myModel",
+            outputDirectory="notSupported",
+            outputFileList=None,
+            packagePath=self._packagePath)
 
 
 if __name__ == '__main__':
