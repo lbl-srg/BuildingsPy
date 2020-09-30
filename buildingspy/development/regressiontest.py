@@ -1089,7 +1089,7 @@ class Tester(object):
                             for lin in Lines:
                                 if 'resultFile=\"' in lin:
                                     matFil = re.search(
-                                        '(?<=resultFile=\")[a-zA-Z0-9_\.]+', lin).group()
+                                        r'(?<=resultFile=\")[a-zA-Z0-9_\.]+', lin).group()
                                     # Add the .mat extension as this is not included in the
                                     # resultFile entry.
                                     matFil = matFil + '.mat'
@@ -1109,7 +1109,7 @@ class Tester(object):
                                         # Note that the filename entry already has the .mat
                                         # extension.
                                         matFil = re.search(
-                                            '(?<=filename=\")[a-zA-Z0-9_\.]+', lin).group()
+                                            r'(?<=filename=\")[a-zA-Z0-9_\.]+', lin).group()
                                         break
                             if len(matFil) == 0:
                                 raise ValueError('Did not find *.mat file in ' + mosFil)
@@ -1743,7 +1743,7 @@ class Tester(object):
             non-significant zeros removed.
         """
         import re
-        return re.sub(re.compile('\.e'), 'e',
+        return re.sub(re.compile(r'\.e'), 'e',
                       re.sub(re.compile('0*e'), 'e', "{0:.15e}".format(value)))
 
     def _writeReferenceResults(self, refFilNam, y_sim, y_tra):
@@ -3258,7 +3258,7 @@ class Tester(object):
                 generate_html_diagnostics=False,
                 debug_solver=False,
                 debug_solver_interactive_mode=False,
-                filter=[re.sub('\[|\]',
+                filter=[re.sub(r'\[|\]',
                                lambda m: '[{}]'.format(m.group()),
                                re.sub(' ', '', x)) for x in result_variables]
             )
