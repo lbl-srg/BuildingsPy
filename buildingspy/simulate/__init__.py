@@ -10,7 +10,7 @@ Their API is identical where possible, but each
 class may have methods that are only applicable for
 one of the simulators.
 For example, the method
-:func:`buildingspy.simulate.Optimica.generateHtmlDiagnostics()`
+:func:`buildingspy.simulate.Optimica.Simulator.generateHtmlDiagnostics`
 is only available for Optimica.
 
 Note that :mod:`buildingspy.simulate.Optimica`

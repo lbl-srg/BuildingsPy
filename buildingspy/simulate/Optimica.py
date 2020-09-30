@@ -325,7 +325,7 @@ class Simulator(bs._BaseSimulator):
     def generateSolverDiagnostics(self, generate=True):
         """ If set to `true`, solver debug information will be generated.
 
-        To display the solver diagnostics, call :mod:`buildingspy.simulate.Optimica.debugSolver`
+        To display the solver diagnostics, call :func:`debugSolver`
 
         This is currently only used for the `CVode` solver.
 
@@ -339,10 +339,10 @@ class Simulator(bs._BaseSimulator):
 
         This is currently only used for the `CVode` solver.
 
-        This function calls :mod:`buildingspy.simulate.Optimica.generateSolverDiagnostics`
+        This function calls :func:`generateSolverDiagnostics`
         to generate the debug files, and then displays them after the simulation.
 
-        This function must be called prior to :mod:`buildingspy.simulate.Optimica.simulate`
+        This function must be called prior to :func:`simulate`
         because the debugging is invoked immediately after the simulation.
 
         .. note:: This can generate huge files
