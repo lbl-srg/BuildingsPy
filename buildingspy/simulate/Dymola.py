@@ -274,10 +274,6 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         # Get directory name. This ensures for example that if the directory is called xx/Buildings
         # then the simulations will be done in tmp??/Buildings
         worDir = self._outputDir_
-        self._simulateDir_ = worDir
-        # Copy directory
-# shutil.copytree(os.path.abspath(self._packagePath), worDir,
-# ignore=shutil.ignore_patterns('*.svn', '*.git'))
 
         # Construct the model instance with all parameter values
         # and the package redeclarations
