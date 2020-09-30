@@ -14,7 +14,7 @@ For example, the method
 is only available for Optimica.
 
 Note that :mod:`buildingspy.simulate.Optimica`
-should also work for JModelica.org,
+should also work with JModelica.org,
 but the latter is not officially supported.
 
 """

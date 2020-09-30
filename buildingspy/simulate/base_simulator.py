@@ -70,8 +70,6 @@ class _BaseSimulator(object):
 
         self._outputDir_ = outputDirectory
 
-        self._simulateDir_ = None
-
         self._outputFileList = outputFileList
 
         # This call is needed so that the reporter can write to the working directory
@@ -157,6 +155,7 @@ class _BaseSimulator(object):
     def setOutputDirectory(self, outputDirectory):
         """Sets the name of the output directory.
 
+        :param outputDirectory: The name of the output directory.
         :return: The name of the output directory.
 
         """
@@ -211,10 +210,6 @@ class _BaseSimulator(object):
         self._simulator_.update(numberOfIntervals=n)
         return
 
-    def deleteSimulateDirectory(self):
-        """ Deletes the simulate directory. Can be called when simulation failed.
-        """
-        self._deleteTemporaryDirectory(self._simulateDir_)
 
     def setTimeOut(self, sec):
         """Sets the time out after which the simulation will be killed.

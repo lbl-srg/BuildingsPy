@@ -6,7 +6,7 @@
 
   Note that because OPTIMICA and JModelica have a similar API, and because
   they are invoked by the same script, this class
-  should also work for JModelica.
+  should also work with JModelica.
 
   For a similar class that uses Dymola, see :func:`buildingspy.simulate.Dymola`.
 
@@ -201,18 +201,7 @@ class Simulator(bs._BaseSimulator):
         # Delete output files
         self.deleteOutputFiles()
 
-# Get directory name. This ensures for example that if the directory is called xx/Buildings
-# then the simulations will be done in tmp??/Buildings
-##        worDirLib = self._create_worDir()
-
-        # Optimica is usually started on level higher than the Buildings library
-##        worDir = os.path.abspath(os.path.join(worDirLib, os.path.pardir))
         worDir = self._outputDir_
-
-        self._simulateDir_ = worDir
-        # Copy directory
-# shutil.copytree(os.path.abspath(self._packagePath), worDirLib,
-# ignore=shutil.ignore_patterns('*.svn', '*.git'))
 
         # Construct the model instance with all parameter values
         # and the package redeclarations
@@ -318,7 +307,7 @@ class Simulator(bs._BaseSimulator):
                 f"Solver {solver} is not supported. Supported are: {', '.join(solvers)}.")
         return
 
-    def generateHtmlDiagnostics(self, generate=False):
+    def generateHtmlDiagnostics(self, generate=True):
         """ If set to `true`, html diagnostics will be generated.
 
         The html diagnostics will be generated in
@@ -331,7 +320,7 @@ class Simulator(bs._BaseSimulator):
         """
         self._generate_html_diagnostics = generate
 
-    def generateSolverDiagnostics(self, generate=False):
+    def generateSolverDiagnostics(self, generate=True):
         """ If set to `true`, solver debug information will be generated
             and displayed.
 
