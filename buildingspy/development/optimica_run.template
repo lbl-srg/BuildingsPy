@@ -74,6 +74,7 @@ def _simulate(proc_num, return_dict):
   # Simulate the model
 
   debug_solver = {{ debug_solver }}
+  debug_solver_interactive_mode = {{ debug_solver_interactive_mode }}
 
   try:
     fmu_name = "{{ model }}".replace(".", "_") + ".fmu"
@@ -122,7 +123,7 @@ def _simulate(proc_num, return_dict):
 
     ######################################################################
     # Get debugging information
-    if debug_solver:
+    if debug_solver and debug_solver_interactive_mode:
       #Load the debug information
       from pyfmi.debug import CVodeDebugInformation
       debug = CVodeDebugInformation("{{ model }}".replace(".", "_")+"_debug.txt")

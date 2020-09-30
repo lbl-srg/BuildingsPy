@@ -72,6 +72,7 @@ class Simulator(bs._BaseSimulator):
         self._result_filter = []
         self._generate_html_diagnostics = False
         self._debug_solver = False
+        self._debug_solver_interactive_mode = True
 
     def addParameters(self, dictionary):
         """Adds parameter declarations to the simulator.
@@ -243,6 +244,7 @@ class Simulator(bs._BaseSimulator):
                 filter=self._result_filter,
                 generate_html_diagnostics=self._generate_html_diagnostics,
                 debug_solver=self._debug_solver,
+                debug_solver_interactive_mode=self._debug_solver_interactive_mode,
                 environment_variable_update='pymodelica.environ["MODELICAPATH"] = ":".join(["{}", pymodelica.environ["MODELICAPATH"]])'.format(
                     self._packagePath))
 
@@ -330,6 +332,20 @@ class Simulator(bs._BaseSimulator):
                   and increase simulation time.
         """
         self._debug_solver = generate
+
+    def debugSolver(self):
+        """ Call this function to interactively debug the solver after the simulation.
+
+        This is currently only used for the `CVode` solver.
+
+        This function calls :mod:`buildingspy.simulate.Optimica.generateSolverDiagnostics`
+        to generate the debug files, and then displays them after the simulation.
+
+        .. note:: This can generate huge files
+                  and increase simulation time.
+        """
+        self.generateSolverDiagnostics(True)
+        self._debug_solver_interactive_mode = True
 
     def _check_simulation_errors(self, worDir):
         """ Method that checks if errors occured during simulation.
