@@ -210,7 +210,6 @@ class _BaseSimulator(object):
         self._simulator_.update(numberOfIntervals=n)
         return
 
-
     def setTimeOut(self, sec):
         """Sets the time out after which the simulation will be killed.
 
