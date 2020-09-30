@@ -14,8 +14,7 @@ from io import open
 
 import unittest
 import os
-from buildingspy.simulate.Simulator import Simulator
-
+from buildingspy.simulate.base_simulator import _BaseSimulator
 
 class Test_simulate_Simulator(unittest.TestCase):
     """
@@ -37,7 +36,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         constructor.
         """
         with self.assertRaises(DeprecationWarning):
-            Simulator(
+            _BaseSimulator(
                 modelName="MyModelicaLibrary.myModel",
                 simulator="dymola",
                 outputDirectory="notSupported",
