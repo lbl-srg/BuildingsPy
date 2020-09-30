@@ -228,6 +228,52 @@ class Test_simulate_Simulator(unittest.TestCase):
         # Delete output files
         s.deleteOutputFiles()
 
+    def test_generateHtmlDiagnostics(self):
+        """
+        Tests the :mod:`buildingspy.simulate.Optimica.generateHtmlDiagnostics`
+        function.
+        """
+        from buildingspy.io.outputfile import Reader
+
+        model = "MyModelicaLibrary.Examples.MyStep"
+        resultFile = os.path.join(f"{model.replace('.', '_')}_html_diagnostics", "index.html")
+
+        # Delete output file
+        if os.path.exists(resultFile):
+            os.remove(resultFile)
+
+        s = Simulator(model, packagePath=self._packagePath)
+        s.generateHtmlDiagnostics()
+        s.translate()
+
+        self.assertTrue(os.path.exists(resultFile), f"Expected file {resultFile} to exist after translation.")
+
+        # Delete output files
+        s.deleteOutputFiles()
+
+    def test_generateSolverDiagnostics(self):
+        """
+        Tests the :mod:`buildingspy.simulate.Optimica.generateSolverDiagnostics`
+        function.
+        """
+        from buildingspy.io.outputfile import Reader
+
+        model = "MyModelicaLibrary.Examples.MyStep"
+        resultFile = f"{model.replace('.', '_')}_debug.txt"
+
+        # Delete output file
+        if os.path.exists(resultFile):
+            os.remove(resultFile)
+
+        s = Simulator(model, packagePath=self._packagePath)
+        s.generateSolverDiagnostics()
+        s.simulate()
+
+        self.assertTrue(os.path.exists(resultFile), f"Expected file {resultFile} to exist after translation.")
+
+        # Delete output files
+        s.deleteOutputFiles()
+
 
 if __name__ == '__main__':
     unittest.main()
