@@ -72,7 +72,7 @@ class Simulator(bs._BaseSimulator):
         self._result_filter = []
         self._generate_html_diagnostics = False
         self._debug_solver = False
-        self._debug_solver_interactive_mode = True
+        self._debug_solver_interactive_mode = False
 
     def addParameters(self, dictionary):
         """Adds parameter declarations to the simulator.
@@ -323,8 +323,9 @@ class Simulator(bs._BaseSimulator):
         self._generate_html_diagnostics = generate
 
     def generateSolverDiagnostics(self, generate=True):
-        """ If set to `true`, solver debug information will be generated
-            and displayed.
+        """ If set to `true`, solver debug information will be generated.
+
+        To display the solver diagnostics, call :mod:`buildingspy.simulate.Optimica.debugSolver`
 
         This is currently only used for the `CVode` solver.
 

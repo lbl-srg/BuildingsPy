@@ -3257,6 +3257,7 @@ class Tester(object):
                 time_out=dat[self._modelica_tool]['time_out'],
                 generate_html_diagnostics=False,
                 debug_solver=False,
+                debug_solver_interactive_mode=False,
                 filter=[re.sub('\[|\]',
                                lambda m: '[{}]'.format(m.group()),
                                re.sub(' ', '', x)) for x in result_variables]
