@@ -141,6 +141,7 @@ class Test_regressiontest_Tester(unittest.TestCase):
         skpFil = os.path.join(myMoLib, "Resources", "Scripts", "skipUnitTestList.txt")
         rt.setLibraryRoot(myMoLib)
         rt.setExcludeTest(skpFil)
+        rt.deleteTemporaryDirectories(False)  # fixme: for debugging only
         ret_val = rt.run()
         # Check return value to see if test suceeded
         # ret_val must be two because excluding files triggers a warning.
