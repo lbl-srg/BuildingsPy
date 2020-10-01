@@ -1,6 +1,11 @@
 import sys                        # fixme, for debugging
+import os                         # fixme, for debugging
 print("***** Debug output")       # fixme, for debugging
 print(sys.path)                   # fixme, for debugging
+for pat in sys.path:
+  if "shared" in pat:
+    print("**** listdir: {}".format(os.listdir(pat)))
+
 # Import the class that grabs stdout
 import buildingspy.simulate.OutputGrabber as og
 
