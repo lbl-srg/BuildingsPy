@@ -74,6 +74,8 @@ script:
 - echo "*** Files in current directory `ls -lhtr`"
 - python buildingspy/tests/test_development_regressiontest.py Test_regressiontest_Tester.test_setExcludeTest
 - echo "*** Files in current directory `ls -lhtr`"
+- echo "*** Files in /tmp/ `ls -lhtr /tmp/tmp-MyModelicaLibrary*`"
+- echo "*** Files in /tmp/.../MyModelicaLibrary `ls -lhtr /tmp/tmp-MyModelicaLibrary*/MyModelicaLibrary`"
 
 ##fixme - omc --version
 ##fixme - make pep8 PEP8_CORRECT_CODE=true
