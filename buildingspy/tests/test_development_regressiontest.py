@@ -71,10 +71,12 @@ class Test_regressiontest_Tester(unittest.TestCase):
         rt.include_fmu_tests(True)
         rt.writeOpenModelicaResultDictionary()
         ret_val = rt.run()
-        # Check return value to see if test suceeded
+        # Check return value to see if test succeeded
         self.assertEqual(0, ret_val, "Test failed with return value {}".format(ret_val))
         # Delete temporary files
-        os.remove(rt.get_unit_test_log_file())
+        ## fixme os.remove(rt.get_unit_test_log_file())
+        with open(rt.get_unit_test_log_file()) as f: # fixme
+            print(f.read()) # fixme
 
     def test_unit_test_log_file(self):
         import buildingspy.development.regressiontest as r
