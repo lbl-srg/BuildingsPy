@@ -71,9 +71,9 @@ def runSimulation(worDir, libDir, cmd):
 #
     print(f"**** libDir is {libDir}\n")  # fixme
     print(f"**** worDir is {worDir}\n")  # fixme
-    print(f"**** Invoking {cmd[0]} with MODELICAPATH={os.environ.copy()['MODELICAPATH']}\n")   # fixme
+    print(f"**** Invoking {cmd[0]} with MODELICAPATH={env['MODELICAPATH']}\n")   # fixme
     args=[cmd[0], worDir + "/" + cmd[1]] + cmd[2:]   # fixme
-    print(f"**** args are {arguments}")   # fixme
+    print(f"**** args are {args}")   # fixme
     with open(logFilNam, mode="w", encoding="utf-8") as logFil:
         # Here we add worDir to cmd[1], see https://github.com/lbl-srg/BuildingsPy/issues/303
         pro = subprocess.Popen(args=[cmd[0], worDir + "/" + cmd[1]] + cmd[2:],
