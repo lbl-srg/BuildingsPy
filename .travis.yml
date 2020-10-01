@@ -79,7 +79,7 @@ script:
 
 after_failure:
   - |
-    for ff in `find BuildingsPy -maxdepth 1 -name '*.log'`; do
+    for ff in `find . -name '*.log'`; do
       echo "*** Content of $ff"
       cat $ff
       echo "*** End of $ff"
