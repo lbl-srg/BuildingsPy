@@ -22,15 +22,15 @@ git:
 services:
   - docker
 
-#fixme addons:
-#fixme   apt:
-#fixme     sources:
-#fixme     - sourceline: "deb http://build.openmodelica.org/apt `lsb_release -cs` stable"
-#fixme       key_url: "http://build.openmodelica.org/apt/openmodelica.asc"
-#fixme     packages:
-#fixme     - omc
-#fixme     - omlib-modelica-3.2.?
-#fixme     - tidy
+addons:
+  apt:
+    sources:
+    - sourceline: "deb http://build.openmodelica.org/apt `lsb_release -cs` stable"
+      key_url: "http://build.openmodelica.org/apt/openmodelica.asc"
+    packages:
+    - omc
+    - omlib-modelica-3.2.?
+    - tidy
 
 before_install:
   - chmod +x buildingspy/tests/MyModelicaLibrary/Resources/Scripts/travis/bin/dymola
@@ -38,7 +38,7 @@ before_install:
   - chmod +x buildingspy/tests/MyModelicaLibrary/Resources/Scripts/travis/bin/jm_ipython.sh
   - sudo cp buildingspy/tests/MyModelicaLibrary/Resources/Scripts/travis/bin/jm_ipython.sh /usr/local/bin/
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-#fixme  - docker pull "$DOCKER_USERNAME"/travis_ubuntu-1804_dymola-2020x-x86_64
+  - docker pull "$DOCKER_USERNAME"/travis_ubuntu-1804_dymola-2020x-x86_64
   - docker pull "$DOCKER_USERNAME"/ubuntu-1804_jmodelica_trunk
   - python -m pip install --upgrade pip
 
@@ -70,9 +70,9 @@ install:
 script:
 ##  - python buildingspy/tests/test_development_regressiontest_optimica.py Test_regressiontest_optimica_Tester.test_regressiontest_diagnostics
 ##  - python buildingspy/tests/test_development_regressiontest_jmodelica.py Test_regressiontest_jmodelica_Tester.test_regressiontest_diagnostics
-- python buildingspy/tests/test_simulate_Optimica.py Test_simulate_Simulator.test_addMethods
-#fixme  - omc --version
-#fixme  - make pep8 PEP8_CORRECT_CODE=true
-#fixme  - make doctest
-#fixme  - make unittest
-#fixme  - make doc
+## - python buildingspy/tests/test_simulate_Optimica.py Test_simulate_Simulator.test_addMethods
+- omc --version
+- make pep8 PEP8_CORRECT_CODE=true
+- make doctest
+- make unittest
+- make doc
