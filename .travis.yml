@@ -72,7 +72,8 @@ script:
 ## - python buildingspy/tests/test_simulate_Optimica.py Test_simulate_Simulator.test_addMethods
 - echo "*** Current directory `pwd`"
 - echo "*** Files in current directory `ls -lhtr`"
-- python buildingspy/tests/test_development_regressiontest.py Test_regressiontest_Tester.test_setExcludeTest
+- python buildingspy/tests/test_simulate_Dymola.py Test_simulate_Simulator.test_addMethods
+# python buildingspy/tests/test_development_regressiontest.py Test_regressiontest_Tester.test_setExcludeTest
 - echo "*** Files in current directory `ls -lhtr`"
 - echo "*** Files in /tmp/ `ls -lhtr /tmp/tmp-MyModelicaLibrary*`"
 - echo "*** Files in /tmp/.../MyModelicaLibrary `ls -lhtr /tmp/tmp-MyModelicaLibrary*/MyModelicaLibrary`"
