@@ -10,6 +10,7 @@ cache: pip
 env:
   global:
     - MPLBACKEND=agg
+    - MODELICAPATH=${TRAVIS_BUILD_DIR}/buildingspy/tests # Needed to load Modelica models for CI testing
     - PYTHONPATH=${TRAVIS_BUILD_DIR}  # Points to /home/travis/build/lbl-srg/BuildingsPy. Needed for import buildingspy.simulate.OutputGrabber as og
 
 notifications:
