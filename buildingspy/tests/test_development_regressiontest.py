@@ -81,7 +81,7 @@ class Test_regressiontest_Tester(unittest.TestCase):
         rt = r.Tester(check_html=False, tool="dymola")
         self.assertEqual('unitTests-dymola.log', rt.get_unit_test_log_file())
 
-    def test_regressiontest(self):
+    def test_regressiontest_invalid_package(self):
         import buildingspy.development.regressiontest as r
         rt = r.Tester(check_html=False)
         myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
