@@ -34,6 +34,9 @@ class OutputGrabber(object):
         Start capturing the stream data.
         """
         import os
+        import threading
+        import time
+
         self.capturedtext = ""
         # Save a copy of the stream:
         self.streamfd = os.dup(self.origstreamfd)
