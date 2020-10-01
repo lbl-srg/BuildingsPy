@@ -71,8 +71,9 @@ script:
 ##  - python buildingspy/tests/test_development_regressiontest_optimica.py Test_regressiontest_optimica_Tester.test_regressiontest_diagnostics
 ##  - python buildingspy/tests/test_development_regressiontest_jmodelica.py Test_regressiontest_jmodelica_Tester.test_regressiontest_diagnostics
 ## - python buildingspy/tests/test_simulate_Optimica.py Test_simulate_Simulator.test_addMethods
-- omc --version
-- make pep8 PEP8_CORRECT_CODE=true
-- make doctest
-- make unittest
-- make doc
+- python buildingspy/tests/test_development_regressiontest.py Test_regressiontest_Tester.test_setExcludeTest
+##fixme - omc --version
+##fixme - make pep8 PEP8_CORRECT_CODE=true
+##fixme - make doctest
+##fixme - make unittest
+##fixme - make doc
