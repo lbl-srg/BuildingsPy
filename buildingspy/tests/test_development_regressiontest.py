@@ -144,11 +144,11 @@ class Test_regressiontest_Tester(unittest.TestCase):
         rt.deleteTemporaryDirectories(False)  # fixme: for debugging only
         ret_val = rt.run()
         # Check return value to see if test succeeded
-        # ret_val must be two because excluding files triggers a warning.
-# fixme        self.assertEqual(
-# fixme            2,
-# fixme            ret_val,
-# fixme            "Test failed with return value {}, expected 2.".format(ret_val))
+        # ret_val must be non-zero because excluding files triggers a warning.
+        self.assertNotEqual(
+            0,
+            ret_val,
+            "Test failed with return value {}, expected non-zero value.".format(ret_val))
 # fixme        # Check for correct number of tests
 # fixme        self.assertEqual(2, rt.get_number_of_tests())
 
