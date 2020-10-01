@@ -1,3 +1,6 @@
+import sys                        # fixme, for debugging
+print("***** Debug output")       # fixme, for debugging
+print(sys.path)                   # fixme, for debugging
 # Import the class that grabs stdout
 import buildingspy.simulate.OutputGrabber as og
 
