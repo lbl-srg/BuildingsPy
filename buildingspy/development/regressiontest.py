@@ -2950,12 +2950,10 @@ class Tester(object):
                         absMosFilNam = os.path.join(self._temLibDir, mosFilNam)
 
                         values = {
-                            "mosWithPath": mosFilNam.replace(
-                                "\\",
-                                "/"),
-                            "absMosFilNam": absMosFilNam.replace(
-                                "\\",
-                                "/"),
+                            "mosMoUrl": "modelica://{}".format(mosFilNam.replace('\\', '/')),
+# fixme - no longer used                            "absMosFilNam": absMosFilNam.replace(
+# fixme - no longer used                                "\\",
+# fixme - no longer used                                "/"),
                             "checkCommand": self._getModelCheckCommand(absMosFilNam).replace(
                                 "\\",
                                 "/"),
@@ -3017,7 +3015,7 @@ class Tester(object):
     {set_non_pedantic}
     rCheck = {checkCommand};
     {set_pedantic}
-    Modelica.Utilities.Streams.print("    {{ \"file\" :  \"{mosWithPath}\",", "{statisticsLog}");
+    Modelica.Utilities.Streams.print("    {{ \"file\" :  \"{mosMoUrl}\",", "{statisticsLog}");
     Modelica.Utilities.Streams.print("      \"model\" : \"{model_name}\",", "{statisticsLog}");
     Modelica.Utilities.Streams.print("      \"check\" : {{", "{statisticsLog}");
     Modelica.Utilities.Streams.print("        \"command\" : \"{checkCommandString};\",", "{statisticsLog}");
@@ -3040,10 +3038,10 @@ class Tester(object):
                             # Modelica.Utilities.Streams.readFile
                             template = r"""
     {set_non_pedantic}
-    rScript=RunScript("{absMosFilNam}");
+    rScript=RunScript("{mosMoUrl}");
     {set_pedantic}
     Modelica.Utilities.Files.list("/tmp");        // fixme remove this line for release
-    Modelica.Utilities.Files.list("/mnt/shared"); // fixme remove this line for release
+    // Modelica.Utilities.Files.list("/mnt/shared"); // fixme remove this line for release
     savelog("{model_name}.translation.log");
     if Modelica.Utilities.Files.exist("dslog.txt") then
       Modelica.Utilities.Files.move("dslog.txt", "{model_name}.dslog.log");
@@ -3127,9 +3125,9 @@ class Tester(object):
                         if self._modelica_tool == 'dymola' and self._data[i]["mustExportFMU"]:
                             template = r"""
     Modelica.Utilities.Files.removeFile("{FMUName}");
-    RunScript("{absMosFilNam}");
+    RunScript("{mosMoUrl}");
     Modelica.Utilities.Files.list("/tmp");        // fixme remove this line for release
-    Modelica.Utilities.Files.list("/mnt/shared"); // fixme remove this line for release
+    // Modelica.Utilities.Files.list("/mnt/shared"); // fixme remove this line for release
     savelog("{model_name}.translation.log");
     if Modelica.Utilities.Files.exist("dslog.txt") then
       Modelica.Utilities.Files.move("dslog.txt", "{model_name}.dslog.log");
