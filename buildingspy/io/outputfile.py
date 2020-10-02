@@ -161,8 +161,13 @@ class Reader(object):
     """
 
     def __init__(self, fileName, simulator):
+        import os
+
         if simulator not in ['dymola', 'optimica', 'jmodelica']:
-            raise ValueError('Argument "simulator" needs to be set to "dymola" or "jmodelica".')
+            raise ValueError('Argument "simulator" needs to be set to "dymola", "optimica" or "jmodelica".')
+
+        if not os.path.isfile(fileName):
+            raise FileNotFoundError(f"File {os.path.abspath(fileName)} does not exist.")
 
         self.fileName = fileName
         self._data_ = DyMatFile(fileName)
