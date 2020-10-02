@@ -3272,10 +3272,18 @@ class Tester(object):
             # Directory that contains the library as a sub directory
             libDir = self._libHome
 
-            shutil.copytree(libDir,
-                            os.path.join(dirNam, self.getLibraryName()),
-                            symlinks=True,
-                            ignore=shutil.ignore_patterns('.svn', '.git', '.mat', 'request.', 'status.'))
+            shutil.copytree(
+                libDir,
+                os.path.join(
+                    dirNam,
+                    self.getLibraryName()),
+                symlinks=True,
+                ignore=shutil.ignore_patterns(
+                    '.svn',
+                    '.git',
+                    '.mat',
+                    'request.',
+                    'status.'))
         return
 
     def _run_simulation_info(self):

@@ -2,6 +2,8 @@
 This module provides functions to analyse FMUs.
 
 """
+
+
 def get_dependencies(fmu_file_name):
     """Return the input and state dependencies of an FMU as a dictionary.
 

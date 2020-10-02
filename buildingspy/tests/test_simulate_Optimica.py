@@ -239,8 +239,9 @@ class Test_simulate_Simulator(unittest.TestCase):
         s.generateHtmlDiagnostics()
         s.translate()
 
-        self.assertTrue(os.path.exists(resultFile),
-                        f"Expected file {resultFile} to exist after translation in test_generateHtmlDiagnostics.")
+        self.assertTrue(
+            os.path.exists(resultFile),
+            f"Expected file {resultFile} to exist after translation in test_generateHtmlDiagnostics.")
 
         # Delete output files
         s.deleteOutputFiles()
@@ -263,8 +264,9 @@ class Test_simulate_Simulator(unittest.TestCase):
         s.generateSolverDiagnostics()
         s.simulate()
 
-        self.assertTrue(os.path.exists(resultFile),
-                        f"Expected file {resultFile} to exist after simulation in test_generateSolverDiagnostics.")
+        self.assertTrue(
+            os.path.exists(resultFile),
+            f"Expected file {resultFile} to exist after simulation in test_generateSolverDiagnostics.")
 
         # Delete output files
         s.deleteOutputFiles()
