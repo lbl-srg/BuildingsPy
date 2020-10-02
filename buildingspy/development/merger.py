@@ -6,20 +6,6 @@
 #
 # MWetter@lbl.gov                            2014-04-15
 #######################################################
-#
-# import from future to make Python2 behave like Python3
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future import standard_library
-standard_library.install_aliases()
-from builtins import *
-from io import open
-from shutil import copyfile
-# end of from future import
-
-
 class IBPSA(object):
     """ Class that merges the
         `Modelica IBPSA Library <https://github.com/ibpsa/modelica-ibpsa>`_
