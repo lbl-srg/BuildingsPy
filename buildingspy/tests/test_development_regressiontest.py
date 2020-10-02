@@ -72,14 +72,10 @@ class Test_regressiontest_Tester(unittest.TestCase):
         rt.writeOpenModelicaResultDictionary()
         ret_val = rt.run()
 
-        print(f"****** printing log file {rt.get_unit_test_log_file()}")
-        with open(rt.get_unit_test_log_file()) as f:  # fixme
-            print(f.read())  # fixme
-
         # Check return value to see if test succeeded
         self.assertEqual(0, ret_val, "Test failed with return value {}".format(ret_val))
         # Delete temporary files
-        # fixme os.remove(rt.get_unit_test_log_file())
+        os.remove(rt.get_unit_test_log_file())
 
     def test_unit_test_log_file(self):
         import buildingspy.development.regressiontest as r
@@ -146,7 +142,6 @@ class Test_regressiontest_Tester(unittest.TestCase):
         skpFil = os.path.join(myMoLib, "Resources", "Scripts", "skipUnitTestList.txt")
         rt.setLibraryRoot(myMoLib)
         rt.setExcludeTest(skpFil)
-        rt.deleteTemporaryDirectories(False)  # fixme: for debugging only
         ret_val = rt.run()
         # Check return value to see if test succeeded
         # ret_val must be non-zero because excluding files triggers a warning.

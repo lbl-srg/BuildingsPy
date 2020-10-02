@@ -60,7 +60,6 @@ def runSimulation(worDir, libDir, cmd):
     .. note:: This method is outside the class definition to
               allow parallel computing.
     """
-    import os  # fixme
     env = os.environ.copy()  # will be passed to the subprocess.Popen call
     if 'MODELICAPATH' in os.environ:
         env['MODELICAPATH'] = "{}:{}".format(libDir, env['MODELICAPATH'])
@@ -68,17 +67,6 @@ def runSimulation(worDir, libDir, cmd):
         env['MODELICAPATH'] = libDir
 
     logFilNam = os.path.join(worDir, 'stdout.log')
-#
-    print(f"**** libDir is {libDir}\n")  # fixme
-    filNam = os.path.join(
-        libDir,
-        "MyModelicaLibrary/Resources/Scripts/Dymola/Examples/FMUs/Gain.mos")  # fixme
-    print(f"**** Checking if file {filNam} exists.: {os.path.isfile(filNam)}")
-
-    print(f"**** worDir is {worDir}\n")  # fixme
-    print(f"**** Invoking {cmd[0]} with MODELICAPATH={env['MODELICAPATH']}\n")   # fixme
-    args = [cmd[0], worDir + "/" + cmd[1]] + cmd[2:]   # fixme
-    print(f"**** args are {args}")   # fixme
     with open(logFilNam, mode="w", encoding="utf-8") as logFil:
         # Here we add worDir to cmd[1], see https://github.com/lbl-srg/BuildingsPy/issues/303
         pro = subprocess.Popen(args=[cmd[0], worDir + "/" + cmd[1]] + cmd[2:],
@@ -2952,9 +2940,6 @@ class Tester(object):
 
                         values = {
                             "mosMoUrl": "modelica://{}".format(mosFilNam.replace('\\', '/')),
-                            # fixme - no longer used                            "absMosFilNam": absMosFilNam.replace(
-                            # fixme - no longer used                                "\\",
-                            # fixme - no longer used                                "/"),
                             "checkCommand": self._getModelCheckCommand(absMosFilNam).replace(
                                 "\\",
                                 "/"),
@@ -3041,8 +3026,6 @@ class Tester(object):
     {set_non_pedantic}
     rScript=RunScript("{mosMoUrl}");
     {set_pedantic}
-    Modelica.Utilities.Files.list("/tmp");        // fixme remove this line for release
-    // Modelica.Utilities.Files.list("/mnt/shared"); // fixme remove this line for release
     savelog("{model_name}.translation.log");
     if Modelica.Utilities.Files.exist("dslog.txt") then
       Modelica.Utilities.Files.move("dslog.txt", "{model_name}.dslog.log");
@@ -3127,8 +3110,6 @@ class Tester(object):
                             template = r"""
     Modelica.Utilities.Files.removeFile("{FMUName}");
     RunScript("{mosMoUrl}");
-    Modelica.Utilities.Files.list("/tmp");        // fixme remove this line for release
-    // Modelica.Utilities.Files.list("/mnt/shared"); // fixme remove this line for release
     savelog("{model_name}.translation.log");
     if Modelica.Utilities.Files.exist("dslog.txt") then
       Modelica.Utilities.Files.move("dslog.txt", "{model_name}.dslog.log");
@@ -3706,8 +3687,6 @@ class Tester(object):
         """
         import shutil
         import subprocess
-        # fixme: Why is there a number as an argument?
-        # Isn't it sufficient to select the package to be tested?
         if number < 0:
             number = int(1e15)
 
