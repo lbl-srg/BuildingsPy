@@ -3246,7 +3246,6 @@ class Tester(object):
             file_name = os.path.join(directory, "{}.py".format(model.replace(".", "_")))
             with open(file_name, mode="w", encoding="utf-8") as fil:
                 fil.write(txt)
-                print(f"***** fixme: wrote {file_name}")
         shutil.copyfile(
             os.path.join(
                 os.path.dirname(__file__),
@@ -3256,7 +3255,6 @@ class Tester(object):
             os.path.join(
                 directory,
                 "OutputGrabber.py"))
-        print(f"** *** fixme: wrote {os.path.join(directory, 'OutputGrabber.py')}")
 
     def deleteTemporaryDirectories(self, delete):
         """ Flag, if set to ``False``, then the temporary directories will not be deleted
@@ -3282,9 +3280,6 @@ class Tester(object):
             self._temDir.append(dirNam)
             # Directory that contains the library as a sub directory
             libDir = self._libHome
-
-            print(
-                f"***** fixme: debug, copy {libDir} to {os.path.join(dirNam,self.getLibraryName())}\n")
 
             shutil.copytree(
                 libDir,

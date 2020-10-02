@@ -164,7 +164,8 @@ class Reader(object):
         import os
 
         if simulator not in ['dymola', 'optimica', 'jmodelica']:
-            raise ValueError('Argument "simulator" needs to be set to "dymola", "optimica" or "jmodelica".')
+            raise ValueError(
+                'Argument "simulator" needs to be set to "dymola", "optimica" or "jmodelica".')
 
         if not os.path.isfile(fileName):
             raise FileNotFoundError(f"File {os.path.abspath(fileName)} does not exist.")
