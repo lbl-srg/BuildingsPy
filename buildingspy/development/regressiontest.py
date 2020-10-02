@@ -60,7 +60,7 @@ def runSimulation(worDir, libDir, cmd):
     .. note:: This method is outside the class definition to
               allow parallel computing.
     """
-    import os # fixme
+    import os  # fixme
     env = os.environ.copy()  # will be passed to the subprocess.Popen call
     if 'MODELICAPATH' in os.environ:
         env['MODELICAPATH'] = "{}:{}".format(libDir, env['MODELICAPATH'])
@@ -70,8 +70,9 @@ def runSimulation(worDir, libDir, cmd):
     logFilNam = os.path.join(worDir, 'stdout.log')
 #
     print(f"**** libDir is {libDir}\n")  # fixme
-    filNam = os.path.join(libDir,
-      "MyModelicaLibrary/Resources/Scripts/Dymola/Examples/FMUs/Gain.mos") # fixme
+    filNam = os.path.join(
+        libDir,
+        "MyModelicaLibrary/Resources/Scripts/Dymola/Examples/FMUs/Gain.mos")  # fixme
     print(f"**** Checking if file {filNam} exists.: {os.path.isfile(filNam)}")
 
     print(f"**** worDir is {worDir}\n")  # fixme
@@ -2951,9 +2952,9 @@ class Tester(object):
 
                         values = {
                             "mosMoUrl": "modelica://{}".format(mosFilNam.replace('\\', '/')),
-# fixme - no longer used                            "absMosFilNam": absMosFilNam.replace(
-# fixme - no longer used                                "\\",
-# fixme - no longer used                                "/"),
+                            # fixme - no longer used                            "absMosFilNam": absMosFilNam.replace(
+                            # fixme - no longer used                                "\\",
+                            # fixme - no longer used                                "/"),
                             "checkCommand": self._getModelCheckCommand(absMosFilNam).replace(
                                 "\\",
                                 "/"),

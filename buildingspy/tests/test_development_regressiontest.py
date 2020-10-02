@@ -73,15 +73,13 @@ class Test_regressiontest_Tester(unittest.TestCase):
         ret_val = rt.run()
 
         print(f"****** printing log file {rt.get_unit_test_log_file()}")
-        with open(rt.get_unit_test_log_file()) as f: # fixme
-            print(f.read()) # fixme
+        with open(rt.get_unit_test_log_file()) as f:  # fixme
+            print(f.read())  # fixme
 
         # Check return value to see if test succeeded
         self.assertEqual(0, ret_val, "Test failed with return value {}".format(ret_val))
         # Delete temporary files
-        ## fixme os.remove(rt.get_unit_test_log_file())
-
-
+        # fixme os.remove(rt.get_unit_test_log_file())
 
     def test_unit_test_log_file(self):
         import buildingspy.development.regressiontest as r
