@@ -10,7 +10,7 @@ cache: pip
 env:
   global:
     - MPLBACKEND=agg
-    - MODELICAPATH=${TRAVIS_BUILD_DIR}/buildingspy/tests # Needed to load Modelica models for CI testing
+#    - MODELICAPATH=${TRAVIS_BUILD_DIR}/buildingspy/tests # Needed to load Modelica models for CI testing
 
 notifications:
   email: false
