@@ -181,7 +181,7 @@ def run():
               "simulation": {"success": False}}
 
     # Compile model
-    log_file = "{}_buidingspy.json".format(model.replace(".", "_"))
+    log_file = "{}_buildingspy.json".format(model.replace(".", "_"))
     try:
         os.remove(log_file)
     except OSError:

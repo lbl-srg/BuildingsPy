@@ -182,6 +182,8 @@ class Test_simulate_Simulator(unittest.TestCase):
         s = Simulator(model, packagePath=self._packagePath)
         s.setResultFilter(["myStep.source.y"])
         s.simulate()
+        self.assertTrue(os.path.exists(resultFile),
+                        f"Expected file {resultFile} to exist in test_setResultFilter.")
         r = Reader(resultFile, "dymola")
         (_, _) = r.values('myStep.source.y')
         # This output should not be stored
@@ -208,6 +210,8 @@ class Test_simulate_Simulator(unittest.TestCase):
         s = Simulator(model, packagePath=self._packagePath)
         s.setResultFilter(["*source.y"])
         s.simulate()
+        self.assertTrue(os.path.exists(resultFile),
+                        f"Expected file {resultFile} to exist in test_setResultFilterRegExp.")
         r = Reader(resultFile, "dymola")
         (_, _) = r.values('myStep.source.y')
         # This output should not be stored
@@ -236,7 +240,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         s.translate()
 
         self.assertTrue(os.path.exists(resultFile),
-                        f"Expected file {resultFile} to exist after translation.")
+                        f"Expected file {resultFile} to exist after translation in test_generateHtmlDiagnostics.")
 
         # Delete output files
         s.deleteOutputFiles()
@@ -260,7 +264,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         s.simulate()
 
         self.assertTrue(os.path.exists(resultFile),
-                        f"Expected file {resultFile} to exist after translation.")
+                        f"Expected file {resultFile} to exist after simulation in test_generateSolverDiagnostics.")
 
         # Delete output files
         s.deleteOutputFiles()

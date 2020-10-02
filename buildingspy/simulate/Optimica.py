@@ -345,7 +345,7 @@ class Simulator(bs._BaseSimulator):
         import json
 
         from buildingspy.io.outputfile import get_errors_and_warnings
-        logFil = self.modelName.replace(".", "_") + '_buidingspy.json'
+        logFil = self.modelName.replace(".", "_") + '_buildingspy.json'
         path_to_logfile = os.path.join(worDir, logFil)
         if not os.path.exists(path_to_logfile):
             msg = f"Expected log file {path_to_logfile}, but file does not exist."
