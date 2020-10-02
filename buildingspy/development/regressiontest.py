@@ -3246,6 +3246,15 @@ class Tester(object):
             file_name = os.path.join(directory, "{}.py".format(model.replace(".", "_")))
             with open(file_name, mode="w", encoding="utf-8") as fil:
                 fil.write(txt)
+        shutil.copyfile(
+            os.path.join(
+                os.path.dirname(__file__),
+                "..",
+                "simulate",
+                "OutputGrabber.py"),
+            os.path.join(
+                directory,
+                "OutputGrabber.py"))
 
     def deleteTemporaryDirectories(self, delete):
         """ Flag, if set to ``False``, then the temporary directories will not be deleted

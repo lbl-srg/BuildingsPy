@@ -236,6 +236,13 @@ class Simulator(bs._BaseSimulator):
                     self._packagePath))
 
             fil.write(txt)
+        shutil.copyfile(
+            os.path.join(
+                os.path.dirname(__file__),
+                "OutputGrabber.py"),
+            os.path.join(
+                worDir,
+                "OutputGrabber.py"))
 
         #osEnv = self.prependToModelicaPath(os.environ.copy(), os.getcwd())
 

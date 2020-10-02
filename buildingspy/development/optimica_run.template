@@ -1,5 +1,5 @@
 # Import the class that grabs stdout
-import buildingspy.simulate.OutputGrabber as og
+import OutputGrabber as og
 
 def process_with_timeout(target, timeout):
     import multiprocessing
