@@ -3042,6 +3042,8 @@ class Tester(object):
     {set_non_pedantic}
     rScript=RunScript("{absMosFilNam}");
     {set_pedantic}
+    Modelica.Utilities.Files.list("/tmp");        // fixme remove this line for release
+    Modelica.Utilities.Files.list("/mnt/shared"); // fixme remove this line for release
     savelog("{model_name}.translation.log");
     if Modelica.Utilities.Files.exist("dslog.txt") then
       Modelica.Utilities.Files.move("dslog.txt", "{model_name}.dslog.log");
@@ -3126,6 +3128,8 @@ class Tester(object):
                             template = r"""
     Modelica.Utilities.Files.removeFile("{FMUName}");
     RunScript("{absMosFilNam}");
+    Modelica.Utilities.Files.list("/tmp");        // fixme remove this line for release
+    Modelica.Utilities.Files.list("/mnt/shared"); // fixme remove this line for release
     savelog("{model_name}.translation.log");
     if Modelica.Utilities.Files.exist("dslog.txt") then
       Modelica.Utilities.Files.move("dslog.txt", "{model_name}.dslog.log");

@@ -183,9 +183,6 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         for posPro in self._postProcessing_:
             s += posPro + '\n'
 
-        s += """Modelica.Utilities.Files.list("/tmp");\n""" # fixme remove this line for release
-        s += """Modelica.Utilities.Files.list("/mnt/shared");\n""" # fixme remove this line for release
-
         s += """savelog("{0}");\n""".format(log_file)
         if self._exitSimulator:
             s += "Modelica.Utilities.System.exit();\n"
