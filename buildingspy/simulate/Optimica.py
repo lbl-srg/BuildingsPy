@@ -204,9 +204,6 @@ class Simulator(bs._BaseSimulator):
         file_name = os.path.join(worDir, "{}.py".format(self.modelName.replace(".", "_")))
 ##        self._time_stamp_old_files = datetime.datetime.now()
         with open(file_name, mode="w", encoding="utf-8") as fil:
-            osEnv = os.environ.copy()
-            osEnv = super().prependToModelicaPath(osEnv, self._packagePath)
-
             path_to_template = os.path.join(
                 os.path.dirname(__file__), os.path.pardir, "development")
             env = jinja2.Environment(loader=jinja2.FileSystemLoader(path_to_template))
@@ -231,9 +228,7 @@ class Simulator(bs._BaseSimulator):
                 filter=self._result_filter,
                 generate_html_diagnostics=self._generate_html_diagnostics,
                 debug_solver=self._debug_solver,
-                debug_solver_interactive_mode=self._debug_solver_interactive_mode,
-                environment_variable_update='pymodelica.environ["MODELICAPATH"] = ":".join(["{}", pymodelica.environ["MODELICAPATH"]])'.format(
-                    self._packagePath))
+                debug_solver_interactive_mode=self._debug_solver_interactive_mode)
 
             fil.write(txt)
         shutil.copyfile(
@@ -244,13 +239,10 @@ class Simulator(bs._BaseSimulator):
                 worDir,
                 "OutputGrabber.py"))
 
-        #osEnv = self.prependToModelicaPath(os.environ.copy(), os.getcwd())
-
         try:
             super()._runSimulation(["jm_ipython.sh", file_name],
                                    self._simulator_.get('timeout'),
-                                   worDir,
-                                   env=None)
+                                   worDir)
 
             self._check_simulation_errors(worDir)
 # self._copyNewFiles(worDir)

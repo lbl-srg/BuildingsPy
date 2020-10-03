@@ -171,8 +171,6 @@ def run():
     import pymodelica
     # Increase memory
     pymodelica.environ['JVM_ARGS'] = '-Xmx4096m'
-    # Set environment variable to include the path to the Modelica package.
-    {{ environment_variable_update }}
 
     time_out = {{ time_out }}
     model = "{{ model }}"

@@ -377,6 +377,12 @@ class _BaseSimulator(object):
             print("       Make sure it is on the PATH variable of your operating system.")
             exit(3)
 
+        # Add _packagePath to MODELICAPATH. This is for example needed for
+        # export USE_DOCKER=true
+        # python buildingspy/tests/test_simulate_Optimica.py Test_simulate_Simulator.test_setResultFilter
+        osEnv = os.environ.copy() if env == None else env
+        osEnv = self.prependToModelicaPath(osEnv, self._packagePath)
+
         # Run command
         try:
             self._simulationStartTime = datetime.datetime.now()
@@ -385,7 +391,7 @@ class _BaseSimulator(object):
                                    stderr=subprocess.PIPE,
                                    shell=False,
                                    cwd=directory,
-                                   env=env)
+                                   env=osEnv)
 
             killedProcess = False
             if timeout > 0:
