@@ -3292,7 +3292,12 @@ class Tester(object):
                     '.git',
                     '.mat',
                     'request.',
-                    'status.'))
+                    'status.',
+                    'src',
+                    'Documentation',
+                    'ReferenceResults',
+                    'compareVars',
+                    '__pychache__'))
         return
 
     def _run_simulation_info(self):
