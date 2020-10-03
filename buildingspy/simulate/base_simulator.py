@@ -379,8 +379,9 @@ class _BaseSimulator(object):
 
         # Add _packagePath to MODELICAPATH. This is for example needed for
         # export USE_DOCKER=true
-        # python buildingspy/tests/test_simulate_Optimica.py Test_simulate_Simulator.test_setResultFilter
-        osEnv = os.environ.copy() if env == None else env
+        # python buildingspy/tests/test_simulate_Optimica.py
+        # Test_simulate_Simulator.test_setResultFilter
+        osEnv = os.environ.copy() if env is None else env
         osEnv = self.prependToModelicaPath(osEnv, self._packagePath)
 
         # Run command
