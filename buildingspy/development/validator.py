@@ -5,21 +5,7 @@
 # html syntax and checks the consistency of
 # experiment annotation in .mo with the .mos files.
 #
-# MWetter@lbl.gov                            2013-05-31
-# TSNouidui@lbl.gov                          2017-04-25
 #######################################################
-#
-# import from future to make Python2 behave like Python3
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future import standard_library
-standard_library.install_aliases()
-from builtins import *
-from io import open
-# end of from future import
-
 import os
 import re
 

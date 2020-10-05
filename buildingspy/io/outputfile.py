@@ -1,17 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# import from future to make Python2 behave like Python3
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future import standard_library
-standard_library.install_aliases()
-from builtins import *
-from io import open
-# end of from future import
-
 from buildingspy.thirdParty.dymat.DyMat import DyMatFile
 
 
@@ -172,8 +161,14 @@ class Reader(object):
     """
 
     def __init__(self, fileName, simulator):
+        import os
+
         if simulator not in ['dymola', 'optimica', 'jmodelica']:
-            raise ValueError('Argument "simulator" needs to be set to "dymola" or "jmodelica".')
+            raise ValueError(
+                'Argument "simulator" needs to be set to "dymola", "optimica" or "jmodelica".')
+
+        if not os.path.isfile(fileName):
+            raise FileNotFoundError(f"File {os.path.abspath(fileName)} does not exist.")
 
         self.fileName = fileName
         self._data_ = DyMatFile(fileName)
@@ -234,12 +229,15 @@ class Reader(object):
            >>> r=Reader(resultFile, "dymola")
            >>> (time, heatFlow) = r.values('preHea.port.Q_flow')
         """
-        d = self._data_.data(varName)
-        a = self._data_.abscissa(blockOrName=varName, valuesOnly=True)
-        return a, d
+        try:
+            d = self._data_.data(varName)
+            a = self._data_.abscissa(blockOrName=varName, valuesOnly=True)
+            return a, d
+        except KeyError:
+            raise KeyError(f"Did not find variable '{varName}' in '{self.fileName}'")
 
     def integral(self, varName):
-        """Get the integral of the data series.
+        r"""Get the integral of the data series.
 
         :param varName: The name of the variable.
         :return: The integral of ``varName``.
@@ -264,7 +262,7 @@ class Reader(object):
         return val
 
     def mean(self, varName):
-        """Get the mean of the data series.
+        r"""Get the mean of the data series.
 
         :param varName: The name of the variable.
         :return: The mean value of ``varName``.
@@ -273,7 +271,7 @@ class Reader(object):
 
         .. math::
 
-           \\frac{1}{t_1-t_0} \, \int_{t_0}^{t_1} x(s) \, ds,
+           \frac{1}{t_1-t_0} \, \int_{t_0}^{t_1} x(s) \, ds,
 
         where :math:`t_0` is the start time and :math:`t_1` the final time of the data
         series :math:`x(\cdot)`, and :math:`x(\cdot)` are the data values
@@ -292,7 +290,7 @@ class Reader(object):
         return r
 
     def min(self, varName):
-        """Get the minimum of the data series.
+        r"""Get the minimum of the data series.
 
         :param varName: The name of the variable.
         :return: The minimum value of ``varName``.
@@ -312,7 +310,7 @@ class Reader(object):
         return min(v)
 
     def max(self, varName):
-        """Get the maximum of the data series.
+        r"""Get the maximum of the data series.
 
         :param varName: The name of the variable.
         :return: The maximum value of ``varName``.

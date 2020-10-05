@@ -6,7 +6,7 @@ This module provides an example that illustrates the
 use of the python to run a Modelica simulation.
 
 The module
-:mod:`buildingspy.simulate.Simulator` that can be used to automate running simulations.
+:mod:`buildingspy.simulate` that can be used to automate running simulations.
 For example, to translate and simulate the model
 ``Buildings.Controls.Continuous.Examples.PIDHysteresis.mo``
 with controller parameters ``con.eOn = 1`` and ``con.eOn = 5``, use
@@ -15,7 +15,8 @@ the following commands:
 .. literalinclude:: ../../buildingspy/examples/dymola/runSimulation.py
 
 This will run the two test cases and store the results in the directories
-``case1`` and ``case2``.
+``case1`` and ``case2``. To use Optimica instead of Dymola, replace in the
+above script ``Dymola`` with ``Optimica``.
 
 
 Plotting of Time Series

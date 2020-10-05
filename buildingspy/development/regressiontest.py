@@ -7,17 +7,8 @@
 # MWetter@lbl.gov                            2011-02-23
 #######################################################
 #
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future import standard_library
-standard_library.install_aliases()
-# Python standard library imports.
-from builtins import *
 from collections import defaultdict
 from contextlib import contextmanager
-from io import open
 import difflib
 import fnmatch
 import functools
@@ -60,10 +51,11 @@ def runSimulation(worDir, cmd):
               allow parallel computing.
     """
     # JModelica requires the working directory to be part of MODELICAPATH
+    env = os.environ.copy()  # will be passed to the subprocess.Popen call
     if 'MODELICAPATH' in os.environ:
-        os.environ['MODELICAPATH'] = "{}:{}".format(worDir, os.environ['MODELICAPATH'])
+        env['MODELICAPATH'] = "{}:{}".format(worDir, os.environ['MODELICAPATH'])
     else:
-        os.environ['MODELICAPATH'] = worDir
+        env['MODELICAPATH'] = worDir
 
     logFilNam = os.path.join(worDir, 'stdout.log')
 #
@@ -73,6 +65,7 @@ def runSimulation(worDir, cmd):
                                stdout=logFil,
                                stderr=logFil,
                                shell=False,
+                               env=env,
                                cwd=worDir)
         try:
             retcode = pro.wait()
@@ -1083,7 +1076,7 @@ class Tester(object):
                             for lin in Lines:
                                 if 'resultFile=\"' in lin:
                                     matFil = re.search(
-                                        '(?<=resultFile=\")[a-zA-Z0-9_\.]+', lin).group()
+                                        r'(?<=resultFile=\")[a-zA-Z0-9_\.]+', lin).group()
                                     # Add the .mat extension as this is not included in the
                                     # resultFile entry.
                                     matFil = matFil + '.mat'
@@ -1103,7 +1096,7 @@ class Tester(object):
                                         # Note that the filename entry already has the .mat
                                         # extension.
                                         matFil = re.search(
-                                            '(?<=filename=\")[a-zA-Z0-9_\.]+', lin).group()
+                                            r'(?<=filename=\")[a-zA-Z0-9_\.]+', lin).group()
                                         break
                             if len(matFil) == 0:
                                 raise ValueError('Did not find *.mat file in ' + mosFil)
@@ -1739,7 +1732,7 @@ class Tester(object):
             non-significant zeros removed.
         """
         import re
-        return re.sub(re.compile('\.e'), 'e',
+        return re.sub(re.compile(r'\.e'), 'e',
                       re.sub(re.compile('0*e'), 'e', "{0:.15e}".format(value)))
 
     def _writeReferenceResults(self, refFilNam, y_sim, y_tra):
@@ -2356,7 +2349,7 @@ class Tester(object):
             # The python file have names such as class_class_class.py
             for fil in glob.glob("{}{}*_*.py".format(d, os.path.sep)):
                 # Check if there is a corresponding json file
-                json_name = fil.replace(".py", "_run.json")
+                json_name = fil.replace(".py", "_buildingspy.json")
                 if not os.path.exists(json_name):
                     em = "Did not find {}. Is the program properly installed?".format(json_name)
                     stdOutFil = os.path.abspath('stdout')
@@ -3239,15 +3232,29 @@ class Tester(object):
                 ncp=dat[self._modelica_tool]['ncp'],
                 rtol=dat[self._modelica_tool]['rtol'],
                 solver=dat[self._modelica_tool]['solver'],
+                start_time='mod.get_default_experiment_start_time()',
+                final_time='mod.get_default_experiment_stop_time()',
                 simulate=dat[self._modelica_tool]['simulate'] and dat['mustSimulate'],
                 time_out=dat[self._modelica_tool]['time_out'],
-                filter=[re.sub('\[|\]',
+                generate_html_diagnostics=False,
+                debug_solver=False,
+                debug_solver_interactive_mode=False,
+                filter=[re.sub(r'\[|\]',
                                lambda m: '[{}]'.format(m.group()),
                                re.sub(' ', '', x)) for x in result_variables]
             )
             file_name = os.path.join(directory, "{}.py".format(model.replace(".", "_")))
             with open(file_name, mode="w", encoding="utf-8") as fil:
                 fil.write(txt)
+        shutil.copyfile(
+            os.path.join(
+                os.path.dirname(__file__),
+                "..",
+                "simulate",
+                "OutputGrabber.py"),
+            os.path.join(
+                directory,
+                "OutputGrabber.py"))
 
     def deleteTemporaryDirectories(self, delete):
         """ Flag, if set to ``False``, then the temporary directories will not be deleted
@@ -3274,10 +3281,25 @@ class Tester(object):
             # Directory that contains the library as a sub directory
             libDir = self._libHome
 
-            shutil.copytree(libDir,
-                            os.path.join(dirNam, self.getLibraryName()),
-                            symlinks=True,
-                            ignore=shutil.ignore_patterns('.svn', '.mat', 'request.', 'status.'))
+            shutil.copytree(
+                libDir,
+                os.path.join(
+                    dirNam,
+                    self.getLibraryName()),
+                symlinks=True,
+                ignore=shutil.ignore_patterns(
+                    '.svn',
+                    '.git',
+                    '.mat',
+                    'request.',
+                    'status.',
+                    'tmp-*',
+                    'funnel-comp',
+                    'fmi-library',  # Not all of src is excluded as some .mo models link to files from src
+                    'Documentation',
+                    'ReferenceResults',
+                    'compareVars',
+                    '__pychache__'))
         return
 
     def _run_simulation_info(self):

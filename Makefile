@@ -29,8 +29,8 @@ endif
 
 unittest:
 	# To run a single test, use
-	# python buildingspy/tests/test_development_regressiontest_jmodelica.py Test_regressiontest_jmodelica_Tester.test_regressiontest_diagnostics
-	python -m unittest discover buildingspy/tests
+	# python buildingspy/tests/test_development_regressiontest_optimica.py Test_regressiontest_optimica_Tester.test_regressiontest_diagnostics
+	python3 -m unittest discover buildingspy/tests
 
 doctest:
 	python3 -m doctest \
@@ -47,7 +47,7 @@ doctest:
 dist:	clean doctest unittest doc
 	@# Make sure README.rst are consistent
 	cmp -s README.rst buildingspy/README.rst
-	python setup.py sdist bdist_wheel
+	python3 setup.py sdist bdist_wheel
 	rm -rf build
 	rm -rf buildingspy.egg-info
 	twine check dist/*

@@ -1,17 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# import from future to make Python2 behave like Python3
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future import standard_library
-standard_library.install_aliases()
-from builtins import *
-from io import open
-# end of from future import
-
 import unittest
 import os
 
@@ -71,7 +60,8 @@ class Test_regressiontest_Tester(unittest.TestCase):
         rt.include_fmu_tests(True)
         rt.writeOpenModelicaResultDictionary()
         ret_val = rt.run()
-        # Check return value to see if test suceeded
+
+        # Check return value to see if test succeeded
         self.assertEqual(0, ret_val, "Test failed with return value {}".format(ret_val))
         # Delete temporary files
         os.remove(rt.get_unit_test_log_file())
@@ -81,7 +71,7 @@ class Test_regressiontest_Tester(unittest.TestCase):
         rt = r.Tester(check_html=False, tool="dymola")
         self.assertEqual('unitTests-dymola.log', rt.get_unit_test_log_file())
 
-    def test_regressiontest(self):
+    def test_regressiontest_invalid_package(self):
         import buildingspy.development.regressiontest as r
         rt = r.Tester(check_html=False)
         myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
@@ -142,12 +132,12 @@ class Test_regressiontest_Tester(unittest.TestCase):
         rt.setLibraryRoot(myMoLib)
         rt.setExcludeTest(skpFil)
         ret_val = rt.run()
-        # Check return value to see if test suceeded
-        # ret_val must be two because excluding files triggers a warning.
-        self.assertEqual(
-            2,
+        # Check return value to see if test succeeded
+        # ret_val must be non-zero because excluding files triggers a warning.
+        self.assertNotEqual(
+            0,
             ret_val,
-            "Test failed with return value {}, expected 2.".format(ret_val))
+            "Test failed with return value {}, expected non-zero value.".format(ret_val))
         # Check for correct number of tests
         self.assertEqual(2, rt.get_number_of_tests())
 

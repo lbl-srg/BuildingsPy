@@ -1,14 +1,9 @@
 # Core.
-future==0.18.2
 jinja2==2.11.1
 gitpython==3.1.0; python_version>='3.6'
-gitpython==2.1.15; python_version~='2.7'
 --only-binary matplotlib==3.2.0; python_version>='3.6'
---only-binary matplotlib==2.2.5; python_version~='2.7'
 --only-binary numpy==1.18.1; python_version>='3.6'
---only-binary numpy==1.16.5; python_version~='2.7'
 --only-binary scipy==1.4.1; python_version>='3.6'
---only-binary scipy==1.2.1; python_version~='2.7'
 pytidylib==0.3.2
 simplejson==3.17.0
 six==1.14.0
@@ -16,6 +11,5 @@ pyfunnel==0.2.2
 
 # For documentation and testing.
 setuptools==46.0.0; python_version>='3.6'
-setuptools==44.0.0; python_version~='2.7'
 wheel==0.34.2
 autopep8==1.5
