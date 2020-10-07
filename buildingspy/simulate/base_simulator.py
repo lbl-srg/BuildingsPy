@@ -373,9 +373,9 @@ class _BaseSimulator(object):
 
         # Check if executable is on the path
         if not self._isExecutable(cmd[0]):
-            print(("Error: Did not find executable '", cmd[0], "'."))
-            print("       Make sure it is on the PATH variable of your operating system.")
-            exit(3)
+            em = f"Error: Did not find executable '", cmd[0], "'."
+            em += "       Make sure it is on the PATH variable of your operating system."
+            raise RuntimeError(em)
 
         # Add _packagePath to MODELICAPATH. This is for example needed for
         # export USE_DOCKER=true
