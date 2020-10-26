@@ -41,7 +41,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         """
         Tests the ``setPackagePath'' method.
         """
-        s = Simulator("MyModelicaLibrary.MyModel", "dymola", packagePath=self._packagePath)
+        s = Simulator("MyModelicaLibrary.MyModel", packagePath=self._packagePath)
 
         # Try to load an existing path.
         p = os.path.abspath(os.path.join("buildingspy", "tests", "MyModelicaLibrary"))
@@ -68,7 +68,7 @@ class Test_simulate_Simulator(unittest.TestCase):
 
         from buildingspy.io.outputfile import Reader
 
-        s = Simulator("MyModelicaLibrary.MyModel", "dymola", packagePath=self._packagePath)
+        s = Simulator("MyModelicaLibrary.MyModel", packagePath=self._packagePath)
         s.addPreProcessingStatement("Advanced.StoreProtectedVariables:= true;")
         s.addPostProcessingStatement("Advanced.StoreProtectedVariables:= false;")
         s.addModelModifier(
@@ -103,7 +103,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         and the :mod:`buildingspy.simulate.Dymola.getParameters`
         functions.
         """
-        s = Simulator("myPackage.myModel", "dymola", packagePath=self._packagePath)
+        s = Simulator("myPackage.myModel", packagePath=self._packagePath)
         # Make sure values are added correctly
         s.addParameters({'PID.k': 1.0, 'valve.m_flow_nominal': 0.1})
         self.assertEqual(sorted(s.getParameters()), [('PID.k', 1.0), ('valve.m_flow_nominal', 0.1)])
