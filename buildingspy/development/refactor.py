@@ -16,6 +16,9 @@
 
 """
 import os
+import pathlib
+import re
+
 
 __all__ = ["create_modelica_package", "move_class", "write_package_order"]
 
@@ -266,7 +269,6 @@ def replace_text_in_file(file_name, old, new, isRegExp=False):
         If `isRegExp==True`, then old must be a regular expression, and
         `re.sub(old, new, ...)` is called where `...` is each line of the file.
     """
-    import re
     # Read source file, store the lines and update the content of the lines
     with open(file_name, mode="r", encoding="utf-8-sig") as f_sou:
         lines = list()
@@ -491,7 +493,6 @@ def write_package_order(directory=".", recursive=False):
 def _get_package_list_for_file(directory, file_name):
     """ Gets the package list for the file `directory/file_name`
     """
-    import re
 
     pacLis = list()
 
@@ -742,10 +743,13 @@ def _update_all_references(source, target):
 def _updateFile(arg):
     """ Update all `.mo`, `package.order` and reference result file
 
-        The argument `arg` is a list where the first item is
-        the relative file name (e.g., `./Buildings/package.mo`),
-        the second element is the class name of the source and
-        the third element is the class name of the target.
+        The argument `arg` is a list providing
+        [
+            the path of the root directory relative to the working dir (e.g., '.' if working in ~/modelica-buildings),
+            the relative file name (e.g., `Buildings/package.mo`),
+            the class name of the source,
+            the class name of the target
+        ]
 
         This function has been implemented as doing the text replace is time
         consuming and hence this is done in parallel.
@@ -753,9 +757,21 @@ def _updateFile(arg):
         :param arg: A list with the arguments.
     """
 
-    def _getShortName(fileName, className):
-        import re
+    def _getSubPackages(fileName):
+        """Return subpackages of the package that contains fileName"""
+        par_dir = pathlib.Path(fileName).parent
+        pkg_order = os.path.join(par_dir, 'package.order')
+        sub_pkg = []
+        if os.path.exists(pkg_order):
+            with open(pkg_order) as fh:
+                classes = fh.read().splitlines()
+                for c in classes:
+                    if os.path.exists(os.path.join(par_dir, c, 'package.mo')):
+                         sub_pkg.append(c)
+        return sub_pkg
 
+
+    def _getShortName(fileName, className):
         pos = re.search(r'\w', fileName).start()
         splFil = fileName[pos:].split(os.path.sep)
         splCla = className.split(".")
@@ -763,9 +779,14 @@ def _updateFile(arg):
         for i in range(min(len(splFil), len(splCla))):
             if splFil[i] != splCla[i]:
                 # shortSource starts with a space as instance names are
-                # preceeded with a space
+                # preceded with a space
                 shortSource = " "
-                for j in range(i, len(splCla)):
+                # See https://github.com/lbl-srg/BuildingsPy/issues/382 for the rationale.
+                if splCla[i] in _getSubPackages(fileName) and i < len(splFil) - 1:
+                    idx_start = i - 1
+                else:
+                    idx_start = i
+                for j in range(idx_start, len(splCla)):
                     shortSource += splCla[j] + "."
                 # Remove last dot
                 shortSource = shortSource[:-1]
@@ -803,6 +824,7 @@ def _updateFile(arg):
         # with the new name.
         # The same is done with the target name so that short instance names
         # remain short instance names.
+
         shortSource = _getShortName(srcFil, source)
         shortTarget = _getShortName(srcFil, target)
         if shortSource is None or shortTarget is None:
@@ -810,11 +832,11 @@ def _updateFile(arg):
 
         # If shortSource is only one class (e.g., "xx" and not "xx.yy",
         # then this is also used in constructs such as "model xx" and "end xx;"
-        # Hence, we only replace it if it is proceeded only by empty characters, and nothing else.
+        # Hence, we only replace it if it is preceded by empty characters, and nothing else.
         if "." in shortSource:
             replace_text_in_file(srcFil, shortSource, shortTarget, isRegExp=False)
         else:
-            regExp = r"(?!\w)" + shortTarget
+            regExp = r"(?!\w)" + shortSource
             replace_text_in_file(srcFil, regExp, shortTarget, isRegExp=True)
 
         # Replace the hyperlinks, without the top-level library name.
