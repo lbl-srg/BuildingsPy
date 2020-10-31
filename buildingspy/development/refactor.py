@@ -767,9 +767,8 @@ def _updateFile(arg):
                 classes = fh.read().splitlines()
                 for c in classes:
                     if os.path.exists(os.path.join(par_dir, c, 'package.mo')):
-                         sub_pkg.append(c)
+                        sub_pkg.append(c)
         return sub_pkg
-
 
     def _getShortName(fileName, className):
         pos = re.search(r'\w', fileName).start()
