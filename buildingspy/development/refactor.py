@@ -749,7 +749,7 @@ def _updateFile(arg):
 
         The argument `arg` is a list providing
         [
-            the path of the root directory relative to the working dir (e.g., '.' if working in ~/modelica-buildings),
+            the path of the root directory relative to the working dir (e.g., `.` if working in `~/modelica-buildings`),
             the relative file name (e.g., `Buildings/package.mo`),
             the class name of the source,
             the class name of the target
