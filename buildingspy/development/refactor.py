@@ -767,7 +767,7 @@ def _updateFile(arg):
                 # See https://github.com/lbl-srg/BuildingsPy/issues/382 for the rationale
                 # behind the code below.
                 idx_start = i
-                for k in range(i+1, len(splFil)):
+                for k in range(i + 1, len(splFil)):
                     listlevel = os.listdir(os.path.sep.join(splFil[:k]))
                     if splCla[i] in [re.sub(r'\.mo', '', el) for el in listlevel]:
                         idx_start = i - 1
