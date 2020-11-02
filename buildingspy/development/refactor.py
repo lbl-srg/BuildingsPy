@@ -16,9 +16,7 @@
 
 """
 import os
-import pathlib
 import re
-
 
 __all__ = ["create_modelica_package", "move_class", "write_package_order"]
 
@@ -270,18 +268,24 @@ def replace_text_in_file(file_name, old, new, isRegExp=False):
         `re.sub(old, new, ...)` is called where `...` is each line of the file.
     """
     # Read source file, store the lines and update the content of the lines
+    modified = False
     with open(file_name, mode="r", encoding="utf-8-sig") as f_sou:
         lines = list()
-        for _, lin in enumerate(f_sou):
+        for lin in f_sou:
             if isRegExp:
-                lin = re.sub(old, new, lin)
+                lin1 = re.sub(old, new, lin)
             else:
-                lin = lin.replace(old, new)
-            lines.append(lin)
+                lin1 = lin.replace(old, new)
+            lines.append(lin1)
+            if lin1 != lin:
+                modified = True
+                with open('bdpy.log', 'a') as fh:
+                    fh.write(f'Replace text {file_name, old, new, isRegExp, lin, lin1}\n')
 
     # Write the lines to the new file
-    with open(file_name, mode="w", encoding="utf-8") as f_des:
-        f_des.writelines(lines)
+    if modified:
+        with open(file_name, mode="w", encoding="utf-8") as f_des:
+            f_des.writelines(lines)
 
 
 def _move_mo_file(source, target):
@@ -756,20 +760,6 @@ def _updateFile(arg):
 
         :param arg: A list with the arguments.
     """
-
-    def _getSubPackages(fileName):
-        """Return subpackages of the package that contains fileName"""
-        par_dir = pathlib.Path(fileName).parent
-        pkg_order = os.path.join(par_dir, 'package.order')
-        sub_pkg = []
-        if os.path.exists(pkg_order):
-            with open(pkg_order) as fh:
-                classes = fh.read().splitlines()
-                for c in classes:
-                    if os.path.exists(os.path.join(par_dir, c, 'package.mo')):
-                        sub_pkg.append(c)
-        return sub_pkg
-
     def _getShortName(fileName, className):
         pos = re.search(r'\w', fileName).start()
         splFil = fileName[pos:].split(os.path.sep)
@@ -777,18 +767,18 @@ def _updateFile(arg):
         shortSource = None
         for i in range(min(len(splFil), len(splCla))):
             if splFil[i] != splCla[i]:
+                # See https://github.com/lbl-srg/BuildingsPy/issues/382 for the rationale
+                # behind the code below.
+                idx_start = i
+                for k in range(i+1, len(splFil)):
+                    listlevel = os.listdir(os.path.sep.join(splFil[:k]))
+                    if splCla[i] in [re.sub(r'\.mo', '', el) for el in listlevel]:
+                        idx_start = i - 1
+                        break
+                shortSource = '.'.join(splCla[idx_start:len(splCla)])
                 # shortSource starts with a space as instance names are
-                # preceded with a space
-                shortSource = " "
-                # See https://github.com/lbl-srg/BuildingsPy/issues/382 for the rationale.
-                if splCla[i] in _getSubPackages(fileName) and i < len(splFil) - 1:
-                    idx_start = i - 1
-                else:
-                    idx_start = i
-                for j in range(idx_start, len(splCla)):
-                    shortSource += splCla[j] + "."
-                # Remove last dot
-                shortSource = shortSource[:-1]
+                # preceded with a space.
+                shortSource = ' ' + shortSource
                 break
         return shortSource
 
@@ -831,12 +821,19 @@ def _updateFile(arg):
 
         # If shortSource is only one class (e.g., "xx" and not "xx.yy",
         # then this is also used in constructs such as "model xx" and "end xx;"
-        # Hence, we only replace it if it is preceded by empty characters, and nothing else.
-        if "." in shortSource:
-            replace_text_in_file(srcFil, shortSource, shortTarget, isRegExp=False)
-        else:  # We use a "negative lookbehind assertion".
-            regExp = r'(?<!\w)' + shortSource
-            replace_text_in_file(srcFil, regExp, shortTarget, isRegExp=True)
+        # Hence, we only replace it if it is
+        #   . preceded by empty characters, and
+        #   . followed by some optional empty characters and \s or [ or , or ;.
+        # (We use a "negative lookbehind assertion" to do so.)
+        with open('bdpy.log', 'a') as fh:
+            if "." in shortSource:
+                fh.write(f'Dot test {srcFil, shortSource, shortTarget, source, target}\n')
+                replace_text_in_file(srcFil, shortSource, shortTarget, isRegExp=False)
+            else:
+                regExpSource = r'(?<!\w)' + shortSource + r'(\s*(\s|\[|,|;))'
+                regExpTarget = shortTarget + r'\1'
+                fh.write(f'\tRegExp test {srcFil, shortSource, shortTarget, source, target}\n')
+                replace_text_in_file(srcFil, regExpSource, regExpTarget, isRegExp=True)
 
         # Replace the hyperlinks, without the top-level library name.
         # This updates for example the RunScript command that points to
