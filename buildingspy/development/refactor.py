@@ -741,20 +741,17 @@ def _update_all_references(source, target):
         _updateFile(ele)
 
 
-def _getShortName(root, fileName, className):
+def _getShortName(filePath, classPath):
     """Returns the shortest reference to a class within a file.
 
     Args:
-        root: path to the directory where the top level package
-            directory is located (e.g., `~/modelica-buildings`).
-        fileName: file path relative to the root path
-            (e.g., `Buildings/package.mo`).
-        className: class name to be shortened (e.g., `Buildings.Class`).
+        filePath: file path relative to the library root path (e.g., `Buildings/package.mo`).
+        classPath: full library path of the class to be shortened (e.g., `Buildings.Class`).
     """
 
-    pos = re.search(r'\w', fileName).start()
-    splFil = fileName[pos:].split(os.path.sep)
-    splCla = className.split(".")
+    pos = re.search(r'\w', filePath).start()
+    splFil = filePath[pos:].split(os.path.sep)
+    splCla = classPath.split(".")
     shortSource = None
     for i in range(min(len(splFil), len(splCla))):
         if splFil[i] != splCla[i]:
@@ -763,7 +760,7 @@ def _getShortName(root, fileName, className):
             idx_start = i
             if i > 0:
                 for k in range(i + 1, len(splFil)):
-                    lookup_path = os.path.join(root, os.path.sep.join(splFil[:k]))
+                    lookup_path = os.path.sep.join(splFil[:k])
                     if splCla[i] in [re.sub(r'\.mo', '', el) for el in os.listdir(lookup_path)]:
                         idx_start = i - 1
                         break
@@ -780,10 +777,11 @@ def _updateFile(arg):
 
         The argument `arg` is a list providing
         [
-            the path to the directory where the top level package directory is located (e.g., `~/modelica-buildings`),
-            the file path relative to the root path (e.g., `Buildings/package.mo`),
-            the class name of the source (e.g., `Buildings.SourceClass`),
-            the class name of the target (e.g., `Buildings.TargetClass`),
+            the path of the package directory where the file is located, relative
+                to the current working directory (e.g., `./Buildings` when working from `~/modelica-buildings/.`),
+            the file name (e.g., `package.mo`),
+            the full library path of the source class (e.g., `Buildings.SourceClass`),
+            the full library path of the target class (e.g., `Buildings.TargetClass`),
         ]
 
         This function has been implemented as doing the text replace is time
@@ -824,8 +822,8 @@ def _updateFile(arg):
         # The same is done with the target name so that short instance names
         # remain short instance names.
 
-        shortSource = _getShortName(root, fil, source)
-        shortTarget = _getShortName(root, fil, target)
+        shortSource = _getShortName(srcFil, source)
+        shortTarget = _getShortName(srcFil, target)
         if shortSource is None or shortTarget is None:
             return
 
@@ -841,7 +839,6 @@ def _updateFile(arg):
             regExpSource = r'(?<!\w)' + shortSource + r'(\s*(\s|\[|,|;))'
             regExpTarget = shortTarget + r'\1'
             replace_text_in_file(srcFil, regExpSource, regExpTarget, isRegExp=True)
-
         # Replace the hyperlinks, without the top-level library name.
         # This updates for example the RunScript command that points to
         # "....Dymola/Fluid/..."

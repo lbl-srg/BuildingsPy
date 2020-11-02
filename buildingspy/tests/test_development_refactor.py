@@ -79,32 +79,31 @@ class Test_development_refactor(unittest.TestCase):
         import os
         import buildingspy.development.refactor as r
 
-        root = os.path.abspath(os.path.join("buildingspy", "tests"))
-        fileName = 'MyModelicaLibrary/Examples/FMUs/Gain.mo'
+        workdir = os.getcwd()
+        os.chdir(os.path.join("buildingspy", "tests"))
+        filePath = 'MyModelicaLibrary/Examples/FMUs/Gain.mo'
         self.assertEqual(
             r._getShortName(
-                root,
-                fileName,
+                filePath,
                 'MyModelicaLibrary.Examples.IntegratorGain'
             ),
             ' Examples.IntegratorGain'
         )
         self.assertEqual(
             r._getShortName(
-                root,
-                fileName,
+                filePath,
                 'MyModelicaLibrary.Examples.Test'
             ),
             ' Test'
         )
         self.assertEqual(
             r._getShortName(
-                root,
-                fileName,
+                filePath,
                 'MyModelicaLibrary.Examples.FMUs.IntegratorGain'
             ),
             ' IntegratorGain'
         )
+        os.chdir(workdir)
 
 if __name__ == '__main__':
     unittest.main()
