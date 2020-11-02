@@ -279,9 +279,6 @@ def replace_text_in_file(file_name, old, new, isRegExp=False):
             lines.append(lin1)
             if lin1 != lin:
                 modified = True
-                with open('bdpy.log', 'a') as fh:
-                    fh.write(f'Replace text {file_name, old, new, isRegExp, lin, lin1}\n')
-
     # Write the lines to the new file
     if modified:
         with open(file_name, mode="w", encoding="utf-8") as f_des:
@@ -825,15 +822,12 @@ def _updateFile(arg):
         #   . preceded by empty characters, and
         #   . followed by some optional empty characters and \s or [ or , or ;.
         # (We use a "negative lookbehind assertion" to do so.)
-        with open('bdpy.log', 'a') as fh:
-            if "." in shortSource:
-                fh.write(f'Dot test {srcFil, shortSource, shortTarget, source, target}\n')
-                replace_text_in_file(srcFil, shortSource, shortTarget, isRegExp=False)
-            else:
-                regExpSource = r'(?<!\w)' + shortSource + r'(\s*(\s|\[|,|;))'
-                regExpTarget = shortTarget + r'\1'
-                fh.write(f'\tRegExp test {srcFil, shortSource, shortTarget, source, target}\n')
-                replace_text_in_file(srcFil, regExpSource, regExpTarget, isRegExp=True)
+        if "." in shortSource:
+            replace_text_in_file(srcFil, shortSource, shortTarget, isRegExp=False)
+        else:
+            regExpSource = r'(?<!\w)' + shortSource + r'(\s*(\s|\[|,|;))'
+            regExpTarget = shortTarget + r'\1'
+            replace_text_in_file(srcFil, regExpSource, regExpTarget, isRegExp=True)
 
         # Replace the hyperlinks, without the top-level library name.
         # This updates for example the RunScript command that points to
