@@ -834,8 +834,8 @@ def _updateFile(arg):
         # Hence, we only replace it if it is preceded by empty characters, and nothing else.
         if "." in shortSource:
             replace_text_in_file(srcFil, shortSource, shortTarget, isRegExp=False)
-        else:
-            regExp = r"(?!\w)" + shortSource
+        else:  # We use a "negative lookbehind assertion".
+            regExp = r'(?<!\w)' + shortSource
             replace_text_in_file(srcFil, regExp, shortTarget, isRegExp=True)
 
         # Replace the hyperlinks, without the top-level library name.
