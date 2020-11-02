@@ -741,15 +741,49 @@ def _update_all_references(source, target):
         _updateFile(ele)
 
 
+def _getShortName(root, fileName, className):
+    """Returns the shortest reference to a class within a file.
+
+    Args:
+        root: path to the directory where the top level package
+            directory is located (e.g., `~/modelica-buildings`).
+        fileName: file path relative to the root path
+            (e.g., `Buildings/package.mo`).
+        className: class name to be shortened (e.g., `Buildings.Class`).
+    """
+
+    pos = re.search(r'\w', fileName).start()
+    splFil = fileName[pos:].split(os.path.sep)
+    splCla = className.split(".")
+    shortSource = None
+    for i in range(min(len(splFil), len(splCla))):
+        if splFil[i] != splCla[i]:
+            # See https://github.com/lbl-srg/BuildingsPy/issues/382 for the rationale
+            # behind the code below.
+            idx_start = i
+            if i > 0:
+                for k in range(i + 1, len(splFil)):
+                    lookup_path = os.path.join(root, os.path.sep.join(splFil[:k]))
+                    if splCla[i] in [re.sub(r'\.mo', '', el) for el in os.listdir(lookup_path)]:
+                        idx_start = i - 1
+                        break
+            shortSource = '.'.join(splCla[idx_start:len(splCla)])
+            # shortSource starts with a space as instance names are
+            # preceded with a space.
+            shortSource = ' ' + shortSource
+            break
+    return shortSource
+
+
 def _updateFile(arg):
     """ Update all `.mo`, `package.order` and reference result file
 
         The argument `arg` is a list providing
         [
-            the path of the root directory relative to the working dir (e.g., `.` if working in `~/modelica-buildings`),
-            the relative file name (e.g., `Buildings/package.mo`),
-            the class name of the source,
-            the class name of the target
+            the path to the directory where the top level package directory is located (e.g., `~/modelica-buildings`),
+            the file path relative to the root path (e.g., `Buildings/package.mo`),
+            the class name of the source (e.g., `Buildings.SourceClass`),
+            the class name of the target (e.g., `Buildings.TargetClass`),
         ]
 
         This function has been implemented as doing the text replace is time
@@ -757,27 +791,6 @@ def _updateFile(arg):
 
         :param arg: A list with the arguments.
     """
-    def _getShortName(fileName, className):
-        pos = re.search(r'\w', fileName).start()
-        splFil = fileName[pos:].split(os.path.sep)
-        splCla = className.split(".")
-        shortSource = None
-        for i in range(min(len(splFil), len(splCla))):
-            if splFil[i] != splCla[i]:
-                # See https://github.com/lbl-srg/BuildingsPy/issues/382 for the rationale
-                # behind the code below.
-                idx_start = i
-                for k in range(i + 1, len(splFil)):
-                    listlevel = os.listdir(os.path.sep.join(splFil[:k]))
-                    if splCla[i] in [re.sub(r'\.mo', '', el) for el in listlevel]:
-                        idx_start = i - 1
-                        break
-                shortSource = '.'.join(splCla[idx_start:len(splCla)])
-                # shortSource starts with a space as instance names are
-                # preceded with a space.
-                shortSource = ' ' + shortSource
-                break
-        return shortSource
 
     root = arg[0]
     fil = arg[1]
@@ -811,8 +824,8 @@ def _updateFile(arg):
         # The same is done with the target name so that short instance names
         # remain short instance names.
 
-        shortSource = _getShortName(srcFil, source)
-        shortTarget = _getShortName(srcFil, target)
+        shortSource = _getShortName(root, fil, source)
+        shortTarget = _getShortName(root, fil, target)
         if shortSource is None or shortTarget is None:
             return
 
