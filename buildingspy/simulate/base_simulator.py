@@ -273,7 +273,7 @@ class _BaseSimulator(object):
 
         # For Dymola, walk one level up, since we appended the name of the current directory
         # to the name of the working directory
-        if self._simulator_ is 'dymola':
+        if self._MODELICA_EXE == 'dymola':
             dirNam = os.path.split(worDir)[0]
         else:
             dirNam = worDir
@@ -404,11 +404,10 @@ class _BaseSimulator(object):
                         # For Dymola only.
                         # For Optimica and JModelica the timeout is managed at the lower level
                         # in `*_run.template`.
-                        if '.mos' in cmd:
+                        if self._MODELICA_EXE == 'dymola':
                             # First, terminate the process. Then, if it is still
                             # running, kill the process
                             if self._showProgressBar and not killedProcess:
-                                killedProcess = True
                                 # This output needed because of the progress bar
                                 sys.stdout.write("\n")
                                 self._reporter.writeError("Terminating simulation in " +
@@ -418,6 +417,7 @@ class _BaseSimulator(object):
                                 self._reporter.writeError("Killing simulation in " +
                                                           directory + ".")
                                 pro.kill()
+                            killedProcess = True
                     else:
                         if self._showProgressBar:
                             fractionComplete = float(elapsedTime) / float(timeout)
@@ -447,7 +447,7 @@ class _BaseSimulator(object):
                             f"*** Standard error stream from simulation:\n{std_err}")
             else:
                 self._reporter.writeError(
-                    f"Killed process as it computed longer than {str(timeout)} seconds.")
+                    f"Process timeout: killed process as it computed longer than {str(timeout)} seconds.")
 
             pro.stdout.close()
             pro.stderr.close()

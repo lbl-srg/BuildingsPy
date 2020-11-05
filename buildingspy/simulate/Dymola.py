@@ -395,13 +395,15 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         import os
         from buildingspy.io.outputfile import get_errors_and_warnings
         path_to_logfile = os.path.join(worDir, 'simulator.log')
-        ret = get_errors_and_warnings(path_to_logfile, 'dymola')
-        if not ret["errors"]:
-            pass
-        else:
-            for li in ret["errors"]:
-                self._reporter.writeError(li)
-            raise IOError
+        # `simulator.log` may not exist in case of process timeout.
+        if os.path.exists(path_to_logfile):
+            ret = get_errors_and_warnings(path_to_logfile, 'dymola')
+            if not ret["errors"]:
+                pass
+            else:
+                for li in ret["errors"]:
+                    self._reporter.writeError(li)
+                raise IOError
 
 # Classes that are inherited. These are listed here
 # so that they appear in the documentation.
