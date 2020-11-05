@@ -404,7 +404,7 @@ class _BaseSimulator(object):
                         # For Dymola only.
                         # For Optimica and JModelica the timeout is managed at the lower level
                         # in `*_run.template`.
-                        if '.mos' in cmd:  
+                        if '.mos' in cmd:
                             # First, terminate the process. Then, if it is still
                             # running, kill the process
                             if self._showProgressBar and not killedProcess:
@@ -412,11 +412,11 @@ class _BaseSimulator(object):
                                 # This output needed because of the progress bar
                                 sys.stdout.write("\n")
                                 self._reporter.writeError("Terminating simulation in " +
-                                                        directory + ".")
+                                                          directory + ".")
                                 pro.terminate()
                             else:
                                 self._reporter.writeError("Killing simulation in " +
-                                                        directory + ".")
+                                                          directory + ".")
                                 pro.kill()
                     else:
                         if self._showProgressBar:
