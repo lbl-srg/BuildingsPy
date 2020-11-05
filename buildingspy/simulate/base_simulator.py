@@ -401,20 +401,23 @@ class _BaseSimulator(object):
                     elapsedTime = (datetime.datetime.now() - self._simulationStartTime).seconds
 
                     if elapsedTime > timeout:
-                        # First, terminate the process. Then, if it is still
-                        # running, kill the process
-
-                        if self._showProgressBar and not killedProcess:
-                            killedProcess = True
-                            # This output needed because of the progress bar
-                            sys.stdout.write("\n")
-                            self._reporter.writeError("Terminating simulation in " +
-                                                      directory + ".")
-                            pro.terminate()
-                        else:
-                            self._reporter.writeError("Killing simulation in " +
-                                                      directory + ".")
-                            pro.kill()
+                        # For Dymola only.
+                        # For Optimica and JModelica the timeout is managed at the lower level
+                        # in `*_run.template`.
+                        if '.mos' in cmd:  
+                            # First, terminate the process. Then, if it is still
+                            # running, kill the process
+                            if self._showProgressBar and not killedProcess:
+                                killedProcess = True
+                                # This output needed because of the progress bar
+                                sys.stdout.write("\n")
+                                self._reporter.writeError("Terminating simulation in " +
+                                                        directory + ".")
+                                pro.terminate()
+                            else:
+                                self._reporter.writeError("Killing simulation in " +
+                                                        directory + ".")
+                                pro.kill()
                     else:
                         if self._showProgressBar:
                             fractionComplete = float(elapsedTime) / float(timeout)
