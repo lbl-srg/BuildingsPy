@@ -15,7 +15,7 @@ def process_with_timeout(target, timeout):
 
     manager = multiprocessing.Manager()
     return_dict = manager.dict()
-    p = multiprocessing.Process(target=target, args=(0, return_dict))
+    p = multiprocessing.Process(target=target, args=(0, return_dict), daemon=True)
     start = time.time()
     p.start()
     if timeout > 0:
@@ -23,14 +23,16 @@ def process_with_timeout(target, timeout):
     else:
         p.join()
 
-    cpu_time = time.time()-start
+    cpu_time = time.time() - start
 
-    if p.exitcode != 0:
-        if cpu_time >= timeout:
-            msg = "Process timeout"
-        else:
-            msg = "Process terminated by signal {}".format(-p.exitcode)
-        raise RuntimeError(msg)
+    error_msg = None
+    if p.is_alive():
+        error_msg = "Process timeout"
+        p.terminate()
+    elif p.exitcode != 0:
+        error_msg = "Process terminated by signal {}".format(-p.exitcode)
+    if error_msg is not None:
+        raise RuntimeError(error_msg)
 
     ret = copy.copy(return_dict[0])
     ret.update({'cpu_time': cpu_time})
