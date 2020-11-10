@@ -487,6 +487,7 @@ def write_package_order(directory=".", recursive=False):
             for p in pacLis:
                 filPac.write(p[1] + "\n")
 
+
 def _get_constants(lines):
     """ Get a list with all constants.
 
@@ -497,7 +498,9 @@ def _get_constants(lines):
     # or "constant Real n[:] = ..." or or "constant Real n[4] = ..."
     # See also https://regex101.com/r/cD5nE0/2 for testing
     f = re.findall(
-        r"\s*constant\s+[\w+\.]+\s+(\w+)(\[\w+\]|\[\s*[\w:]\s*(,\s*[\w:]\s*)*\])?\s*[=\(]", lines, re.MULTILINE)
+        r"\s*constant\s+[\w+\.]+\s+(\w+)(\[\w+\]|\[\s*[\w:]\s*(,\s*[\w:]\s*)*\])?\s*[=\(]",
+        lines,
+        re.MULTILINE)
     r = []
     for ele in f:
         r.append(ele[0])

@@ -94,8 +94,10 @@ class Test_development_refactor(unittest.TestCase):
         con = r._get_constants(lines)
         for ele in con:
             print(f"--{ele}--")
-        self.assertEqual(con, [], "Failed to get all constants for a file content with no constants.")
-
+        self.assertEqual(
+            con,
+            [],
+            "Failed to get all constants for a file content with no constants.")
 
     def test_get_modelica_file_name(self):
         import os
