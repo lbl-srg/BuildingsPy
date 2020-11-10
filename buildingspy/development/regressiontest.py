@@ -1409,7 +1409,8 @@ class Tester(object):
             errAbs[i] = abs(yOld[i] - yInt[i])
             if np.isnan(errAbs[i]):
                 raise ValueError('NaN in errAbs ' + varNam + " " + str(yOld[i])
-                                 + "  " + str(yInt[i]) + " i, N " + str(i) + " --:" + str(yInt[i - 1])
+                                 + "  " + str(yInt[i]) + " i, N " + str(i) +
+                                 " --:" + str(yInt[i - 1])
                                  + " ++:", str(yInt[i + 1]))
             if (abs(yOld[i]) > 10 * tol):
                 errRel[i] = errAbs[i] / abs(yOld[i])

@@ -75,6 +75,36 @@ class Test_development_refactor(unittest.TestCase):
         self.assertEqual(r.get_modelica_file_name("Buildings.Rooms.MixedAir"),
                          os.path.join("Buildings", "Rooms", "MixedAir.mo"))
 
+    def test_getShortName(self):
+        import os
+        import buildingspy.development.refactor as r
+
+        workdir = os.getcwd()
+        os.chdir(os.path.join("buildingspy", "tests"))
+        filePath = 'MyModelicaLibrary/Examples/FMUs/Gain.mo'
+        self.assertEqual(
+            r._getShortName(
+                filePath,
+                'MyModelicaLibrary.Examples.IntegratorGain'
+            ),
+            ' Examples.IntegratorGain'
+        )
+        self.assertEqual(
+            r._getShortName(
+                filePath,
+                'MyModelicaLibrary.Examples.Test'
+            ),
+            ' Test'
+        )
+        self.assertEqual(
+            r._getShortName(
+                filePath,
+                'MyModelicaLibrary.Examples.FMUs.IntegratorGain'
+            ),
+            ' IntegratorGain'
+        )
+        os.chdir(workdir)
+
 
 if __name__ == '__main__':
     unittest.main()
