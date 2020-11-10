@@ -491,6 +491,25 @@ def write_package_order(directory=".", recursive=False):
                 filPac.write(p[1] + "\n")
 
 
+def _get_constants(lines):
+    """ Get a list with all constants.
+
+    :param: lines All lines of the Modelica file.
+    """
+    import re
+    # Constants can be "constant Real n = ..." or "constant someClass n(..."
+    # or "constant Real n[:] = ..." or or "constant Real n[4] = ..."
+    # See also https://regex101.com/r/cD5nE0/2 for testing
+    f = re.findall(
+        r"\s*constant\s+[\w+\.]+\s+(\w+)(\[\w+\]|\[\s*[\w:]\s*(,\s*[\w:]\s*)*\])?\s*[=\(]",
+        lines,
+        re.MULTILINE)
+    r = []
+    for ele in f:
+        r.append(ele[0])
+    return r
+
+
 def _get_package_list_for_file(directory, file_name):
     """ Gets the package list for the file `directory/file_name`
     """
@@ -509,10 +528,7 @@ def _get_package_list_for_file(directory, file_name):
         # They need to be added to the package.order as well.
         with open(os.path.join(directory, file_name), mode="r", encoding="utf-8-sig") as fil:
             lines = fil.read()
-            # Constants can be 'constant Real n = ..." or "constant someClass n(..."
-            con = re.findall(
-                r"\s*constant\s+[a-zA-Z0-9_\.]+\s+(\w+)\s*[=\(]", lines, re.MULTILINE)
-#                        con=re.search(r"constant\s+\w+\s+(\w+)\s*=", lines, re.MULTILINE);
+            con = _get_constants(lines)
             for ele in con:
                 # Found a constant whose name is in con.group(1)
                 pacLis.append([__CON, ele])

@@ -69,6 +69,36 @@ class Test_development_refactor(unittest.TestCase):
 
         self.assertEqual(pac_lis, correct, "Parsing package.order failed.")
 
+    def test_get_constants_non_empty(self):
+        import buildingspy.development.refactor as r
+
+        lines = """
+        constant Real a = 1 "some text";
+        constant Real b = 1;
+        constant Real A = 1;
+        constant Real B[2] = {1, 2};
+        constant Real C[:] = {1, 2};
+        constant Real D[1,2] = {{1}, {1, 2}};
+        constant Real E[:,:] = {{1}, {1, 2}};
+        not_a_constant f = 1;
+        """
+        con = r._get_constants(lines)
+        self.assertEqual(con, ['a', 'b', 'A', 'B', 'C', 'D', 'E'], "Failed to get all constants.")
+
+    def test_get_constants_empty(self):
+        import buildingspy.development.refactor as r
+
+        lines = """
+
+        """
+        con = r._get_constants(lines)
+        for ele in con:
+            print(f"--{ele}--")
+        self.assertEqual(
+            con,
+            [],
+            "Failed to get all constants for a file content with no constants.")
+
     def test_get_modelica_file_name(self):
         import os
         import buildingspy.development.refactor as r
