@@ -4,6 +4,9 @@ BuildingsPy Changelog
 Version 2.2.0, xxx, 2020 -- Release 2.2
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 - xxx
+- For unit tests, added optional comment that is printed if a model is excluded from
+  the tests (https://github.com/lbl-srg/BuildingsPy/issues/389)
+- Corrected generation of package.order for constant arrays (https://github.com/lbl-srg/BuildingsPy/issues/387)
 - Refactored class buildingspy.simulate.Dymola, and added buildingspy.simulate.Optimica
 - Added check for wrong derivative implementation that is reported by Dymola 2021x (https://github.com/lbl-srg/BuildingsPy/issues/376).
 
