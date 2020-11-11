@@ -15,7 +15,8 @@ def process_with_timeout(target, timeout):
 
     manager = multiprocessing.Manager()
     return_dict = manager.dict()
-    p = multiprocessing.Process(target=target, args=(0, return_dict), daemon=True)
+    p = multiprocessing.Process(target=target, args=(0, return_dict))
+    p.daemon = True
     start = time.time()
     p.start()
     if timeout > 0:

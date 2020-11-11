@@ -402,8 +402,8 @@ class _BaseSimulator(object):
 
                     if elapsedTime > timeout:
                         # For Dymola only.
-                        # For Optimica and JModelica the timeout is managed at the lower level
-                        # in `*_run.template`.
+                        # (For Optimica and JModelica the timeout is managed at the lower level
+                        # in `*_run.template`.)
                         if self._MODELICA_EXE == 'dymola':
                             # First, terminate the process. Then, if it is still
                             # running, kill the process
