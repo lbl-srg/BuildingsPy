@@ -43,7 +43,6 @@ doctest:
 	@rm -f plot.pdf plot.png roomTemperatures.png dymola.log MyModel.mat dslog.txt package.order \
 	   run_simulate.mos run_translate.mos simulator.log translator.log
 
-
 dist:	clean doctest unittest doc
 	@# Make sure README.rst are consistent
 	cmp -s README.rst buildingspy/README.rst
@@ -54,7 +53,6 @@ dist:	clean doctest unittest doc
 	@echo "Source distribution is in directory dist"
 	@echo "To post to server, run postBuildingsPyToWeb.sh"
 	@echo "To upload to PyPi, run 'twine upload dist/*'"
-
 
 upload-test:
 	@# Make sure README.rst are consistent
