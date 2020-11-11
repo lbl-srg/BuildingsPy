@@ -1166,31 +1166,35 @@ class Tester(object):
                         for key in con_dat.keys():
                             # Have dictionary in dictionary
                             if key == self._modelica_tool:
-                                for s in con_dat[self._modelica_tool]:
-                                    val = con_dat[self._modelica_tool][s]
-                                    if s == 'translate':
-                                        all_dat[self._modelica_tool][s] = val
+                                for key in con_dat[self._modelica_tool]:
+                                    val = con_dat[self._modelica_tool][key]
+                                    if key == 'translate':
+                                        all_dat[self._modelica_tool][key] = val
                                         # Write a warning if a model is not translated
                                         if not val:
-                                            self._reporter.writeOutput(
-                                                "{}: Requested to be excluded from translation.".format(
-                                                    all_dat['model_name']))
                                             # Set simulate to false as well as it can't be simulated
                                             # if not translated
                                             all_dat[self._modelica_tool]['simulate'] = False
-                                    elif s == 'simulate':
-                                        all_dat[self._modelica_tool][s] = val
+                                    elif key == 'simulate':
+                                        all_dat[self._modelica_tool][key] = val
                                         # Write a warning if a model is not simulated
                                         if not val:
-                                            self._reporter.writeOutput(
-                                                "{}: Requested to be excluded from simulation.".format(
-                                                    all_dat['model_name']))
                                             # Reset plot variables
                                             all_dat['ResultVariables'] = []
                                     else:
-                                        all_dat[self._modelica_tool][s] = val
+                                        all_dat[self._modelica_tool][key] = val
                             else:
                                 all_dat[key] = con_dat[key]
+                        # Write warning if this model should not be translated or simulated.
+                        msg = None
+                        if all_dat[self._modelica_tool]['translate'] is False:
+                            msg = f"{all_dat['model_name']}: Requested to be excluded from translation."
+                        elif all_dat[self._modelica_tool]['simulate'] is False:
+                            msg = f"{all_dat['model_name']}: Requested to be excluded from simulation."
+                        if msg is not None:
+                            if 'comment' in all_dat[self._modelica_tool]:
+                                msg = f"{msg} {all_dat[self._modelica_tool]['comment']}"
+                            self._reporter.writeOutput(msg)
 
     def _checkDataDictionary(self):
         """ Check if the data used to run the regression tests do not have duplicate ``*.fmu`` files
