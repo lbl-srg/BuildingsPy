@@ -460,7 +460,7 @@ class _BaseSimulator(object):
                             f"*** Standard error stream from simulation:\n{std_err}")
             else:
                 self._reporter.writeError(
-                    f"Process timeout: killed process as it computed longer than {str(timeout)} seconds.")
+                    f"Process timeout: terminated process as it computed longer than {str(timeout)} seconds.")
 
             pro.stdout.close()
             pro.stderr.close()
