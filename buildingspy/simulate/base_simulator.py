@@ -429,6 +429,8 @@ class _BaseSimulator(object):
                         if pro.poll() is not None:
                             terminatedProcess = True
                         if elapsedTime > terminate_timeout:
+                            self._reporter.writeError("Killing simulation in " +
+                                                      directory + ".")
                             pro.kill()
                             killedProcess = True
             else:
