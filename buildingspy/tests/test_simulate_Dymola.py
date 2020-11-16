@@ -196,5 +196,6 @@ class Test_simulate_Simulator(unittest.TestCase):
             log = fh.read()
         self.assertTrue('Initial sleep time exceeded' in log)
 
+
 if __name__ == '__main__':
     unittest.main()
