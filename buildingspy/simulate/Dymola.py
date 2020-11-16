@@ -404,6 +404,10 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
                 for li in ret["errors"]:
                     self._reporter.writeError(li)
                 raise IOError
+        else:
+            em = f"Log file {path_to_logfile} does not exist."
+            self._reporter.writeError(em)
+            raise IOError(em)
 
 # Classes that are inherited. These are listed here
 # so that they appear in the documentation.
