@@ -393,41 +393,49 @@ class _BaseSimulator(object):
                                    shell=False,
                                    cwd=directory,
                                    env=osEnv)
-
+            timeout_exceeded = False
             terminatedProcess = False
             killedProcess = False
+            # Tailored implementation of a timeout mechanism as it is not available
+            # through `wait` or `communicate` methods in Python 2.
             if timeout > 0:
-                while pro.poll() is None:
+                while not timeout_exceeded and pro.poll() is None:
                     time.sleep(0.01)
                     elapsedTime = (datetime.datetime.now() - self._simulationStartTime).seconds
-
                     if elapsedTime > timeout:
-                        # For Dymola only.
-                        # (For Optimica and JModelica the timeout is managed at the lower level
-                        # in `*_run.template`.)
-                        if self._MODELICA_EXE == 'dymola':
-                            # First, terminate the process. Then, if it is still
-                            # running, kill the process
-                            if not terminatedProcess:
-                                if self._showProgressBar:
-                                    # This output needed because of the progress bar
-                                    sys.stdout.write("\n")
-                                self._reporter.writeError("Terminating simulation in " +
-                                                          directory + ".")
-                                pro.terminate()
-                                terminatedProcess = True
-                            else:
-                                self._reporter.writeError("Killing simulation in " +
-                                                          directory + ".")
-                                pro.kill()
-                                killedProcess = True
-                    else:
-                        if self._showProgressBar:
-                            fractionComplete = float(elapsedTime) / float(timeout)
-                            self._printProgressBar(fractionComplete)
-
+                        timeout_exceeded = True
             else:
                 pro.wait()
+
+            if timeout_exceeded:
+                # For Dymola only: manage process termination.
+                # (For Optimica and JModelica this is managed at the lower level
+                # in `*_run.template`.)
+                if self._MODELICA_EXE == 'dymola':
+                    # On unixlike systems, give the process a chance to close gracefully
+                    # using `terminate` (on Windows `terminate` and `kill` are aliases).
+                    # Then, if it is still running after `terminate_timeout`, kill the process.
+                    terminate_timeout = 5
+                    if self._showProgressBar:
+                        # This output needed because of the progress bar
+                        sys.stdout.write("\n")
+                    self._reporter.writeError("Terminating simulation in " +
+                                                directory + ".")
+                    pro.terminate()
+                    terminate_start_time = datetime.datetime.now()
+                    while not terminatedProcess and not killedProcess:
+                        time.sleep(0.1)
+                        elapsedTime = (datetime.datetime.now() - terminate_start_time).seconds
+                        if pro.poll() is not None:
+                            terminatedProcess = True
+                        if elapsedTime > terminate_timeout:
+                            pro.kill()
+                            killedProcess = True
+            else:
+                if self._showProgressBar:
+                    fractionComplete = float(elapsedTime) / float(timeout)
+                    self._printProgressBar(fractionComplete)
+
             # This output is needed because of the progress bar
             if self._showProgressBar and not terminatedProcess:
                 sys.stdout.write("\n")
