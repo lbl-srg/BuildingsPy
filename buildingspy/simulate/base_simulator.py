@@ -420,7 +420,7 @@ class _BaseSimulator(object):
                         # This output needed because of the progress bar
                         sys.stdout.write("\n")
                     self._reporter.writeError("Terminating simulation in " +
-                                                directory + ".")
+                                              directory + ".")
                     pro.terminate()
                     terminate_start_time = datetime.datetime.now()
                     while not terminatedProcess and not killedProcess:
