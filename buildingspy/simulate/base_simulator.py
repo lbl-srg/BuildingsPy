@@ -394,6 +394,7 @@ class _BaseSimulator(object):
                                    cwd=directory,
                                    env=osEnv)
 
+            terminatedProcess = False
             killedProcess = False
             if timeout > 0:
                 while pro.poll() is None:
@@ -407,17 +408,19 @@ class _BaseSimulator(object):
                         if self._MODELICA_EXE == 'dymola':
                             # First, terminate the process. Then, if it is still
                             # running, kill the process
-                            if self._showProgressBar and not killedProcess:
-                                # This output needed because of the progress bar
-                                sys.stdout.write("\n")
+                            if not terminatedProcess:
+                                if self._showProgressBar:
+                                    # This output needed because of the progress bar
+                                    sys.stdout.write("\n")
                                 self._reporter.writeError("Terminating simulation in " +
                                                           directory + ".")
                                 pro.terminate()
+                                terminatedProcess = True
                             else:
                                 self._reporter.writeError("Killing simulation in " +
                                                           directory + ".")
                                 pro.kill()
-                            killedProcess = True
+                                killedProcess = True
                     else:
                         if self._showProgressBar:
                             fractionComplete = float(elapsedTime) / float(timeout)
@@ -426,10 +429,10 @@ class _BaseSimulator(object):
             else:
                 pro.wait()
             # This output is needed because of the progress bar
-            if self._showProgressBar and not killedProcess:
+            if self._showProgressBar and not terminatedProcess:
                 sys.stdout.write("\n")
 
-            if not killedProcess:
+            if (not terminatedProcess) and (not killedProcess):
                 std_out = pro.stdout.read()
                 if len(std_out) > 0:
                     self._reporter.writeOutput(
