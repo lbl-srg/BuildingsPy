@@ -28,7 +28,12 @@ class Reporter(object):
         """
         import os
         if os.path.isfile(self._logFil):
-            os.remove(self._logFil)
+            # The try-except below guards against a race condition if multiple
+            # processes start and they try to delete the file at the same time.
+            try:
+                os.remove(self._logFil)
+            except FileNotFoundError:
+                print(f"Failed to remove {self._logFil} as it no longer exists.")
 
     def logToFile(self, log=True):
         """ Function to log the standard output and standard error stream to a file.
