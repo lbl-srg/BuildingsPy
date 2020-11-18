@@ -123,7 +123,11 @@ class Tester(object):
         considered as an absolute tolerance along y axis (and x axis if comp_tool='funnel'). If a dict
         is provided, keys must be ('ax', 'ay') for absolute tolerance or ('rx', 'ry') for relative tolerance.
     :param skip_verification: boolean (default ``False``).
-       If ``True``, unit test results are not verified against reference points.
+        If ``True``, unit test results are not verified against reference points.
+    :param dir_ref: str (default ``None``).
+        Base directory of reference results. For the default, the directory is
+        searched for or created within the library being tested at
+        ``self._libHome\\Resources\\ReferenceResults\\Dymola``
 
     This class can be used to run all regression tests.
 
@@ -230,6 +234,7 @@ class Tester(object):
         comp_tool='funnel',
         tol=1E-3,
         skip_verification=False,
+        dir_ref=None,
     ):
         """ Constructor."""
         if tool == 'optimica':
@@ -250,6 +255,16 @@ class Tester(object):
         # a valid library.
         self._libHome = os.path.abspath(".")
         self._rootPackage = os.path.join(self._libHome, 'Resources', 'Scripts', 'Dymola')
+
+        # Set the reference results directory
+        if dir_ref is None:
+            self.dir_ref = os.path.join(
+                self._libHome, 'Resources', 'ReferenceResults', 'Dymola'
+            )
+        else:
+            self.dir_ref = dir_ref
+        if not os.path.exists(self.dir_ref):
+            os.makedirs(self.dir_ref)
 
         # Set the tool
         if tool in ['dymola', 'omc', 'optimica', 'jmodelica']:
@@ -2240,13 +2255,6 @@ class Tester(object):
         import buildingspy.fmi as fmi
 
         retVal = 0
-        # Check if the directory
-        # "self._libHome\\Resources\\ReferenceResults\\Dymola" exists, if not
-        # create it.
-        refDir = os.path.join(self._libHome, 'Resources', 'ReferenceResults', 'Dymola')
-        if not os.path.exists(refDir):
-            os.makedirs(refDir)
-
         for data in self._data:
             # Name of the reference file, which is the same as that matlab file name but with another extension.
             # Only check data for FMU exort.
@@ -2263,7 +2271,7 @@ class Tester(object):
                     # Compare it with the stored results, and update the stored results if
                     # needed and requested by the user.
                     [updated_reference_data, ans] = self._compare_and_rewrite_fmu_dependencies(
-                        dep_new, refDir, refFilNam, ans)
+                        dep_new, self.dir_ref, refFilNam, ans)
                     # Reset answer, unless it is set to Y or N
                     if not (ans == "Y" or ans == "N"):
                         ans = "-"
@@ -2453,12 +2461,6 @@ class Tester(object):
             case of wrong simulation results, this function also returns ``0``, as this is
             not considered an error in executing this function.
         """
-        # Check if the directory
-        # "self._libHome\\Resources\\ReferenceResults\\Dymola" exists, if not
-        # create it.
-        refDir = os.path.join(self._libHome, 'Resources', 'ReferenceResults', 'Dymola')
-        if not os.path.exists(refDir):
-            os.makedirs(refDir)
 
         ret_val = 0
         for data_idx, data in enumerate(self._data):
@@ -2529,7 +2531,7 @@ class Tester(object):
                             ans = "-"
                         updateReferenceData = False
                         # check if reference results already exist in library
-                        oldRefFulFilNam = os.path.join(refDir, refFilNam)
+                        oldRefFulFilNam = os.path.join(self.dir_ref, refFilNam)
                         # If the reference file exists, and if the reference file contains
                         # results, compare the results.
                         if os.path.exists(oldRefFulFilNam):
