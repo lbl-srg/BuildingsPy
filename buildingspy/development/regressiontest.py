@@ -257,14 +257,7 @@ class Tester(object):
         self._rootPackage = os.path.join(self._libHome, 'Resources', 'Scripts', 'Dymola')
 
         # Set the reference results directory
-        if dir_ref is None:
-            self.dir_ref = os.path.join(
-                self._libHome, 'Resources', 'ReferenceResults', 'Dymola'
-            )
-        else:
-            self.dir_ref = dir_ref
-        if not os.path.exists(self.dir_ref):
-            os.makedirs(self.dir_ref)
+        self.dir_ref = dir_ref
 
         # Set the tool
         if tool in ['dymola', 'omc', 'optimica', 'jmodelica']:
@@ -436,6 +429,13 @@ class Tester(object):
         self._libHome = os.path.abspath(rootDir)
         self._rootPackage = os.path.join(self._libHome, 'Resources', 'Scripts', 'Dymola')
         self.isValidLibrary(self._libHome)
+
+        if self.dir_ref is None:
+            self.dir_ref = os.path.join(
+                self._libHome, 'Resources', 'ReferenceResults', 'Dymola'
+            )
+        if not os.path.exists(self.dir_ref):
+            os.makedirs(self.dir_ref)
 
     def useExistingResults(self, dirs):
         """ This function allows to use existing results, as opposed to running a simulation.
