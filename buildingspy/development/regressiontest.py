@@ -430,6 +430,20 @@ class Tester(object):
         self._rootPackage = os.path.join(self._libHome, 'Resources', 'Scripts', 'Dymola')
         self.isValidLibrary(self._libHome)
 
+        self._set_up_reference_directory()
+
+
+    def _set_up_reference_directory(self):
+        """ Set up the directory for the reference results.
+
+        During initialization, ``self.dir_ref`` is either set to the default ``None``
+        or a custom directory path. For the default, the standard path at
+        ``self._libHome\\Resources\\ReferenceResults\\Dymola`` can only be set up after
+        ``self._libHome`` has been set. Otherwise, the originally passed custom
+        path is used. In both cases, the directory is created if it does not exist,
+        yet.
+        """
+
         if self.dir_ref is None:
             self.dir_ref = os.path.join(
                 self._libHome, 'Resources', 'ReferenceResults', 'Dymola'
