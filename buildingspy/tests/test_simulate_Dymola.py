@@ -178,6 +178,25 @@ class Test_simulate_Simulator(unittest.TestCase):
         # Delete output files
         s.deleteOutputFiles()
 
+    def test_timeout(self, timeout=3):
+        model = 'MyModelicaLibrary.MyModelTimeOut'
+        s = Simulator(
+            model,
+            packagePath=self._packagePath
+        )
+        s._deleteTemporaryDirectory = False
+        outDir = os.path.abspath(s.getOutputDirectory())
+        s.setTimeOut(timeout)
+        s.simulate()
+        with open(os.path.join(outDir, s._reporter._logFil)) as fh:
+            log = fh.read()
+        self.assertTrue('Terminating simulation' in log and 'Process timeout' in log)
+        s.setTimeOut(-1)
+        s.simulate()
+        with open(os.path.join(outDir, 'dslog.txt')) as fh:
+            log = fh.read()
+        self.assertTrue('Integration terminated successfully' in log)
+
 
 if __name__ == '__main__':
     unittest.main()
