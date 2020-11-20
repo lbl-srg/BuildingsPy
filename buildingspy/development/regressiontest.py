@@ -292,8 +292,8 @@ class Tester(object):
         self._arg_base_reference_result_directory = base_reference_result_directory
         self._arg_base_reference_result_tool = base_reference_result_tool
         # Set the reference results directory
-        self._base_reference_result_directory = None
-        self._base_reference_result_tool = None
+        self._reference_results_base = None
+        self._reference_results_target = None
         self._set_up_result_directories()
 
         # File to which the console output of the simulator is written
@@ -484,6 +484,13 @@ class Tester(object):
             else:
                 self._reference_results_base = os.path.join(
                     self._libHome, 'Resources', 'ReferenceResults', self._arg_base_reference_result_tool)
+        else: # Use the default setting.
+            if self._modelica_tool is "dymola":
+                self._reference_results_base = os.path.join(
+                    self._libHome, 'Resources', 'ReferenceResults', "Dymola")
+            else:
+                self._reference_results_base = os.path.join(
+                    self._libHome, 'Resources', 'ReferenceResults', self._modelica_tool)
 
         if self._modelica_tool is "dymola":
             self._reference_results_target = os.path.join(
