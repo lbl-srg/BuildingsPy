@@ -484,7 +484,7 @@ class Tester(object):
             else:
                 self._reference_results_base = os.path.join(
                     self._libHome, 'Resources', 'ReferenceResults', self._arg_base_reference_result_tool)
-        else: # Use the default setting.
+        else:  # Use the default setting.
             if self._modelica_tool is "dymola":
                 self._reference_results_base = os.path.join(
                     self._libHome, 'Resources', 'ReferenceResults', "Dymola")
