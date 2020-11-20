@@ -286,7 +286,7 @@ class Tester(object):
         # Check the settings for the reference results
         if base_reference_result_tool is not None and base_reference_result_directory is not None:
             raise ValueError(
-              "Only one of the arguments 'base_reference_result_directory' and 'base_reference_result_directory' can be different from 'None'.")
+                "Only one of the arguments 'base_reference_result_directory' and 'base_reference_result_directory' can be different from 'None'.")
 
         # Original value of argument. Used because setLibraryRoot can change the library name.
         self._arg_base_reference_result_directory = base_reference_result_directory
@@ -295,7 +295,6 @@ class Tester(object):
         self._base_reference_result_directory = None
         self._base_reference_result_tool = None
         self._set_up_result_directories()
-
 
         # File to which the console output of the simulator is written
         self._simulator_log_file = "simulator-{}.log".format(tool)
@@ -464,7 +463,6 @@ class Tester(object):
 
         self._set_up_result_directories()
 
-
     def _set_up_result_directories(self):
         """ Set up the directories for the reference results.
 
@@ -476,18 +474,23 @@ class Tester(object):
         if self._arg_base_reference_result_directory is not None:
             # If the base directory is specified, it must exist.
             if not os.path.exists(self._arg_base_reference_result_directory):
-                raise IOError(f"Directory {self._arg_base_reference_result_directory} must exist. Check argument for 'base_reference_result_directory'.")
+                raise IOError(
+                    f"Directory {self._arg_base_reference_result_directory} must exist. Check argument for 'base_reference_result_directory'.")
             self._reference_results_base = self._arg_base_reference_result_directory
         elif self._arg_base_reference_result_tool is not None:
             if self._arg_base_reference_result_tool is "dymola":
-                self._reference_results_base = os.path.join(self._libHome, 'Resources', 'ReferenceResults', "Dymola")
+                self._reference_results_base = os.path.join(
+                    self._libHome, 'Resources', 'ReferenceResults', "Dymola")
             else:
-                self._reference_results_base = os.path.join(self._libHome, 'Resources', 'ReferenceResults', self._arg_base_reference_result_tool)
+                self._reference_results_base = os.path.join(
+                    self._libHome, 'Resources', 'ReferenceResults', self._arg_base_reference_result_tool)
 
         if self._modelica_tool is "dymola":
-            self._reference_results_target = os.path.join(self._libHome, 'Resources', 'ReferenceResults', "Dymola")
+            self._reference_results_target = os.path.join(
+                self._libHome, 'Resources', 'ReferenceResults', "Dymola")
         else:
-            self._reference_results_target = os.path.join(self._libHome, 'Resources', 'ReferenceResults', self._modelica_tool)
+            self._reference_results_target = os.path.join(
+                self._libHome, 'Resources', 'ReferenceResults', self._modelica_tool)
 
         if not os.path.exists(self._reference_results_target):
             os.makedirs(self._reference_results_target)
