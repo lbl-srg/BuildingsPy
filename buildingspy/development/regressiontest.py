@@ -1207,7 +1207,6 @@ class Tester(object):
                             self._reporter.writeOutput(msg)
                         # Check comparison data.
 
-
     def _checkDataDictionary(self):
         """ Check if the data used to run the regression tests do not have duplicate ``*.fmu`` files
             and ``*.mat`` names.
@@ -1716,7 +1715,8 @@ class Tester(object):
                 # Check if the variable has already been tested.
                 # (This might happen if the variable is used in different plots.)
                 # In this case we do not want to perform the comparison again but we still want the variable to be
-                # plotted several times as it was originally intended: update _comp_info with stored data.
+                # plotted several times as it was originally intended: update _comp_info
+                # with stored data.
                 var_idx = comp_tmp['variables'].index(varNam)
                 fun_dir = comp_tmp['funnel_dirs'][var_idx]
                 test_passed = comp_tmp['test_passed'][var_idx]
