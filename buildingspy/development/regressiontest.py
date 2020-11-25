@@ -1475,7 +1475,7 @@ class Tester(object):
         rtolx = tol['rx']
         rtoly = tol['ry']
         # Switch to relative tolerance in y for time series with a high order of magnitude.
-        if self._switch_rtoly_funnel is not None and np.mean(yNew) > self._switch_rtoly_funnel:
+        if self._switch_rtoly_funnel is not None and abs(np.mean(yNew)) > self._switch_rtoly_funnel:
             rtoly = atoly**2
             atoly = None
 
