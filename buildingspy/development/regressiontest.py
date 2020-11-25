@@ -112,18 +112,23 @@ class Tester(object):
 
     Initiate with the following optional arguments:
 
-    :param check_html: bool (default=True). Specify whether to load tidylib and
-        perform validation of html documentation
-    :param tool: {``dymola``, ``omc``, ``optimica``, ``jmodelica``}.
-        Default is ``dymola``, specifies the
-        tool to use for running the regression test with :func:`~buildingspy.development.Tester.run`.
-    :param cleanup: bool (default=True).  Specify whether to delete temporary directories.
-    :param comp_tool: string (default='funnel'). Specify the comparison tool ('funnel' or 'legacy').
-    :param tol: float or dict (default=1E-3). Comparison tolerance: if a float is provided, it is
-        considered as an absolute tolerance along y axis (and x axis if comp_tool='funnel'). If a dict
-        is provided, keys must be ('ax', 'ay') for absolute tolerance or ('rx', 'ry') for relative tolerance.
-    :param skip_verification: boolean (default ``False``).
-       If ``True``, unit test results are not verified against reference points.
+    Attributes:
+        check_html: Boolean (default=True). Specify whether to load tidylib and
+            perform validation of html documentation
+        tool: string {``dymola``, ``omc``, ``optimica``, ``jmodelica``}.
+            Default is ``dymola``, specifies the
+            tool to use for running the regression test with :func:`~buildingspy.development.Tester.run`.
+        cleanup: bool (default=True).  Specify whether to delete temporary directories.
+        comp_tool: string (default='funnel'). Specify the comparison tool ('funnel' or 'legacy').
+        tol: float or dict (default=1E-3). Comparison tolerance: if a float is provided, it is
+            considered as an absolute tolerance along y axis (and x axis if comp_tool='funnel').
+            If a dict is provided, keys must be ('ax', 'ay') for absolute tolerance or
+            ('rx', 'ry') for relative tolerance.
+            Note that the comparison based on absolute tolerance is switched to a comparison
+            based on relative tolerance for time series with a high order of magnitude,
+            see the hidden attribute `_switch_rtoly_funnel`.
+        skip_verification: Boolean (default ``False``).
+            If ``True``, unit test results are not verified against reference points.
 
     This class can be used to run all regression tests.
 
@@ -290,17 +295,16 @@ class Tester(object):
         # Comparison tool.
         self._comp_tool = comp_tool
 
-        # Absolute (a) or relative (r) tolerance in x and y: scalar or dict.
-        self._tol = {}
-        if isinstance(
-                tol, numbers.Real):  # if scalar, considered as absolute tolerance value for x an y
+        # Absolute (a) or relative (r) tolerance in x and y.
+        self._tol = {}  # Keys: 'ax', 'ay', 'rx', 'ry'. Values: defaulting to None.
+        if isinstance(tol, numbers.Real):  # Considered as absolute tolerance value for x an y.
             self._tol['ax'] = tol
             self._tol['ay'] = tol
         elif isinstance(tol, dict):
             self._tol = tol
         else:
             raise TypeError('Parameter tol must be a number or a dict.')
-        for k in ['ax', 'ay', 'rx', 'ry']:  # fill with None if undefined
+        for k in ['ax', 'ay', 'rx', 'ry']:  # Fill with None if undefined.
             try:
                 self._tol[k]
             except KeyError:
@@ -308,6 +312,15 @@ class Tester(object):
         if self._comp_tool == 'legacy' and self._tol['ay'] is None:
             raise ValueError(
                 'Using legacy comparison tool: absolute tolerance along y axis must be specified.')
+
+        # _switch_rtol_funnel: float or None. Threshold value (tested against the mean value
+        # of the time series) above which the comparison is based on a relative tolerance.
+        # Set to None to force a comparison based on absolute tolerance, whatever the order of magnitude.
+        # This logic is only implemented for `comp_tool == 'funnel'`.
+        if self._tol['ay'] is not None and self._tol['ay'] > 0:
+            self._switch_rtoly_funnel = (1 / self._tol['ay'])
+        else:
+            self._switch_rtoly_funnel = None
 
         # Data structures for storing comparison data.
         self._comp_info = []
@@ -1158,31 +1171,29 @@ class Tester(object):
 
             # Add model specific data
             for con_dat in conf_data:
-                #                pattern = re.compile(con_dat['model_name'])
                 for all_dat in self._data:
-                    #                    if pattern.match(all_dat['model_name']) is not None:
                     if con_dat['model_name'] == all_dat['model_name']:
                         # Add all elements of the configuration data
                         for key in con_dat.keys():
                             # Have dictionary in dictionary
                             if key == self._modelica_tool:
-                                for key in con_dat[self._modelica_tool]:
-                                    val = con_dat[self._modelica_tool][key]
-                                    if key == 'translate':
-                                        all_dat[self._modelica_tool][key] = val
+                                for k in con_dat[key]:
+                                    val = con_dat[key][k]
+                                    if k == 'translate':
+                                        all_dat[key][k] = val
                                         # Write a warning if a model is not translated
                                         if not val:
                                             # Set simulate to false as well as it can't be simulated
                                             # if not translated
-                                            all_dat[self._modelica_tool]['simulate'] = False
-                                    elif key == 'simulate':
-                                        all_dat[self._modelica_tool][key] = val
+                                            all_dat[key]['simulate'] = False
+                                    elif k == 'simulate':
+                                        all_dat[key][k] = val
                                         # Write a warning if a model is not simulated
                                         if not val:
                                             # Reset plot variables
                                             all_dat['ResultVariables'] = []
                                     else:
-                                        all_dat[self._modelica_tool][key] = val
+                                        all_dat[self._modelica_tool][k] = val
                             else:
                                 all_dat[key] = con_dat[key]
                         # Write warning if this model should not be translated or simulated.
@@ -1195,6 +1206,8 @@ class Tester(object):
                             if 'comment' in all_dat[self._modelica_tool]:
                                 msg = f"{msg} {all_dat[self._modelica_tool]['comment']}"
                             self._reporter.writeOutput(msg)
+                        # Check comparison data.
+
 
     def _checkDataDictionary(self):
         """ Check if the data used to run the regression tests do not have duplicate ``*.fmu`` files
@@ -1350,7 +1363,7 @@ class Tester(object):
                                  self.getLibraryName(), data['TranslationLogFile'])
         return of.get_model_statistics(fulFilNam, self._modelica_tool)
 
-    def legacy_comp(self, tOld, yOld, tNew, yNew, tGriOld, tGriNew, varNam, filNam, tol):
+    def _legacy_comp(self, tOld, yOld, tNew, yNew, tGriOld, tGriNew, varNam, filNam, tol):
         # Interpolate the new variables to the old time stamps
         #
         if len(yNew) > 2:
@@ -1442,7 +1455,7 @@ class Tester(object):
 
         return (t_err_max, warning)
 
-    def funnel_comp(
+    def _funnel_comp(
             self,
             tOld,
             yOld,
@@ -1454,7 +1467,18 @@ class Tester(object):
             tol,
             data_idx,
             keep_dir=True):
+        """Method calling funnel comparison tool."""
+
         t_err_max, warning = 0, None
+
+        atolx = tol['ax']
+        atoly = tol['ay']
+        rtolx = tol['rx']
+        rtoly = tol['ry']
+        # Switch to relative tolerance in y for time series with a high order of magnitude.
+        if self._switch_rtoly_funnel is not None and np.mean(yNew) > self._switch_rtoly_funnel:
+            rtoly = atoly**2
+            atoly = None
 
         tmp_dir = tempfile.mkdtemp()
         log_stdout = io.StringIO()
@@ -1465,10 +1489,10 @@ class Tester(object):
                 xTest=tNew,
                 yTest=yNew,
                 outputDirectory=tmp_dir,
-                atolx=tol['ax'],
-                atoly=tol['ay'],
-                rtolx=tol['rx'],
-                rtoly=tol['ry'],
+                atolx=atolx,
+                atoly=atoly,
+                rtolx=rtolx,
+                rtoly=rtoly,
             )
         log_content = log_stdout.getvalue()
         log_content = re.sub(r'(^.*Warning:\s+)|(Error:\s+)', '', log_content)
@@ -1616,18 +1640,19 @@ class Tester(object):
                 raise ValueError(s)
 
         # Check if the first and last time stamp are equal
-        tolTim = 1E-3  # Tolerance for time
-        if (abs(tOld[0] - tNew[0]) > tolTim) or abs(tOld[-1] - tNew[-1]) > tolTim:
-            warning = (
-                "While processing file {} for variable {}: different simulation time interval between "
-                "reference and test data.\n"
-                "Old reference points are for {} <= t <= {}\n"
-                "New reference points are for {} <= t <= {}\n").format(
-                    filNam, varNam, tOld[0], tOld[len(tOld) - 1], tNew[0], tNew[len(tNew) - 1])
-            test_passed = False
-            t_err_max = None
+        def test_equal_time(t1, t2, tol=1E-6):
+            """Test if time values are equal within a given tolerance."""
+            test_result = True
+            # The tolerance is considered absolute for time values close to zero.
+            if abs(t1) < tol or abs(t2) < tol:
+                if abs(t1 - t2) > tol:
+                    test_result = False
+            # Otherwise the tolerance is considered relative.
+            elif abs((t1 - t2) / max(t1, t2)) > tol:
+                test_result = False
+            return test_result
 
-        if (abs(tOld[-1] - tNew[-1]) > 1E-5):
+        if not test_equal_time(tOld[-1], tNew[-1]):
             warning = (
                 "While processing file {} for variable {}: different end time between "
                 "reference and test data.\n"
@@ -1635,8 +1660,10 @@ class Tester(object):
                 "tOld = [{}, {}]\n").format(filNam, varNam, tNew[0], tNew[-1], tOld[0], tOld[-1])
             test_passed = False
             t_err_max = min(tOld[-1], tNew[-1])
+        else:  # Overwrite tOld with tNew to prevent any exception raised by the comparison tool.
+            tOld[-1] = tNew[-1]
 
-        if (abs(tOld[0] - tNew[0]) > 1E-5):
+        if not test_equal_time(tOld[0], tNew[0]):
             warning = (
                 "While processing file {} for variable {}: different start time between "
                 "reference and test data.\n"
@@ -1644,6 +1671,8 @@ class Tester(object):
                 "tOld = [{}, {}]\n").format(filNam, varNam, tNew[0], tNew[-1], tOld[0], tOld[-1])
             test_passed = False
             t_err_max = min(tOld[0], tNew[0])
+        else:  # Overwrite tOld with tNew to prevent any exception raised by the comparison tool.
+            tOld[0] = tNew[0]
 
         # The next test may be true if a simulation stopped with an error prior to
         # producing sufficient data points
@@ -1679,17 +1708,16 @@ class Tester(object):
             try:  # In case a warning has been raised before: no comparison performed.
                 warning
             except NameError:
-                t_err_max, warning = self.legacy_comp(
+                t_err_max, warning = self._legacy_comp(
                     tOld, yOld, tNew, yNew, tGriOld, tGriNew, varNam, filNam, self._tol['ay'])
         else:
             idx = self._init_comp_info(model_name, filNam)
             comp_tmp = self._comp_info[idx]['comparison']
             try:
-                # Check if the variable has already been tested. (This might happen if the variable is used in several
-                # subplots of different plots.)
+                # Check if the variable has already been tested.
+                # (This might happen if the variable is used in different plots.)
                 # In this case we do not want to perform the comparison again but we still want the variable to be
-                # plotted several times as it was originally intended: update _comp_info
-                # with stored data.
+                # plotted several times as it was originally intended: update _comp_info with stored data.
                 var_idx = comp_tmp['variables'].index(varNam)
                 fun_dir = comp_tmp['funnel_dirs'][var_idx]
                 test_passed = comp_tmp['test_passed'][var_idx]
@@ -1714,7 +1742,7 @@ class Tester(object):
                     self._update_comp_info(
                         idx, varNam, None, test_passed, t_err_max, warning, data_idx)
                 except NameError:
-                    t_err_max, warning = self.funnel_comp(
+                    t_err_max, warning = self._funnel_comp(
                         tOld, yOld, tNew, yNew, varNam, filNam, model_name, self._tol, data_idx)
 
         test_passed = True
