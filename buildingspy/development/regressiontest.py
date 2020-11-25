@@ -112,22 +112,21 @@ class Tester(object):
 
     Initiate with the following optional arguments:
 
-    Attributes:
-        check_html: Boolean (default=True). Specify whether to load tidylib and
-            perform validation of html documentation
-        tool: string {``dymola``, ``omc``, ``optimica``, ``jmodelica``}.
-            Default is ``dymola``, specifies the
+    :param check_html: Boolean (default ``True``). Specify whether to load tidylib and
+            perform validation of html documentation.
+    :param tool: string {``'dymola'``, ``'omc'``, ``'optimica'``, ``'jmodelica'``}.
+            Default is ``'dymola'``, specifies the
             tool to use for running the regression test with :func:`~buildingspy.development.Tester.run`.
-        cleanup: bool (default=True).  Specify whether to delete temporary directories.
-        comp_tool: string (default='funnel'). Specify the comparison tool ('funnel' or 'legacy').
-        tol: float or dict (default=1E-3). Comparison tolerance: if a float is provided, it is
-            considered as an absolute tolerance along y axis (and x axis if comp_tool='funnel').
-            If a dict is provided, keys must be ('ax', 'ay') for absolute tolerance or
-            ('rx', 'ry') for relative tolerance.
+    :param cleanup: Boolean (default ``True``). Specify whether to delete temporary directories.
+    :param comp_tool: string (default ``'funnel'``). Specify the comparison tool (``'funnel'`` or ``'legacy'``).
+    :param tol: float or dict (default ``1E-3``). Comparison tolerance: if a float is provided, it is
+            considered as an absolute tolerance along y axis (and x axis if ``comp_tool=='funnel'``).
+            If a dict is provided, keys must be ``'ax'`` and ``'ay'`` for absolute tolerance or
+            ``'rx'`` and ``'ry'`` for relative tolerance.
             Note that the comparison based on absolute tolerance is switched to a comparison
             based on relative tolerance for time series with a high order of magnitude,
-            see the hidden attribute `_switch_rtoly_funnel`.
-        skip_verification: Boolean (default ``False``).
+            see the class attribute ``_switch_rtoly_funnel``.
+    :param skip_verification: Boolean (default ``False``).
             If ``True``, unit test results are not verified against reference points.
 
     This class can be used to run all regression tests.
