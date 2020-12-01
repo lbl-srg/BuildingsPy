@@ -127,7 +127,7 @@ class Tester(object):
     :param base_reference_result_tool: {``dymola``, ``omc``, ``optimica``, ``jmodelica``}.
         Default is ``None``.
     :param base_reference_result_directory: str (default ``None``).
-        If not ``None``, usedd as directory of reference results for the base case.
+        If not ``None``, used as directory of reference results for the base case.
 
 
     This class can be used to run all regression tests.
