@@ -478,29 +478,36 @@ class Tester(object):
                     f"Directory {self._arg_base_reference_result_directory} must exist. Check argument for 'base_reference_result_directory'.")
             self._reference_results_base = self._arg_base_reference_result_directory
         elif self._arg_base_reference_result_tool is not None:
-            if self._arg_base_reference_result_tool is "dymola":
-                self._reference_results_base = os.path.join(
-                    self._libHome, 'Resources', 'ReferenceResults', "Dymola")
-            else:
-                self._reference_results_base = os.path.join(
-                    self._libHome, 'Resources', 'ReferenceResults', self._arg_base_reference_result_tool)
+            dir_tool = self._get_name_tool_directory(self._arg_base_reference_result_tool)
+            self._reference_results_base = os.path.join(
+                self._libHome, 'Resources', 'ReferenceResults', dir_tool)
         else:  # Use the default setting.
-            if self._modelica_tool is "dymola":
-                self._reference_results_base = os.path.join(
-                    self._libHome, 'Resources', 'ReferenceResults', "Dymola")
-            else:
-                self._reference_results_base = os.path.join(
-                    self._libHome, 'Resources', 'ReferenceResults', self._modelica_tool)
+            dir_tool = self._get_name_tool_directory(self._modelica_tool)
+            self._reference_results_base = os.path.join(
+                    self._libHome, 'Resources', 'ReferenceResults', dir_tool)
 
-        if self._modelica_tool is "dymola":
-            self._reference_results_target = os.path.join(
-                self._libHome, 'Resources', 'ReferenceResults', "Dymola")
-        else:
-            self._reference_results_target = os.path.join(
-                self._libHome, 'Resources', 'ReferenceResults', self._modelica_tool)
+        dir_tool = self._get_name_tool_directory(self._modelica_tool)
+        self._reference_results_target = os.path.join(
+            self._libHome, 'Resources', 'ReferenceResults', dir_tool)
 
         if not os.path.exists(self._reference_results_target):
             os.makedirs(self._reference_results_target)
+
+    def _get_name_tool_directory(self, name_tool):
+        """ Get the legacy-compatible directory name for selected tool.
+
+        :param name_tool: str Name of the selected tool
+
+        Result is lower case for all tools except for Dymola which is uppercase
+        due to legacy
+        """
+
+        if name_tool == "dymola":
+            result = "Dymola"
+        else:
+            result = name_tool
+
+        return result
 
     def useExistingResults(self, dirs):
         """ This function allows to use existing results, as opposed to running a simulation.
