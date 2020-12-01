@@ -477,15 +477,14 @@ class Tester(object):
                 raise IOError(
                     f"Directory {self._arg_base_reference_result_directory} must exist. Check argument for 'base_reference_result_directory'.")
             self._reference_results_base = self._arg_base_reference_result_directory
-        elif self._arg_base_reference_result_tool is not None:
-            dir_tool = self._get_name_tool_directory(self._arg_base_reference_result_tool)
+        else:
+            if self._arg_base_reference_result_tool is not None:
+                dir_tool = self._get_name_tool_directory(self._arg_base_reference_result_tool)
+            else:
+                dir_tool = self._get_name_tool_directory(self._modelica_tool)
             self._reference_results_base = os.path.join(
                 self._libHome, 'Resources', 'ReferenceResults', dir_tool)
-        else:  # Use the default setting.
-            dir_tool = self._get_name_tool_directory(self._modelica_tool)
-            self._reference_results_base = os.path.join(
-                    self._libHome, 'Resources', 'ReferenceResults', dir_tool)
-
+            
         dir_tool = self._get_name_tool_directory(self._modelica_tool)
         self._reference_results_target = os.path.join(
             self._libHome, 'Resources', 'ReferenceResults', dir_tool)
