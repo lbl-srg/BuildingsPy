@@ -6,6 +6,19 @@ import os
 from buildingspy.simulate.Optimica import Simulator
 
 
+def _simulate(cas):
+    """
+    Class to simulate models. This needs to be at the top-level for multiprocessing
+    to be able to serialize it.
+    """
+    from buildingspy.simulate.Optimica import Simulator
+
+    packagePath = os.path.abspath(os.path.join("buildingspy", "tests"))
+    s = Simulator(cas['model'], outputDirectory=f"out-{cas['tol']}", packagePath=packagePath)
+    s.setTolerance(cas['tol'])
+    s.simulate()
+
+
 class Test_simulate_Simulator(unittest.TestCase):
     """
        This class contains the unit tests for
@@ -290,6 +303,52 @@ class Test_simulate_Simulator(unittest.TestCase):
         with open(os.path.join(outDir, json_log_file)) as fh:
             log = fh.read()
         self.assertFalse('"success": false' in log)
+
+    def test_multiprocessing(self):
+        import os
+        import shutil
+        from multiprocessing import Pool
+        import json
+
+        def _deleteDirs(cases):
+            for cas in cases:
+                output_dir = f"out-{cas['tol']}"
+                shutil.rmtree(output_dir, ignore_errors=True)
+
+        cases = [
+            {"model": "MyModelicaLibrary.Examples.MyStep", "tol": 1E-6},
+            {"model": "MyModelicaLibrary.Examples.MyStep", "tol": 1E-7}
+        ]
+        # Delete old directories
+        _deleteDirs(cases)
+
+        p = Pool(20)
+        p.map(_simulate, cases)
+
+        # Check output for success
+        for cas in cases:
+            resultFile = os.path.join(
+                f"out-{cas['tol']}",
+                cas['model'].replace(
+                    ".",
+                    "_")) + "_buildingspy.json"
+
+            self.assertTrue(
+                os.path.exists(resultFile), f"File {resultFile} does not exist.")
+
+            with open(resultFile) as f:
+                js = json.load(f)
+            self.assertTrue('simulation' in js, f"Expected key 'simulation' in {resultFile}")
+            self.assertTrue('success' in js['simulation'],
+                            f"Expected key 'simulation->success' in {resultFile}")
+            self.assertTrue(
+                js['simulation']['success'] is True,
+                f"Simulation failed, check {resultFile}")
+
+        # Delete working directories
+        _deleteDirs(cases)
+
+        return
 
 
 if __name__ == '__main__':

@@ -201,9 +201,9 @@ class Simulator(bs._BaseSimulator):
         else:
             model_modifier = '({dec})'.format(mn=self.modelName, dec=','.join(dec))
 
-        file_name = os.path.join(worDir, "{}.py".format(self.modelName.replace(".", "_")))
+        file_name = "{}.py".format(self.modelName.replace(".", "_"))
 ##        self._time_stamp_old_files = datetime.datetime.now()
-        with open(file_name, mode="w", encoding="utf-8") as fil:
+        with open(os.path.join(worDir, file_name), mode="w", encoding="utf-8") as fil:
             path_to_template = os.path.join(
                 os.path.dirname(__file__), os.path.pardir, "development")
             env = jinja2.Environment(loader=jinja2.FileSystemLoader(path_to_template))
