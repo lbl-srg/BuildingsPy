@@ -322,7 +322,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         # Delete old directories
         _deleteDirs(cases)
 
-        p = Pool(20)
+        p = Pool()
         p.map(_simulate, cases)
 
         # Check output for success
