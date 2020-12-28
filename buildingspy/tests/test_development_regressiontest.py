@@ -256,6 +256,25 @@ class Test_regressiontest_Tester(unittest.TestCase):
         self.assertRaises(ValueError,
                           r.Tester.expand_packages, "AB}a{")
 
+    def test_conflicting_custom_reference_results_settings(self):
+        import buildingspy.development.regressiontest as r
+        # Verify that setting both options raises a ValueError.
+        args = []
+        kwargs = {
+                "base_reference_result_tool": "dymola",
+                "base_reference_result_directory": "test/test"
+            }
+        self.assertRaises(ValueError, r.Tester, *args, **kwargs)
+
+    def test_invalid_custom_reference_directory(self):
+        import buildingspy.development.regressiontest as r
+        # Verify that setting both options raises a ValueError.
+        args = []
+        kwargs = {
+                "base_reference_result_directory": "test/test"
+            }
+        self.assertRaises(OSError, r.Tester, *args, **kwargs)
+
 
 if __name__ == '__main__':
     unittest.main()

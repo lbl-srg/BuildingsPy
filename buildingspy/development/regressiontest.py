@@ -123,7 +123,12 @@ class Tester(object):
         considered as an absolute tolerance along y axis (and x axis if comp_tool='funnel'). If a dict
         is provided, keys must be ('ax', 'ay') for absolute tolerance or ('rx', 'ry') for relative tolerance.
     :param skip_verification: boolean (default ``False``).
-       If ``True``, unit test results are not verified against reference points.
+        If ``True``, unit test results are not verified against reference points.
+    :param base_reference_result_tool: {``dymola``, ``omc``, ``optimica``, ``jmodelica``}.
+        Default is ``None``.
+    :param base_reference_result_directory: str (default ``None``).
+        If not ``None``, used as directory of reference results for the base case.
+
 
     This class can be used to run all regression tests.
 
@@ -220,6 +225,24 @@ class Tester(object):
     which is read from the `.mo` file. However, with `rtol`, this
     value can be overwritten.
     Note that this syntax is still experimental and may be changed.
+
+
+    *Comparison against reference results from another tool*
+
+    By default, the reference results from the current ``tool`` will be used.
+    To use reference results from another tool or from a specific directory,
+    set either ``base_reference_result_tool`` or ``base_reference_result_directory``.
+
+    - If ``base_reference_result_tool`` is set, then the reference results from
+      the current library found in ``Resources/ReferenceResults/${tool}`` will be used.
+      (Due to legacy code, if ``tool=dymola``, the results will be in ``Resources/ReferenceResults/Dymola``.)
+    - If ``base_reference_result_directory`` is set, then the reference results will be
+      read from that directory.
+    - If ``base_reference_result_tool`` and ``base_reference_result_directory`` are both
+      not ``None``, an error will be issued.
+
+    For any setting, the new reference results will be written to ``Resources/ReferenceResults/${tool}``.
+
     """
 
     def __init__(
@@ -230,6 +253,8 @@ class Tester(object):
         comp_tool='funnel',
         tol=1E-3,
         skip_verification=False,
+        base_reference_result_tool=None,
+        base_reference_result_directory=None,
     ):
         """ Constructor."""
         if tool == 'optimica':
@@ -257,6 +282,20 @@ class Tester(object):
         else:
             raise ValueError(
                 "Value of 'tool' of constructor 'Tester' must be 'dymola', 'omc', 'optimica' or 'jmodelica'. Received '{}'.".format(tool))
+
+        # Check the settings for the reference results
+        if base_reference_result_tool is not None and base_reference_result_directory is not None:
+            raise ValueError(
+                "Only one of the arguments 'base_reference_result_directory' and 'base_reference_result_directory' can be different from 'None'.")
+
+        # Original value of argument. Used because setLibraryRoot can change the library name.
+        self._arg_base_reference_result_directory = base_reference_result_directory
+        self._arg_base_reference_result_tool = base_reference_result_tool
+        # Set the reference results directory
+        self._reference_results_base = None
+        self._reference_results_target = None
+        self._set_up_result_directories()
+
         # File to which the console output of the simulator is written
         self._simulator_log_file = "simulator-{}.log".format(tool)
         #  File to which the console output of the simulator of failed simulations is written
@@ -421,6 +460,53 @@ class Tester(object):
         self._libHome = os.path.abspath(rootDir)
         self._rootPackage = os.path.join(self._libHome, 'Resources', 'Scripts', 'Dymola')
         self.isValidLibrary(self._libHome)
+
+        self._set_up_result_directories()
+
+    def _set_up_result_directories(self):
+        """ Set up the directories for the reference results.
+
+        This methods sets the directories for the base results and the target results,
+        e.g., the new reference results.
+        It also creates the directory for the target results if it does not yet exist.
+        """
+
+        if self._arg_base_reference_result_directory is not None:
+            # If the base directory is specified, it must exist.
+            if not os.path.exists(self._arg_base_reference_result_directory):
+                raise IOError(
+                    f"Directory {self._arg_base_reference_result_directory} must exist. Check argument for 'base_reference_result_directory'.")
+            self._reference_results_base = self._arg_base_reference_result_directory
+        else:
+            if self._arg_base_reference_result_tool is not None:
+                dir_tool = self._get_name_tool_directory(self._arg_base_reference_result_tool)
+            else:
+                dir_tool = self._get_name_tool_directory(self._modelica_tool)
+            self._reference_results_base = os.path.join(
+                self._libHome, 'Resources', 'ReferenceResults', dir_tool)
+            
+        dir_tool = self._get_name_tool_directory(self._modelica_tool)
+        self._reference_results_target = os.path.join(
+            self._libHome, 'Resources', 'ReferenceResults', dir_tool)
+
+        if not os.path.exists(self._reference_results_target):
+            os.makedirs(self._reference_results_target)
+
+    def _get_name_tool_directory(self, name_tool):
+        """ Get the legacy-compatible directory name for selected tool.
+
+        :param name_tool: str Name of the selected tool
+
+        Result is lower case for all tools except for Dymola which is uppercase
+        due to legacy
+        """
+
+        if name_tool == "dymola":
+            result = "Dymola"
+        else:
+            result = name_tool
+
+        return result
 
     def useExistingResults(self, dirs):
         """ This function allows to use existing results, as opposed to running a simulation.
@@ -2155,7 +2241,8 @@ class Tester(object):
     def _compare_and_rewrite_fmu_dependencies(
             self,
             new_dependencies,
-            reference_file_path,
+            reference_file_path_base,
+            reference_file_path_target,
             reference_file_name,
             ans):
         """ Compares whether the ``.fmu`` dependencies have been changed.
@@ -2164,26 +2251,29 @@ class Tester(object):
             If they differ from the reference results, it askes whether to accept the new ones.
 
             :param new_dependencies: A dictionary with the new dependencies.
-            :param reference_file_path: Path to the file with reference results.
+            :param reference_file_path_base: Path to the file with the old reference results.
+            :param reference_file_path_target: Path to the file with new reference results.
             :param reference_file_name: Name of the file with reference results.
             :param ans: A previously entered answer, either ``y``, ``Y``, ``n`` or ``N``.
             :return: A tuple consisting of a boolean ``updated_reference_data`` and the value of ``ans``.
 
         """
-        # Absolute path to the reference file
-        abs_ref_fil_nam = os.path.join(reference_file_path, reference_file_name)
+        # Absolute path to the reference files
+        abs_ref_fil_nam_base = os.path.join(reference_file_path_base, reference_file_name)
+        abs_ref_fil_nam_target = os.path.join(reference_file_path_target, reference_file_name)
+
         # Put dependencies in data format needed to write to the reference result file
         y_tra = dict()
         y_tra['fmu-dependencies'] = new_dependencies
 
         # Check whether the reference results exist.
-        if not os.path.exists(abs_ref_fil_nam):
+        if not os.path.exists(abs_ref_fil_nam_base):
             print("Warning ***: Reference file {} does not yet exist.".format(reference_file_name))
             while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
                 print("             Create new file?")
                 ans = input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
             if ans == "y" or ans == "Y":
-                self._writeReferenceResults(abs_ref_fil_nam, None, y_tra)
+                self._writeReferenceResults(abs_ref_fil_nam_target, None, y_tra)
                 self._reporter.writeOutput("Wrote new reference file %s." %
                                            reference_file_name)
             else:
@@ -2192,7 +2282,7 @@ class Tester(object):
             return [True, ans]
 
         # The file that may contain the reference results exist.
-        old_dep = self._readReferenceResults(abs_ref_fil_nam)
+        old_dep = self._readReferenceResults(abs_ref_fil_nam_base)
         # Check whether it contains a key 'statistics-fmu-dependencies'
         if 'statistics-fmu-dependencies' in old_dep:
             # Compare the statistics for each section
@@ -2207,7 +2297,7 @@ class Tester(object):
                     print("             Rewrite file?")
                     ans = input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
                 if ans == "y" or ans == "Y":
-                    self._writeReferenceResults(abs_ref_fil_nam, None, y_tra)
+                    self._writeReferenceResults(abs_ref_fil_nam_target, None, y_tra)
                     self._reporter.writeWarning(
                         "*** Warning: Rewrote reference file %s due to new FMU statistics." %
                         reference_file_name)
@@ -2220,7 +2310,7 @@ class Tester(object):
                 print("             Rewrite file?")
                 ans = input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
             if ans == "y" or ans == "Y":
-                self._writeReferenceResults(abs_ref_fil_nam, None, y_tra)
+                self._writeReferenceResults(abs_ref_fil_nam_target, None, y_tra)
                 self._reporter.writeWarning(
                     "*** Warning: Rewrote reference file %s as the old one had no FMU statistics." %
                     reference_file_name)
@@ -2240,13 +2330,6 @@ class Tester(object):
         import buildingspy.fmi as fmi
 
         retVal = 0
-        # Check if the directory
-        # "self._libHome\\Resources\\ReferenceResults\\Dymola" exists, if not
-        # create it.
-        refDir = os.path.join(self._libHome, 'Resources', 'ReferenceResults', 'Dymola')
-        if not os.path.exists(refDir):
-            os.makedirs(refDir)
-
         for data in self._data:
             # Name of the reference file, which is the same as that matlab file name but with another extension.
             # Only check data for FMU exort.
@@ -2263,7 +2346,11 @@ class Tester(object):
                     # Compare it with the stored results, and update the stored results if
                     # needed and requested by the user.
                     [updated_reference_data, ans] = self._compare_and_rewrite_fmu_dependencies(
-                        dep_new, refDir, refFilNam, ans)
+                        dep_new,
+                        self._reference_results_base,
+                        self._reference_results_target,
+                        refFilNam,
+                        ans)
                     # Reset answer, unless it is set to Y or N
                     if not (ans == "Y" or ans == "N"):
                         ans = "-"
@@ -2453,12 +2540,6 @@ class Tester(object):
             case of wrong simulation results, this function also returns ``0``, as this is
             not considered an error in executing this function.
         """
-        # Check if the directory
-        # "self._libHome\\Resources\\ReferenceResults\\Dymola" exists, if not
-        # create it.
-        refDir = os.path.join(self._libHome, 'Resources', 'ReferenceResults', 'Dymola')
-        if not os.path.exists(refDir):
-            os.makedirs(refDir)
 
         ret_val = 0
         for data_idx, data in enumerate(self._data):
@@ -2529,7 +2610,9 @@ class Tester(object):
                             ans = "-"
                         updateReferenceData = False
                         # check if reference results already exist in library
-                        oldRefFulFilNam = os.path.join(refDir, refFilNam)
+                        oldRefFulFilNam = os.path.join(self._reference_results_base, refFilNam)
+                        newRefFulFilNam = os.path.join(self._reference_results_target, refFilNam)
+
                         # If the reference file exists, and if the reference file contains
                         # results, compare the results.
                         if os.path.exists(oldRefFulFilNam):
@@ -2556,12 +2639,12 @@ class Tester(object):
                                 updateReferenceData = True
                             else:
                                 self._reporter.writeError("Did not write new reference file %s." %
-                                                          oldRefFulFilNam)
+                                                          newRefFulFilNam)
                         if updateReferenceData:    # If the reference data of any variable was updated
                             # Make dictionary to save the results and the svn information
-                            self._writeReferenceResults(oldRefFulFilNam, y_sim, y_tra)
+                            self._writeReferenceResults(newRefFulFilNam, y_sim, y_tra)
                             self._reporter.writeOutput("Wrote new reference file %s." %
-                                                       oldRefFulFilNam)
+                                                       newRefFulFilNam)
 
             else:
                 # Tests that export FMUs do not have an output file. Hence, we do not warn
