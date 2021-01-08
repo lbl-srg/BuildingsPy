@@ -3298,11 +3298,14 @@ class Tester(object):
                     '.mat',
                     'request.',
                     'status.',
+                    'dsmodel.c',
+                    'dymosim',
                     'tmp-*',
                     'funnel-comp',
                     'fmi-library',  # Not all of src is excluded as some .mo models link to files from src
                     'Documentation',
                     'ReferenceResults',
+                    'help',
                     'compareVars',
                     '__pychache__'))
         return
