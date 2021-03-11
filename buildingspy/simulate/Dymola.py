@@ -157,6 +157,11 @@ OutputCPUtime:=true;
             if 'numberOfIntervals' in self._simulator_:
                 intervals = ", numberOfIntervals={0}".format(
                     self._simulator_.get('numberOfIntervals'))
+
+            s += """
+            experimentSetupOutput(events=true, equidistant=true);\n
+            """
+
             s += """
 simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, method="{method}", tolerance={tolerance}, resultFile="{result_file}"{others});
 """.format(start_time=self._simulator_.get('t0'),
