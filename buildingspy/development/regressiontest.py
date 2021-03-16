@@ -1698,7 +1698,7 @@ class Tester(object):
                 # Now looking for the new variable group to be stored.
                 var_group = var_group_str + 1 + next(iv for iv, vl in enumerate(
                     self._data[data_idx]["ResultVariables"][(var_group_str + 1):]) if varNam in vl)
-                error = comp_tmp['errors'][var_idx]
+                error = comp_tmp['warnings'][var_idx]
                 t_err_max = comp_tmp['t_err_max'][var_idx]
                 self._update_comp_info(
                     idx,
