@@ -2140,8 +2140,10 @@ class Tester(object):
         # sort it, and compare the entries for equality
 
         def g(s): return s.replace(" ", "").split(",")
-        sp1 = sorted(g(x))
-        sp2 = sorted(g(y))
+        # Sort and remove 0, as we are not interested in these equations because
+        # they are solved explicitely
+        sp1 = [x for x in sorted(g(x)) if x != '0']
+        sp2 = [x for x in sorted(g(y)) if x != '0']
         # If the list have different lengths, they are not equal
         if len(sp1) != len(sp2):
             return False
