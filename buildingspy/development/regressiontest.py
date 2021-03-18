@@ -119,13 +119,15 @@ class Tester(object):
             tool to use for running the regression test with :func:`~buildingspy.development.Tester.run`.
     :param cleanup: Boolean (default ``True``). Specify whether to delete temporary directories.
     :param comp_tool: string (default ``'funnel'``). Specify the comparison tool (``'funnel'`` or ``'legacy'``).
+            The ``'legacy'`` option relies on an absolute tolerance in y. The ``'funnel'`` option
+            relies on absolute and relative tolerances in x and y. The relative tolerance is relative
+            to the range of the variable.
     :param tol: float or dict (default ``1E-3``). Comparison tolerance: if a float is provided, it is
-            considered as an absolute tolerance along y axis (and x axis if ``comp_tool=='funnel'``).
+            assigned to
+            - absolute tolerance along x and y,
+            - relative tolerance along y.
             If a dict is provided, keys must be ``'ax'`` and ``'ay'`` for absolute tolerance or
             ``'rx'`` and ``'ry'`` for relative tolerance.
-            Note that the comparison based on absolute tolerance is switched to a comparison
-            based on relative tolerance for time series with a high order of magnitude,
-            see the class attribute ``_switch_rtoly_funnel``.
     :param skip_verification: Boolean (default ``False``).
             If ``True``, unit test results are not verified against reference points.
 
@@ -296,9 +298,14 @@ class Tester(object):
 
         # Absolute (a) or relative (r) tolerance in x and y.
         self._tol = {}  # Keys: 'ax', 'ay', 'rx', 'ry'. Values: defaulting to None.
-        if isinstance(tol, numbers.Real):  # Considered as absolute tolerance value for x an y.
+        # If a float is provided, it is assigned to
+        # - absolute tolerance along x and y
+        # - relative tolerance along y.
+        # Then funnel uses max(ay, ry * range(y)) to compute the actual tolerance.
+        if isinstance(tol, numbers.Real):
             self._tol['ax'] = tol
             self._tol['ay'] = tol
+            self._tol['ry'] = tol
         elif isinstance(tol, dict):
             self._tol = tol
         else:
@@ -311,15 +318,6 @@ class Tester(object):
         if self._comp_tool == 'legacy' and self._tol['ay'] is None:
             raise ValueError(
                 'Using legacy comparison tool: absolute tolerance along y axis must be specified.')
-
-        # _switch_rtol_funnel: float or None. Threshold value (tested against the mean value
-        # of the time series) above which the comparison is based on a relative tolerance.
-        # Set to None to force a comparison based on absolute tolerance, whatever the order of magnitude.
-        # This logic is only implemented for `comp_tool == 'funnel'`.
-        if self._tol['ay'] is not None and self._tol['ay'] > 0:
-            self._switch_rtoly_funnel = (1 / self._tol['ay'])
-        else:
-            self._switch_rtoly_funnel = None
 
         # Data structures for storing comparison data.
         self._comp_info = []
@@ -1473,14 +1471,6 @@ class Tester(object):
         atoly = tol['ay']
         rtolx = tol['rx']
         rtoly = tol['ry']
-        # Switch to relative tolerance in y for time series with a high order of magnitude.
-        if self._switch_rtoly_funnel is not None and abs(np.mean(yNew)) > self._switch_rtoly_funnel:
-            rtoly = atoly**2
-            atoly = None
-            print(
-                'Due to the order of magnitude of the variable {} in the model {}, the comparison '
-                'against the reference results is performed with a relative tolerance equal to {}.\n'.format(
-                    varNam, model_name, rtoly))
 
         tmp_dir = tempfile.mkdtemp()
         log_stdout = io.StringIO()
