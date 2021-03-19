@@ -123,9 +123,7 @@ class Tester(object):
             relies on absolute and relative tolerances in x and y. The relative tolerance is relative
             to the range of the variable.
     :param tol: float or dict (default ``1E-3``). Comparison tolerance: if a float is provided, it is
-            assigned to
-            - absolute tolerance along x and y,
-            - relative tolerance along y.
+            assigned to the absolute and relative tolerance in both x and y.
             If a dict is provided, keys must be ``'ax'`` and ``'ay'`` for absolute tolerance or
             ``'rx'`` and ``'ry'`` for relative tolerance.
     :param skip_verification: Boolean (default ``False``).
@@ -297,27 +295,21 @@ class Tester(object):
         self._comp_tool = comp_tool
 
         # Absolute (a) or relative (r) tolerance in x and y.
-        self._tol = {}  # Keys: 'ax', 'ay', 'rx', 'ry'. Values: defaulting to None.
-        # If a float is provided, it is assigned to
-        # - absolute tolerance along x and y
-        # - relative tolerance along y.
-        # Then funnel uses max(ay, ry * range(y)) to compute the actual tolerance.
+        self._tol = {}  # Keys: 'ax', 'ay', 'rx', 'ry'. Values: defaulting to 0.
         if isinstance(tol, numbers.Real):
             self._tol['ax'] = tol
             self._tol['ay'] = tol
+            self._tol['rx'] = tol
             self._tol['ry'] = tol
         elif isinstance(tol, dict):
             self._tol = tol
         else:
-            raise TypeError('Parameter tol must be a number or a dict.')
-        for k in ['ax', 'ay', 'rx', 'ry']:  # Fill with None if undefined.
+            raise TypeError('Parameter `tol` must be a number or a dict.')
+        for k in ['ax', 'ay', 'rx', 'ry']:  # Default to 0 if undefined.
             try:
                 self._tol[k]
             except KeyError:
-                self._tol[k] = None
-        if self._comp_tool == 'legacy' and self._tol['ay'] is None:
-            raise ValueError(
-                'Using legacy comparison tool: absolute tolerance along y axis must be specified.')
+                self._tol[k] = 0
 
         # Data structures for storing comparison data.
         self._comp_info = []
@@ -1203,7 +1195,6 @@ class Tester(object):
                             if 'comment' in all_dat[self._modelica_tool]:
                                 msg = f"{msg} {all_dat[self._modelica_tool]['comment']}"
                             self._reporter.writeOutput(msg)
-                        # Check comparison data.
 
     def _checkDataDictionary(self):
         """ Check if the data used to run the regression tests do not have duplicate ``*.fmu`` files
@@ -1466,12 +1457,6 @@ class Tester(object):
         """Method calling funnel comparison tool."""
 
         t_err_max, warning = 0, None
-
-        atolx = tol['ax']
-        atoly = tol['ay']
-        rtolx = tol['rx']
-        rtoly = tol['ry']
-
         tmp_dir = tempfile.mkdtemp()
         log_stdout = io.StringIO()
         with _stdout_redirector(log_stdout):
@@ -1481,10 +1466,10 @@ class Tester(object):
                 xTest=tNew,
                 yTest=yNew,
                 outputDirectory=tmp_dir,
-                atolx=atolx,
-                atoly=atoly,
-                rtolx=rtolx,
-                rtoly=rtoly,
+                atolx=tol['ax'],
+                atoly=tol['ay'],
+                rtolx=tol['rx'],
+                rtoly=tol['ry'],
             )
         log_content = log_stdout.getvalue()
         log_content = re.sub(r'(^.*Warning:\s+)|(Error:\s+)', '', log_content)
@@ -1632,30 +1617,26 @@ class Tester(object):
                 raise ValueError(s)
 
         # Check if the first and last time stamp are equal
-        def test_equal_time(t1, t2, tol=1E-6):
-            """Test if time values are equal within a given tolerance."""
-            test_result = True
-            # The tolerance is considered absolute for time values close to zero.
-            if abs(t1) < tol or abs(t2) < tol:
-                if abs(t1 - t2) > tol:
-                    test_result = False
-            # Otherwise the tolerance is considered relative.
-            elif abs((t1 - t2) / max(t1, t2)) > tol:
-                test_result = False
-            return test_result
+        def test_equal_time(t1, t2, tol=self._tol):
+            """Test if start and stop time values are equal within a given tolerance.
 
-        if not test_equal_time(tOld[-1], tNew[-1]):
-            warning = (
-                "While processing file {} for variable {}: different end time between "
-                "reference and test data.\n"
-                "tNew = [{}, {}]\n"
-                "tOld = [{}, {}]\n").format(filNam, varNam, tNew[0], tNew[-1], tOld[0], tOld[-1])
-            test_passed = False
-            t_err_max = min(tOld[-1], tNew[-1])
-        else:  # Overwrite tOld with tNew to prevent any exception raised by the comparison tool.
-            tOld[-1] = tNew[-1]
+            `t1` and `t2` are array-like time values.
+            `tol` is a dict with (at least) keys 'ax' and 'rx'.
 
-        if not test_equal_time(tOld[0], tNew[0]):
+            Returns a tuple of Booleans for start and stop test results, respectively.
+            If start time values are close to 0, they are compared against tol['ax'].
+            Stop time values are compared against max(tol['ax'], tol['rx'] * abs(t1[-1] - t1[0])).
+            """
+            tol_actual = max(tol['ax'], tol['rx'] * abs(t1[-1] - t1[0]))
+            if abs(t1[0]) <= 1E-3:
+                test_start = abs(t1[0] - t2[0]) <= tol['ax']
+            else:
+                test_start = abs(t1[0] - t2[0]) <= tol_actual
+            test_stop = abs(t1[-1] - t2[-1]) <= tol_actual
+            return (test_start, test_stop)
+
+        are_times_equal = test_equal_time(tOld, tNew)
+        if not are_times_equal[0]:
             warning = (
                 "While processing file {} for variable {}: different start time between "
                 "reference and test data.\n"
@@ -1665,6 +1646,16 @@ class Tester(object):
             t_err_max = min(tOld[0], tNew[0])
         else:  # Overwrite tOld with tNew to prevent any exception raised by the comparison tool.
             tOld[0] = tNew[0]
+        if not are_times_equal[1]:
+            warning = (
+                "While processing file {} for variable {}: different end time between "
+                "reference and test data.\n"
+                "tNew = [{}, {}]\n"
+                "tOld = [{}, {}]\n").format(filNam, varNam, tNew[0], tNew[-1], tOld[0], tOld[-1])
+            test_passed = False
+            t_err_max = min(tOld[-1], tNew[-1])
+        else:  # Overwrite tOld with tNew to prevent any exception raised by the comparison tool.
+            tOld[-1] = tNew[-1]
 
         # The next test may be true if a simulation stopped with an error prior to
         # producing sufficient data points
