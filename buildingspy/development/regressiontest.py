@@ -1620,19 +1620,22 @@ class Tester(object):
         def test_equal_time(t1, t2, tol=self._tol):
             """Test if start and stop time values are equal within a given tolerance.
 
-            `t1` and `t2` are array-like time values.
-            `tol` is a dict with (at least) keys 'ax' and 'rx'.
+            t1 and t2 are array-like time values.
+            tol is a dict with (at least) keys 'ax' and 'rx'.
 
             Returns a tuple of Booleans for start and stop test results, respectively.
-            If start time values are close to 0, they are compared against tol['ax'].
-            Stop time values are compared against max(tol['ax'], tol['rx'] * abs(t1[-1] - t1[0])).
+            If time values are close to 0, they are compared against tol['ax'].
+            Otherwise they are compared against max(tol['ax'], tol['rx'] * abs(t1[-1] - t1[0])).
             """
             tol_actual = max(tol['ax'], tol['rx'] * abs(t1[-1] - t1[0]))
             if abs(t1[0]) <= 1E-3:
                 test_start = abs(t1[0] - t2[0]) <= tol['ax']
             else:
                 test_start = abs(t1[0] - t2[0]) <= tol_actual
-            test_stop = abs(t1[-1] - t2[-1]) <= tol_actual
+            if abs(t1[-1]) <= 1E-3:
+                test_stop = abs(t1[-1] - t2[-1]) <= tol['ax']
+            else:
+                test_stop = abs(t1[-1] - t2[-1]) <= tol_actual
             return (test_start, test_stop)
 
         are_times_equal = test_equal_time(tOld, tNew)
