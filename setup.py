@@ -41,7 +41,7 @@ setup(
         'scipy>=1.1',
         'simplejson>=3.14',
         'six>=1.11',
-        'pyfunnel>=0.2.2',
+        'pyfunnel @ git+ssh://git@github.com:lbl-srg/funnel.git@issue49_localTolerance#egg=pyfunnel',
     ],
     packages=[
         MAIN_PACKAGE,
