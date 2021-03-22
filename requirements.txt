@@ -7,7 +7,7 @@ gitpython==3.1.0; python_version>='3.6'
 pytidylib==0.3.2
 simplejson==3.17.0
 six==1.14.0
-git+ssh://git@github.com/lbl-srg/funnel@issue49_localTolerance#egg=pyfunnel
+git+https://github.com/lbl-srg/funnel@issue49_localTolerance#egg=pyfunnel
 
 # For documentation and testing.
 setuptools==46.0.0; python_version>='3.6'
