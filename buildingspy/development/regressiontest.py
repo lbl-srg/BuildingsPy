@@ -1691,7 +1691,7 @@ class Tester(object):
             try:  # In case an error has been raised before: no comparison performed.
                 error
             except NameError:
-                t_err_max, error = self.legacy_comp(
+                t_err_max, error = self._legacy_comp(
                     tOld, yOld, tNew, yNew, tGriOld, tGriNew, varNam, filNam, self._tol['ay'])
         else:
             idx = self._init_comp_info(model_name, filNam)
@@ -1726,7 +1726,7 @@ class Tester(object):
                     self._update_comp_info(
                         idx, varNam, None, test_passed, t_err_max, error, data_idx)
                 except NameError:
-                    t_err_max, error = self.funnel_comp(
+                    t_err_max, error = self._funnel_comp(
                         tOld, yOld, tNew, yNew, varNam, filNam, model_name, self._tol, data_idx)
 
         test_passed = True
