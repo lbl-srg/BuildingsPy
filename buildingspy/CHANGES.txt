@@ -4,6 +4,10 @@ BuildingsPy Changelog
 Version 2.2.0, xxx, 2020 -- Release 2.2
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 - xxx
+- For unit tests, ignore zero-size linear and nonlinear equations when comparing statistics
+  (https://github.com/lbl-srg/BuildingsPy/issues/406)
+- For unit tests, changed warning to an error if start or end times differ from reference results
+  (https://github.com/lbl-srg/BuildingsPy/issues/404)
 - Corrected timeout handling in buildingspy.simulate.base_simulator.py
   (https://github.com/lbl-srg/BuildingsPy/issues/385)
 - Corrected class name lookup mechanism in buildingspy.development.refactor.move_class()
