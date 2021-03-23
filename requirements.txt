@@ -1,5 +1,5 @@
 # Core.
-jinja2==2.11.1
+jinja2==2.11.3
 gitpython==3.1.0; python_version>='3.6'
 --only-binary matplotlib==3.2.0; python_version>='3.6'
 --only-binary numpy==1.18.1; python_version>='3.6'

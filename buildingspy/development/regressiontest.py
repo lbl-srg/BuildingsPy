@@ -1593,7 +1593,7 @@ class Tester(object):
         :param filNam: File name, used for reporting.
         :param model_name: Model name, used for reporting.
         :return: A list with ``False`` if the results are not equal, and the time
-                 of the maximum error, and a warning message or `None`.
+                 of the maximum error, and an error message or `None`.
                  In case of errors, the time of the maximum error may by `None`.
         """
         try:
@@ -1609,7 +1609,7 @@ class Tester(object):
             elif len(t) == nPoi:
                 return t
             else:
-                s = ("While processing file {} for variable {}: the new time grid has {} points "
+                s = ("While processing file {} for variable {}: The new time grid has {} points "
                      "but it must have 2 or {} points.\n"
                      "Stop processing.\n").format(
                     filNam,
@@ -1635,19 +1635,20 @@ class Tester(object):
             return res
 
         if not test_equal_time(tOld[0], tNew[0]):
-            warning = (
-                "While processing file {} for variable {}: different start time between "
+            error = (
+                "While processing file {} for variable {}: Different start time between "
                 "reference and test data.\n"
-                "tNew = [{}, {}]\n"
-                "tOld = [{}, {}]\n").format(filNam, varNam, tNew[0], tNew[-1], tOld[0], tOld[-1])
+                "Old reference points are for {} <= t <= {}\n"
+                "New reference points are for {} <= t <= {}\n").format(
+                    filNam, varNam, tOld[0], tOld[len(tOld) - 1], tNew[0], tNew[len(tNew) - 1])
             test_passed = False
             t_err_max = min(tOld[0], tNew[0])
         else:  # Overwrite tOld with tNew to prevent any exception raised by the comparison tool.
             tOld[0] = tNew[0]
 
         if not test_equal_time(tOld[-1], tNew[-1]):
-            warning = (
-                "While processing file {} for variable {}: different end time between "
+            error = (
+                "While processing file {} for variable {}: Different end time between "
                 "reference and test data.\n"
                 "tNew = [{}, {}]\n"
                 "tOld = [{}, {}]\n").format(filNam, varNam, tNew[0], tNew[-1], tOld[0], tOld[-1])
@@ -1659,8 +1660,8 @@ class Tester(object):
         # The next test may be true if a simulation stopped with an error prior to
         # producing sufficient data points
         if len(yNew) < len(yOld) and len(yNew) > 2:
-            warning = (
-                "While processing file {} for variable {}: fewer data points than reference results.\n"
+            error = (
+                "While processing file {} for variable {}: Fewer data points than reference results.\n"
                 "len(yOld) = {}\n"
                 "len(yNew) = {}\n"
                 "Skipping error checking for this variable.\n").format(
@@ -1687,10 +1688,10 @@ class Tester(object):
                 tOld = getTimeGrid(tOld, len(yOld))
 
         if self._comp_tool == 'legacy':
-            try:  # In case a warning has been raised before: no comparison performed.
-                warning
+            try:  # In case an error has been raised before: no comparison performed.
+                error
             except NameError:
-                t_err_max, warning = self._legacy_comp(
+                t_err_max, error = self.legacy_comp(
                     tOld, yOld, tNew, yNew, tGriOld, tGriNew, varNam, filNam, self._tol['ay'])
         else:
             idx = self._init_comp_info(model_name, filNam)
@@ -1709,7 +1710,7 @@ class Tester(object):
                 # Now looking for the new variable group to be stored.
                 var_group = var_group_str + 1 + next(iv for iv, vl in enumerate(
                     self._data[data_idx]["ResultVariables"][(var_group_str + 1):]) if varNam in vl)
-                warning = comp_tmp['warnings'][var_idx]
+                error = comp_tmp['warnings'][var_idx]
                 t_err_max = comp_tmp['t_err_max'][var_idx]
                 self._update_comp_info(
                     idx,
@@ -1717,22 +1718,22 @@ class Tester(object):
                     fun_dir,
                     test_passed,
                     t_err_max,
-                    warning,
+                    error,
                     data_idx,
                     var_group)
             except (ValueError, StopIteration):
-                try:  # In case a warning has been raised before: no comparison performed.
+                try:  # In case an error has been raised before: no comparison performed.
                     self._update_comp_info(
-                        idx, varNam, None, test_passed, t_err_max, warning, data_idx)
+                        idx, varNam, None, test_passed, t_err_max, error, data_idx)
                 except NameError:
-                    t_err_max, warning = self._funnel_comp(
+                    t_err_max, error = self.funnel_comp(
                         tOld, yOld, tNew, yNew, varNam, filNam, model_name, self._tol, data_idx)
 
         test_passed = True
-        if warning is not None:
+        if error is not None:
             test_passed = False
 
-        return (test_passed, t_err_max, warning)
+        return (test_passed, t_err_max, error)
 
     def _isParameter(self, dataSeries):
         """ Return `True` if `dataSeries` is from a parameter.
@@ -1995,18 +1996,18 @@ class Tester(object):
                             t = t_sim
 
                         # Compare times series.
-                        (res, timMaxErr, warning) = self.areResultsEqual(
+                        (res, timMaxErr, error) = self.areResultsEqual(
                             t_ref, y_ref[varNam], t, pai[varNam], varNam, data_idx
                         )
 
-                        if warning:
-                            self._reporter.writeWarning(warning)
+                        if error:
+                            self._reporter.writeError(error)
                         if not res:
                             foundError = True
                             timOfMaxErr[varNam] = timMaxErr
                     else:
                         # There is no old data series for this variable name
-                        self._reporter.writeWarning(
+                        self._reporter.writeError(
                             "{}: Did not find variable {} in old results.".format(
                                 refFilNam, varNam))
                         foundError = True
@@ -2164,8 +2165,10 @@ class Tester(object):
         # sort it, and compare the entries for equality
 
         def g(s): return s.replace(" ", "").split(",")
-        sp1 = sorted(g(x))
-        sp2 = sorted(g(y))
+        # Sort and remove 0, as we are not interested in these equations because
+        # they are solved explicitely
+        sp1 = [x for x in sorted(g(x)) if x != '0']
+        sp2 = [x for x in sorted(g(y)) if x != '0']
         # If the list have different lengths, they are not equal
         if len(sp1) != len(sp2):
             return False
