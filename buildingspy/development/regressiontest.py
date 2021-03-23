@@ -2880,7 +2880,8 @@ class Tester(object):
                     else:
                         runFil.write('Advanced.PedanticModelica = false;\n')
                     # Flag that can change the simulation statistics
-                    runFil.write('orig_Advanced_GenerateVariableDependencies = Advanced.GenerateVariableDependencies;\n')
+                    runFil.write(
+                        'orig_Advanced_GenerateVariableDependencies = Advanced.GenerateVariableDependencies;\n')
                     runFil.write('Advanced.GenerateVariableDependencies = false;\n')
                     # Deactivate DDE
                     if platform.system() == "Windows":
@@ -3163,7 +3164,8 @@ class Tester(object):
                     runFil.write('    sett[{}] = DDE_orig;\n'.format(posDDE))
                     runFil.write('    SetDymolaCompiler(comp, sett);\n')
                 # Reset Advanced flag
-                runFil.write('Advanced.GenerateVariableDependencies = orig_Advanced_GenerateVariableDependencies;\n')
+                runFil.write(
+                    'Advanced.GenerateVariableDependencies = orig_Advanced_GenerateVariableDependencies;\n')
                 runFil.write("exit();\n")
                 runFil.close()
             ###################################################################################
