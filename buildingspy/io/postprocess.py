@@ -143,11 +143,11 @@ class Plotter(object):
         :param increment: The time increment that is used in the plot
         :param nIncrement: The number of increments before the data are wrapped.
         :return: This method returns a
-                 `matplotlib.pyplot <https://matplotlib.org/api/pyplot_api.html>`_ object that can be further
+                 `matplotlib.pyplot <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.html>`_ object that can be further
                  processed, such as to label its axis.
 
         All other arguments are as explained at `matplotlib's boxplot documentation
-        <https://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.boxplot>`_.
+        <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.boxplot.html>`_.
 
         The parameter ``increment`` is used to set the support points in time
         at which the statistics is made.

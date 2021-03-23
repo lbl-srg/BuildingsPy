@@ -192,7 +192,9 @@ class Test_regressiontest_Tester(unittest.TestCase):
         # 1, 2 is equal to 2, 1
         self.assertTrue(rt.are_statistics_equal("1, 2", "2, 1"))
         self.assertTrue(rt.are_statistics_equal("1, 40, 2", "2, 1, 40"))
-        self.assertFalse(rt.are_statistics_equal("1, 40", "1, 40, 0"))
+        # Zeros are ignored
+        self.assertTrue(rt.are_statistics_equal("1, 40", "1, 40, 0"))
+        self.assertTrue(rt.are_statistics_equal("1, 0, 0, 40", "1, 40, 0"))
 
     def test_format_float(self):
         import buildingspy.development.regressiontest as r
