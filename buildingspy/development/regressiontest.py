@@ -1468,8 +1468,8 @@ class Tester(object):
                 outputDirectory=tmp_dir,
                 atolx=tol['ax'],
                 atoly=tol['ay'],
-                atolx=tol['lx'],
-                atoly=tol['ly'],
+                ltolx=tol['lx'],
+                ltoly=tol['ly'],
                 rtolx=tol['rx'],
                 rtoly=tol['ry'],
             )
