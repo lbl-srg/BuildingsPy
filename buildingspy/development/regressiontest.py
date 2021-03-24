@@ -2538,7 +2538,7 @@ class Tester(object):
                         get_user_prompt = False
 
                 except UnicodeDecodeError as e:
-                    em = "UnicodeDecodeError: {1}".format(e)
+                    em = "UnicodeDecodeError: {0}".format(e)
                     em += "Output file of " + data['ScriptFile'] + " is excluded from unit tests.\n"
                     em += "The model appears to contain a non-asci character\n"
                     em += "in the comment of a variable, parameter or constant.\n"
