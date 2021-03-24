@@ -112,18 +112,19 @@ class Tester(object):
 
     Initiate with the following optional arguments:
 
-    :param check_html: bool (default=True). Specify whether to load tidylib and
-        perform validation of html documentation
-    :param tool: {``dymola``, ``omc``, ``optimica``, ``jmodelica``}.
-        Default is ``dymola``, specifies the
-        tool to use for running the regression test with :func:`~buildingspy.development.Tester.run`.
-    :param cleanup: bool (default=True).  Specify whether to delete temporary directories.
-    :param comp_tool: string (default='funnel'). Specify the comparison tool ('funnel' or 'legacy').
-    :param tol: float or dict (default=1E-3). Comparison tolerance: if a float is provided, it is
-        considered as an absolute tolerance along y axis (and x axis if comp_tool='funnel'). If a dict
-        is provided, keys must be ('ax', 'ay') for absolute tolerance or ('rx', 'ry') for relative tolerance.
-    :param skip_verification: boolean (default ``False``).
-       If ``True``, unit test results are not verified against reference points.
+    :param check_html: Boolean (default ``True``). Specify whether to load tidylib and
+            perform validation of html documentation.
+    :param tool: string {``'dymola'``, ``'omc'``, ``'optimica'``, ``'jmodelica'``}.
+            Default is ``'dymola'``, specifies the
+            tool to use for running the regression test with :func:`~buildingspy.development.Tester.run`.
+    :param cleanup: Boolean (default ``True``). Specify whether to delete temporary directories.
+    :param tol: float or dict (default=1E-3). Comparison tolerance
+            If a float is provided, it is assigned to the absolute tolerance along x axis and to the
+            absolute and relative tolerance along y axis.
+            (If ``comp_tool='legacy'``, only the absolute tolerance in y is used.)
+            If a dict is provided, keys must conform with ``pyfunnel.compareAndReport`` arguments.
+    :param skip_verification: Boolean (default ``False``).
+            If ``True``, unit test results are not verified against reference points.
 
     This class can be used to run all regression tests.
 
@@ -290,24 +291,21 @@ class Tester(object):
         # Comparison tool.
         self._comp_tool = comp_tool
 
-        # Absolute (a) or relative (r) tolerance in x and y: scalar or dict.
-        self._tol = {}
-        if isinstance(
-                tol, numbers.Real):  # if scalar, considered as absolute tolerance value for x an y
+        # Absolute (a) or relative (r) tolerance in x and y.
+        self._tol = {}  # Keys: 'ax', 'ay', 'lx', 'ly', 'rx', 'ry'. Values: defaulting to 0.
+        if isinstance(tol, numbers.Real):
             self._tol['ax'] = tol
             self._tol['ay'] = tol
+            self._tol['ly'] = tol
         elif isinstance(tol, dict):
             self._tol = tol
         else:
-            raise TypeError('Parameter tol must be a number or a dict.')
-        for k in ['ax', 'ay', 'rx', 'ry']:  # fill with None if undefined
+            raise TypeError('Parameter `tol` must be a number or a dict.')
+        for k in ['ax', 'ay', 'lx', 'ly', 'rx', 'ry']:
             try:
                 self._tol[k]
             except KeyError:
-                self._tol[k] = None
-        if self._comp_tool == 'legacy' and self._tol['ay'] is None:
-            raise ValueError(
-                'Using legacy comparison tool: absolute tolerance along y axis must be specified.')
+                self._tol[k] = 0
 
         # Data structures for storing comparison data.
         self._comp_info = []
@@ -956,7 +954,7 @@ class Tester(object):
                     # Hence, write warning if a file is equal or longer than 140-9=131 characters.
                     if len(dat['ScriptFile']) >= 131:
                         self._reporter.writeError(
-                            """File {} is too long. Reduce it to maximum of 130 characters.""".format(
+                            """File {} is {}-character long. Reduce it to maximum of 130 characters.""".format(
                                 dat['ScriptFile'], len(
                                     dat['ScriptFile'])))
                     # _check_reference_result_file_name(dat['ScriptFile'])
@@ -1158,31 +1156,29 @@ class Tester(object):
 
             # Add model specific data
             for con_dat in conf_data:
-                #                pattern = re.compile(con_dat['model_name'])
                 for all_dat in self._data:
-                    #                    if pattern.match(all_dat['model_name']) is not None:
                     if con_dat['model_name'] == all_dat['model_name']:
                         # Add all elements of the configuration data
                         for key in con_dat.keys():
                             # Have dictionary in dictionary
                             if key == self._modelica_tool:
-                                for key in con_dat[self._modelica_tool]:
-                                    val = con_dat[self._modelica_tool][key]
-                                    if key == 'translate':
-                                        all_dat[self._modelica_tool][key] = val
+                                for k in con_dat[key]:
+                                    val = con_dat[key][k]
+                                    if k == 'translate':
+                                        all_dat[key][k] = val
                                         # Write a warning if a model is not translated
                                         if not val:
                                             # Set simulate to false as well as it can't be simulated
                                             # if not translated
-                                            all_dat[self._modelica_tool]['simulate'] = False
-                                    elif key == 'simulate':
-                                        all_dat[self._modelica_tool][key] = val
+                                            all_dat[key]['simulate'] = False
+                                    elif k == 'simulate':
+                                        all_dat[key][k] = val
                                         # Write a warning if a model is not simulated
                                         if not val:
                                             # Reset plot variables
                                             all_dat['ResultVariables'] = []
                                     else:
-                                        all_dat[self._modelica_tool][key] = val
+                                        all_dat[self._modelica_tool][k] = val
                             else:
                                 all_dat[key] = con_dat[key]
                         # Write warning if this model should not be translated or simulated.
@@ -1350,7 +1346,7 @@ class Tester(object):
                                  self.getLibraryName(), data['TranslationLogFile'])
         return of.get_model_statistics(fulFilNam, self._modelica_tool)
 
-    def legacy_comp(self, tOld, yOld, tNew, yNew, tGriOld, tGriNew, varNam, filNam, tol):
+    def _legacy_comp(self, tOld, yOld, tNew, yNew, tGriOld, tGriNew, varNam, filNam, tol):
         # Interpolate the new variables to the old time stamps
         #
         if len(yNew) > 2:
@@ -1442,7 +1438,7 @@ class Tester(object):
 
         return (t_err_max, warning)
 
-    def funnel_comp(
+    def _funnel_comp(
             self,
             tOld,
             yOld,
@@ -1454,8 +1450,9 @@ class Tester(object):
             tol,
             data_idx,
             keep_dir=True):
-        t_err_max, warning = 0, None
+        """Method calling funnel comparison tool."""
 
+        t_err_max, warning = 0, None
         tmp_dir = tempfile.mkdtemp()
         log_stdout = io.StringIO()
         with _stdout_redirector(log_stdout):
@@ -1467,6 +1464,8 @@ class Tester(object):
                 outputDirectory=tmp_dir,
                 atolx=tol['ax'],
                 atoly=tol['ay'],
+                ltolx=tol['lx'],
+                ltoly=tol['ly'],
                 rtolx=tol['rx'],
                 rtoly=tol['ry'],
             )
@@ -1590,7 +1589,7 @@ class Tester(object):
         :param filNam: File name, used for reporting.
         :param model_name: Model name, used for reporting.
         :return: A list with ``False`` if the results are not equal, and the time
-                 of the maximum error, and a error message or `None`.
+                 of the maximum error, and an error message or `None`.
                  In case of errors, the time of the maximum error may by `None`.
         """
         try:
@@ -1616,18 +1615,34 @@ class Tester(object):
                 raise ValueError(s)
 
         # Check if the first and last time stamp are equal
-        tolTim = 1E-3  # Tolerance for time
-        if (abs(tOld[0] - tNew[0]) > tolTim) or abs(tOld[-1] - tNew[-1]) > tolTim:
+        def test_equal_time(t1, t2, tol=1E-6):
+            """Test if time values are equal within a given tolerance.
+
+            t1, t2 and tol are floats.
+
+            Returns Boolean value equal to test result.
+            If t1 is close to 0, the tolerance is considered as absolute.
+            Otherwise, the tolerance is considered as relative to abs(t1).
+            """
+            if abs(t1) <= tol:
+                res = abs(t1 - t2) <= tol
+            else:
+                res = abs(t1 - t2) <= tol * abs(t1)
+            return res
+
+        if not test_equal_time(tOld[0], tNew[0]):
             error = (
-                "While processing file {} for variable {}: Different simulation time interval between "
+                "While processing file {} for variable {}: Different start time between "
                 "reference and test data.\n"
                 "Old reference points are for {} <= t <= {}\n"
                 "New reference points are for {} <= t <= {}\n").format(
                     filNam, varNam, tOld[0], tOld[len(tOld) - 1], tNew[0], tNew[len(tNew) - 1])
             test_passed = False
-            t_err_max = None
+            t_err_max = min(tOld[0], tNew[0])
+        else:  # Overwrite tOld with tNew to prevent any exception raised by the comparison tool.
+            tOld[0] = tNew[0]
 
-        if (abs(tOld[-1] - tNew[-1]) > 1E-5):
+        if not test_equal_time(tOld[-1], tNew[-1]):
             error = (
                 "While processing file {} for variable {}: Different end time between "
                 "reference and test data.\n"
@@ -1635,15 +1650,8 @@ class Tester(object):
                 "tOld = [{}, {}]\n").format(filNam, varNam, tNew[0], tNew[-1], tOld[0], tOld[-1])
             test_passed = False
             t_err_max = min(tOld[-1], tNew[-1])
-
-        if (abs(tOld[0] - tNew[0]) > 1E-5):
-            error = (
-                "While processing file {} for variable {}: Different start time between "
-                "reference and test data.\n"
-                "tNew = [{}, {}]\n"
-                "tOld = [{}, {}]\n").format(filNam, varNam, tNew[0], tNew[-1], tOld[0], tOld[-1])
-            test_passed = False
-            t_err_max = min(tOld[0], tNew[0])
+        else:  # Overwrite tOld with tNew to prevent any exception raised by the comparison tool.
+            tOld[-1] = tNew[-1]
 
         # The next test may be true if a simulation stopped with an error prior to
         # producing sufficient data points
@@ -1676,17 +1684,17 @@ class Tester(object):
                 tOld = getTimeGrid(tOld, len(yOld))
 
         if self._comp_tool == 'legacy':
-            try:  # In case a error has been raised before: no comparison performed.
+            try:  # In case an error has been raised before: no comparison performed.
                 error
             except NameError:
-                t_err_max, error = self.legacy_comp(
+                t_err_max, error = self._legacy_comp(
                     tOld, yOld, tNew, yNew, tGriOld, tGriNew, varNam, filNam, self._tol['ay'])
         else:
             idx = self._init_comp_info(model_name, filNam)
             comp_tmp = self._comp_info[idx]['comparison']
             try:
-                # Check if the variable has already been tested. (This might happen if the variable is used in several
-                # subplots of different plots.)
+                # Check if the variable has already been tested.
+                # (This might happen if the variable is used in different plots.)
                 # In this case we do not want to perform the comparison again but we still want the variable to be
                 # plotted several times as it was originally intended: update _comp_info
                 # with stored data.
@@ -1710,11 +1718,11 @@ class Tester(object):
                     data_idx,
                     var_group)
             except (ValueError, StopIteration):
-                try:  # In case a error has been raised before: no comparison performed.
+                try:  # In case an error has been raised before: no comparison performed.
                     self._update_comp_info(
                         idx, varNam, None, test_passed, t_err_max, error, data_idx)
                 except NameError:
-                    t_err_max, error = self.funnel_comp(
+                    t_err_max, error = self._funnel_comp(
                         tOld, yOld, tNew, yNew, varNam, filNam, model_name, self._tol, data_idx)
 
         test_passed = True
@@ -2025,9 +2033,9 @@ class Tester(object):
 
             if self._comp_tool == 'legacy':
                 print("(Close plot window to continue.)")
-                self.legacy_plot(y_sim, t_ref, y_ref, noOldResults, timOfMaxErr, matFilNam)
+                self._legacy_plot(y_sim, t_ref, y_ref, noOldResults, timOfMaxErr, matFilNam)
             else:
-                self.funnel_plot(model_name)
+                self._funnel_plot(model_name)
 
             while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
                 ans = input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
@@ -2038,25 +2046,34 @@ class Tester(object):
 
         return (updateReferenceData, foundError, ans)
 
-    def funnel_plot(self, model_name, browser=None):
+    def _funnel_plot(self, model_name, browser=None):
+        """Plot comparison results generated by pyfunnel."""
+
         idx = next(i for i, el in enumerate(self._comp_info) if el['model'] == model_name)
         comp_data = self._comp_info[idx]['comparison']
         dict_var_info = defaultdict(list)
-        list_files = []
         for iv, v in enumerate(comp_data['variables']):
             dict_var_info[v].append({'group': comp_data['var_groups'][iv],
                                      'dir': comp_data['funnel_dirs'][iv]})
-        for d in dict_var_info.values():  # performed outside previous iteration for right order
-            for el in ['reference.csv', 'test.csv', 'errors.csv']:
-                # d3.js will only load first element
-                list_files.append('{}/{}'.format(d[0]['dir'], el))
-        # Custom the plot.
+        # Build a list of files to use for testing server request in pyfunnel.
+        # We check whether these files are available in the file system.
+        list_files = []
+        for d in dict_var_info.values():
+            if d[0]['dir'] is not None:
+                for el in ['reference.csv', 'test.csv', 'errors.csv']:
+                    file_path = os.path.join(d[0]['dir'], el)
+                    if os.path.isfile(file_path):
+                        list_files.append(file_path)
+        # If no comparison results available in the file system, no plot.
+        if len(list_files) == 0:
+            return
+        # Customize the plot.
         plot_title = comp_data['file_name']
         max_plot_per100 = 4
         height = 100 * \
             (1 + max(0, max(comp_data['var_groups']) - max_plot_per100) / max_plot_per100)
         err_plot_height = 0.18 * 100 / height
-
+        # Populate the plot template.
         with open(self._PLOT_TEMPLATE, 'r') as f:
             template = f.read()
         content = re.sub(r'\$PAGE_TITLE', plot_title, template)
@@ -2064,11 +2081,15 @@ class Tester(object):
         content = re.sub(r'\$DICT_VAR_INFO', json.dumps(dict_var_info), content)
         content = re.sub(r'\$HEIGHT', '{}%'.format(height), content)
         content = re.sub(r'\$ERR_PLOT_HEIGHT', str(err_plot_height), content)
+        # Launch the local server.
         server = pyfunnel.MyHTTPServer(('', 0), pyfunnel.CORSRequestHandler,
                                        str_html=content, url_html='funnel')
+        # Start the browser instance.
         server.browse(list_files, browser=browser)
 
-    def legacy_plot(self, y_sim, t_ref, y_ref, noOldResults, timOfMaxErr, matFilNam):
+    def _legacy_plot(self, y_sim, t_ref, y_ref, noOldResults, timOfMaxErr, matFilNam):
+        """Plot comparison results generated by legacy comparison algorithm."""
+
         nPlo = len(y_sim)
         iPlo = 0
         plt.clf()
@@ -2273,7 +2294,7 @@ class Tester(object):
                         retVal = 1
 
                 except UnicodeDecodeError as e:
-                    em = "UnicodeDecodeError({0}): {1}.\n".format(e.errno, e)
+                    em = "UnicodeDecodeError: {}.\n".format(e)
                     em += "Output file of " + data['ScriptFile'] + " is excluded from unit tests.\n"
                     em += "The model appears to contain a non-asci character\n"
                     em += "in the comment of a variable, parameter or constant.\n"
@@ -2517,7 +2538,7 @@ class Tester(object):
                         get_user_prompt = False
 
                 except UnicodeDecodeError as e:
-                    em = "UnicodeDecodeError({0}): {1}".format(e.errno, e)
+                    em = "UnicodeDecodeError: {0}".format(e)
                     em += "Output file of " + data['ScriptFile'] + " is excluded from unit tests.\n"
                     em += "The model appears to contain a non-asci character\n"
                     em += "in the comment of a variable, parameter or constant.\n"
@@ -2545,8 +2566,8 @@ class Tester(object):
                             for pai in y_sim:
                                 t_ref = pai["time"]
                                 noOldResults = noOldResults + list(pai.keys())
-                            self.legacy_plot(y_sim, t_ref, {}, noOldResults, dict(),
-                                             "New results: " + data['ScriptFile'])
+                            self._legacy_plot(y_sim, t_ref, {}, noOldResults, dict(),
+                                              "New results: " + data['ScriptFile'])
                             # Reference file does not exist
                             print(
                                 "*** Warning: Reference file {} does not yet exist.".format(refFilNam))
