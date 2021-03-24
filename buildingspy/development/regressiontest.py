@@ -123,10 +123,6 @@ class Tester(object):
             absolute and relative tolerance along y axis.
             (If ``comp_tool='legacy'``, only the absolute tolerance in y is used.)
             If a dict is provided, keys must conform with ``pyfunnel.compareAndReport`` arguments.
-    :param tol: float or dict (default ``1E-3``). Comparison tolerance: if a float is provided, it is
-            assigned to the absolute and relative tolerance in both x and y.
-            If a dict is provided, keys must be ``'ax'`` and ``'ay'`` for absolute tolerance or
-            ``'rx'`` and ``'ry'`` for relative tolerance.
     :param skip_verification: Boolean (default ``False``).
             If ``True``, unit test results are not verified against reference points.
 
