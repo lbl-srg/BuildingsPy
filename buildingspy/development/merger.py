@@ -115,26 +115,32 @@ class IBPSA(object):
                         "Buildings.HeatTransfer.Sources.FixedTemperature"})
             # The merge script updates a few names that have IBPSA in it but
             # that should not be updated. Here, we revert this renaming.
-        rep[self._src_library_name] = self._new_library_name
+        #rep[self._src_library_name] = self._new_library_name
         rep.update({"{} Conference".format(self._new_library_name):
                     "IBPSA Conference",
                     "2013-{}-Wetter.pdf".format(self._new_library_name):
                     "2013-IBPSA-Wetter.pdf"})
-        self._copy_rename(source_file, destination_file, rep)
+        self._copy_rename("IBPSA", self._new_library_name, source_file, destination_file, rep)
 
-    def _copy_rename(self, src, des, rep):
+    def _copy_rename(self, src_library, des_library, src, des, rep):
         """ Read source file `src` and write to destination file `des` with the dictionary entries replaced in the new content of the new file.
 
+            :param src_library: Name of the source library.
+            :param des_library: Name of the destination library.
             :param src: Name of the source file.
             :param des: Name of the destination file.
             :param rep: Dictionary where each key is the string to be replaced in the new file with its value.
         """
         from collections import OrderedDict
+        import re
 
         lines = list()
         try:
             with open(src, mode="r", encoding="utf-8") as f_sou:
                 for _, lin in enumerate(f_sou):
+                    # Don't replace IBPSA if it is part of 'digit''digit'\"> as in
+                    # <a href=\"https://github.com/ibpsa/modelica-ibpsa/issues/1454\">IBPSA, #1454</a>.
+                    lin = re.sub(r"(?<!(\d\d\\\">))({src_lib})".format(src_lib=src_library), des_library, lin)
                     for ori, new in list(rep.items()):
                         lin = lin.replace(ori, new)
                     lines.append(lin)
