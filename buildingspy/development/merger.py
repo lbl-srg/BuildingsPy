@@ -140,7 +140,9 @@ class IBPSA(object):
                 for _, lin in enumerate(f_sou):
                     # Don't replace IBPSA if it is part of 'digit''digit'\"> as in
                     # <a href=\"https://github.com/ibpsa/modelica-ibpsa/issues/1454\">IBPSA, #1454</a>.
-                    lin = re.sub(r"(?<!(\d\d\\\">))({src_lib})".format(src_lib=src_library), des_library, lin)
+                    lin = re.sub(
+                        r"(?<!(\d\d\\\">))({src_lib})".format(
+                            src_lib=src_library), des_library, lin)
                     for ori, new in list(rep.items()):
                         lin = lin.replace(ori, new)
                     lines.append(lin)
