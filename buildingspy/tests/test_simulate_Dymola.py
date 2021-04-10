@@ -73,6 +73,13 @@ class Test_simulate_Simulator(unittest.TestCase):
                 outputDirectory=".",
                 packagePath="THIS IS NOT A VALID PACKAGE PATH")
 
+    def test_translate(self):
+        """
+        Tests the various add methods.
+        """
+        s = Simulator("MyModelicaLibrary.MyModel", packagePath=self._packagePath)
+        s.translate()
+
     def test_addMethods(self):
         """
         Tests the various add methods.

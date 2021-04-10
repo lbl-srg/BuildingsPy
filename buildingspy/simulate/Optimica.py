@@ -169,6 +169,8 @@ class Simulator(bs._BaseSimulator):
     def _translate_and_simulate(self, simulate):
         """ Translates and optionally simulates the model.
 
+        :param simulate: If ``true`` the model is simulated, otherwise it is only translated.
+
         This method
           1. Deletes output files
           2. Writes a script to simulate the model.
@@ -244,18 +246,19 @@ class Simulator(bs._BaseSimulator):
                                    self._simulator_.get('timeout'),
                                    worDir)
 
-            self._check_simulation_errors(worDir)
+            self._check_simulation_errors(worDir=worDir, simulate=simulate)
 # self._copyNewFiles(worDir)
 # self._deleteTemporaryDirectory(worDir)
 
         except Exception as e:  # Catch all possible exceptions
             em = f"Simulation failed in '{worDir}'\n   Exception: {e}.\n   You need to delete the directory manually.\n"
             self._reporter.writeError(em)
+            raise
 
     def setResultFilter(self, filter):
         """ Specifies a list of variables that should be stored in the result file.
 
-        :param: A list of variables that should be stored in the result file.
+        :param filter: A list of variables that should be stored in the result file.
 
         Usage: To list only the variables of the instance `myStep.source`, type
 
@@ -337,8 +340,13 @@ class Simulator(bs._BaseSimulator):
         self.generateSolverDiagnostics(True)
         self._debug_solver_interactive_mode = True
 
-    def _check_simulation_errors(self, worDir):
+    def _check_simulation_errors(self, worDir, simulate):
         """ Method that checks if errors occured during simulation.
+
+        :param worDir: Working directory.
+        :param simulate: If ``true`` the model is supposed to have been simulated,
+            and errors are checked also for simulation. Otherwise, errors are only checked
+            for translation.
         """
         import os
         import json
@@ -353,15 +361,16 @@ class Simulator(bs._BaseSimulator):
 
         with open(path_to_logfile, 'r') as f:
             js = json.loads(f.read())
-            for step in ['translation', 'simulation']:
+            steps = ['translation', 'simulation'] if simulate else ['translation']
+            for step in steps:
                 if step not in js:
                     msg = f"Failed to invoke {step} for model {self.modelName}. Check {logFil}."
                     self._reporter.writeError(msg)
-                    return
+                    raise RuntimeError(msg)
                 if js[step]['success'] is not True:
                     msg = f"The {step} of {self.modelName} failed. Check {logFil}."
                     self._reporter.writeError(msg)
-                    return
+                    raise RuntimeError(msg)
         return
 
 # Classes that are inherited. These are listed here

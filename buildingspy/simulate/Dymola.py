@@ -292,6 +292,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         except Exception as e:  # Catch all possible exceptions
             em = f"Simulation failed in '{worDir}'\n   Exception: {e}.\n   You need to delete the directory manually.\n"
             self._reporter.writeError(em)
+            raise
 
     def translate(self):
         """Translates the model.
