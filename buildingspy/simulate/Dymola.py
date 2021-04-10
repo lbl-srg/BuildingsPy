@@ -220,7 +220,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
     def addModelModifier(self, modelModifier):
         """Adds a model modifier.
 
-        :param dictionary: A model modifier.
+        :param modelModifier: A model modifier.
 
         Usage: Type
            >>> from buildingspy.simulate.Dymola import Simulator

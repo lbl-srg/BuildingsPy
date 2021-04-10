@@ -106,7 +106,7 @@ class Simulator(bs._BaseSimulator):
     def addModelModifier(self, modelModifier):
         """Adds a model modifier.
 
-        :param dictionary: A model modifier.
+        :param modelModifier: A model modifier.
 
         Usage: Type
            >>> from buildingspy.simulate.Optimica import Simulator
