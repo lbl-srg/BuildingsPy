@@ -247,7 +247,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
           5. Closes the Modelica simulation environment.
 
         This method requires that the directory that contains the executable ``dymola``
-        is on the system PATH variable. If it is not found, the function returns with
+        is on the system ``PATH`` variable. If it is not found, the function returns with
         an error message.
 
         """
@@ -305,7 +305,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
           5. Closes the Modelica simulation environment.
 
         This method requires that the directory that contains the executable ``dymola``
-        is on the system PATH variable. If it is not found, the function returns with
+        is on the system ``PATH`` variable. If it is not found, the function returns with
         an error message.
 
         """

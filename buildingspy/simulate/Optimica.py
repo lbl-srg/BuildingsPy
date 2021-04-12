@@ -138,7 +138,7 @@ class Simulator(bs._BaseSimulator):
           5. Closes the Modelica simulation environment.
 
         This method requires that the directory that contains the executable ``jm_ipython.sh``
-        is on the system PATH variable. If it is not found, the function returns with
+        is on the system ``PATH`` variable. If it is not found, the function returns with
         an error message.
 
         """
@@ -160,7 +160,7 @@ class Simulator(bs._BaseSimulator):
           5. Closes the Modelica simulation environment.
 
         This method requires that the directory that contains the executable ``jm_ipython.sh``
-        is on the system PATH variable. If it is not found, the function returns with
+        is on the system ``PATH`` variable. If it is not found, the function returns with
         an error message.
 
         """
@@ -179,7 +179,7 @@ class Simulator(bs._BaseSimulator):
           5. Closes the Modelica simulation environment.
 
         This method requires that the directory that contains the executable ``jm_ipython.sh``
-        is on the system PATH variable. If it is not found, the function returns with
+        is on the system ``PATH`` variable. If it is not found, the function returns with
         an error message.
 
         """
