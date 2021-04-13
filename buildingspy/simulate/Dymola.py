@@ -69,7 +69,7 @@ class Simulator(bs._BaseSimulator):
 
         Usage: Type
            >>> from buildingspy.simulate.Dymola import Simulator
-           >>> s=Simulator("myPackage.myModel", "dymola", packagePath="buildingspy/tests/MyModelicaLibrary")
+           >>> s=Simulator("myPackage.myModel", packagePath="buildingspy/tests/MyModelicaLibrary")
            >>> s.addPreProcessingStatement("Advanced.StoreProtectedVariables:= true;")
            >>> s.addPreProcessingStatement("Advanced.GenerateTimers = true;")
 
