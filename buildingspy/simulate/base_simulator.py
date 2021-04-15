@@ -436,36 +436,35 @@ class _BaseSimulator(object):
                                                       directory + ".")
                             pro.kill()
                             killedProcess = True
-                    raise TimeoutError(f"Timeout of {timeout} seconds exceeded.")
+                    em = f"Process timeout: terminated process as it computed longer than {str(timeout)} seconds."
+                    self._reporter.writeError(em)
+                    pro.stdout.close()
+                    pro.stderr.close()
+                    raise TimeoutError(em)
             else:
                 if self._showProgressBar:
                     fractionComplete = float(elapsedTime) / float(timeout)
                     self._printProgressBar(fractionComplete)
 
             # This output is needed because of the progress bar
-            if self._showProgressBar and not terminatedProcess:
+            if self._showProgressBar:
                 sys.stdout.write("\n")
 
-            if (not terminatedProcess) and (not killedProcess):
-                std_out = pro.stdout.read()
-                if len(std_out) > 0:
+            std_out = pro.stdout.read()
+            if len(std_out) > 0:
+                self._reporter.writeOutput(
+                    f"*** Standard output stream from simulation:\n{std_out}")
+            std_err = pro.stderr.read()
+            if len(std_err) > 0:
+                if pro.returncode != 0:
+                    self._reporter.writeError(
+                        f"*** Standard error stream from simulation:\n{std_err}")
+                else:
+                    # Optimica writes warnings such as missing IPOPT installation to stderr,
+                    # but in this situation we want to continue unless it returns a non-zero
+                    # exit code.
                     self._reporter.writeOutput(
-                        f"*** Standard output stream from simulation:\n{std_out}")
-                std_err = pro.stderr.read()
-                if len(std_err) > 0:
-                    if pro.returncode != 0:
-                        self._reporter.writeError(
-                            f"*** Standard error stream from simulation:\n{std_err}")
-                    else:
-                        # Optimica writes warnings such as missing IPOPT installation to stderr,
-                        # but in this situation we want to continue unless it returns a non-zero
-                        # exit code.
-                        self._reporter.writeOutput(
-                            f"*** Standard error stream from simulation:\n{std_err}")
-            else:
-                em = f"Process timeout: terminated process as it computed longer than {str(timeout)} seconds."
-                self._reporter.writeError(em)
-                raise TimeoutError(em)
+                        f"*** Standard error stream from simulation:\n{std_err}")
 
             pro.stdout.close()
             pro.stderr.close()

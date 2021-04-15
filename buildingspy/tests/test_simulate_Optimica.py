@@ -301,7 +301,8 @@ class Test_simulate_Simulator(unittest.TestCase):
         s._deleteTemporaryDirectory = False
         outDir = os.path.abspath(s.getOutputDirectory())
         s.setTimeOut(timeout)
-        s.simulate()
+        with self.assertRaises(TimeoutError):
+            s.simulate()
         with open(os.path.join(outDir, json_log_file)) as fh:
             log = fh.read()
         self.assertTrue('RuntimeError: Process timeout' in log)
