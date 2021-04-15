@@ -69,7 +69,7 @@ class Simulator(bs._BaseSimulator):
 
         Usage: Type
            >>> from buildingspy.simulate.Dymola import Simulator
-           >>> s=Simulator("myPackage.myModel", "dymola", packagePath="buildingspy/tests/MyModelicaLibrary")
+           >>> s=Simulator("myPackage.myModel", packagePath="buildingspy/tests/MyModelicaLibrary")
            >>> s.addPreProcessingStatement("Advanced.StoreProtectedVariables:= true;")
            >>> s.addPreProcessingStatement("Advanced.GenerateTimers = true;")
 
@@ -220,7 +220,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
     def addModelModifier(self, modelModifier):
         """Adds a model modifier.
 
-        :param dictionary: A model modifier.
+        :param modelModifier: A model modifier.
 
         Usage: Type
            >>> from buildingspy.simulate.Dymola import Simulator
@@ -247,7 +247,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
           5. Closes the Modelica simulation environment.
 
         This method requires that the directory that contains the executable ``dymola``
-        is on the system PATH variable. If it is not found, the function returns with
+        is on the system ``PATH`` variable. If it is not found, the function returns with
         an error message.
 
         """
@@ -292,6 +292,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         except Exception as e:  # Catch all possible exceptions
             em = f"Simulation failed in '{worDir}'\n   Exception: {e}.\n   You need to delete the directory manually.\n"
             self._reporter.writeError(em)
+            raise
 
     def translate(self):
         """Translates the model.
@@ -304,7 +305,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
           5. Closes the Modelica simulation environment.
 
         This method requires that the directory that contains the executable ``dymola``
-        is on the system PATH variable. If it is not found, the function returns with
+        is on the system ``PATH`` variable. If it is not found, the function returns with
         an error message.
 
         """
@@ -407,7 +408,6 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         else:
             em = f"Log file {path_to_logfile} does not exist."
             self._reporter.writeError(em)
-            raise IOError(em)
 
 # Classes that are inherited. These are listed here
 # so that they appear in the documentation.

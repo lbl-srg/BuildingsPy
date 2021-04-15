@@ -73,6 +73,13 @@ class Test_simulate_Simulator(unittest.TestCase):
                 outputDirectory=".",
                 packagePath="THIS IS NOT A VALID PACKAGE PATH")
 
+    def test_translate(self):
+        """
+        Tests the various add methods.
+        """
+        s = Simulator("MyModelicaLibrary.MyModel", packagePath=self._packagePath)
+        s.translate()
+
     def test_addMethods(self):
         """
         Tests the various add methods.
@@ -200,7 +207,8 @@ class Test_simulate_Simulator(unittest.TestCase):
         s._deleteTemporaryDirectory = False
         outDir = os.path.abspath(s.getOutputDirectory())
         s.setTimeOut(timeout)
-        s.simulate()
+        with self.assertRaises(TimeoutError):
+            s.simulate()
         with open(os.path.join(outDir, s._reporter._logFil)) as fh:
             log = fh.read()
         self.assertTrue('Terminating simulation' in log and 'Process timeout' in log)

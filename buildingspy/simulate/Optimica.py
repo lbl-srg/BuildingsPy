@@ -106,7 +106,7 @@ class Simulator(bs._BaseSimulator):
     def addModelModifier(self, modelModifier):
         """Adds a model modifier.
 
-        :param dictionary: A model modifier.
+        :param modelModifier: A model modifier.
 
         Usage: Type
            >>> from buildingspy.simulate.Optimica import Simulator
@@ -138,7 +138,7 @@ class Simulator(bs._BaseSimulator):
           5. Closes the Modelica simulation environment.
 
         This method requires that the directory that contains the executable ``jm_ipython.sh``
-        is on the system PATH variable. If it is not found, the function returns with
+        is on the system ``PATH`` variable. If it is not found, the function returns with
         an error message.
 
         """
@@ -160,7 +160,7 @@ class Simulator(bs._BaseSimulator):
           5. Closes the Modelica simulation environment.
 
         This method requires that the directory that contains the executable ``jm_ipython.sh``
-        is on the system PATH variable. If it is not found, the function returns with
+        is on the system ``PATH`` variable. If it is not found, the function returns with
         an error message.
 
         """
@@ -168,6 +168,8 @@ class Simulator(bs._BaseSimulator):
 
     def _translate_and_simulate(self, simulate):
         """ Translates and optionally simulates the model.
+
+        :param simulate: If ``true`` the model is simulated, otherwise it is only translated.
 
         This method
           1. Deletes output files
@@ -177,7 +179,7 @@ class Simulator(bs._BaseSimulator):
           5. Closes the Modelica simulation environment.
 
         This method requires that the directory that contains the executable ``jm_ipython.sh``
-        is on the system PATH variable. If it is not found, the function returns with
+        is on the system ``PATH`` variable. If it is not found, the function returns with
         an error message.
 
         """
@@ -244,18 +246,19 @@ class Simulator(bs._BaseSimulator):
                                    self._simulator_.get('timeout'),
                                    worDir)
 
-            self._check_simulation_errors(worDir)
+            self._check_simulation_errors(worDir=worDir, simulate=simulate)
 # self._copyNewFiles(worDir)
 # self._deleteTemporaryDirectory(worDir)
 
         except Exception as e:  # Catch all possible exceptions
             em = f"Simulation failed in '{worDir}'\n   Exception: {e}.\n   You need to delete the directory manually.\n"
             self._reporter.writeError(em)
+            raise
 
     def setResultFilter(self, filter):
         """ Specifies a list of variables that should be stored in the result file.
 
-        :param: A list of variables that should be stored in the result file.
+        :param filter: A list of variables that should be stored in the result file.
 
         Usage: To list only the variables of the instance `myStep.source`, type
 
@@ -337,8 +340,13 @@ class Simulator(bs._BaseSimulator):
         self.generateSolverDiagnostics(True)
         self._debug_solver_interactive_mode = True
 
-    def _check_simulation_errors(self, worDir):
+    def _check_simulation_errors(self, worDir, simulate):
         """ Method that checks if errors occured during simulation.
+
+        :param worDir: Working directory.
+        :param simulate: If ``true`` the model is supposed to have been simulated,
+            and errors are checked also for simulation. Otherwise, errors are only checked
+            for translation.
         """
         import os
         import json
@@ -353,15 +361,23 @@ class Simulator(bs._BaseSimulator):
 
         with open(path_to_logfile, 'r') as f:
             js = json.loads(f.read())
-            for step in ['translation', 'simulation']:
+            steps = ['translation', 'simulation'] if simulate else ['translation']
+            for step in steps:
                 if step not in js:
                     msg = f"Failed to invoke {step} for model {self.modelName}. Check {logFil}."
                     self._reporter.writeError(msg)
-                    return
+                    raise RuntimeError(msg)
                 if js[step]['success'] is not True:
+                    # Check if there was a timeout exception
+                    if "exception" in js[step]:
+                        if js[step]['exception'].find("Process time") > 0:
+                            msg = f"The {step} of {self.modelName} failed due to timeout. Check {logFil}."
+                            self._reporter.writeError(msg)
+                            raise TimeoutError(msg)
+                    # Raise a runtime error
                     msg = f"The {step} of {self.modelName} failed. Check {logFil}."
                     self._reporter.writeError(msg)
-                    return
+                    raise RuntimeError(msg)
         return
 
 # Classes that are inherited. These are listed here

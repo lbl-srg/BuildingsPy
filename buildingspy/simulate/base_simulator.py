@@ -257,6 +257,7 @@ class _BaseSimulator(object):
                         os.remove(fil)
                 except OSError as e:
                     self._reporter.writeError("Failed to delete '" + fil + "' : " + e.strerror)
+                    raise
 
     def _deleteTemporaryDirectory(self, worDir):
         """ Deletes the working directory.
@@ -284,6 +285,7 @@ class _BaseSimulator(object):
                 "Failed to delete '" +
                 dirNam +
                 "' as it does not seem to be a valid directory name.")
+            raise
         else:
             try:
                 if os.path.exists(worDir):
@@ -291,6 +293,7 @@ class _BaseSimulator(object):
             except IOError as e:
                 self._reporter.writeError("Failed to delete '" +
                                           worDir + ": " + e.strerror)
+                raise
 
     def _isExecutable(self, program):
         import os
@@ -433,40 +436,42 @@ class _BaseSimulator(object):
                                                       directory + ".")
                             pro.kill()
                             killedProcess = True
+                    em = f"Process timeout: terminated process as it computed longer than {str(timeout)} seconds."
+                    self._reporter.writeError(em)
+                    pro.stdout.close()
+                    pro.stderr.close()
+                    raise TimeoutError(em)
             else:
                 if self._showProgressBar:
                     fractionComplete = float(elapsedTime) / float(timeout)
                     self._printProgressBar(fractionComplete)
 
             # This output is needed because of the progress bar
-            if self._showProgressBar and not terminatedProcess:
+            if self._showProgressBar:
                 sys.stdout.write("\n")
 
-            if (not terminatedProcess) and (not killedProcess):
-                std_out = pro.stdout.read()
-                if len(std_out) > 0:
+            std_out = pro.stdout.read()
+            if len(std_out) > 0:
+                self._reporter.writeOutput(
+                    f"*** Standard output stream from simulation:\n{std_out}")
+            std_err = pro.stderr.read()
+            if len(std_err) > 0:
+                if pro.returncode != 0:
+                    self._reporter.writeError(
+                        f"*** Standard error stream from simulation:\n{std_err}")
+                else:
+                    # Optimica writes warnings such as missing IPOPT installation to stderr,
+                    # but in this situation we want to continue unless it returns a non-zero
+                    # exit code.
                     self._reporter.writeOutput(
-                        f"*** Standard output stream from simulation:\n{std_out}")
-                std_err = pro.stderr.read()
-                if len(std_err) > 0:
-                    if pro.returncode != 0:
-                        self._reporter.writeError(
-                            f"*** Standard error stream from simulation:\n{std_err}")
-                    else:
-                        # Optimica writes warnings such as missing IPOPT installation to stderr,
-                        # but in this situation we want to continue unless it returns a non-zero
-                        # exit code.
-                        self._reporter.writeOutput(
-                            f"*** Standard error stream from simulation:\n{std_err}")
-            else:
-                self._reporter.writeError(
-                    f"Process timeout: terminated process as it computed longer than {str(timeout)} seconds.")
+                        f"*** Standard error stream from simulation:\n{std_err}")
 
             pro.stdout.close()
             pro.stderr.close()
 
         except OSError as e:
             print(("Execution of ", cmd, " failed:", e))
+            raise
 
     def _printProgressBar(self, fractionComplete):
         """Prints a progress bar to the console.
