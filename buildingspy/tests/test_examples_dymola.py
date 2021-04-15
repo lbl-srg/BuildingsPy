@@ -3,11 +3,6 @@
 #
 import unittest
 
-try:
-    from test.test_support import EnvironmentVarGuard
-except ImportError:
-    from test.support import EnvironmentVarGuard
-
 
 class Test_example_dymola_runSimulation(unittest.TestCase):
     """
@@ -32,8 +27,6 @@ class Test_example_dymola_runSimulation(unittest.TestCase):
         import tempfile
         import os
         import shutil
-
-        self.env = EnvironmentVarGuard()
 
         self._temDir = tempfile.mkdtemp(prefix='tmp-BuildingsPy-Modelica-Lib-')
         self._buiDir = os.path.join(os.getcwd(), "Buildings")
