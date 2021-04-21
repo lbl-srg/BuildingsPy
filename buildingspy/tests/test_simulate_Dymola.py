@@ -13,7 +13,7 @@ def _simulate(cas):
     """
     from buildingspy.simulate.Dymola import Simulator
 
-    packagePath = os.path.abspath(os.path.join("buildingspy", "tests"))
+    packagePath = os.path.abspath(os.path.join("buildingspy", "tests", "MyModelicaLibrary"))
     s = Simulator(cas['model'], outputDirectory=f"out-{cas['tol']}", packagePath=packagePath)
     s.setTolerance(cas['tol'])
     s.simulate()
@@ -31,7 +31,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         that contains a Modelica package.
         """
         self._packagePath = os.path.abspath(os.path.join(
-            "buildingspy", "tests"))
+            "buildingspy", "tests", "MyModelicaLibrary"))
 
     def test_Constructor(self):
         """

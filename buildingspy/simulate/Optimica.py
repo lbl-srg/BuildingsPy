@@ -127,7 +127,7 @@ class Simulator(bs._BaseSimulator):
 
         Usage: Type
            >>> from buildingspy.simulate.Optimica import Simulator
-           >>> s=Simulator("MyModelicaLibrary.Examples.Constants", packagePath="buildingspy/tests")
+           >>> s=Simulator("MyModelicaLibrary.Examples.Constants", packagePath="buildingspy/tests/MyModelicaLibrary")
            >>> s.simulate() # doctest: +SKIP
 
         This method
@@ -149,7 +149,7 @@ class Simulator(bs._BaseSimulator):
 
         Usage: Type
            >>> from buildingspy.simulate.Optimica import Simulator
-           >>> s=Simulator("MyModelicaLibrary.Examples.Constants", packagePath="buildingspy/tests")
+           >>> s=Simulator("MyModelicaLibrary.Examples.Constants", packagePath="buildingspy/tests/MyModelicaLibrary")
            >>> s.translate() # doctest: +SKIP
 
         This method

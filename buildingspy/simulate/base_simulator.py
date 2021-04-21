@@ -380,12 +380,14 @@ class _BaseSimulator(object):
             em += "       Make sure it is on the PATH variable of your operating system."
             raise RuntimeError(em)
 
-        # Add _packagePath to MODELICAPATH. This is for example needed for
+        # _packagePath is the path that contains the package.mo file.
+        # Export its parent directory to the MODELICAPATH.
+        # This is for example needed for
         # export USE_DOCKER=true
         # python buildingspy/tests/test_simulate_Optimica.py
         # Test_simulate_Simulator.test_setResultFilter
         osEnv = os.environ.copy() if env is None else env
-        osEnv = self.prependToModelicaPath(osEnv, self._packagePath)
+        osEnv = self.prependToModelicaPath(osEnv, os.path.dirname(self._packagePath))
 
         # Run command
         try:
