@@ -69,9 +69,9 @@ class Test_simulate_Simulator(unittest.TestCase):
         Tests reporting the exception if a simulation fails.
         """
         with self.assertRaises(ValueError):
-            s = Simulator(
-                modelName="MyModelicaLibrary.MyModel",
-                packagePath="THIS IS NOT A VALID PACKAGE PATH")
+            Simulator(
+              modelName="MyModelicaLibrary.MyModel",
+              packagePath="THIS IS NOT A VALID PACKAGE PATH")
 
     def test_translate(self):
         """
@@ -193,7 +193,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         model = "MyModelicaLibrary.Examples.BooleanParameters"
 
         s = Simulator(model, packagePath=self._packagePath)
-        s.addParameters({'p1': 123}) # p1 is a boolean parameter. This will fail the model.
+        s.addParameters({'p1': 123})  # p1 is a boolean parameter. This will fail the model.
         with self.assertRaises(Exception):
             s.simulate()
 

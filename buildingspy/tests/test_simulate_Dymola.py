@@ -206,7 +206,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         model = "MyModelicaLibrary.Examples.BooleanParameters"
 
         s = Simulator(model, packagePath=self._packagePath)
-        s.addParameters({'p1': 123}) # p1 is a boolean parameter. This will fail the model.
+        s.addParameters({'p1': 123})  # p1 is a boolean parameter. This will fail the model.
         with self.assertRaises(Exception):
             s.simulate()
 
