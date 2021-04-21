@@ -142,6 +142,8 @@ def get_errors_and_warnings(log_file, simulator):
             listWarn.append(temp)
         elif lin.find(ERR) >= 0:
             listErr.append(lines[index + 1].strip())
+        elif simulator == "dymola" and lin == " = false\n":
+            listErr.append("Log file contained the line ' = false'")
 
     ret["warnings"] = listWarn
     ret["errors"] = listErr

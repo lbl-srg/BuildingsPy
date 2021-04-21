@@ -198,6 +198,18 @@ class Test_simulate_Simulator(unittest.TestCase):
         # Delete output files
         s.deleteOutputFiles()
 
+    def test_raisesAssertionIfWrongDataType(self):
+        """
+        Tests the :mod:`buildingspy.simulate.Dymola.simulate`
+        function to make sure it raises an assertion if a model fails to translate.
+        """
+        model = "MyModelicaLibrary.Examples.BooleanParameters"
+
+        s = Simulator(model, packagePath=self._packagePath)
+        s.addParameters({'p1': 123}) # p1 is a boolean parameter. This will fail the model.
+        with self.assertRaises(Exception):
+            s.simulate()
+
     def test_timeout(self, timeout=3):
         model = 'MyModelicaLibrary.MyModelTimeOut'
         s = Simulator(
