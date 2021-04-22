@@ -3,13 +3,6 @@
 #
 import abc
 
-try:
-    # Python 2
-    basestring
-except NameError:
-    # Python 3 or newer
-    basestring = str
-
 
 class _BaseSimulator(object):
     """ Basic class to simulate a Modelica model.
@@ -336,7 +329,7 @@ class _BaseSimulator(object):
             """ Convert to Modelica array.
             """
             # Check for strings and booleans
-            if isinstance(arg, basestring):
+            if isinstance(arg, str):
                 return '\\"' + arg + '\\"'
             elif isinstance(arg, bool):
                 if arg is True:

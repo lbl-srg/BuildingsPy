@@ -9,13 +9,6 @@
 """
 import buildingspy.simulate.base_simulator as bs
 
-try:
-    # Python 2
-    basestring
-except NameError:
-    # Python 3 or newer
-    basestring = str
-
 
 class Simulator(bs._BaseSimulator):
     """Class to simulate a Modelica model.
