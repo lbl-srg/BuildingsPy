@@ -64,11 +64,11 @@ install:
 
 # Execute tests
 script:
- - omc --version
- - make pep8 PEP8_CORRECT_CODE=true
- - make doctest
+# - omc --version
+# - make pep8 PEP8_CORRECT_CODE=true
+# - make doctest
  - make unittest
- - make doc
+# - make doc
 
 after_failure:
   - |
