@@ -60,7 +60,9 @@ Translated Model
     Number of numerical Jacobians: 0
         """
 
-        print(f"****** TEST: Opening {staFil}, cwd is {os.getcwd()}")
+        print(f"****** TEST: Opening {staFil}")
+        print(f"****** cwd is {os.getcwd()}")
+        print(f"****** TEST end")
         with open(staFil, mode="w", encoding="utf-8") as fil:
             fil.write(s)
 
