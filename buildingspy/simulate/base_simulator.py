@@ -3,13 +3,6 @@
 #
 import abc
 
-try:
-    # Python 2
-    basestring
-except NameError:
-    # Python 3 or newer
-    basestring = str
-
 
 class _BaseSimulator(object):
     """ Basic class to simulate a Modelica model.
