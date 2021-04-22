@@ -60,6 +60,7 @@ Translated Model
     Number of numerical Jacobians: 0
         """
 
+        print(f"****** TEST: Opening {staFil}, cwd is {os.getcwd()}")
         with open(staFil, mode="w", encoding="utf-8") as fil:
             fil.write(s)
 
@@ -86,9 +87,9 @@ Translated Model
         self.assertEqual(stats['simulation']['numerical Jacobians'],
                          "0",
                          "Parsing numerical Jacobian for simulation problem failed")
-
+        print(f"****** TEST: Removing {staFil}, cwd is {os.getcwd()}, file exists = {os.path.isfile(staFil)}, dir exists = {os.path.isdir(os.getcwd())}")
         os.remove(staFil)
-
+        print(f"****** TEST: Removed  {staFil}, cwd is {os.getcwd()}, dir exists = {os.path.isdir(os.getcwd())}")
 
 if __name__ == '__main__':
     unittest.main()
