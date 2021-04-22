@@ -329,7 +329,7 @@ class _BaseSimulator(object):
             """ Convert to Modelica array.
             """
             # Check for strings and booleans
-            if isinstance(arg, basestring):
+            if isinstance(arg, str):
                 return '\\"' + arg + '\\"'
             elif isinstance(arg, bool):
                 if arg is True:
