@@ -20,15 +20,15 @@ git:
 services:
   - docker
 
-#addons:
-#  apt:
-#    sources:
-#    - sourceline: "deb http://build.openmodelica.org/apt `lsb_release -cs` stable"
-#      key_url: "http://build.openmodelica.org/apt/openmodelica.asc"
-#    packages:
-#    - omc
-#    - omlib-modelica-3.2.?
-#    - tidy
+addons:
+  apt:
+    sources:
+    - sourceline: "deb http://build.openmodelica.org/apt `lsb_release -cs` stabl"
+      key_url: "http://build.openmodelica.org/apt/openmodelica.asc"
+    packages:
+    - omc
+    - omlib-modelica-3.2.?
+    - tidy
 
 before_install:
   - chmod +x buildingspy/tests/MyModelicaLibrary/Resources/Scripts/travis/bin/dymola
@@ -64,7 +64,7 @@ install:
 
 # Execute tests
 script:
-# - omc --version
+ - omc --version
 # - make pep8 PEP8_CORRECT_CODE=true
 # - make doctest
  - make unittest
