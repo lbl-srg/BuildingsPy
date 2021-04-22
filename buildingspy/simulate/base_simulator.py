@@ -380,7 +380,8 @@ class _BaseSimulator(object):
         # python buildingspy/tests/test_simulate_Optimica.py
         # Test_simulate_Simulator.test_setResultFilter
         osEnv = os.environ.copy() if env is None else env
-        osEnv = self.prependToModelicaPath(osEnv, os.path.dirname(self._packagePath))
+        # fixme osEnv = self.prependToModelicaPath(osEnv, os.path.dirname(self._packagePath))
+        osEnv = self.prependToModelicaPath(osEnv, self._packagePath)
 
         # Run command
         try:
