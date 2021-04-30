@@ -218,7 +218,7 @@ class IBPSA(object):
         if '*' in pattern:
             pat = pattern.split('*')
             # Currently, we only support one wild card character
-            if len(pat) is not 2:
+            if len(pat) != 2:
                 ValueError("Pattern {} is not supported.".format(pattern))
             # Make sure it has the same number of directories
             ret = filter(lambda x: (x.count(os.path.sep) == pattern.count(os.path.sep)) and
