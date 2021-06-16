@@ -273,7 +273,7 @@ class Tester(object):
         self._exclude_tests = []
 
         # Number of data points that are used
-        self._nPoi = 101
+        self._nPoi = 501
 
         # List of temporary directories that are used to run the simulations.
         self._temDir = []
@@ -1860,6 +1860,11 @@ class Tester(object):
         """
         updateReferenceData = False
         foundError = False
+
+        # For OCT verification, always write new reference results
+        OCT_VERIFICATION = True
+        if OCT_VERIFICATION:
+            return (True, foundError, True)
 
         if len(yS) > 0:
             sys.stdout.write(
