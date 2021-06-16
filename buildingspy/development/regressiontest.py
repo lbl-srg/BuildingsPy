@@ -2207,14 +2207,20 @@ class Tester(object):
 
         # Check whether the reference results exist.
         if not os.path.exists(abs_ref_fil_nam):
-            print("Warning ***: Reference file {} does not yet exist.".format(reference_file_name))
-            while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
-                print("             Create new file?")
-                ans = input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
+            if not self._OCT_VERIFICATION:
+                print("Warning ***: Reference file {} does not yet exist.".format(reference_file_name))
+                while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
+                    print("             Create new file?")
+                    ans = input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
+            else:
+                ans = "Y"
+
             if ans == "y" or ans == "Y":
                 self._writeReferenceResults(abs_ref_fil_nam, None, y_tra)
-                self._reporter.writeOutput("Wrote new reference file %s." %
-                                           reference_file_name)
+                if not self._OCT_VERIFICATION:
+                    # Avoid verbose output during OCT_VERIFICATION
+                    self._reporter.writeOutput("Wrote new reference file %s." %
+                                               reference_file_name)
             else:
                 self._reporter.writeError("Did not write new reference file %s." %
                                           reference_file_name)
