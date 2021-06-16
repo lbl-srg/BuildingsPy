@@ -273,7 +273,8 @@ class Tester(object):
         self._exclude_tests = []
 
         # Number of data points that are used
-        self._nPoi = 501
+        self._OCT_VERIFICATION = True
+        self._nPoi = 501 if self._OCT_VERIFICATION else 101
 
         # List of temporary directories that are used to run the simulations.
         self._temDir = []
@@ -1862,8 +1863,8 @@ class Tester(object):
         foundError = False
 
         # For OCT verification, always write new reference results
-        OCT_VERIFICATION = True
-        if OCT_VERIFICATION:
+
+        if self._OCT_VERIFICATION:
             return (True, foundError, True)
 
         if len(yS) > 0:
@@ -2552,6 +2553,8 @@ class Tester(object):
                 else:
                     # if there was no error for this test case, check user feedback for result
                     if get_user_prompt:
+                        if self._OCT_VERIFICATION:
+                            ans = "Y"
                         # Reset answer, unless it is set to Y or N
                         if not (ans == "Y" or ans == "N"):
                             ans = "-"
@@ -2571,25 +2574,31 @@ class Tester(object):
                             for pai in y_sim:
                                 t_ref = pai["time"]
                                 noOldResults = noOldResults + list(pai.keys())
-                            self._legacy_plot(y_sim, t_ref, {}, noOldResults, dict(),
-                                              "New results: " + data['ScriptFile'])
-                            # Reference file does not exist
-                            print(
-                                "*** Warning: Reference file {} does not yet exist.".format(refFilNam))
-                            while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
-                                print("             Create new file?")
-                                ans = input(
-                                    "             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
-                            if ans == "y" or ans == "Y":
-                                updateReferenceData = True
+                            if not self._OCT_VERIFICATION:
+                                self._legacy_plot(y_sim, t_ref, {}, noOldResults, dict(),
+                                                  "New results: " + data['ScriptFile'])
+                                # Reference file does not exist
+                                print(
+                                    "*** Warning: Reference file {} does not yet exist.".format(refFilNam))
+                                while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
+                                    print("             Create new file?")
+                                    ans = input(
+                                        "             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
+                                if ans == "y" or ans == "Y":
+                                    updateReferenceData = True
+                                else:
+                                    self._reporter.writeError("Did not write new reference file %s." %
+                                                              oldRefFulFilNam)
                             else:
-                                self._reporter.writeError("Did not write new reference file %s." %
-                                                          oldRefFulFilNam)
+                                updateReferenceData = True
+
                         if updateReferenceData:    # If the reference data of any variable was updated
                             # Make dictionary to save the results and the svn information
                             self._writeReferenceResults(oldRefFulFilNam, y_sim, y_tra)
-                            self._reporter.writeOutput("Wrote new reference file %s." %
-                                                       oldRefFulFilNam)
+                            if not self._OCT_VERIFICATION:
+                                # Avoid verbose output during OCT_VERIFICATION
+                                self._reporter.writeOutput("Wrote new reference file %s." %
+                                                           oldRefFulFilNam)
 
             else:
                 # Tests that export FMUs do not have an output file. Hence, we do not warn
