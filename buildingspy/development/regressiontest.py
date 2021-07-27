@@ -3325,7 +3325,8 @@ class Tester(object):
                 ignore=shutil.ignore_patterns(
                     '.svn',
                     '.git',
-                    '.mat',
+                    '*.mat',
+                    '*.log',
                     'request.',
                     'status.',
                     'dsmodel.c',
