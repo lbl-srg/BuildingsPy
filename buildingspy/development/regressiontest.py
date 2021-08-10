@@ -3556,7 +3556,7 @@ class Tester(object):
             ans = "-"
 
         if self._modelica_tool == 'dymola':
-            retVal = self._check_fmu_statistics(ans)
+            retVal = self._check_fmu_statistics(ans) if not self._OCT_VERIFICATION else 0
             if retVal != 0:
                 retVal = 4
 
