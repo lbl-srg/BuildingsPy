@@ -54,7 +54,10 @@ class IBPSA(object):
                                     "Obsolete"])
         self._excluded_files = [os.path.join(ibpsa_dir, "package.mo"),
                                 os.path.join(ibpsa_dir, "dymosim"),
+                                os.path.join(ibpsa_dir, "dymosim.exe"),
                                 os.path.join(ibpsa_dir, "request"),
+                                os.path.join(ibpsa_dir, "status"),
+                                os.path.join(ibpsa_dir, "success"),
                                 os.path.join(ibpsa_dir, "ds*.txt"),
                                 os.path.join(ibpsa_dir, "*.c"),
                                 os.path.join(ibpsa_dir, "*.exe"),
