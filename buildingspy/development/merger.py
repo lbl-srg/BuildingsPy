@@ -70,6 +70,7 @@ class IBPSA(object):
                                 os.path.join(ibpsa_dir, "*.pyc"),
                                 os.path.join(ibpsa_dir, "*.pdf"),
                                 os.path.join(ibpsa_dir, "*.svg"),
+                                os.path.join(ibpsa_dir, "*.pyc"),
                                 os.path.join(ibpsa_dir, "nohup.out"),
                                 os.path.join(ibpsa_dir, "funnel_comp", "plot.html"),
                                 os.path.join(ibpsa_dir, "funnel_comp", "**", "*.csv"),
@@ -404,7 +405,11 @@ class IBPSA(object):
                         if is_binary:
                             copyfile(srcFil, new_file)
                         else:
-                            self._copy_rename(srcFil, new_file, rep)
+                            self._copy_rename(self._src_library_name,
+                                              self._new_library_name,
+                                              srcFil,
+                                              new_file,
+                                              rep)
 
                 # Copy all other files. This may be images, C-source, libraries etc.
                 else:
