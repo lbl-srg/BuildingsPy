@@ -198,6 +198,7 @@ end %s;
             # This is also needed if a package is created, and then the parent package
             # moved as otherwise, "git mv" will fail as it operates on a file that is not in git
             _sh(cmd=['git', 'add', "package.mo"], directory=fd)
+            _sh(cmd=['touch', "package.order"], directory=fd)
             _sh(cmd=['git', 'add', "package.order"], directory=fd)
 
 
