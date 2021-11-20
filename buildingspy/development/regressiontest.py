@@ -2298,7 +2298,7 @@ class Tester(object):
                     em += "Output file of " + data['ScriptFile'] + " is excluded from unit tests.\n"
                     em += "The model appears to contain a non-asci character\n"
                     em += "in the comment of a variable, parameter or constant.\n"
-                    em += "Check " + data['ScriptFile'] + " and the classes it instanciates.\n"
+                    em += "Check " + data['ScriptFile'] + " and the classes it instantiates.\n"
                     self._reporter.writeError(em)
                 except IOError as e:
                     em = "IOError({0}): {1}.\n".format(e.errno, e)
@@ -2493,11 +2493,11 @@ class Tester(object):
             # Only check data that need to be simulated. This excludes the FMU export
             # from this test.
             # Note for OPTIMICA and JModelica: data['jmodelica']['simulate']=True is
-            # an additional condition, and only if the simulation was successful are we
-            # reading the results
+            # an additional condition (declaring that a simulation was required),
+            # and only if the simulation was successful are we reading the results
             check_condition = \
                 self._includeFile(data['ScriptFile']) and data['mustSimulate'] and \
-                self._comp_info[idx]['simulation']['success']
+                data['simulation']['success']
             if self._modelica_tool == 'optimica' or self._modelica_tool == 'jmodelica':
                 check_condition = check_condition and data[self._modelica_tool]['simulate']
             if check_condition:
@@ -2547,7 +2547,7 @@ class Tester(object):
                     em += "Output file of " + data['ScriptFile'] + " is excluded from unit tests.\n"
                     em += "The model appears to contain a non-asci character\n"
                     em += "in the comment of a variable, parameter or constant.\n"
-                    em += "Check " + data['ScriptFile'] + " and the classes it instanciates.\n"
+                    em += "Check " + data['ScriptFile'] + " and the classes it instantiates.\n"
                     self._reporter.writeError(em)
                 else:
                     # if there was no error for this test case, check user feedback for result
@@ -2593,8 +2593,9 @@ class Tester(object):
 
             else:
                 # Tests that export FMUs do not have an output file. Hence, we do not warn
-                # about these cases. Also, if the simulation failed, there is no need to report.
-                if not data['mustExportFMU'] and self._comp_info[idx]['simulation']['success']:
+                # about these cases. Also, if the simulation failed, there is no need to report,
+                # because simulation failures were already reported as an error earlier.
+                if not data['mustExportFMU'] and data['simulation']['success']:
                     self._reporter.writeWarning(
                         "Output file of " + data['ScriptFile'] + " is excluded from result test.")
 
