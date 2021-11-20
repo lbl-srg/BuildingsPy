@@ -2485,7 +2485,11 @@ class Tester(object):
         ret_val = 0
         for data_idx, data in enumerate(self._data):
             # Index to self._comp_info
-            idx = self._init_comp_info(data['model_name'], data['ResultFile'])
+            # Models that only export an FMU have no field data['ResultFile']
+            if 'ResultFile' in data:
+                idx = self._init_comp_info(data['model_name'], data['ResultFile'])
+            else:
+                idx = self._init_comp_info(data['model_name'], None)
             # Only check data that need to be simulated. This excludes the FMU export
             # from this test.
             # Note for OPTIMICA and JModelica: data['jmodelica']['simulate']=True is
