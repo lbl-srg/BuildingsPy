@@ -1137,7 +1137,7 @@ class Tester(object):
                 'translate': True,
                 'simulate': True,
                 'ncp': 500,
-                'time_out': 1200
+                'time_out': 300
             }
         }
 
@@ -2413,7 +2413,7 @@ class Tester(object):
 
                         all_res.append(res)
                         if not res['translation']['success']:
-                            em = "Translation of {} failed.".format(res['model'])
+                            em = f"Translation of {res['model']} failed with '{res['translation']['exception']}'."
                             self._reporter.writeError(em)
                             iTra = iTra + 1
                         elif not res['simulation']['success']:
@@ -2436,8 +2436,7 @@ class Tester(object):
                                     print("*** Did not simulate {}".format(res['model']))
                                     iOmiSim = iOmiSim + 1
                             else:
-                                em = "Simulation of {} failed with {}.".format(
-                                    res['model'], res["simulation"]["exception"])
+                                em = f"Simulation of {res['model']} failed with '{res['simulation']['exception']}'."
                                 self._reporter.writeError(em)
                                 iSim = iSim + 1
 
@@ -2485,11 +2484,16 @@ class Tester(object):
 
         ret_val = 0
         for data_idx, data in enumerate(self._data):
+            # Index to self._comp_info
+            idx = self._init_comp_info(data['model_name'], data['ResultFile'])
             # Only check data that need to be simulated. This excludes the FMU export
             # from this test.
             # Note for OPTIMICA and JModelica: data['jmodelica']['simulate']=True is
-            # an additional condition.
-            check_condition = self._includeFile(data['ScriptFile']) and data['mustSimulate']
+            # an additional condition, and only if the simulation was successful are we
+            # reading the results
+            check_condition = \
+                self._includeFile(data['ScriptFile']) and data['mustSimulate'] and \
+                self._comp_info[idx]['simulation']['success']
             if self._modelica_tool == 'optimica' or self._modelica_tool == 'jmodelica':
                 check_condition = check_condition and data[self._modelica_tool]['simulate']
             if check_condition:
@@ -2516,9 +2520,6 @@ class Tester(object):
                     if len(errors) > 0:
                         # If there were errors when getting the results or translation statistics
                         # update self._comp_info to log errors and turn flags to return
-                        matFilNam = data['ResultFile']
-                        model_name = data['model_name']
-                        idx = self._init_comp_info(model_name, matFilNam)
                         list_var_ref = [el for gr in data['ResultVariables'] for el in gr]
                         for iv, var_ref in enumerate(list_var_ref):
                             if iv == 0:
@@ -2588,8 +2589,8 @@ class Tester(object):
 
             else:
                 # Tests that export FMUs do not have an output file. Hence, we do not warn
-                # about these cases.
-                if not data['mustExportFMU']:
+                # about these cases. Also, if the simulation failed, there is no need to report.
+                if not data['mustExportFMU'] and self._comp_info[idx]['simulation']['success']:
                     self._reporter.writeWarning(
                         "Output file of " + data['ScriptFile'] + " is excluded from result test.")
 

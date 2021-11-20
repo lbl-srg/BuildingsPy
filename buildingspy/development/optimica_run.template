@@ -193,7 +193,10 @@ def run():
         result["translation"] = ret_dic
 
     except Exception as e:
-        result["translation"]["exception"] = "{}: {}".format(type(e).__name__, e)
+        msg = f"{type(e).__name__}: {e}"
+        if msg == "RuntimeError: Process timeout":
+            msg = f"{msg} after {time_out} seconds"
+        result["translation"]["exception"] = msg
         result["translation"]["traceback"] = traceback.format_exc()
 
     # Load model if translation was successful
@@ -203,7 +206,10 @@ def run():
             result["simulation"] = ret_dic
 
         except Exception as e:
-            result["simulation"]["exception"] = "{}: {}".format(type(e).__name__, e)
+            msg = f"{type(e).__name__}: {e}"
+            if msg == "RuntimeError: Process timeout":
+                msg = f"{msg} after {time_out} seconds"
+            result["simulation"]["exception"] = msg
             result["simulation"]["traceback"] = traceback.format_exc()
 
     with open(log_file, "w") as log:
