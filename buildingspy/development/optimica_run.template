@@ -193,7 +193,7 @@ def run():
         result["translation"] = ret_dic
 
     except Exception as e:
-        msg = f"{type(e).__name__}: {e}"
+        msg = "{}: {}".format(type(e).__name__, str(e))
         if msg == "RuntimeError: Process timeout":
             msg = f"{msg} after {time_out} seconds"
         result["translation"]["exception"] = msg
@@ -206,7 +206,7 @@ def run():
             result["simulation"] = ret_dic
 
         except Exception as e:
-            msg = f"{type(e).__name__}: {e}"
+            msg = "{}: {}".format(type(e).__name__, str(e))
             if msg == "RuntimeError: Process timeout":
                 msg = f"{msg} after {time_out} seconds"
             result["simulation"]["exception"] = msg
