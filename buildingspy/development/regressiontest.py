@@ -2493,11 +2493,13 @@ class Tester(object):
             # Only check data that need to be simulated. This excludes the FMU export
             # from this test.
             # Note for OPTIMICA and JModelica: data['jmodelica']['simulate']=True is
-            # an additional condition (declaring that a simulation was required),
-            # and only if the simulation was successful are we reading the results
+            # an additional condition (declaring that a simulation was required)
             check_condition = \
-                self._includeFile(data['ScriptFile']) and data['mustSimulate'] and \
-                data['simulation']['success']
+                self._includeFile(data['ScriptFile']) and data['mustSimulate']
+            # Only if the simulation was successful are we reading the results.
+            # (Simulation errors are reported earlier already.)
+            if 'simulation' in data:
+                check_condition = check_condition and data['simulation']['success']
             if self._modelica_tool == 'optimica' or self._modelica_tool == 'jmodelica':
                 check_condition = check_condition and data[self._modelica_tool]['simulate']
             if check_condition:
@@ -2595,9 +2597,11 @@ class Tester(object):
                 # Tests that export FMUs do not have an output file. Hence, we do not warn
                 # about these cases. Also, if the simulation failed, there is no need to report,
                 # because simulation failures were already reported as an error earlier.
-                if not data['mustExportFMU'] and data['simulation']['success']:
-                    self._reporter.writeWarning(
-                        "Output file of " + data['ScriptFile'] + " is excluded from result test.")
+                if not data['mustExportFMU']:
+                    if 'simulation' in data:
+                        if data['simulation']['success']:
+                            self._reporter.writeWarning(
+                                "Output file of " + data['ScriptFile'] + " is excluded from result test.")
 
         # Write all results to comparison log file and inform user.
         with open(self._comp_log_file, 'w', encoding="utf-8-sig") as comp_log:
