@@ -128,7 +128,7 @@ class Simulator(bs._BaseSimulator):
         :param translate_only: Set to ```True``` to only translate the model without a simulation.
         """
         import os
-        # Note that model_name has quotes, if it is of the form
+        # Note that model_name has quotes if it is of the form
         # "MyModelicaLibrary.Examples.BooleanParameters(p1=true,p2=false)"
         package_mo = os.path.join((model_name.split('.')[0]).strip('"'), "package.mo")
 
