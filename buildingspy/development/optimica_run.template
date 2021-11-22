@@ -195,7 +195,7 @@ def run():
     except Exception as e:
         msg = "{}: {}".format(type(e).__name__, str(e))
         if msg == "RuntimeError: Process timeout":
-            msg = f"{msg} after {time_out} seconds"
+            msg = msg + " after {} seconds".format(time_out)
         result["translation"]["exception"] = msg
         result["translation"]["traceback"] = traceback.format_exc()
 
@@ -208,7 +208,7 @@ def run():
         except Exception as e:
             msg = "{}: {}".format(type(e).__name__, str(e))
             if msg == "RuntimeError: Process timeout":
-                msg = f"{msg} after {time_out} seconds"
+                msg = msg + " after {} seconds".format(time_out)
             result["simulation"]["exception"] = msg
             result["simulation"]["traceback"] = traceback.format_exc()
 
