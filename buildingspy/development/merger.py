@@ -51,8 +51,8 @@ class IBPSA(object):
 
         # Exclude packages and files
         self.set_excluded_directories(["Experimental",
-                                    "Obsolete",
-                                    ".FMUOutput"])
+                                       "Obsolete",
+                                       ".FMUOutput"])
         self._excluded_files = [os.path.join(ibpsa_dir, "package.mo"),
                                 os.path.join(ibpsa_dir, "dymosim"),
                                 os.path.join(ibpsa_dir, "dymosim.exe"),
