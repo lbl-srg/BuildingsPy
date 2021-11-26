@@ -1873,10 +1873,28 @@ class Tester(object):
                 updateReferenceData = True
         return (updateReferenceData, foundError, ans)
 
-    def _check_statistics(self, old_res, y_tra, stage, foundError, newStatistics, mat_file_name):
+    def _check_statistics(self, old_res, y_tra, stage, foundError, newStatistics, model_name):
         """ Checks the simulation or translation statistics and return
             `True` if there is a new statistics, or a statistics is no longer present, or if `newStatistics == True`.
         """
+        import os
+
+        def _compare_statistics(stage, key, model_name):
+            """ Function that returns true if model should be compared.
+                This is a fix for Dymola 2022 because for some models, the initialization statistics
+                changes from one translation to another due to a linear system switching from one to two.
+                """
+            if stage != 'initialization' or key != 'nonlinear':
+                return True
+            # If BUILDINGSPY_SKIP_STATISTICS_VERIFICATION is present, skip verification of the models
+            # that are listed in this environment variable
+            if 'BUILDINGSPY_SKIP_STATISTICS_VERIFICATION' in os.environ:
+                if model_name in os.environ['BUILDINGSPY_SKIP_STATISTICS_VERIFICATION']:
+                    print(
+                        f"Excluding {model_name} from comparison of initialization statistics on Travis CI.")
+                    return False
+            return True
+
         r = newStatistics
         if 'statistics-%s' % stage in old_res:
             # Found old statistics.
@@ -1885,31 +1903,31 @@ class Tester(object):
                 # Check whether it changed.
                 for key in old_res['statistics-%s' % stage]:
                     if key in y_tra[stage]:
-                        if not self.are_statistics_equal(
+                        if _compare_statistics(stage, key, model_name) and not self.are_statistics_equal(
                                 old_res['statistics-%s' % stage][key], y_tra[stage][key]):
                             if foundError:
                                 self._reporter.writeWarning("%s: Translation statistics for %s and results changed for %s.\n Old = %s\n New = %s"
-                                                            % (mat_file_name, stage, key, old_res['statistics-%s' % stage][key], y_tra[stage][key]))
+                                                            % (model_name, stage, key, old_res['statistics-%s' % stage][key], y_tra[stage][key]))
                             else:
                                 self._reporter.writeWarning("%s: Translation statistics for %s changed for %s, but results are unchanged.\n Old = %s\n New = %s"
-                                                            % (mat_file_name, stage, key, old_res['statistics-%s' % stage][key], y_tra[stage][key]))
+                                                            % (model_name, stage, key, old_res['statistics-%s' % stage][key], y_tra[stage][key]))
 
                             r = True
                     else:
                         self._reporter.writeWarning("%s: Found translation statistics for %s for %s in old but not in new results.\n Old = %s"
-                                                    % (mat_file_name, stage, key, old_res['statistics-%s' % stage][key]))
+                                                    % (model_name, stage, key, old_res['statistics-%s' % stage][key]))
                         r = True
                 for key in y_tra[stage]:
                     if key not in old_res['statistics-%s' % stage]:
                         self._reporter.writeWarning(
                             "%s: Found translation statistics for key %s in %s in new but not in old results." %
-                            (mat_file_name, key, stage))
+                            (model_name, key, stage))
                         r = True
             else:
                 # The new results have no such statistics.
                 self._reporter.writeWarning(
                     "%s: Found translation statistics for %s in old but not in new results." %
-                    (mat_file_name, stage))
+                    (model_name, stage))
                 r = True
         else:
             # The old results have no such statistics.
@@ -2020,7 +2038,7 @@ class Tester(object):
                 # Updated newStatistics if there is a new statistic. The other
                 # arguments remain unchanged.
                 newStatistics = self._check_statistics(
-                    old_results, y_tra, stage, foundError, newStatistics, matFilNam)
+                    old_results, y_tra, stage, foundError, newStatistics, model_name)
 
         # If the users selected "Y" or "N" (to not accept or reject any new results) in previous tests,
         # or if the script is run in batch mode, then don't plot the results.
@@ -2087,7 +2105,7 @@ class Tester(object):
         # Start the browser instance.
         server.browse(list_files, browser=browser)
 
-    def _legacy_plot(self, y_sim, t_ref, y_ref, noOldResults, timOfMaxErr, matFilNam):
+    def _legacy_plot(self, y_sim, t_ref, y_ref, noOldResults, timOfMaxErr, model_name):
         """Plot comparison results generated by legacy comparison algorithm."""
 
         nPlo = len(y_sim)
@@ -2133,7 +2151,7 @@ class Tester(object):
             plt.xlabel('time')
             plt.grid(True)
             if iPlo == 1:
-                plt.title(matFilNam)
+                plt.title(model_name)
 
         # Store the graphic objects.
         # The first plot is shown using the default size.
