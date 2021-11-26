@@ -1886,20 +1886,13 @@ class Tester(object):
                 """
             if stage != 'initialization' or key != 'nonlinear':
                 return True
-            if 'TRAVIS_BUILD_DIR' in os.environ and model_name in [
-                "Buildings.Examples.VAVReheat.ASHRAE2006",
-                "Buildings.Examples.VAVReheat.Validation.Guideline36SteadyState",
-                "Buildings.Examples.VAVReheat.Validation.TraceSubstance",
-                "Buildings.Examples.VAVReheat.Guideline36",
-                "Buildings.ThermalZones.EnergyPlus.Examples.SmallOffice.ASHRAE2006Spring",
-                "Buildings.ThermalZones.EnergyPlus.Examples.SmallOffice.Guideline36Winter",
-                "Buildings.ThermalZones.EnergyPlus.Examples.SmallOffice.ASHRAE2006Winter",
-                "Buildings.ThermalZones.EnergyPlus.Examples.SmallOffice.Guideline36Spring",
-                "Buildings.ThermalZones.EnergyPlus.Examples.SmallOffice.Guideline36Summer",
-                    "Buildings.ThermalZones.EnergyPlus.Examples.SmallOffice.ASHRAE2006Summer"]:
-                print(
-                    f"Excluding {model_name} from comparison of initialization statistics on Travis CI.")
-                return False
+            # If BUILDINGSPY_SKIP_STATISTICS_VERIFICATION is present, skip verification of the models
+            # that are listed in this environment variable
+            if 'BUILDINGSPY_SKIP_STATISTICS_VERIFICATION' in os.environ:
+                if model_name in os.environ['BUILDINGSPY_SKIP_STATISTICS_VERIFICATION']:
+                    print(
+                        f"Excluding {model_name} from comparison of initialization statistics on Travis CI.")
+                    return False
             return True
 
         r = newStatistics
