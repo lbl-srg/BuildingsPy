@@ -1935,7 +1935,7 @@ class Tester(object):
                 # The new results have such statistics, hence the statistics changed.
                 self._reporter.writeWarning(
                     "%s: Found translation statistics for %s in new but not in old results." %
-                    (mat_file_name, stage))
+                    (model_name, stage))
                 r = True
         return r
 
@@ -3309,6 +3309,9 @@ Modelica.Utilities.Files.remove(\"{self._statistics_log}\");
                     data.append(self._data[i])
                     nUniTes = nUniTes + 1
                 self._write_jmodelica_runfile(self._temDir[iPro], data)
+
+        if nUniTes == 0:
+            raise RuntimeError(f"Wrong invocation, generated {nUniTes} unit tests.")
 
         print("Generated {} regression tests.\n".format(nUniTes))
 
