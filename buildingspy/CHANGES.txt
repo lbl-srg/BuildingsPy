@@ -1,8 +1,10 @@
 BuildingsPy Changelog
 ---------------------
 
-Version 2.2.0, xxx, 2020 -- Release 2.2
+Version 3.0.0, xxx, 2021 -- Release 3.0
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- For merge script, renamed set_excluded_packages to set_excluded_directories
+  (https://github.com/lbl-srg/BuildingsPy/issues/439)
 - For Dymola simulations, corrected call to openModel in buildingspy/simulate/Dymola.py
 - For unit tests, avoided copying .log and .mat files to temporary directory
   (https://github.com/lbl-srg/BuildingsPy/issues/428)
