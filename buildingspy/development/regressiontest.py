@@ -3248,10 +3248,10 @@ Modelica.Utilities.Files.remove(\"{self._statistics_log}\");
             if 'FMUName' in self._data[i]:
                 values["FMUName"] = self._data[i]['FMUName']
 
-            template("""
-    runScript("Resources/Scripts/Dymola/{scriptFile}");
-    getErrorString();
-    """)
+            template = """
+runScript("Resources/Scripts/Dymola/{scriptFile}");
+getErrorString();
+"""
             runFil.write(template.format(**values))
 
             nUniTes = nUniTes + 1
@@ -3292,9 +3292,9 @@ Modelica.Utilities.Files.remove(\"{self._statistics_log}\");
             ###################################################################################
             # Case for dymola and omc
             ###################################################################################
-            if self._modelica_tool is 'dymola':
+            if self._modelica_tool == 'dymola':
                 nUniTes = nUniTes + self._write_runscript_dymola(iPro)
-            elif self._modelica_tool is 'omc':
+            elif self._modelica_tool == 'omc':
                 nUniTes = nUniTes + self._write_runscript_omc(iPro)
 
             ###################################################################################
