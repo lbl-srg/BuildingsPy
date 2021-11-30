@@ -2869,7 +2869,7 @@ class Tester(object):
         with open(mosFilNam, mode="r+", encoding="utf-8-sig") as fil:
             con = fil.read()
         count = 0
-        (conNew, count) = re.subn(r"resultFile\s*=\s*\"(\w+)\"",
+        (conNew, count) = re.subn(r"resultFile\s*=\s*\"(.+)\"",
                                   f"resultFile=\"{modelName}\"", con, count=count, flags=re.M)
         # Models with translateModelFMU have no result file. So these files are not written to disk
         if count > 0:
