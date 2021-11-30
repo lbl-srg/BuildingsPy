@@ -1070,17 +1070,13 @@ class Tester(object):
                                 if v_i not in dat['ResultVariables']:
                                     dat['ResultVariables'].append(v_i)
 
-                            # search for the result file
-                            for lin in Lines:
-                                if 'resultFile=\"' in lin:
-                                    matFil = re.search(
-                                        r'(?<=resultFile=\")[a-zA-Z0-9_\.]+', lin).group()
-                                    # Add the .mat extension as this is not included in the
-                                    # resultFile entry.
-                                    matFil = matFil + '.mat'
-                                    break
-
-                            if self._modelica_tool == 'optimica' or self._modelica_tool == 'jmodelica':
+                            # Create the result file name.
+                            if self._modelica_tool == 'dymola':
+                                # For Dymola, this is not the name in the .mos file (as these may not be unique).
+                                # Rather, we set the result file name to be the mos file name with
+                                # .mat extension
+                                matFil = f"{dat['model_name']}.mat"
+                            else:
                                 matFil = '{}_result.mat'.format(
                                     re.sub(r'\.', '_', dat['model_name']))
 
@@ -2858,6 +2854,28 @@ class Tester(object):
             for i in range(len(linWri)):
                 filWri.write(lines[linWri[i]])
 
+    def _updateResultFile(self, mosFilNam, modelName):
+        """
+        Update the mos script to use ``matFilNam`` as the name of the result file.
+
+        :param mosFilNam: The name of the ``*.mos`` file
+        :param modelName: The name of the model
+
+        This function updates in the ``mosFilNam`` the simulate command
+        to use `modelName.mat` as the result file name.
+        This ensures that each result file name is unique.
+        """
+        import re
+        with open(mosFilNam, mode="r+", encoding="utf-8-sig") as fil:
+            con = fil.read()
+        count = 0
+        (conNew, count) = re.subn(r"resultFile\s*=\s*\"(.+)\"",
+                                  f"resultFile=\"{modelName}\"", con, count=count, flags=re.M)
+        # Models with translateModelFMU have no result file. So these files are not written to disk
+        if count > 0:
+            with open(mosFilNam, mode="w", encoding="utf-8-sig") as fil:
+                fil.write(conNew)
+
     def _write_runscript_dymola(self, iPro):
         """Create the runAll.mos script for the current processor and for Dymola,
            and return the number of generated regression tests.
@@ -3148,6 +3166,7 @@ Modelica.Utilities.Streams.print("        \"result\"  : " + String(iSuc > 0), "{
                 print(
                     "****** {} neither requires a simulation nor an FMU export.".format(self._data[i]['ScriptFile']))
             self._removePlotCommands(absMosFilNam)
+            self._updateResultFile(absMosFilNam, self._data[i]['model_name'])
             nUniTes = nUniTes + 1
             iItem = iItem + 1
 
