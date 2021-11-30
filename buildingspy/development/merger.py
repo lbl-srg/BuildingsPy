@@ -404,7 +404,7 @@ class IBPSA(object):
                                 is_binary = True
                                 break
                         if is_binary:
-                            copyfile(srcFil, new_file)
+                            shutil.copyfile(srcFil, new_file)
                         else:
                             self._copy_rename(self._src_library_name,
                                               self._new_library_name,
