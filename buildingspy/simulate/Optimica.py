@@ -304,35 +304,6 @@ class Simulator(bs._BaseSimulator):
         """
         self._generate_html_diagnostics = generate
 
-    def generateSolverDiagnostics(self, generate=True):
-        """ If set to `true`, solver debug information will be generated.
-
-        To display the solver diagnostics, call :func:`debugSolver`
-
-        This is currently only used for the `CVode` solver.
-
-        .. note:: This can generate huge files
-                  and increase simulation time.
-        """
-        self._debug_solver = generate
-
-    def debugSolver(self):
-        """ Call this function to interactively debug the solver after the simulation.
-
-        This is currently only used for the `CVode` solver.
-
-        This function calls :func:`generateSolverDiagnostics`
-        to generate the debug files, and then displays them after the simulation.
-
-        This function must be called prior to :func:`simulate`
-        because the debugging is invoked immediately after the simulation.
-
-        .. note:: This can generate huge files
-                  and increase simulation time.
-        """
-        self.generateSolverDiagnostics(True)
-        self._debug_solver_interactive_mode = True
-
     def _check_simulation_errors(self, worDir, simulate):
         """ Method that checks if errors occured during simulation.
 

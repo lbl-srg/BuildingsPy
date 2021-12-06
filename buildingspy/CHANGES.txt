@@ -1,9 +1,18 @@
 BuildingsPy Changelog
 ---------------------
 
-Version 2.2.0, xxx, 2020 -- Release 2.2
+Version 3.0.0, xxx, 2021 -- Release 3.0
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-- xxx
+- For unit tests, changed code to generate names of Dymola output file to ensure that they are unique.
+  Previously, an error was issued if they are not unique.
+  (https://github.com/lbl-srg/BuildingsPy/issues/446)
+- For merge script, renamed set_excluded_packages to set_excluded_directories
+  (https://github.com/lbl-srg/BuildingsPy/issues/439)
+- For Dymola simulations, corrected call to openModel in buildingspy/simulate/Dymola.py
+- For unit tests, avoided copying .log and .mat files to temporary directory
+  (https://github.com/lbl-srg/BuildingsPy/issues/428)
+- For unit tests with Optimica, added check for access to component that are not present in constraining type of declaration
+  (https://github.com/lbl-srg/BuildingsPy/issues/424)
 - For library merger, corrected erroneous replacement of IBPSA in name of issue number
   (https://github.com/lbl-srg/BuildingsPy/issues/412)
 - For unit tests, set Advanced.GenerateVariableDependencies = false as this can change the set of nonlinear equations

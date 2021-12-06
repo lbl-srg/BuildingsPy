@@ -278,31 +278,6 @@ class Test_simulate_Simulator(unittest.TestCase):
         # Delete output files
         s.deleteOutputFiles()
 
-    def test_generateSolverDiagnostics(self):
-        """
-        Tests the :mod:`buildingspy.simulate.Optimica.generateSolverDiagnostics`
-        function.
-        """
-        from buildingspy.io.outputfile import Reader
-
-        model = "MyModelicaLibrary.Examples.MyStep"
-        resultFile = f"{model.replace('.', '_')}_debug.txt"
-
-        # Delete output file
-        if os.path.exists(resultFile):
-            os.remove(resultFile)
-
-        s = Simulator(model, packagePath=self._packagePath)
-        s.generateSolverDiagnostics()
-        s.simulate()
-
-        self.assertTrue(
-            os.path.exists(resultFile),
-            f"Expected file {resultFile} to exist after simulation in test_generateSolverDiagnostics.")
-
-        # Delete output files
-        s.deleteOutputFiles()
-
     def test_timeout(self, timeout=3):
         model = 'MyModelicaLibrary.MyModelTimeOut'
         json_log_file = '{}_buildingspy.json'.format(model.replace('.', '_'))

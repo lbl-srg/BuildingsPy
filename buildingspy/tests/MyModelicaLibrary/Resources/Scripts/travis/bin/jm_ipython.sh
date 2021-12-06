@@ -1,7 +1,19 @@
 #!/bin/bash
+#################################################
+# Shell script that simulates OPTIMICA using
+# a docker image of OPTIMICA.
+#
+# The main purpose of this script is to export
+# MODELICAPATH and PYTHONPATH with their values
+# updated for the docker, and to mount the
+# required directories.
+#################################################
 set -e
-IMG_NAME=ubuntu-1804_jmodelica_trunk
+
+IMG_NAME=travis-ubuntu-1804-optimica:r19089
 DOCKER_USERNAME=michaelwetter
+
+NAME=${DOCKER_USERNAME}/${IMG_NAME}
 
 # Function declarations
 function create_mount_command()
@@ -33,6 +45,12 @@ function update_path_variable()
   echo "${new_pat}"
 }
 
+# Make sure MAC_ADDRESS is set
+if [ -z ${OPTIMICA_MAC_ADDRESS+x} ]; then
+    echo "Error: Environment variable OPTIMICA_MAC_ADDRESS is not set."
+    exit 1
+fi
+
 # Export the MODELICAPATH
 if [ -z ${MODELICAPATH+x} ]; then
     MODELICAPATH=`pwd`
@@ -53,27 +71,45 @@ PYT_MOUNT=`create_mount_command ${PYTHONPATH}`
 DOCKER_MODELICAPATH=`update_path_variable ${MODELICAPATH}`
 DOCKER_PYTHONPATH=`update_path_variable ${PYTHONPATH}`
 
-cur_dir=`pwd`
-bas_nam=`basename ${cur_dir}`
-sha_dir=`dirname ${cur_dir}`
 # If the current directory is part of the argument list,
 # replace it with . as the docker may have a different file structure
+cur_dir=`pwd`
+bas_nam=`basename ${cur_dir}`
 arg_lis=`echo $@ | sed -e "s|${cur_dir}|.|g"`
 
-docker run \
-  --user=${UID} \
+# Set variable for shared directory
+sha_dir=`dirname ${cur_dir}`
+
+# Check if the python script should be run interactively (if -i is specified)
+while [ $# -ne 0 ]
+do
+    arg="$1"
+    case "$arg" in
+        -i)
+            interactive=true
+            DOCKER_INTERACTIVE=-t
+            ;;
+    esac
+    shift
+done
+
+DOCKER_FLAGS="\
+  --mac-address=${OPTIMICA_MAC_ADDRESS} \
   --detach=false \
+  --rm \
+  --user=${UID} \
   ${MOD_MOUNT} \
   ${PYT_MOUNT} \
-  -v ${sha_dir}:/mnt/shared \
-  -e DISPLAY=${DISPLAY} \
   -v /tmp/.X11-unix:/tmp/.X11-unix \
-  --rm \
-  ${DOCKER_USERNAME}/${IMG_NAME} /bin/bash -c \
-  "export USER=test && \
-  export MODELICAPATH=${DOCKER_MODELICAPATH}:/usr/local/JModelica/ThirdParty/MSL && \
-  export PYTHONPATH=${DOCKER_PYTHONPATH} && \
-  export IPYTHONDIR=/mnt/shared && \
-  cd /mnt/shared/${bas_nam} && \
-  /usr/local/JModelica/bin/jm_ipython.sh ${arg_lis}"
+  -e DISPLAY=${DISPLAY} \
+  -v ${sha_dir}:/mnt/shared \
+  -w /mnt/shared/${bas_nam} \
+  ${NAME}"
+
+docker run ${DOCKER_FLAGS} /bin/bash -c \
+  "export MODELICAPATH=${DOCKER_MODELICAPATH}:/opt/oct/ThirdParty/MSL && \
+   export PYTHONPATH=${DOCKER_PYTHONPATH} && \
+   export IPYTHONDIR=/mnt/shared &&
+   alias ipython=ipython3 && \
+   /opt/oct/bin/jm_ipython.sh ${arg_lis}"
 exit $?

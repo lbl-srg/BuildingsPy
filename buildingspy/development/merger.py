@@ -16,7 +16,7 @@ class IBPSA(object):
         By default, the top-level packages `Experimental`
         and `Obsolete` are not included in the merge.
         This can be overwritten with the function
-        :meth:`~set_excluded_packages`.
+        :meth:`~set_excluded_directories`.
 
     """
 
@@ -50,11 +50,15 @@ class IBPSA(object):
         self._new_library_name = os.path.basename(dest_dir)
 
         # Exclude packages and files
-        self.set_excluded_packages(["Experimental",
-                                    "Obsolete"])
+        self.set_excluded_directories(["Experimental",
+                                       "Obsolete",
+                                       ".FMUOutput"])
         self._excluded_files = [os.path.join(ibpsa_dir, "package.mo"),
                                 os.path.join(ibpsa_dir, "dymosim"),
+                                os.path.join(ibpsa_dir, "dymosim.exe"),
                                 os.path.join(ibpsa_dir, "request"),
+                                os.path.join(ibpsa_dir, "status"),
+                                os.path.join(ibpsa_dir, "success"),
                                 os.path.join(ibpsa_dir, "ds*.txt"),
                                 os.path.join(ibpsa_dir, "*.c"),
                                 os.path.join(ibpsa_dir, "*.exe"),
@@ -67,6 +71,7 @@ class IBPSA(object):
                                 os.path.join(ibpsa_dir, "*.pyc"),
                                 os.path.join(ibpsa_dir, "*.pdf"),
                                 os.path.join(ibpsa_dir, "*.svg"),
+                                os.path.join(ibpsa_dir, "*.pyc"),
                                 os.path.join(ibpsa_dir, "nohup.out"),
                                 os.path.join(ibpsa_dir, "funnel_comp", "plot.html"),
                                 os.path.join(ibpsa_dir, "funnel_comp", "**", "*.csv"),
@@ -86,15 +91,15 @@ class IBPSA(object):
                                 os.path.join(ibpsa_dir, "Resources", "www", "modelicaDoc.css"),
                                 os.path.join(ibpsa_dir, "legal.html")]
 
-    def set_excluded_packages(self, packages):
-        """ Set the packages that are excluded from the merge.
+    def set_excluded_directories(self, directories):
+        """ Set the directories that are excluded from the merge.
 
-        :param packages: A list of packages to be excluded.
+        :param packages: A list of directories to be excluded.
 
         """
-        if not isinstance(packages, list):
+        if not isinstance(directories, list):
             raise ValueError("Argument must be a list.")
-        self._excluded_packages = packages
+        self._excluded_directories = directories
 
     def _copy_mo_and_mos(self, source_file, destination_file):
         """ Update the library name and do other replacements that
@@ -218,7 +223,7 @@ class IBPSA(object):
         if '*' in pattern:
             pat = pattern.split('*')
             # Currently, we only support one wild card character
-            if len(pat) is not 2:
+            if len(pat) != 2:
                 ValueError("Pattern {} is not supported.".format(pattern))
             # Make sure it has the same number of directories
             ret = filter(lambda x: (x.count(os.path.sep) == pattern.count(os.path.sep)) and
@@ -312,7 +317,7 @@ class IBPSA(object):
         filesToCopy = list()
 
         for root, dirs, files in os.walk(self._ibpsa_home, topdown=True):
-            dirs[:] = [d for d in dirs if d not in self._excluded_packages]
+            dirs[:] = [d for d in dirs if d not in self._excluded_directories]
             for file in files:
                 filesToCopy.append(os.path.join(root, file))
 
@@ -359,9 +364,9 @@ class IBPSA(object):
                 elif desFil.startswith(ref_res):
                     dir_name = os.path.dirname(desFil)
                     base_name = os.path.basename(desFil)
-                    # Check if the file needs be skipped because it is from an excluded package.
+                    # Check if the file needs be skipped because it is from an excluded directory.
                     skip = False
-                    for pac in self._excluded_packages:
+                    for pac in self._excluded_directories:
                         if "{}_{}".format(self._src_library_name, pac) in base_name:
                             skip = True
                     if not skip:
@@ -399,9 +404,13 @@ class IBPSA(object):
                                 is_binary = True
                                 break
                         if is_binary:
-                            copyfile(srcFil, new_file)
+                            shutil.copyfile(srcFil, new_file)
                         else:
-                            self._copy_rename(srcFil, new_file, rep)
+                            self._copy_rename(self._src_library_name,
+                                              self._new_library_name,
+                                              srcFil,
+                                              new_file,
+                                              rep)
 
                 # Copy all other files. This may be images, C-source, libraries etc.
                 else:
