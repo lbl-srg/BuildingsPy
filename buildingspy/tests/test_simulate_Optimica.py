@@ -57,7 +57,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         s = Simulator("MyModelicaLibrary.MyModel", packagePath=self._packagePath)
 
         # Try to load an existing path.
-        p = os.path.abspath(os.path.join("buildingspy", "tests"))
+        p = os.path.abspath(os.path.join("buildingspy", "tests", "MyModelicaLibrary"))
         s.setPackagePath(p)
 
         # Try to load a none existing path.
