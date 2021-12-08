@@ -27,7 +27,7 @@ def main():
 
     # Build list of cases to run
     li = []
-    # First model
+    # First model, from Modelica Buildings Library, v7.0.0
     model = 'Buildings.Controls.Continuous.Examples.PIDHysteresis'
     s = Simulator(model, 'case1')
     s.addParameters({'con.eOn': 0.1})

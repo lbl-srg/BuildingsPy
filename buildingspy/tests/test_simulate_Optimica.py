@@ -13,7 +13,7 @@ def _simulate(cas):
     """
     from buildingspy.simulate.Optimica import Simulator
 
-    packagePath = os.path.abspath(os.path.join("buildingspy", "tests"))
+    packagePath = os.path.abspath(os.path.join("buildingspy", "tests", "MyModelicaLibrary"))
     s = Simulator(cas['model'], outputDirectory=f"out-{cas['tol']}", packagePath=packagePath)
     s.setTolerance(cas['tol'])
     s.simulate()
@@ -22,7 +22,7 @@ def _simulate(cas):
 class Test_simulate_Simulator(unittest.TestCase):
     """
        This class contains the unit tests for
-       :mod:`buildingspy.simulate.Simulator`.
+       :mod:`buildingspy.simulate.Optimica`.
     """
 
     def setUp(self):
@@ -31,11 +31,11 @@ class Test_simulate_Simulator(unittest.TestCase):
         that contains a Modelica package.
         """
         self._packagePath = os.path.abspath(os.path.join(
-            "buildingspy", "tests"))
+            "buildingspy", "tests", "MyModelicaLibrary"))
 
     def test_Constructor(self):
         """
-        Tests the :mod:`buildingspy.simulate.Simulator`
+        Tests the :mod:`buildingspy.simulate.Optimica`
         constructor.
         """
         Simulator(
@@ -57,7 +57,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         s = Simulator("MyModelicaLibrary.MyModel", packagePath=self._packagePath)
 
         # Try to load an existing path.
-        p = os.path.abspath(os.path.join("buildingspy", "tests"))
+        p = os.path.abspath(os.path.join("buildingspy", "tests", "MyModelicaLibrary"))
         s.setPackagePath(p)
 
         # Try to load a none existing path.
@@ -69,7 +69,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         Tests reporting the exception if a simulation fails.
         """
         with self.assertRaises(ValueError):
-            s = Simulator(
+            Simulator(
                 modelName="MyModelicaLibrary.MyModel",
                 packagePath="THIS IS NOT A VALID PACKAGE PATH")
 
@@ -184,6 +184,18 @@ class Test_simulate_Simulator(unittest.TestCase):
         self.assertEqual(p[0], 0.0)
         # Delete output files
         s.deleteOutputFiles()
+
+    def test_raisesAssertionIfWrongDataType(self):
+        """
+        Tests the :mod:`buildingspy.simulate.Optimica.simulate`
+        function to make sure it raises an assertion if a model fails to translate.
+        """
+        model = "MyModelicaLibrary.Examples.BooleanParameters"
+
+        s = Simulator(model, packagePath=self._packagePath)
+        s.addParameters({'p1': 123})  # p1 is a boolean parameter. This will fail the model.
+        with self.assertRaises(Exception):
+            s.simulate()
 
     def test_setResultFilter(self):
         """

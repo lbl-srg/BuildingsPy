@@ -246,8 +246,8 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
           5. Closes the Modelica simulation environment.
 
         This method requires that the directory that contains the executable ``dymola``
-        is on the system ``PATH`` variable. If it is not found, the function returns with
-        an error message.
+        is on the system ``PATH`` variable.
+        If it is not found, the function raises an exception.
 
         """
         import os
@@ -304,8 +304,8 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
           5. Closes the Modelica simulation environment.
 
         This method requires that the directory that contains the executable ``dymola``
-        is on the system ``PATH`` variable. If it is not found, the function returns with
-        an error message.
+        is on the system ``PATH`` variable.
+        If it is not found, the function raises an exception.
 
         """
         import os
@@ -403,10 +403,11 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
             else:
                 for li in ret["errors"]:
                     self._reporter.writeError(li)
-                raise IOError
+                raise Exception(f"Simulation terminated with error. Check {path_to_logfile}.")
         else:
             em = f"Log file {path_to_logfile} does not exist."
             self._reporter.writeError(em)
+            raise IOError(em)
 
 # Classes that are inherited. These are listed here
 # so that they appear in the documentation.

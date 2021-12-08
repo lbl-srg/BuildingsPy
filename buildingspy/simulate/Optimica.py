@@ -120,7 +120,7 @@ class Simulator(bs._BaseSimulator):
 
         Usage: Type
            >>> from buildingspy.simulate.Optimica import Simulator
-           >>> s=Simulator("MyModelicaLibrary.Examples.Constants", packagePath="buildingspy/tests")
+           >>> s=Simulator("MyModelicaLibrary.Examples.Constants", packagePath="buildingspy/tests/MyModelicaLibrary")
            >>> s.simulate() # doctest: +SKIP
 
         This method
@@ -131,8 +131,8 @@ class Simulator(bs._BaseSimulator):
           5. Closes the Modelica simulation environment.
 
         This method requires that the directory that contains the executable ``jm_ipython.sh``
-        is on the system ``PATH`` variable. If it is not found, the function returns with
-        an error message.
+        is on the system ``PATH`` variable.
+        If it is not found, the function raises an exception.
 
         """
         return self._translate_and_simulate(simulate=True)
@@ -142,7 +142,7 @@ class Simulator(bs._BaseSimulator):
 
         Usage: Type
            >>> from buildingspy.simulate.Optimica import Simulator
-           >>> s=Simulator("MyModelicaLibrary.Examples.Constants", packagePath="buildingspy/tests")
+           >>> s=Simulator("MyModelicaLibrary.Examples.Constants", packagePath="buildingspy/tests/MyModelicaLibrary")
            >>> s.translate() # doctest: +SKIP
 
         This method
@@ -153,8 +153,8 @@ class Simulator(bs._BaseSimulator):
           5. Closes the Modelica simulation environment.
 
         This method requires that the directory that contains the executable ``jm_ipython.sh``
-        is on the system ``PATH`` variable. If it is not found, the function returns with
-        an error message.
+        is on the system ``PATH`` variable.
+        If it is not found, the function raises an exception.
 
         """
         return self._translate_and_simulate(simulate=False)
@@ -172,8 +172,8 @@ class Simulator(bs._BaseSimulator):
           5. Closes the Modelica simulation environment.
 
         This method requires that the directory that contains the executable ``jm_ipython.sh``
-        is on the system ``PATH`` variable. If it is not found, the function returns with
-        an error message.
+        is on the system ``PATH`` variable.
+        If it is not found, the function raises an exception.
 
         """
         import os
@@ -246,7 +246,7 @@ class Simulator(bs._BaseSimulator):
         except Exception as e:  # Catch all possible exceptions
             em = f"Simulation failed in '{worDir}'\n   Exception: {e}.\n   You need to delete the directory manually.\n"
             self._reporter.writeError(em)
-            raise
+            raise e
 
     def setResultFilter(self, filter):
         """ Specifies a list of variables that should be stored in the result file.
