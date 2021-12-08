@@ -32,6 +32,49 @@ unittest:
 	# python buildingspy/tests/test_development_regressiontest_optimica.py Test_regressiontest_optimica_Tester.test_regressiontest_diagnostics
 	python3 -m unittest discover buildingspy/tests
 
+unittest_development_error_dictionary:
+	python3 test_development_error_dictionary.py
+
+unittest_development_merger:
+	python3 test_development_merger.py
+
+unittest_development_refactor:
+	python3 test_development_refactor.py
+
+unittest_development_regressiontest_jmodelica:
+	python3 test_development_regressiontest_jmodelica.py
+
+unittest_development_regressiontest_openmodelica:
+	python3 test_development_regressiontest_openmodelica.py
+
+unittest_development_regressiontest_optimica:
+	python3 test_development_regressiontest_optimica.py
+
+unittest_development_regressiontest:
+	python3 test_development_regressiontest.py
+
+unittest_development_Validator:
+	python3 test_development_Validator.py
+
+unittest_examples_dymola:
+	python3 test_examples_dymola.py
+
+unittest_io_outputfile:
+	python3 test_io_outputfile.py
+
+unittest_io_postprocess:
+	python3 test_io_postprocess.py
+
+unittest_simulate_Dymola:
+	python3 test_simulate_Dymola.py
+
+unittest_simulate_Optimica:
+	python3 test_simulate_Optimica.py
+
+unittest_simulate_Simulator:
+	python3 test_simulate_Simulator.py
+
+
 doctest:
 	python3 -m doctest \
 	buildingspy/fmi/*.py \
