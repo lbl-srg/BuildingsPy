@@ -22,7 +22,7 @@ def _simulate(cas):
 class Test_simulate_Simulator(unittest.TestCase):
     """
        This class contains the unit tests for
-       :mod:`buildingspy.simulate.Simulator`.
+       :mod:`buildingspy.simulate.Optimica`.
     """
 
     def setUp(self):
@@ -35,7 +35,7 @@ class Test_simulate_Simulator(unittest.TestCase):
 
     def test_Constructor(self):
         """
-        Tests the :mod:`buildingspy.simulate.Simulator`
+        Tests the :mod:`buildingspy.simulate.Optimica`
         constructor.
         """
         Simulator(
