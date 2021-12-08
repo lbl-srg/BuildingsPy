@@ -23,27 +23,28 @@ class Test_example_dymola_runSimulation(unittest.TestCase):
         """ Ensure that environment variables that are needed to run
             the tests are set
         """
-        from git import Repo
         import tempfile
         import os
         import shutil
+        import requests
+        import zipfile
+        from io import BytesIO
 
         self._temDir = tempfile.mkdtemp(prefix='tmp-BuildingsPy-Modelica-Lib-')
         self._buiDir = os.path.join(os.getcwd(), "Buildings")
 
-        clo_dir = os.path.join(os.getcwd(), "tmp")
+        zip_file_url = "https://github.com/lbl-srg/modelica-buildings/archive/refs/tags/v7.0.0.zip"
 
-        if os.path.exists(clo_dir):
-            shutil.rmtree(clo_dir)
-
-        Repo.clone_from("https://github.com/lbl-srg/modelica-buildings.git",
-                        clo_dir, depth=1)
-
-        if os.path.exists(os.path.join(os.getcwd(), "Buildings")):
-            shutil.rmtree(os.path.join(os.getcwd(), "Buildings"))
-        shutil.move(os.path.join(os.getcwd(), "tmp", "Buildings"),
-                    self._buiDir)
-        shutil.rmtree(clo_dir)
+        r = requests.get(zip_file_url)
+        # Split URL to get the file name
+        zip_file = zip_file_url.split('/')[-1]
+        # Writing the file to the local file system
+        with open(zip_file, 'wb') as output_file:
+            output_file.write(r.content)
+        z = zipfile.ZipFile(BytesIO(r.content))
+        z.extractall()
+        shutil.move(os.path.join("modelica-buildings-7.0.0", "Buildings"), "Buildings")
+        shutil.rmtree("modelica-buildings-7.0.0")
 
     def tearDown(self):
         """ Method called after all the tests.
@@ -52,6 +53,7 @@ class Test_example_dymola_runSimulation(unittest.TestCase):
         import shutil
         import os
         shutil.rmtree(self._buiDir)
+        os.remove("v7.0.0.zip")
 
     def test_runSimulation(self):
         """

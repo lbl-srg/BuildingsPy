@@ -9,6 +9,7 @@ The module
 :mod:`buildingspy.simulate` that can be used to automate running simulations.
 For example, to translate and simulate the model
 ``Buildings.Controls.Continuous.Examples.PIDHysteresis.mo``
+from the Modelica Buildings Library, release 7.0.0,
 with controller parameters ``con.eOn = 1`` and ``con.eOn = 5``, use
 the following commands:
 
