@@ -1,8 +1,8 @@
 BuildingsPy Changelog
 ---------------------
 
-Version 3.0.0, xxx, 2021 -- Release 3.0
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Version 3.0.0, December 8, 2021 -- Release 3.0
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 - For unit tests, changed code to generate names of Dymola output file to ensure that they are unique.
   Previously, an error was issued if they are not unique.
   (https://github.com/lbl-srg/BuildingsPy/issues/446)
