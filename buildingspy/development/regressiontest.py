@@ -959,9 +959,8 @@ class Tester(object):
                     not mosFil.startswith(
                         "Convert" + self.getLibraryName())):
                     matFil = ""
-                    dat = {
-                        'ScriptFile': os.path.join(root[len(os.path.join(self._libHome, 'Resources', 'Scripts', 'Dymola')) + 1:],
-                                                   mosFil)}
+                    dat = {'ScriptFile': os.path.join(
+                        root[len(os.path.join(self._libHome, 'Resources', 'Scripts', 'Dymola')) + 1:], mosFil)}
                     # ScriptFile is something like Controls/Continuous/Examples/LimPIDWithReset.mos
                     # JModelica CI testing needs files below 140 characters, which includes Buildings.
                     # Hence, write warning if a file is equal or longer than 140-9=131 characters.
@@ -1001,7 +1000,8 @@ class Tester(object):
                                 dat['dymola'] = {
                                     'translate': 'startTime' in dat or 'stopTime' in dat,
                                     'simulate': 'startTime' in dat or 'stopTime' in dat,
-                                    'exportFMU': (self._include_fmu_test and "translateModelFMU" in lin)}
+                                    'exportFMU': (
+                                        self._include_fmu_test and "translateModelFMU" in lin)}
                                 if dat['dymola']['exportFMU']:
                                     for attr in ["modelToOpen", "modelName"]:
                                         _set_attribute_value(lin, attr, dat)
@@ -1046,7 +1046,8 @@ class Tester(object):
                             # Update the FMU name, for example to change
                             # Buildings.Fluid.FMI.Examples.FMUs.IdealSource_m_flow to
                             # Buildings_Fluid_FMI_Examples_FMUs_IdealSource_0m_0flow
-                            dat['dymola']['FMUName'] = dat['dymola']['FMUName'].replace("_", "_0").replace(".", "_")
+                            dat['dymola']['FMUName'] = dat['dymola']['FMUName'].replace(
+                                "_", "_0").replace(".", "_")
                             dat['dymola']['FMUName'] = dat['dymola']['FMUName'] + ".fmu"
 
                         # Plot variables are only used for those models that need to be simulated.
@@ -1114,9 +1115,9 @@ class Tester(object):
                     # Some files like plotFan.mos has neither a simulateModel
                     # nor a translateModelFMU command.
                     # These there must not be added to the data array.
-                    if "startTime" in dat or "stopTime" in dat or (self._modelica_tool == 'dymola' and dat['dymola']['exportFMU']):
+                    if "startTime" in dat or "stopTime" in dat or (
+                            self._modelica_tool == 'dymola' and dat['dymola']['exportFMU']):
                         self._data.append(dat)
-
 
         # Make sure we found at least one unit test.
         if self.get_number_of_tests() == old_len:
@@ -1175,7 +1176,6 @@ class Tester(object):
                 for all_dat in self._data:
                     if con_dat['model_name'] == all_dat['model_name']:
                         # Add all elements of the configuration data
-                        print(f"*** Processing {con_dat['model_name']}")
                         for key in con_dat.keys():
                             # Have dictionary in dictionary
                             if key == self._modelica_tool:
@@ -3188,7 +3188,8 @@ Modelica.Utilities.Streams.print("        \"result\"  : " + String(iSuc > 0), "{
                                    runFil,
                                    self._statistics_log)
 
-            if not (tra_data_pro[i]['dymola']['exportFMU'] or tra_data_pro[i]['dymola']['translate']):
+            if not (tra_data_pro[i]['dymola']['exportFMU']
+                    or tra_data_pro[i]['dymola']['translate']):
                 print(
                     "****** {} neither requires a simulation nor an FMU export.".format(tra_data_pro[i]['ScriptFile']))
             self._removePlotCommands(absMosFilNam)
@@ -3330,7 +3331,8 @@ getErrorString();
             self.setNumberOfThreads(nTes)
 
         # Print number of processors
-        print(f"Using {self._nPro} of {multiprocessing.cpu_count()} processors to run unit tests for {self._modelica_tool}.")
+        print(
+            f"Using {self._nPro} of {multiprocessing.cpu_count()} processors to run unit tests for {self._modelica_tool}.")
 
         # Create temporary directories. This must be called after setNumberOfThreads.
         if not self._useExistingResults:
@@ -3348,7 +3350,8 @@ getErrorString();
                         found = True
                         break
                 if not found:
-                    raise RuntimeError(f"Failed to find the original data for {tra_data[i]['ScriptFile']}")
+                    raise RuntimeError(
+                        f"Failed to find the original data for {tra_data[i]['ScriptFile']}")
 
         for iPro in range(self._nPro):
 
