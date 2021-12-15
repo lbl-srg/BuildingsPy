@@ -1006,7 +1006,7 @@ class Tester(object):
                             if self._include_fmu_test and self._modelica_tool == 'dymola' and \
                                     (not dat['dymola']['exportFMU']) and "translateModelFMU" in lin:
                                 dat['dymola']['exportFMU'] = True
-                            if dat['dymola']['exportFMU']:
+                            if self._modelica_tool == 'dymola' and dat['dymola']['exportFMU']:
                                 for attr in ["modelToOpen", "modelName"]:
                                     _set_attribute_value(lin, attr, dat['dymola'])
 
@@ -1014,16 +1014,18 @@ class Tester(object):
 
                         # Dymola uses in translateModelFMU the syntax
                         # modelName=... but our dictionary uses model_name
-                        if "modelName" in dat['dymola'] and not (dat['dymola']["modelName"] == ""):
-                            dat["model_name"] = dat['dymola']["modelName"]
-                        # The .mos script allows modelName="", hence
-                        # we set the model name to be the entry of modelToOpen
-                        elif "model_name" not in dat['dymola'] and "modelToOpen" in dat['dymola']:
-                            dat['model_name'] = dat['dymola']['modelToOpen']
+                        if self._modelica_tool == 'dymola':
+                            if "modelName" in dat['dymola'] and not (
+                                    dat['dymola']["modelName"] == ""):
+                                dat["model_name"] = dat['dymola']["modelName"]
+                            # The .mos script allows modelName="", hence
+                            # we set the model name to be the entry of modelToOpen
+                            elif "model_name" not in dat['dymola'] and "modelToOpen" in dat['dymola']:
+                                dat['model_name'] = dat['dymola']['modelToOpen']
 
-                        if 'modelName' in dat['dymola']:
-                            # This is not needed anymore
-                            del dat['dymola']["modelName"]
+                            if 'modelName' in dat['dymola']:
+                                # This is not needed anymore
+                                del dat['dymola']["modelName"]
 
                         # We are finished iterating over all lines of the .mos
 ##                        import pprint
@@ -1031,6 +1033,13 @@ class Tester(object):
 # print(f"*****************************************")
 # pp.pprint(dat)
 # print(f"*****************************************")
+
+                        # If a dict has only a 'ScriptFile' but no other entry, then it is likely
+                        # an FMU export case (specified for Dymola) that has not been parsed because
+                        # the tool is not Dymola. In this case, exit the loop
+                        if not self._modelica_tool == 'dymola':
+                            if len(dat) == 1 and 'ScriptFile' in dat:
+                                break
 
                         # Make sure model_name is set
                         if 'model_name' not in dat or dat['model_name'] == '':
@@ -1165,12 +1174,12 @@ class Tester(object):
         def_dic = {}
         def_dic[self._modelica_tool] = {}
 
-        if self._modelica_tool == 'optimica':
-            def_dic['optimica']['translate'] = True,
-            def_dic['optimica']['simulate'] = True,
-            def_dic['optimica']['solver'] = 'CVode'
-            def_dic['optimica']['ncp'] = 500
-            def_dic['optimica']['time_out'] = 300
+        if self._modelica_tool == 'optimica' or self._modelica_tool == 'jmodelica':
+            def_dic[self._modelica_tool]['translate'] = True,
+            def_dic[self._modelica_tool]['simulate'] = True,
+            def_dic[self._modelica_tool]['solver'] = 'CVode'
+            def_dic[self._modelica_tool]['ncp'] = 500
+            def_dic[self._modelica_tool]['time_out'] = 300
 
         for all_dat in self._data:
             # Add default data
@@ -3355,7 +3364,7 @@ getErrorString();
                 if self._isPresentAndTrue('translate', dat[self._modelica_tool]) or self._isPresentAndTrue(
                         'exportFMU', dat[self._modelica_tool]):
                     tra_data.append(dat)
-        elif self._modelica_tool == 'optimica':
+        elif self._modelica_tool == 'optimica' or self._modelica_tool == 'jmodelica':
             for dat in self._data:
                 if self._isPresentAndTrue('translate', dat[self._modelica_tool]):
                     tra_data.append(dat)
