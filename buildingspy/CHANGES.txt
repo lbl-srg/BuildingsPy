@@ -1,5 +1,7 @@
 BuildingsPy Changelog
 ---------------------
+- For unit tests, added option to exclude files for dymola in library configuration script.
+  (https://github.com/lbl-srg/BuildingsPy/pull/450)
 
 Version 3.0.0, December 8, 2021 -- Release 3.0
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
