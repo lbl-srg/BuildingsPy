@@ -1028,23 +1028,16 @@ class Tester(object):
                                 del dat['dymola']["modelName"]
 
                         # We are finished iterating over all lines of the .mos
-##                        import pprint
-##                        pp = pprint.PrettyPrinter(indent=4)
-# print(f"*****************************************")
-# pp.pprint(dat)
-# print(f"*****************************************")
+#                        import pprint
+#                        pp = pprint.PrettyPrinter(indent=4)
+#                        print(f"*****************************************")
+#                        pp.pprint(dat)
+#                        print(f"*****************************************")
 
-                        # If a dict has only a 'ScriptFile' but no other entry, then it is likely
-                        # an FMU export case (specified for Dymola) that has not been parsed because
-                        # the tool is not Dymola. In this case, exit the loop
-                        if not self._modelica_tool == 'dymola':
-                            if len(dat) == 1 and 'ScriptFile' in dat:
-                                break
-
-                        # Make sure model_name is set
-                        if 'model_name' not in dat or dat['model_name'] == '':
-                            msg = f"Failed to set model_name for {os.path.join(root, mosFil)}"
-                            raise ValueError(msg)
+#                        # Make sure model_name is set
+#                        if 'model_name' not in dat or dat['model_name'] == '':
+#                            msg = f"Failed to set model_name for {os.path.join(root, mosFil)}"
+#                            raise ValueError(msg)
 
                         # Get tolerance from mo file. This is used to set the tolerance
                         # for OPTIMICA and JModelica.
