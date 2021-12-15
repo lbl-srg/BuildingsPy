@@ -944,7 +944,6 @@ class Tester(object):
                     dat[keyword] = re.sub(r'^"|"$', '', entry)
             return
 
-        old_len = self.get_number_of_tests()
         # Check if the data dictionary has already been set, in
         # which case we return doing nothing.
         # This is needed because methods append to the dictionary, which
@@ -981,6 +980,9 @@ class Tester(object):
 
                     # Set some attributes in the Data object
                     if self._includeFile(os.path.join(root, mosFil)):
+                        if self._modelica_tool == 'dymola':
+                            dat['dymola'] = {'exportFMU': False} # May be switched to True below
+
                         for lin in Lines:
                             # Add the model name to the dictionary.
                             # This is needed to export the model as an FMU.
@@ -995,26 +997,44 @@ class Tester(object):
                                 for attr in ["startTime", "stopTime"]:
                                     _set_attribute_value(lin, attr, dat)
 
+                            if self._modelica_tool == 'dymola' and 'stopTime' in dat and (not 'simulate' in dat['dymola']):
+                                dat['dymola']['translate'] = 'stopTime' in dat
+                                dat['dymola']['simulate'] = 'stopTime' in dat
+
                             # Check if this model need to be translated as an FMU.
-                            if self._modelica_tool == 'dymola':
-                                dat['dymola'] = {
-                                    'translate': 'stopTime' in dat,
-                                    'simulate': 'stopTime' in dat,
-                                    'exportFMU': (
-                                        self._include_fmu_test and "translateModelFMU" in lin)}
-                                if dat['dymola']['exportFMU']:
-                                    for attr in ["modelToOpen", "modelName"]:
-                                        _set_attribute_value(lin, attr, dat)
-                                        # Dymola uses in translateModelFMU the syntax
-                                        # modelName=... but our dictionary uses model_name
-                                        if attr == "modelName" and "modelName" in dat:
-                                            dat["model_name"] = dat["modelName"]
-                                            del dat["modelName"]
-                                    # The .mos script allows modelName="", hence
-                                    # we set the model name to be the entry of modelToOpen
-                                    if "model_name" in dat and dat["model_name"] == "":
-                                        if "modelToOpen" in dat:
-                                            dat["model_name"] = dat['dymola']['modelToOpen']
+                            if self._include_fmu_test and self._modelica_tool == 'dymola' and \
+                                (not dat['dymola']['exportFMU']) and "translateModelFMU" in lin:
+                                dat['dymola']['exportFMU'] = True
+                            if dat['dymola']['exportFMU']:
+                                for attr in ["modelToOpen", "modelName"]:
+                                    _set_attribute_value(lin, attr, dat['dymola'])
+
+                        # We are finished iterating over all lines of the .mos
+
+                        # Dymola uses in translateModelFMU the syntax
+                        # modelName=... but our dictionary uses model_name
+                        if "modelName" in dat['dymola'] and not (dat['dymola']["modelName"] == ""):
+                            dat["model_name"] = dat['dymola']["modelName"]
+                        # The .mos script allows modelName="", hence
+                        # we set the model name to be the entry of modelToOpen
+                        elif "model_name" not in dat['dymola'] and "modelToOpen" in dat['dymola']:
+                            dat['model_name'] = dat['dymola']['modelToOpen']
+
+                        if 'modelName' in dat['dymola']:
+                            # This is not needed anymore
+                            del dat['dymola']["modelName"]
+
+                        # We are finished iterating over all lines of the .mos
+##                        import pprint
+##                        pp = pprint.PrettyPrinter(indent=4)
+##                        print(f"*****************************************")
+##                        pp.pprint(dat)
+##                        print(f"*****************************************")
+
+                        # Make sure model_name is set
+                        if 'model_name' not in dat or dat['model_name'] == '':
+                            msg =f"Failed to set model_name for {os.path.join(root, mosFil)}"
+                            raise ValueError(msg)
 
                         # Get tolerance from mo file. This is used to set the tolerance
                         # for OPTIMICA and JModelica.
@@ -1028,7 +1048,6 @@ class Tester(object):
                                 self._reporter.writeError(str(e))
                                 dat['tolerance'] = None
 
-                        # We are finished iterating over all lines of the .mos
 
                         # For FMU export, if model_name="", then Dymola uses the
                         # Modelica class name, with "." replaced by "_".
@@ -1041,7 +1060,7 @@ class Tester(object):
                             dat['dymola']['modelToOpen'] = dat['dymola']['modelToOpen'].strip('"')
 
                             # Update the name of the FMU if model_name is "" in .mos file.
-                            if len(['dymola']['FMUName']) == 0:
+                            if len(dat['dymola']['FMUName']) == 0:
                                 dat['dymola']['FMUName'] = dat['dymola']['modelToOpen']
                             # Update the FMU name, for example to change
                             # Buildings.Fluid.FMI.Examples.FMUs.IdealSource_m_flow to
@@ -1112,15 +1131,15 @@ class Tester(object):
 
                             dat['ResultFile'] = matFil
 
-                    # Some files like plotFan.mos has neither a simulateModel
-                    # nor a translateModelFMU command.
-                    # These there must not be added to the data array.
-                    if "stopTime" in dat or (
-                            self._modelica_tool == 'dymola' and dat['dymola']['exportFMU']):
-                        self._data.append(dat)
+                        # Some files like plotFan.mos has neither a simulateModel
+                        # nor a translateModelFMU command.
+                        # These there must not be added to the data array.
+                        if "stopTime" in dat or (
+                                self._modelica_tool == 'dymola' and dat['dymola']['exportFMU']):
+                            self._data.append(dat)
 
         # Make sure we found at least one unit test.
-        if self.get_number_of_tests() == old_len:
+        if self.get_number_of_tests() == 0:
             msg = """Did not find any regression tests in '%s'.""" % root_package
             self._reporter.writeError(msg)
 
@@ -1143,13 +1162,11 @@ class Tester(object):
         import copy
         import json
 
-        def_dic = {
-            self._modelica_tool: {
-                'translate': True
-            }
-        }
+        def_dic = {}
+        def_dic[self._modelica_tool] = {}
 
         if self._modelica_tool == 'optimica':
+            def_dic['optimica']['translate'] = True,
             def_dic['optimica']['simulate'] = True,
             def_dic['optimica']['solver'] = 'CVode'
             def_dic['optimica']['ncp'] = 500
@@ -2899,6 +2916,10 @@ class Tester(object):
             with open(mosFilNam, mode="w", encoding="utf-8-sig") as fil:
                 fil.write(conNew)
 
+    @staticmethod
+    def _isPresentAndTrue(key, dic):
+            return key in dic and dic[key]
+
     def _write_runscript_dymola(self, iPro, tra_data_pro):
         """Create the runAll.mos script for the current processor iPro and for Dymola,
            and return the number of generated regression tests.
@@ -2984,13 +3005,13 @@ Modelica.Utilities.Streams.print("{\"testCase\" : [", "%s");
 """ % self._statistics_log)
 
         for i in range(nTes):
-            if tra_data_pro[i]['dymola']['translate'] or tra_data_pro[i]['dymola']['exportFMU']:
+            if self._isPresentAndTrue('translate', tra_data_pro[i]['dymola']) or self._isPresentAndTrue('exportFMU', tra_data_pro[i]['dymola']):
                 nItem = nItem + 1
         iItem = 0
         # Write unit tests for this process
         for i in range(nTes):
             # Check if this mos file should be simulated
-            if tra_data_pro[i]['dymola']['translate'] or tra_data_pro[i]['dymola']['exportFMU']:
+            if self._isPresentAndTrue('translate', tra_data_pro[i]['dymola']) or self._isPresentAndTrue('exportFMU', tra_data_pro[i]['dymola']):
                 isLastItem = (iItem == nItem - 1)
                 mosFilNam = os.path.join(self.getLibraryName(),
                                          "Resources", "Scripts", "Dymola",
@@ -3030,8 +3051,8 @@ Modelica.Utilities.Streams.print("{\"testCase\" : [", "%s");
                     "simulatorLog": self._simulator_log_file.replace(
                         "\\",
                         "/")}
-                if 'FMUName' in tra_data_pro[i]:
-                    values["FMUName"] = tra_data_pro[i]['FMUName']
+                if 'FMUName' in tra_data_pro[i]['dymola']:
+                    values["FMUName"] = tra_data_pro[i]['dymola']['FMUName']
              # Delete command log, model_name.simulation.log and dslog.txt
                 runFil.write(f"""
 Modelica.Utilities.Files.remove(\"{values["model_name"]}.translation.log\");
@@ -3062,7 +3083,7 @@ Modelica.Utilities.Streams.print("      }},", "{statisticsLog}");
             runFil.write(template.format(**values))
             ##########################################################################
             # Write commands for checking translation and simulation results.
-            if tra_data_pro[i]['dymola']['translate']:
+            if self._isPresentAndTrue('translate', tra_data_pro[i]['dymola']):
                 # Remove dslog.txt, run a simulation, rename dslog.txt, and
                 # scan this log file for errors.
                 # This is needed as RunScript returns true even if the simulation failed.
@@ -3245,13 +3266,13 @@ Modelica.Utilities.Files.remove(\"{self._statistics_log}\");
     """ % self._statistics_log)
 
         for i in range(nTes):
-            if tra_data_pro[i]['dymola']['translate'] or tra_data_pro[i]['dymola']['exportFMU']:
+            if self._isPresentAndTrue('translate', tra_data_pro[i]['dymola']) or self._isPresentAndTrue('exportFMU', tra_data_pro[i]['dymola']):
                 nItem = nItem + 1
         iItem = 0
         # Write unit tests for this process
         for i in range(nTes):
             # Check if this mos file should be simulated
-            if tra_data_pro[i]['dymola']['translate'] or tra_data_pro[i]['dymola']['exportFMU']:
+            if self._isPresentAndTrue('translate', tra_data_pro[i]['dymola']) or self._isPresentAndTrue('exportFMU', tra_data_pro[i]['dymola']):
                 isLastItem = (iItem == nItem - 1)
                 mosFilNam = os.path.join(self.getLibraryName(),
                                          "Resources", "Scripts", "Dymola",
@@ -3292,9 +3313,6 @@ Modelica.Utilities.Files.remove(\"{self._statistics_log}\");
                         "\\",
                         "/")}
 
-            if 'FMUName' in tra_data_pro[i]:
-                values["FMUName"] = tra_data_pro[i]['FMUName']
-
             template = """
 runScript("Resources/Scripts/Dymola/{scriptFile}");
 getErrorString();
@@ -3312,16 +3330,21 @@ getErrorString();
 
         The commands in the script depend on the tool: 'dymola', 'optimica', 'jmodelica' or 'omc'
         """
-
         nUniTes = 0
 
-        # Build array of models that need to be translated
+        # Build array of models that need to be translated, simulated, or exported as an FMU
         tra_data = []
-        for dat in self._data:
-            #print(f"**** Checking {dat}\n")
-            if dat[self._modelica_tool]['translate']:
-                #print(f"**** Adding {dat}\n\n")
-                tra_data.append(dat)
+        if self._modelica_tool == 'dymola':
+            for dat in self._data:
+                if self._isPresentAndTrue('translate', dat[self._modelica_tool]) or self._isPresentAndTrue('exportFMU', dat[self._modelica_tool]):
+                    tra_data.append(dat)
+        elif self._modelica_tool == 'optimica':
+            for dat in self._data:
+                if self._isPresentAndTrue('translate', dat[self._modelica_tool]):
+                    tra_data.append(dat)
+        else:
+            raise RuntimeError("Tool is not supported.")
+
 
         # Count how many tests need to be translated.
         nTes = len(tra_data)
@@ -3669,7 +3692,8 @@ getErrorString();
                         if os.path.exists(temLogFilNam):
                             with open(temLogFilNam.replace('Temp\tmp', 'Temp\\tmp'), mode="r", encoding="utf-8-sig") as temSta:
                                 try:
-                                    cas = json.load(temSta)["testCase"]
+                                    jsonLog = json.load(temSta)
+                                    cas = jsonLog["testCase"]
                                     # Iterate over all test cases of this output file
                                     for ele in cas:
                                         stat.append(ele)
