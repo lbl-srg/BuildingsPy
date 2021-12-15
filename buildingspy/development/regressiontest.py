@@ -96,6 +96,17 @@ def runSimulation(worDir, cmd):
             sys.stderr.write("Users stopped simulation in %s.\n" % worDir)
 
 
+def _print_dictionary(msg, dic, exit=False):
+    import sys
+    import pprint
+    pp = pprint.PrettyPrinter(indent=4)
+    print(f"*************** {msg} **************************")
+    pp.pprint(dic)
+    print(f"*****************************************")
+    if exit:
+        sys.exit(1)
+
+
 @contextmanager
 def _stdout_redirector(stream):
     """ Redirects sys.stdout to stream."""
@@ -1028,12 +1039,6 @@ class Tester(object):
                                 del dat['dymola']["modelName"]
 
                         # We are finished iterating over all lines of the .mos
-#                        import pprint
-#                        pp = pprint.PrettyPrinter(indent=4)
-#                        print(f"*****************************************")
-#                        pp.pprint(dat)
-#                        print(f"*****************************************")
-
 #                        # Make sure model_name is set
 #                        if 'model_name' not in dat or dat['model_name'] == '':
 #                            msg = f"Failed to set model_name for {os.path.join(root, mosFil)}"
@@ -1168,11 +1173,13 @@ class Tester(object):
         def_dic[self._modelica_tool] = {}
 
         if self._modelica_tool == 'optimica' or self._modelica_tool == 'jmodelica':
-            def_dic[self._modelica_tool]['translate'] = True,
-            def_dic[self._modelica_tool]['simulate'] = True,
-            def_dic[self._modelica_tool]['solver'] = 'CVode'
-            def_dic[self._modelica_tool]['ncp'] = 500
-            def_dic[self._modelica_tool]['time_out'] = 300
+            def_dic[self._modelica_tool] = {
+                'translate': True,
+                'simulate': True,
+                'solver': 'CVode',
+                'ncp': 500,
+                'time_out': 300
+            }
 
         for all_dat in self._data:
             # Add default data
@@ -1288,14 +1295,6 @@ class Tester(object):
         a list of dictionaries. Each element of the list contains a dictionary
         of results that need to be printed together.
         """
-        def extractData(y, step):
-            # Replace the last element with the last element in time,
-            # [::step] may not extract the last time stamp, in which case
-            # the final time changes when the number of event changes.
-            r = y[::step]
-            r[len(r) - 1] = y[len(y) - 1]
-            return r
-
         # Get the working directory that contains the ".mat" file
         fulFilNam = os.path.join(data['ResultDirectory'], self.getLibraryName(), data['ResultFile'])
         if self._modelica_tool == 'optimica' or self._modelica_tool == 'jmodelica':
@@ -2546,18 +2545,17 @@ class Tester(object):
                 idx = self._init_comp_info(data['model_name'], data['ResultFile'])
             else:
                 idx = self._init_comp_info(data['model_name'], None)
-            # Only check data that need to be simulated. This excludes the FMU export
-            # from this test.
-            # Note for OPTIMICA and JModelica: data['jmodelica']['simulate']=True is
-            # an additional condition (declaring that a simulation was required)
+            # Only check data that need to be translated, simulated or exported as an FMU
             check_condition = \
-                self._includeFile(data['ScriptFile']) and ("stopTime" in data)
+                self._includeFile(data['ScriptFile']) and ("stopTime" in data) and \
+                (self._isPresentAndTrue('translate', data[self._modelica_tool]) or
+                    self._isPresentAndTrue('simulate', data[self._modelica_tool]) or
+                    self._isPresentAndTrue('exportFMU', data[self._modelica_tool]))
             # Only if the simulation was successful are we reading the results.
             # (Simulation errors are reported earlier already.)
             if 'simulation' in data:
                 check_condition = check_condition and data['simulation']['success']
-            if self._modelica_tool == 'optimica' or self._modelica_tool == 'jmodelica':
-                check_condition = check_condition and data[self._modelica_tool]['simulate']
+
             if check_condition:
                 get_user_prompt = True
                 # Convert 'aa/bb.mos' to 'aa_bb.txt'
