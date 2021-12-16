@@ -376,6 +376,11 @@ class Tester(object):
         # By default, do not show the GUI of the simulator
         self._showGUI = False
 
+        self._color_BOLD = '\033[1m'
+        self._color_OK = '\033[1;32m'
+        self._color_ERROR = '\033[91m'
+        self._color_ENDC = '\033[0m'
+
     def report(self, timeout=600, browser=None, autoraise=True, comp_file=None):
         """Builds and displays HTML report.
 
@@ -1205,22 +1210,16 @@ class Tester(object):
                         for key in con_dat.keys():
                             # Have dictionary in dictionary
                             if key == self._modelica_tool:
-                                for k in con_dat[key]:
-                                    val = con_dat[key][k]
+                                for k in con_dat[self._modelica_tool]:
+                                    val = con_dat[self._modelica_tool][k]
+
                                     if k == 'translate':
-                                        all_dat[key][k] = val
+                                        all_dat[self._modelica_tool][k] = val
                                         # Write a warning if a model is not translated
                                         if not val:
                                             # Set simulate to false as well as it can't be simulated
                                             # if not translated
-                                            all_dat[key]['simulate'] = False
-
-                                    elif k == 'simulate':
-                                        all_dat[key][k] = val
-                                        # Write a warning if a model is not simulated
-                                        if not val:
-                                            # Reset plot variables
-                                            all_dat['ResultVariables'] = []
+                                            all_dat[self._modelica_tool]['simulate'] = False
                                     else:
                                         all_dat[self._modelica_tool][k] = val
                             else:
@@ -1998,11 +1997,11 @@ class Tester(object):
         if not (ans == "Y" or ans == "N"):
             ans = "-"
         updateReferenceData = False
-        # If previously the user chose to update all refererence data, then
+        # If previously the user chose to update all reference data, then
         # we set updateReferenceData = True
         if ans == "Y":
             updateReferenceData = True
-        foundError = False
+        newTrajectories = False
         verifiedTime = False
 
         # Load the old data (in dictionary format)
@@ -2016,53 +2015,55 @@ class Tester(object):
         # The old data contains results
         t_ref = y_ref.get('time')
 
-        # Iterate over the pairs of data that are to be plotted together
-        timOfMaxErr = dict()
-        noOldResults = []  # List of variables for which no old results have been found
+        # If a simulation was requested, compare the results.
+        if self._data[data_idx][self._modelica_tool]['simulate']:
+            # Iterate over the pairs of data that are to be plotted together
+            timOfMaxErr = dict()
+            noOldResults = []  # List of variables for which no old results have been found
 
-        list_var_ref = [el for el in y_ref.keys() if not re.search('time', el, re.I)]
-        list_var_sim = [el for gr in y_sim for el in gr.keys() if not re.search('time', el, re.I)]
-        for var in list_var_ref:  # reference variables not available in simulation results
-            if var not in list_var_sim:
-                idx = self._init_comp_info(model_name, matFilNam)
-                # We skip warning considering it is only the case for x variables against which y variables
-                # are plotted.
-                self._update_comp_info(idx, var, None, False, 0, 'skip', data_idx)
+            list_var_ref = [el for el in y_ref.keys() if not re.search('time', el, re.I)]
+            list_var_sim = [el for gr in y_sim for el in gr.keys() if not re.search('time', el, re.I)]
+            for var in list_var_ref:  # reference variables not available in simulation results
+                if var not in list_var_sim:
+                    idx = self._init_comp_info(model_name, matFilNam)
+                    # We skip warning considering it is only the case for x variables against which y variables
+                    # are plotted.
+                    self._update_comp_info(idx, var, None, False, 0, 'skip', data_idx)
 
-        for pai in y_sim:
-            t_sim = pai['time']
-            if not verifiedTime:
-                verifiedTime = True
+            for pai in y_sim:
+                t_sim = pai['time']
+                if not verifiedTime:
+                    verifiedTime = True
 
-            # The time interval is the same for the stored and the current data.
-            # Check the accuracy of the simulation.
-            for varNam in list(pai.keys()):
-                # Iterate over the variable names that are to be plotted together
-                if varNam != 'time':
-                    if varNam in y_ref:
-                        # Check results
-                        if self._isParameter(pai[varNam]):
-                            t = [min(t_sim), max(t_sim)]
+                # The time interval is the same for the stored and the current data.
+                # Check the accuracy of the simulation.
+                for varNam in list(pai.keys()):
+                    # Iterate over the variable names that are to be plotted together
+                    if varNam != 'time':
+                        if varNam in y_ref:
+                            # Check results
+                            if self._isParameter(pai[varNam]):
+                                t = [min(t_sim), max(t_sim)]
+                            else:
+                                t = t_sim
+
+                            # Compare times series.
+                            (res, timMaxErr, error) = self.areResultsEqual(
+                                t_ref, y_ref[varNam], t, pai[varNam], varNam, data_idx
+                            )
+
+                            if error:
+                                self._reporter.writeError(error)
+                            if not res:
+                                newTrajectories = True
+                                timOfMaxErr[varNam] = timMaxErr
                         else:
-                            t = t_sim
-
-                        # Compare times series.
-                        (res, timMaxErr, error) = self.areResultsEqual(
-                            t_ref, y_ref[varNam], t, pai[varNam], varNam, data_idx
-                        )
-
-                        if error:
-                            self._reporter.writeError(error)
-                        if not res:
-                            foundError = True
-                            timOfMaxErr[varNam] = timMaxErr
-                    else:
-                        # There is no old data series for this variable name
-                        self._reporter.writeError(
-                            "{}: Did not find variable {} in old results.".format(
-                                refFilNam, varNam))
-                        foundError = True
-                        noOldResults.append(varNam)
+                            # There is no old data series for this variable name
+                            self._reporter.writeError(
+                                "{}: Did not find variable {} in old results.".format(
+                                    refFilNam, varNam))
+                            newTrajectories = True
+                            noOldResults.append(varNam)
 
         # Compare the simulation statistics
         # There are these cases:
@@ -2075,22 +2076,28 @@ class Tester(object):
                 # Updated newStatistics if there is a new statistic. The other
                 # arguments remain unchanged.
                 newStatistics = self._check_statistics(
-                    old_results, y_tra, stage, foundError, newStatistics, model_name)
+                    old_results, y_tra, stage, newTrajectories, newStatistics, model_name)
 
         # If the users selected "Y" or "N" (to not accept or reject any new results) in previous tests,
         # or if the script is run in batch mode, then don't plot the results.
         # If we found an error, plot the results, and ask the user to accept or
         # reject the new values.
-        if (foundError or newStatistics) and (not self._batch) and (
+        if (newTrajectories or newStatistics) and (not self._batch) and (
                 not ans == "N") and (not ans == "Y"):
-            print("             For {},".format(refFilNam))
-            print("             accept new file and update reference files?")
-
-            if self._comp_tool == 'legacy':
-                print("(Close plot window to continue.)")
-                self._legacy_plot(y_sim, t_ref, y_ref, noOldResults, timOfMaxErr, matFilNam)
+            print(f"{self._color_ERROR}             For {refFilNam},")
+            if newTrajectories and newStatistics:
+                print(f"             update reference files with new {self._color_BOLD}statistics and trajectories{self._color_ERROR}?{self._color_ENDC}")
+            elif newStatistics:
+                print(f"             update reference files with new {self._color_BOLD}statistics{self._color_ERROR}?{self._color_ENDC}")
             else:
-                self._funnel_plot(model_name)
+                print(f"             update reference files with new {self._color_BOLD}trajectories{self._color_ERROR}?{self._color_ENDC}")
+
+            if newTrajectories:
+                if self._comp_tool == 'legacy':
+                    print("(Close plot window to continue.)")
+                    self._legacy_plot(y_sim, t_ref, y_ref, noOldResults, timOfMaxErr, matFilNam)
+                else:
+                    self._funnel_plot(model_name)
 
             while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
                 ans = input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
@@ -2099,7 +2106,7 @@ class Tester(object):
                 # update the flag
                 updateReferenceData = True
 
-        return (updateReferenceData, foundError, ans)
+        return (updateReferenceData, (newTrajectories or newStatistics), ans)
 
     def _funnel_plot(self, model_name, browser=None):
         """Plot comparison results generated by pyfunnel."""
@@ -2566,8 +2573,8 @@ class Tester(object):
                     # extract simulation results from the ".mat" file corresponding to "filNam"
                     warnings = []
                     errors = []
-                    # Get the simulation results
-                    y_sim = self._getSimulationResults(data, warnings, errors)
+                    # Get the simulation results if a simulation was requested
+                    y_sim = self._getSimulationResults(data, warnings, errors) if data[self._modelica_tool]['simulate'] else None
                     # Get the translation statistics
                     if self._modelica_tool == 'dymola':
                         y_tra = self._getTranslationStatistics(data, warnings, errors)
@@ -2618,29 +2625,31 @@ class Tester(object):
                         # results, compare the results.
                         if os.path.exists(oldRefFulFilNam):
                             # print('Found results for ' + oldRefFulFilNam)
+                            # Note that y_sim is None if a model was requested to be not simulated.
                             [updateReferenceData, _, ans] = self._compareResults(
                                 data_idx, oldRefFulFilNam, y_sim, y_tra, refFilNam, ans,
                             )
                         else:
-                            noOldResults = []
-                            # add all names since we do not have any reference results yet
-                            for pai in y_sim:
-                                t_ref = pai["time"]
+                            if data[self._modelica_tool]['simulate']:
+                                noOldResults = []
+                                # add all names since we do not have any reference results yet
+                                for pai in y_sim:
+                                    t_ref = pai["time"]
                                 noOldResults = noOldResults + list(pai.keys())
-                            self._legacy_plot(y_sim, t_ref, {}, noOldResults, dict(),
-                                              "New results: " + data['ScriptFile'])
-                            # Reference file does not exist
-                            print(
-                                "*** Warning: Reference file {} does not yet exist.".format(refFilNam))
-                            while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
-                                print("             Create new file?")
-                                ans = input(
-                                    "             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
-                            if ans == "y" or ans == "Y":
-                                updateReferenceData = True
-                            else:
-                                self._reporter.writeError("Did not write new reference file %s." %
-                                                          oldRefFulFilNam)
+                                self._legacy_plot(y_sim, t_ref, {}, noOldResults, dict(),
+                                                  "New results: " + data['ScriptFile'])
+                                # Reference file does not exist
+                                print(
+                                    "*** Warning: Reference file {} does not yet exist.".format(refFilNam))
+                                while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
+                                    print("             Create new file?")
+                                    ans = input(
+                                        "             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
+                                if ans == "y" or ans == "Y":
+                                    updateReferenceData = True
+                                else:
+                                    self._reporter.writeError("Did not write new reference file %s." %
+                                                              oldRefFulFilNam)
                         if updateReferenceData:    # If the reference data of any variable was updated
                             # Make dictionary to save the results and the svn information
                             self._writeReferenceResults(oldRefFulFilNam, y_sim, y_tra)
@@ -2783,12 +2792,14 @@ class Tester(object):
                 print(v['summary_message'].format(counter))
 
         if not silent:
-            self._reporter.writeOutput(
-                "Script that runs unit tests had {} warnings and {} errors.\n".format(
-                    self._reporter.getNumberOfWarnings(),
-                    self._reporter.getNumberOfErrors(),
-                )
-            )
+            # Change console to color output
+            nWar = self._reporter.getNumberOfWarnings()
+            nErr = self._reporter.getNumberOfErrors()
+            if nWar > 0 or nErr > 0:
+                print(self._color_ERROR, end='')
+            self._reporter.writeOutput(f"Script that runs unit tests had {nWar} warnings and {nErr} errors.\n")
+            if nWar > 0 or nErr > 0:
+                print(self._color_ENDC, end='')
             sys.stdout.write("See '{}' for details.\n".format(self._simulator_log_file))
 
         if self._reporter.getNumberOfErrors() > 0:
@@ -2798,7 +2809,10 @@ class Tester(object):
         else:
             retval = 0
             if not silent:
+                # Change console to color output
+                print(self._color_OK, end='')
                 self._reporter.writeOutput("Unit tests completed successfully.\n")
+                print(self._color_ENDC, end='')
         sys.stdout.flush()
 
         return retval
