@@ -2022,7 +2022,9 @@ class Tester(object):
             noOldResults = []  # List of variables for which no old results have been found
 
             list_var_ref = [el for el in y_ref.keys() if not re.search('time', el, re.I)]
-            list_var_sim = [el for gr in y_sim for el in gr.keys() if not re.search('time', el, re.I)]
+            list_var_sim = [
+                el for gr in y_sim for el in gr.keys() if not re.search(
+                    'time', el, re.I)]
             for var in list_var_ref:  # reference variables not available in simulation results
                 if var not in list_var_sim:
                     idx = self._init_comp_info(model_name, matFilNam)
@@ -2086,11 +2088,14 @@ class Tester(object):
                 not ans == "N") and (not ans == "Y"):
             print(f"{self._color_ERROR}             For {refFilNam},")
             if newTrajectories and newStatistics:
-                print(f"             update reference files with new {self._color_BOLD}statistics and trajectories{self._color_ERROR}?{self._color_ENDC}")
+                print(
+                    f"             update reference files with new {self._color_BOLD}statistics and trajectories{self._color_ERROR}?{self._color_ENDC}")
             elif newStatistics:
-                print(f"             update reference files with new {self._color_BOLD}statistics{self._color_ERROR}?{self._color_ENDC}")
+                print(
+                    f"             update reference files with new {self._color_BOLD}statistics{self._color_ERROR}?{self._color_ENDC}")
             else:
-                print(f"             update reference files with new {self._color_BOLD}trajectories{self._color_ERROR}?{self._color_ENDC}")
+                print(
+                    f"             update reference files with new {self._color_BOLD}trajectories{self._color_ERROR}?{self._color_ENDC}")
 
             if newTrajectories:
                 if self._comp_tool == 'legacy':
@@ -2574,7 +2579,8 @@ class Tester(object):
                     warnings = []
                     errors = []
                     # Get the simulation results if a simulation was requested
-                    y_sim = self._getSimulationResults(data, warnings, errors) if data[self._modelica_tool]['simulate'] else None
+                    y_sim = self._getSimulationResults(
+                        data, warnings, errors) if data[self._modelica_tool]['simulate'] else None
                     # Get the translation statistics
                     if self._modelica_tool == 'dymola':
                         y_tra = self._getTranslationStatistics(data, warnings, errors)
@@ -2648,8 +2654,8 @@ class Tester(object):
                                 if ans == "y" or ans == "Y":
                                     updateReferenceData = True
                                 else:
-                                    self._reporter.writeError("Did not write new reference file %s." %
-                                                              oldRefFulFilNam)
+                                    self._reporter.writeError(
+                                        "Did not write new reference file %s." % oldRefFulFilNam)
                         if updateReferenceData:    # If the reference data of any variable was updated
                             # Make dictionary to save the results and the svn information
                             self._writeReferenceResults(oldRefFulFilNam, y_sim, y_tra)
@@ -2797,7 +2803,8 @@ class Tester(object):
             nErr = self._reporter.getNumberOfErrors()
             if nWar > 0 or nErr > 0:
                 print(self._color_ERROR, end='')
-            self._reporter.writeOutput(f"Script that runs unit tests had {nWar} warnings and {nErr} errors.\n")
+            self._reporter.writeOutput(
+                f"Script that runs unit tests had {nWar} warnings and {nErr} errors.\n")
             if nWar > 0 or nErr > 0:
                 print(self._color_ENDC, end='')
             sys.stdout.write("See '{}' for details.\n".format(self._simulator_log_file))
