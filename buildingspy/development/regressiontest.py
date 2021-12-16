@@ -1004,9 +1004,9 @@ class Tester(object):
                                 modNam = modNam[0:modNam.index('"')]
                                 dat['model_name'] = modNam
                                 dat['TranslationLogFile'] = modNam + ".translation.log"
-                                # parse startTime and stopTime, if any
-                                for attr in ["startTime", "stopTime"]:
-                                    _set_attribute_value(lin, attr, dat)
+                            # parse startTime and stopTime, if any
+                            for attr in ["startTime", "stopTime"]:
+                                _set_attribute_value(lin, attr, dat)
 
                             if self._modelica_tool == 'dymola' and 'stopTime' in dat and (
                                     'simulate' not in dat['dymola']):
