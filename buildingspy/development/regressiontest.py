@@ -181,7 +181,7 @@ class Tester(object):
        >>> rt = r.Tester(tool="dymola")
        >>> myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
        >>> rt.setLibraryRoot(myMoLib)
-       >>> rt.run() # doctest:
+       >>> rt.run()                    # doctest: +ELLIPSIS
        Number of models   : 10
                  blocks   : 2
                  functions: 0
@@ -381,16 +381,15 @@ class Tester(object):
 
         # Enable or disable colored output
         if color:
-            self._color_BOLD  = '\033[1m'
-            self._color_OK    = '\033[1;32m'
+            self._color_BOLD = '\033[1m'
+            self._color_OK = '\033[1;32m'
             self._color_ERROR = '\033[91m'
-            self._color_ENDC  = '\033[0m'
+            self._color_ENDC = '\033[0m'
         else:
-            self._color_BOLD  = ''
-            self._color_OK    = ''
+            self._color_BOLD = ''
+            self._color_OK = ''
             self._color_ERROR = ''
-            self._color_ENDC  = ''
-
+            self._color_ENDC = ''
 
     def report(self, timeout=600, browser=None, autoraise=True, comp_file=None):
         """Builds and displays HTML report.
