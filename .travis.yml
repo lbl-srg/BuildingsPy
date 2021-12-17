@@ -37,7 +37,7 @@ before_install:
   - chmod +x buildingspy/tests/MyModelicaLibrary/Resources/Scripts/travis/bin/jm_ipython.sh
   - sudo cp buildingspy/tests/MyModelicaLibrary/Resources/Scripts/travis/bin/jm_ipython.sh /usr/local/bin/
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-  - docker pull "$DOCKER_USERNAME"/travis_ubuntu-1804_dymola:2022-x86_64
+  - docker pull "$DOCKER_USERNAME"/travis_ubuntu-2004_dymola:2022x-x86_64
   - docker pull "$DOCKER_USERNAME"/travis-ubuntu-1804-optimica:r26446
   - python -m pip install --upgrade pip
 
