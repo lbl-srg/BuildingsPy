@@ -179,19 +179,19 @@ class Tester(object):
        >>> rt = r.Tester(tool="dymola")
        >>> myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
        >>> rt.setLibraryRoot(myMoLib)
-       >>> rt.run() # doctest: +ELLIPSIS
-       Number of models   : ...
+       >>> rt.run() # doctest: +SKIP
+       Number of models   : 10
                  blocks   : 2
                  functions: 0
        Using ... of ... processors to run unit tests for dymola.
-       Generated ... regression tests.
+       Generated 6 regression tests.
        <BLANKLINE>
        Comparison files output by funnel are stored in the directory 'funnel_comp' of size ... MB.
        Run 'report' method of class 'Tester' to access a summary of the comparison results.
        <BLANKLINE>
        Script that runs unit tests had 0 warnings and 0 errors.
        <BLANKLINE>
-       See 'simulator-....log' for details.
+       See 'simulator-dymola.log' for details.
        Unit tests completed successfully.
        <BLANKLINE>
        Execution time = ...
