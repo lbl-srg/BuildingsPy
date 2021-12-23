@@ -1,0 +1,145 @@
+def _translate(model):
+  import subprocess
+  return_dict = {}
+
+  # Simulate the model
+  try:
+    worDir = "{{ working_directory }}"
+    scr_nam = f"{model}.mos"
+    with open(scr_nam, 'w') as f:
+        f.write(f"""
+setCommandLineOptions("-d=nogen");
+setCommandLineOptions("-d=initialization");
+setCommandLineOptions("-d=backenddaeinfo");
+setCommandLineOptions("-d=discreteinfo");
+setCommandLineOptions("-d=stateselection");
+//setCommandLineOptions("-solver=cvode");
+//setCommandLineOptions("-d=execstat");
+setMatchingAlgorithm("PFPlusExt");
+setIndexReductionMethod("dynamicStateSelection");
+loadFile("{{ library_name }}/package.mo");
+translateModel({model}, tolerance={{ rtol }}, numberOfIntervals={{ ncp }}, variableFilter="{{ filter }}");
+getErrorString();
+""")
+
+    # Translate model
+    output = subprocess.check_output(
+      ["omc", scr_nam],
+      cwd = worDir,
+      timeout={{ time_out }},
+      stderr=subprocess.STDOUT,
+      shell=False)
+
+    # Compile model
+    output += subprocess.check_output(
+      ["make", "-f", f"{model}.makefile"],
+      cwd = worDir,
+      timeout={{ time_out }},
+      stderr=subprocess.STDOUT,
+      shell=False)
+
+#    opts['solver'] = 'CVode'
+#    opts['ncp'] = 500
+#
+#    rtol = 1e-6
+#
+#    opts['filter'] = ['limPIDRev.y', 'limPID.y', 'limPID.u_s', 'limPID.u_m']
+
+    return_dict = {'success': True, 'stdout': str(output)}
+
+  except (subprocess.CalledProcessError, Exception) as e:
+    return_dict = {'success': False,
+                  'exception': '{}: {}'.format(type(e).__name__, e)}
+  return return_dict
+
+def _simulate(model):
+  import os
+  import subprocess
+  return_dict = {}
+
+  # Write shell script
+  scr_nam = f"{model}_buildingspy.sh"
+  with open( os.open(scr_nam, os.O_CREAT | os.O_WRONLY, 0o777), 'w') as f:
+    f.write(f"""#!/bin/bash
+./{model} -cpu -lv LOG_STATS""")
+  try:
+    # Simulate the model
+    worDir = "{{ working_directory }}"
+
+    output = subprocess.check_output(
+      [f"./{scr_nam}"],
+      cwd = worDir,
+      timeout={{ time_out }},
+      stderr=subprocess.STDOUT,
+      shell=False)
+
+#    opts['solver'] = 'CVode'
+#    opts['ncp'] = 500
+#
+#    rtol = 1e-6
+#
+#    opts['filter'] = ['limPIDRev.y', 'limPID.y', 'limPID.u_s', 'limPID.u_m']
+
+    return_dict = {'success': True, 'stdout': str(output)}
+
+  except (subprocess.CalledProcessError, Exception) as e:
+    return_dict = {'success': False,
+                  'exception': '{}: {}'.format(type(e).__name__, e)}
+  return return_dict
+
+def _delete_files():
+    import os
+    import glob
+    model = "{{ model }}"
+    for filename in glob.glob('*.[cho]'):
+        os.remove(filename)
+    for filename in [f"{model}_prof.intdata", f"{model}_prof.realdata", f"{model}_init.xml", f"{model}_info.json"]:
+        if os.path.exists(filename):
+            os.remove(filename)
+
+def run():
+    import os
+    import json
+    import traceback
+    import sys
+
+    time_out = 300
+    model = "{{ model }}"
+    result = {"model": model,
+              "working_directory": "{{ working_directory }}",
+              "translation": {"success": False},
+              "simulation": {"success": False}}
+
+    # Log file
+    log_file = "{}_buildingspy.json".format(model.replace(".", "_"))
+    try:
+        os.remove(log_file)
+    except OSError:
+        pass
+
+    try:
+        result["translation"] = _translate(model = model)
+
+    except Exception as e:
+        msg = "{}: {}".format(type(e).__name__, str(e))
+        if msg == "RuntimeError: Process timeout":
+            msg = msg + " after {} seconds".format(time_out)
+        result["translation"]["exception"] = msg
+        result["translation"]["traceback"] = traceback.format_exc()
+
+    if {{ simulate }}:
+        if result["translation"]["success"]:
+            # Simulate model
+            result["simulation"] = _simulate(model = model)
+        else:
+            result["simulation"]["message"] = "Simulation skipped because translation failed."
+    else:
+            result["simulation"]["message"] = "No simulation requested."
+
+    with open(log_file, "w") as log:
+            log.write("{}\n".format(json.dumps(result, indent=4, sort_keys=False)) )
+
+    _delete_files()
+
+if __name__=="__main__":
+    run()
