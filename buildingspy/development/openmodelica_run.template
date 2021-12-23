@@ -13,8 +13,11 @@ def _run_process(return_dict, cmd, worDir):
     shell=False)
 
   return_dict['success'] = True
-  return_dict['stdout'] = str(output)
-  return output
+  if 'stdout' in return_dict:
+     return_dict['stdout'] += output.decode("utf-8")
+  else:
+     return_dict['stdout'] = output.decode("utf-8")
+  return
 
 def _translate(model):
   import subprocess
@@ -43,12 +46,12 @@ getErrorString();
     # Translate model
     cmd = ["omc", scr_nam]
     return_dict['cmd'] = ' '.join(cmd)
-    output = _run_process(return_dict, cmd, worDir)
+    _run_process(return_dict, cmd, worDir)
 
     # Compile model
     cmd = ["make", "-f", f"{model}.makefile"]
     return_dict['cmd'] += ' && ' + ' '.join(cmd)
-    output += _run_process(return_dict, cmd, worDir)
+    _run_process(return_dict, cmd, worDir)
 
   except (subprocess.CalledProcessError, Exception) as e:
     _add_exception(return_dict, e)

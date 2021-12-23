@@ -24,7 +24,7 @@ class ErrorDictionary(ed.ErrorDictionary):
         # Set the error dictionaries.
         # Note that buildingspy_var needs to be a unique variable name.
         self._error_dict["each applied to scalar"] = {
-            'tool_message': "'each' used when modifying non-array element",
+            'tool_message': "used when modifying non-array element",
             'counter': 0,
             'summary_message': "Number of models with 'each' keyword applied to scalar          : {}\n"}
 

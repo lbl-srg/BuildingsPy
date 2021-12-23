@@ -571,7 +571,16 @@ class Tester(object):
 
         """
         if self._modelica_tool == 'openmodelica':
-            return 'omc'
+            # get the executable for omc, depending on platform
+            if sys.platform == 'win32':
+                try:
+                    omc = os.path.join(env['OPENMODELICAHOME'], 'bin', 'omc')
+                except KeyError:
+                    raise OSError("Environment flag 'OPENMODELICAHOME' must be set")
+            else:
+                # we suppose the omc executable is known
+                omc = 'omc'
+            return omc
         elif self._modelica_tool != 'dymola':
             return 'jm_ipython.sh'
         else:
@@ -2395,28 +2404,36 @@ class Tester(object):
         """
         import re
 
+        def _search_in_string(lin, lis, k, v):
+            # JModelica/ThirdParty/MSL/Modelica/Media/package.mo has errorneous each
+            # which we skip in our testing
+            if ("Ignoring erroneous 'each' for the modification ' = reference_X'" in lin) or \
+                    ("Ignoring erroneous 'each' for the modification ' = fill(0,0)'" in lin) or \
+                    ("""Ignoring erroneous 'each' for the modification ' = {","}'""" in lin):
+                return
+            # Ignore warnings of the form Iteration variable "der(xxx)" is missing start value!
+#            if re.search(r"""Iteration variable "der\(\S|.\)" is missing start value!""", lin):
+#                break
+            if v['tool_message'] in lin:
+                # Found a warning. Report it to the reporter, and add it to the list that will be written to
+                # the json file.
+                #                  self._reporter.writeWarning(v["model_message"].format(model))
+                msg = lin.strip(' \n')
+                self._reporter.writeWarning("{}: {}".format(model, msg))
+                lis.append(msg)
+                self._error_dict.increment_counter(k)
+            return
+
         lis = list()
         # Search for all warnings
         for k, v in list(self._error_dict.get_dictionary().items()):
             # Search in each line of the error file
-            for lin in error_text:
-                # JModelica/ThirdParty/MSL/Modelica/Media/package.mo has errorneous each
-                # which we skip in our testing
-                if ("Ignoring erroneous 'each' for the modification ' = reference_X'" in lin) or \
-                        ("Ignoring erroneous 'each' for the modification ' = fill(0,0)'" in lin) or \
-                        ("""Ignoring erroneous 'each' for the modification ' = {","}'""" in lin):
-                    break
-                # Ignore warnings of the form Iteration variable "der(xxx)" is missing start value!
-#                if re.search(r"""Iteration variable "der\(\S|.\)" is missing start value!""", lin):
-#                    break
-                if v['tool_message'] in lin:
-                    # Found a warning. Report it to the reporter, and add it to the list that will be written to
-                    # the json file.
-                    #                  self._reporter.writeWarning(v["model_message"].format(model))
-                    msg = lin.strip(' \n')
-                    self._reporter.writeWarning("{}: {}".format(model, msg))
-                    lis.append(msg)
-                    self._error_dict.increment_counter(k)
+            if self._modelica_tool == 'openmodelica':
+                for lin in error_text.split('\n'):
+                    _search_in_string(lin, lis, k, v)
+            else:
+                for lin in error_text:
+                    _search_in_string(lin, lis, k, v)
         # Return a dictionary with all warnings
         return lis
 
@@ -2524,7 +2541,7 @@ class Tester(object):
 
                         all_res.append(res)
                         if not res['translation']['success']:
-                            em = f"Translation of {res['model']} failed with '{res['translation']['exception']}'."
+                            em = f"Translation of {res['model']} failed with '{res['translation']['exception']}'. Directory is '{res['working_directory']}'."
                             self._reporter.writeError(em)
                             iTra = iTra + 1
                         elif not res['simulation']['success']:
@@ -2547,7 +2564,7 @@ class Tester(object):
                                     print("*** Did not simulate {}".format(res['model']))
                                     iOmiSim = iOmiSim + 1
                             else:
-                                em = f"Simulation of {res['model']} failed with '{res['simulation']['exception']}'."
+                                em = f"Simulation of {res['model']} failed with '{res['simulation']['exception']}'. Directory is '{res['working_directory']}'."
                                 self._reporter.writeError(em)
                                 iSim = iSim + 1
 
@@ -3305,107 +3322,6 @@ exit();
         runFil.close()
         return nUniTes
 
-    def _write_runscript_omc(self, iPro, tra_data_pro):
-        """
-        Write the run script for OpenModelica for the processor iPro
-        and return the number of generated regression tests.
-
-        :param iPro: The number of the processor.
-        :param tra_data_pro: A list with the data for the experiments that require translation, for processor number iPro only.
-        """
-
-        # Count the number of experiments that need to be simulated or exported as an FMU.
-        # This is needed to properly close the json brackets.
-        nItem = 0
-        # Count how many tests need to be simulated.
-        nTes = len(tra_data_pro)
-        # Number of generated unit tests
-        nUniTes = 0
-
-        runFil = open(os.path.join(self._temDir[iPro], self.getLibraryName(
-        ), "runAll.mos"), mode="w", encoding="utf-8")
-        runFil.write(
-            f"""
-// File autogenerated for process {iPro + 1} of {self._nPro}
-// File created for execution by {self._modelica_tool}. Do not edit.
-loadModel(Modelica, {"3.2"});
-getErrorString();
-loadFile("package.mo");
-Modelica.Utilities.Files.remove(\"{self._statistics_log}\");
-""")
-
-        runFil.write(r"""
-    Modelica.Utilities.Streams.print("{\"testCase\" : [", "%s");
-    """ % self._statistics_log)
-
-        for i in range(nTes):
-            if self._isPresentAndTrue(
-                    'translate',
-                    tra_data_pro[i]['dymola']) or self._isPresentAndTrue(
-                    'exportFMU',
-                    tra_data_pro[i]['dymola']):
-                nItem = nItem + 1
-        iItem = 0
-        # Write unit tests for this process
-        for i in range(nTes):
-            # Check if this mos file should be simulated
-            if self._isPresentAndTrue(
-                    'translate',
-                    tra_data_pro[i]['dymola']) or self._isPresentAndTrue(
-                    'exportFMU',
-                    tra_data_pro[i]['dymola']):
-                isLastItem = (iItem == nItem - 1)
-                mosFilNam = os.path.join(self.getLibraryName(),
-                                         "Resources", "Scripts", "Dymola",
-                                         tra_data_pro[i]['ScriptFile'])
-                absMosFilNam = os.path.join(self._temDir[iPro], mosFilNam)
-                values = {
-                    "mosWithPath": mosFilNam.replace(
-                        "\\",
-                        "/"),
-                    "checkCommand": self._getModelCheckCommand(absMosFilNam).replace(
-                        "\\",
-                        "/"),
-                    "checkCommandString": self._getModelCheckCommand(absMosFilNam).replace(
-                        '\"',
-                        r'\\\"'),
-                    "scriptFile": tra_data_pro[i]['ScriptFile'].replace(
-                        "\\",
-                        "/"),
-                    "model_name": tra_data_pro[i]['model_name'].replace(
-                        "\\",
-                        "/"),
-                    "model_name_underscore": tra_data_pro[i]['model_name'].replace(
-                        ".",
-                        "_"),
-                    "start_time": tra_data_pro[i]['startTime'] if 'startTime' in tra_data_pro[i] else 0,
-                    "final_time": tra_data_pro[i]['stopTime'] if 'stopTime' in tra_data_pro[i] else 0,
-                    "statisticsLog": self._statistics_log.replace(
-                        "\\",
-                        "/"),
-                    "translationLog": os.path.join(
-                        self._temDir[iPro],
-                        self.getLibraryName(),
-                        tra_data_pro[i]['model_name'] +
-                        ".translation.log").replace(
-                        "\\",
-                        "/"),
-                    "simulatorLog": self._simulator_log_file.replace(
-                        "\\",
-                        "/")}
-
-            template = """
-runScript("Resources/Scripts/Dymola/{scriptFile}");
-getErrorString();
-"""
-            runFil.write(template.format(**values))
-
-            nUniTes = nUniTes + 1
-            iItem = iItem + 1
-        runFil.write("exit();\n")
-        runFil.close()
-        return nUniTes
-
     def _write_runscripts(self):
         """Create the runAll.mos scripts, one per processor (self._nPro).
 
@@ -3463,12 +3379,11 @@ getErrorString();
                 # Copy data used for this process only.
                 tra_data_pro.append(tra_data[i])
 
-            ###################################################################################
-            # Case for dymola and omc
-            ###################################################################################
             if self._modelica_tool == 'dymola':
+                # Case for dymola
                 nUniTes = nUniTes + self._write_runscript_dymola(iPro, tra_data_pro)
             else:
+                # Case for non-dymola
                 nUniTes = nUniTes + self._write_runscript_non_dymola(iPro, tra_data_pro)
 
         if nUniTes == 0:
@@ -3808,11 +3723,6 @@ getErrorString();
                                              sort_keys=True)
                     logFil.write(json_string)
 
-        # check logfile if omc
-        # fixme if self._modelica_tool == 'omc':
-        # fixme     self._analyseOMStats(filename=self._simulator_log_file,
-        # fixme                          nModels=self.get_number_of_tests())
-
         # Check reference results
         if self._batch:
             ans = "N"
@@ -3964,204 +3874,3 @@ getErrorString();
         self._reporter.writeOutput('OpenModelica script {} created'.format(mosfilename))
         return mosfilename
 
-    def test_OpenModelica(self, cmpl=True, simulate=False,
-                          packages=['Examples'], number=-1):
-        """
-        Test the library compliance with OpenModelica.
-
-        This is the high-level method to test a complete library, even if there
-        are no specific ``.mos`` files in the library for regression testing.
-
-        This method sets self._nPro to 1 as it only works on a single core. It also
-        executes self.setTemporaryDirectories()
-
-        :param cpml: Set to ``True`` for the model to be compiled.
-        :param simulate: Set to ``True`` to cause the model to be simulated (from 0 to 1s).
-        :param packages: Set to a list whose elements are the packages that contain the test models of the
-          library
-        :param number: Number of models to test. Set to ``-1`` to test all models.
-
-        Usage:
-
-          1. In a python console or script, cd to the root folder of the library
-
-             >>> t = Tester()
-             >>> t.test_OpenModelica() # doctest: +SKIP
-             OpenModelica script ...OMTests.mos created
-             Logfile created: ...OMTests.log
-             Starting analysis of logfile
-             <BLANKLINE>
-             <BLANKLINE>
-             ######################################################################
-             Tested 5 models:
-               * 0 compiled successfully (=0.0%)
-             <BLANKLINE>
-             Successfully checked models:
-             Failed model checks:
-               * BuildingsPy.buildingspy.tests.MyModelicaLibrary.Examples.BooleanParameters
-               * BuildingsPy.buildingspy.tests.MyModelicaLibrary.Examples.Constants
-               * BuildingsPy.buildingspy.tests.MyModelicaLibrary.Examples.MyStep
-               * BuildingsPy.buildingspy.tests.MyModelicaLibrary.Examples.ParameterEvaluation
-               * BuildingsPy.buildingspy.tests.MyModelicaLibrary.Obsolete.Examples.Constant
-             <BLANKLINE>
-             More detailed information is stored in self._omstats
-             ######################################################################
-
-
-        """
-        import shutil
-        import subprocess
-        # fixme: Why is there a number as an argument?
-        # Isn't it sufficient to select the package to be tested?
-        if number < 0:
-            number = int(1e15)
-
-        self.setNumberOfThreads(1)
-        self._setTemporaryDirectories()
-
-        worDir = self._temDir[0]
-
-        # return a list with pathnames of the .mo files to be tested
-
-        tests = self._get_test_models(packages=packages)
-        if len(tests) == 0:
-            raise RuntimeError("Did not find any examples to test.")
-        self._ommodels = sorted([self._model_from_mo(mo_file) for mo_file in tests[:number]])
-
-        mosfile = self._writeOMRunScript(worDir=worDir, models=self._ommodels,
-                                         cmpl=cmpl, simulate=simulate)
-
-        env = os.environ.copy()  # will be passed to the subprocess.Popen call
-
-        # Check whether OPENMODELICALIBRARY is set.
-        # If it is not set, try to use /usr/lib/omlibrary if it exists.
-        # if it does not exist, stop with an error.
-        if 'OPENMODELICALIBRARY' in env:
-            # append worDir
-            env['OPENMODELICALIBRARY'] += os.pathsep + worDir
-        else:
-            if os.path.exists('/usr/lib/omlibrary'):
-                env['OPENMODELICALIBRARY'] = worDir + ':/usr/lib/omlibrary'
-            else:
-                raise OSError(
-                    "Environment flag 'OPENMODELICALIBRARY' must be set, or '/usr/lib/omlibrary' must be present.")
-
-        # get the executable for omc, depending on platform
-        if sys.platform == 'win32':
-            try:
-                omc = os.path.join(env['OPENMODELICAHOME'], 'bin', 'omc')
-            except KeyError:
-                raise OSError("Environment flag 'OPENMODELICAHOME' must be set")
-        else:
-            # we suppose the omc executable is known
-            omc = 'omc'
-
-        try:
-            logFilNam = mosfile.replace('.mos', '.log')
-            with open(logFilNam, mode="w", encoding="utf-8") as logFil:
-                retcode = subprocess.Popen(args=[omc, '+d=initialization', mosfile],
-                                           stdout=logFil,
-                                           stderr=logFil,
-                                           shell=False,
-                                           env=env,
-                                           cwd=worDir).wait()
-
-            if retcode != 0:
-                print("Child was terminated by signal {}".format(retcode))
-                return retcode
-
-        except OSError as e:
-            raise OSError("Execution of omc +d=initialization " + mosfile + " failed.\n"
-                          + "Working directory is '" + worDir + "'.")
-        else:
-            # process the log file
-            print("Logfile created: {}".format(logFilNam))
-            print("Starting analysis of logfile")
-            with open(logFilNam, mode="r", encoding="utf-8-sig") as f:
-                self._omstats = f.readlines()
-            self._analyseOMStats(lines=self._omstats, models=self._ommodels, simulate=simulate)
-
-            # Delete temporary directories
-            if self._deleteTemporaryDirectories:
-                for d in self._temDir:
-                    shutil.rmtree(d)
-
-    def _analyseOMStats(self, lines=None, models=None, simulate=False):
-        """
-        Analyse the log file of the OM compatibility test.
-
-        :param lines: lines of the log file.
-        :param nModels: number of models that were tested.
-        :param simulate: True if simulation was tested
-
-        A list of models is passed to this function because it is easier to
-        get an overview of the FAILED models based on a list of all tested
-        models.
-        """
-
-        if lines is None:
-            lines = self._omstats
-        if models is None:
-            models = self._ommodels
-
-        check_ok, sim_ok = 0, 0
-        check_nok, sim_nok = 0, 0
-        models_check_ok, models_check_nok, models_sim_ok, models_sim_nok = [], [], [], []
-
-        for line in lines:
-            if line.find('resultFile = "') > 0:
-                if line.find('""') > 0:
-                    sim_nok += 1
-                else:
-                    sim_ok += 1
-                    # Seems like OpenModelica always uses '/' as file separator
-                    models_sim_ok.append(line.split('/')[-1].split('_res.mat')[0])
-            elif line.find('Check of ') > 0:
-                if line.find(' completed successfully.') > 0:
-                    check_ok += 1
-                    models_check_ok.append(line.split('Check of')
-                                           [-1].split('completed successfully')[0].strip())
-                else:
-                    # we never get in this clause
-                    pass
-
-        # get the total number of tested models
-        check_nok = len(models) - check_ok
-        sim_nok = len(models) - sim_ok
-
-        # get failed models
-        models_check_nok = models[:]
-        for m in models_check_ok:
-            models_check_nok.remove(m)
-
-        if simulate:
-            models_sim_nok = models[:]
-            for m in models_sim_ok:
-                models_sim_nok.remove(m)
-
-        print('\n')
-        print(70 * '#')
-        print("Tested {} models:\n  * {} compiled successfully (={:.1%})"
-              .format(check_ok + check_nok,
-                      check_ok, float(check_ok) / float(check_ok + check_nok)))
-        if simulate:
-            print("  * {} simulated successfully (={:.1%})".format(sim_ok,
-                                                                   float(sim_ok) / float(sim_ok + sim_nok)))
-
-        print("\nSuccessfully checked models:")
-        for m in models_check_ok:
-            print("  * {}".format(m))
-        print("Failed model checks:")
-        for m in models_check_nok:
-            print("  * {}".format(m))
-
-        if simulate:
-            print("\nSuccessfully simulated models:")
-            for m in models_sim_ok:
-                print("  * {}".format(m))
-            print("Failed model simulations:")
-            for m in models_sim_nok:
-                print("  * {}".format(m))
-
-        print("\nMore detailed information is stored in self._omstats")
-        print(70 * '#')
