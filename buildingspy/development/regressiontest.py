@@ -423,7 +423,7 @@ class Tester(object):
         with open(plot_file, 'w') as f:
             f.write(content)
 
-        server.browse(browser=browser, timeout=60 * 15)
+        server.browse(browser=browser, timeout=timeout)
 
     def get_unit_test_log_file(self):
         """ Return the name of the log file of the unit tests,
@@ -1199,7 +1199,7 @@ class Tester(object):
             def_dic[self._modelica_tool] = {
                 'translate': True,
                 'simulate': True,
-                'solver': 'CVode',
+                'solver': 'CVode' if self._modelica_tool != 'openmodelica' else 'cvode',
                 'ncp': 500,
                 'time_out': 300
             }
@@ -1669,7 +1669,7 @@ class Tester(object):
                 raise ValueError(s)
 
         # Check if the first and last time stamp are equal
-        def test_equal_time(t1, t2, tol=1E-6):
+        def test_equal_time(t1, t2, tol=1E-3):
             """Test if time values are equal within a given tolerance.
 
             t1, t2 and tol are floats.
@@ -2020,7 +2020,6 @@ class Tester(object):
         if ans == "Y":
             updateReferenceData = True
         newTrajectories = False
-        verifiedTime = False
 
         # Load the old data (in dictionary format)
         old_results = self._readReferenceResults(oldRefFulFilNam)
@@ -2052,8 +2051,6 @@ class Tester(object):
 
             for pai in y_sim:
                 t_sim = pai['time']
-                if not verifiedTime:
-                    verifiedTime = True
 
                 # The time interval is the same for the stored and the current data.
                 # Check the accuracy of the simulation.
@@ -2423,7 +2420,32 @@ class Tester(object):
         # Return a dictionary with all warnings
         return lis
 
-    def _get_simulation_record(self, simulation_text):
+    def _get_openmodelica_simulation_record(self, simulation_text):
+        """ Return total number of Jacobian evaluations, state events, and elapsed cpu time
+            when unit tests are run with OpenModelica
+        """
+        struct = [
+            {"key": 'jacobians',
+            'pattern': r"(\d+) evaluations of jacobian",
+            'val': 0},
+            {"key": 'state_events',
+            'pattern': r"(\d+) state events",
+            'val': 0},
+            {"key": 'elapsed_time',
+            'pattern': r"(\d+)s [100.0%] total",
+            'val': 0}
+        ]
+        for ele in struct:
+            r = re.search(ele['pattern'], simulation_text)
+            if r is not None:
+                ele['val'] = r.group(1)
+        res = {}
+        for ele in struct:
+            res[ele['key']] = ele['val']
+
+        return res
+
+    def _get_optimica_simulation_record(self, simulation_text):
         """ Return total number of Jacobian evaluations, state events, and elapsed cpu time
             when unit tests are run with OPTIMICA or JModelica
         """
@@ -2488,8 +2510,12 @@ class Tester(object):
                         # Get number of Jacobian evaluations from stdout that was captured from
                         # the simulation
                         if 'stdout' in res['simulation']:
-                            jmRecord = self._get_simulation_record(
-                                simulation_text=res['simulation']['stdout'])
+                            if self._modelica_tool == 'openmodelica':
+                                jmRecord = self._get_openmodelica_simulation_record(
+                                    simulation_text=res['simulation']['stdout'])
+                            else:
+                                jmRecord = self._get_optimica_simulation_record(
+                                    simulation_text=res['simulation']['stdout'])
                             res['simulation']['jacobians'] = jmRecord['jacobians']
                             res['simulation']['state_events'] = jmRecord['state_events']
                             res['simulation']['elapsed_time'] = jmRecord['elapsed_time']
@@ -2521,7 +2547,6 @@ class Tester(object):
                                     print("*** Did not simulate {}".format(res['model']))
                                     iOmiSim = iOmiSim + 1
                             else:
-                                _print_dictionary("*** res is ", res)
                                 em = f"Simulation of {res['model']} failed with '{res['simulation']['exception']}'."
                                 self._reporter.writeError(em)
                                 iSim = iSim + 1
@@ -3506,6 +3531,9 @@ getErrorString();
             # filter argument must respect glob syntax ([ is escaped with []]) + JModelica mat file
             # stores matrix variables with no space e.g. [1,1].
             if self._modelica_tool == 'openmodelica':
+                filter = '(' + '|'.join([re.sub(r'\[|\]',
+                                   lambda m: '[{}]'.format(m.group()),
+                                   re.sub(' ', '', x)) for x in result_variables]) + ')'
                 txt = tem_mod.render(
                     library_name=self.getLibraryName(),
                     model=model,
@@ -3513,13 +3541,9 @@ getErrorString();
                     ncp=dat[self._modelica_tool]['ncp'],
                     rtol=dat[self._modelica_tool]['rtol'],
                     solver=dat[self._modelica_tool]['solver'],
-                    start_time='mod.get_default_experiment_start_time()',
-                    final_time='mod.get_default_experiment_stop_time()',
                     simulate=dat[self._modelica_tool]['simulate'],
                     time_out=dat[self._modelica_tool]['time_out'],
-                    filter=[re.sub(r'\[|\]',
-                                   lambda m: '[{}]'.format(m.group()),
-                                   re.sub(' ', '', x)) for x in result_variables]
+                    filter=filter
                 )
             else:
                 txt = tem_mod.render(
