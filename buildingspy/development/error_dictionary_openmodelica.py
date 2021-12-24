@@ -26,9 +26,9 @@ class ErrorDictionary(ed.ErrorDictionary):
         self._error_dict["each applied to scalar"] = {
             'tool_message': "used when modifying non-array element",
             'counter': 0,
-            'summary_message': "Number of models with 'each' keyword applied to scalar          : {}\n"}
+            'summary_message': "Number of models with 'each' keyword applied to scalar       : {}\n"}
 
         self._error_dict["assuming each"] = {
             'tool_message': "Non-array modification",
             'counter': 0,
-            'summary_message': "Number of models with missing 'each'                            : {}\n"}
+            'summary_message': "Number of models with missing 'each'                         : {}\n"}

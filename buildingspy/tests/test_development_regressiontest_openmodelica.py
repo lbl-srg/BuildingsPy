@@ -71,42 +71,42 @@ createPlot(id=1, y={"Test.x"});
         import buildingspy.development.regressiontest as r
 
         tests = [
-#            {'ret_val': 0,
-#             'mo_content': """parameter Real x = 0;""",
-#             'description': "Correct model."},
+            {'ret_val': 0,
+             'mo_content': """parameter Real x = 0;""",
+             'description': "Correct model."},
             {'ret_val': 2,
              'mo_content': """parameter Real x(each unit="m") = 0;""",
              'description': "Wrong each on scalar."},
-#            {'ret_val': 2,
-#             'mo_content': """Modelica.Blocks.Sources.Constant b(each k=0) ;""",
-#             'description': "Wrong each on scalar component."},
             {'ret_val': 2,
+             'mo_content': """Modelica.Blocks.Sources.Constant b(each k=0) ;""",
+             'description': "Wrong each on scalar component."},
+            {'ret_val': 1,
              'mo_content': """Modelica.Blocks.Sources.Constant b[2](k=0) ;""",
              'description': "Missing each on array of components."},
-#            {'ret_val': 0,
-#             'mo_content': """
-#                              Real x;
-#                              equation
-#                              Modelica.Math.exp(x)=1;""",
-#             'description': "Missing start value, which should be ignored."},
-#            {'ret_val': 0,
-#             'mo_content': """
-#                              Real x(start=0);
-#                              equation
-#                              der(x)^3 = 0;""",
-#             'description': "Missing start value for der(x), which should be ignored."},
-#            {'ret_val': 2,
-#             'mo_content': """parameter Real[2] x(unit="m") = {0, 0};
-#                                    parameter Real y(each unit="m") = 0;""",
-#             'description': "Two errors."},
-#            {'ret_val': 1,
-#             'mo_content': """x; """,
-#             'description': "Syntax error that should cause a failure in translation."},
-#            {'ret_val': 1,
-#             'mo_content': """Real x(start=0);
-#                                    equation
-#                                      Modelica.Math.exp(x)=-1;""",
-#             'description': "Model that has no solution."}
+            {'ret_val': 0,
+             'mo_content': """
+                              Real x;
+                              equation
+                              Modelica.Math.exp(x)=1;""",
+             'description': "Missing start value, which should be ignored."},
+            {'ret_val': 0,
+             'mo_content': """
+                              Real x(start=0);
+                              equation
+                              der(x)^3 = 0;""",
+             'description': "Missing start value for der(x), which should be ignored."},
+            {'ret_val': 1,
+             'mo_content': """parameter Real[2] x(unit="m") = {0, 0};
+                                    parameter Real y(each unit="m") = 0;""",
+             'description': "Two errors."},
+            {'ret_val': 1,
+             'mo_content': """x; """,
+             'description': "Syntax error that should cause a failure in translation."},
+            {'ret_val': 1,
+             'mo_content': """Real x(start=0);
+                                    equation
+                                      Modelica.Math.exp(x)=-1;""",
+             'description': "Model that has no solution."}
         ]
         # Run all test cases
         for test in tests:
@@ -117,14 +117,18 @@ createPlot(id=1, y={"Test.x"});
             rt = r.Tester(skip_verification=True, check_html=False, tool="openmodelica")
             rt.setLibraryRoot(dir_name)
             rt.deleteTemporaryDirectories(False)
+
+#                # This test must raise an exception
+#                self.assertRaises(ValueError,
+#                    rt.setLibraryRoot, "this_is_not_the_root_dir_of_a_library")
+#
+
             ret_val = rt.run()
-            # Check return value to see if test suceeded
+            # Check return value to see if test succeeded
             self.assertEqual(
                 test['ret_val'],
                 ret_val,
-                "Test for '{}' failed, return value {}".format(
-                    des,
-                    ret_val))            # Delete temporary files
+                f"Test for '{des}' failed, return value {ret_val}, expected {test['ret_val']}")
             # Get parent dir of dir_name, because dir_name contains the Modelica library name
             par = os.path.split(dir_name)[0]
             os.remove(rt.get_unit_test_log_file())
