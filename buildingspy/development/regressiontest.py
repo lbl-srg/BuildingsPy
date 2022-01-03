@@ -2538,7 +2538,8 @@ class Tester(object):
                             res['simulation']['elapsed_time'] = jmRecord['elapsed_time']
                             # We don't need the stdout anymore, which can be long.
                             del res['simulation']['stdout']
-                        # Set the working_directory in the dictionary, which is used for error reporting
+                        # Set the working_directory in the dictionary, which is used for error
+                        # reporting
                         res['working_directory'] = d
 
                         all_res.append(res)
