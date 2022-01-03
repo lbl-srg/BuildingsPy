@@ -2443,14 +2443,14 @@ class Tester(object):
         """
         struct = [
             {"key": 'jacobians',
-            'pattern': r"(\d+) evaluations of jacobian",
-            'val': 0},
+             'pattern': r"(\d+) evaluations of jacobian",
+             'val': 0},
             {"key": 'state_events',
-            'pattern': r"(\d+) state events",
-            'val': 0},
+             'pattern': r"(\d+) state events",
+             'val': 0},
             {"key": 'elapsed_time',
-            'pattern': r"(\d+)s [100.0%] total",
-            'val': 0}
+             'pattern': r"(\d+)s [100.0%] total",
+             'val': 0}
         ]
         for ele in struct:
             r = re.search(ele['pattern'], simulation_text)
@@ -3447,8 +3447,8 @@ exit();
             # stores matrix variables with no space e.g. [1,1].
             if self._modelica_tool == 'openmodelica':
                 filter = '(' + '|'.join([re.sub(r'\[|\]',
-                                   lambda m: '[{}]'.format(m.group()),
-                                   re.sub(' ', '', x)) for x in result_variables]) + ')'
+                                                lambda m: '[{}]'.format(m.group()),
+                                                re.sub(' ', '', x)) for x in result_variables]) + ')'
                 txt = tem_mod.render(
                     library_name=self.getLibraryName(),
                     model=model,
@@ -3482,7 +3482,7 @@ exit();
                 fil.write(txt)
 
         # Copy python file that grabs the console output
-        if self._modelica_tool == 'optimica' or  self._modelica_tool == 'jmodelica':
+        if self._modelica_tool == 'optimica' or self._modelica_tool == 'jmodelica':
             shutil.copyfile(
                 os.path.join(
                     os.path.dirname(__file__),
@@ -3873,4 +3873,3 @@ exit();
 
         self._reporter.writeOutput('OpenModelica script {} created'.format(mosfilename))
         return mosfilename
-

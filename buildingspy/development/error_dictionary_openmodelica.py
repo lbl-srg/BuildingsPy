@@ -10,6 +10,7 @@
 #
 import buildingspy.development.error_dictionary as ed
 
+
 class ErrorDictionary(ed.ErrorDictionary):
     """ Class that contains data fields needed for the
         error checking of the regression tests.
@@ -17,6 +18,7 @@ class ErrorDictionary(ed.ErrorDictionary):
         If additional error messages need to be checked,
         then they should be added to the constructor of this class.
     """
+
     def __init__(self):
         """ Constructor.
         """
