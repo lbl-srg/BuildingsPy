@@ -2544,7 +2544,7 @@ class Tester(object):
 
                         all_res.append(res)
                         if not res['translation']['success']:
-                            em = f"Translation of {res['model']} failed with '{res['translation']['exception']}'. Directory is '{res['working_directory']}'."
+                            em = f"Translation of {res['model']} failed: '{res['translation']['exception']}'. Directory is '{res['working_directory']}'."
                             self._reporter.writeError(em)
                             iTra = iTra + 1
                         elif not res['simulation']['success']:
@@ -2567,7 +2567,7 @@ class Tester(object):
                                     print("*** Did not simulate {}".format(res['model']))
                                     iOmiSim = iOmiSim + 1
                             else:
-                                em = f"Simulation of {res['model']} failed with '{res['simulation']['exception']}'. Directory is '{res['working_directory']}'."
+                                em = f"Simulation of {res['model']} failed: '{res['simulation']['exception']}'. Directory is '{res['working_directory']}'."
                                 self._reporter.writeError(em)
                                 iSim = iSim + 1
 
