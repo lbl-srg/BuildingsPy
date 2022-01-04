@@ -38,7 +38,7 @@ def _translate(model):
   import subprocess
   return_dict = {}
 
-  # Simulate the model
+  # Write translation script
   try:
     worDir = "{{ working_directory }}"
     scr_nam = f"{model}.mos"
@@ -56,16 +56,12 @@ setIndexReductionMethod("dynamicStateSelection");
 loadFile("{{ library_name }}/package.mo");
 translateModel({model}, method="{{ solver }}", tolerance={{ rtol }}, numberOfIntervals={{ ncp }}, variableFilter="{{ filter }}");
 getErrorString();
+system("make -f {model}.makefile");
 """)
 
-    # Translate model
+    # Translate and compile model
     cmd = ["omc", scr_nam]
     return_dict['cmd'] = ' '.join(cmd)
-    _run_process(return_dict, cmd, worDir)
-
-    # Compile model
-    cmd = ["make", "-f", f"{model}.makefile"]
-    return_dict['cmd'] += ' && ' + ' '.join(cmd)
     _run_process(return_dict, cmd, worDir)
 
   except Exception as e:
