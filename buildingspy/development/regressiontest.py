@@ -1152,10 +1152,8 @@ class Tester(object):
         import copy
         import json
 
-        def_dic = {}
-        def_dic[self._modelica_tool] = {}
-
         if self._modelica_tool != 'dymola':
+            def_dic = {}
             def_dic[self._modelica_tool] = {
                 'translate': True,
                 'simulate': True,
@@ -1164,13 +1162,14 @@ class Tester(object):
                 'time_out': 300
             }
 
-        for all_dat in self._data:
-            # Add default data
-            for key in def_dic[self._modelica_tool].keys():
-                # all_dat only exists for Dymola, not for the other tools
-                if self._modelica_tool not in all_dat:
-                    all_dat[self._modelica_tool] = {}
-                all_dat[self._modelica_tool][key] = copy.deepcopy(def_dic[self._modelica_tool][key])
+            for all_dat in self._data:
+                # Add default data
+                for key in def_dic[self._modelica_tool].keys():
+                    # all_dat only exists for Dymola, not for the other tools
+                    if self._modelica_tool not in all_dat:
+                        all_dat[self._modelica_tool] = {}
+                    all_dat[self._modelica_tool][key] = copy.deepcopy(
+                        def_dic[self._modelica_tool][key])
 
         # Get configuration data from file, if present
         conf_dir = os.path.join(self._libHome, 'Resources', 'Scripts', 'BuildingsPy')
@@ -1201,7 +1200,12 @@ class Tester(object):
                                     else:
                                         all_dat[self._modelica_tool][k] = val
                             else:
-                                all_dat[key] = con_dat[key]
+                                if key != 'dymola':
+                                    all_dat[key] = con_dat[key]
+                                else:
+                                    # Don't override the already set data for dymola
+                                    for con_key in con_dat.keys():
+                                        all_dat['dymola'][con_key] = con_dat[con_key]
                         # Write warning if this model should not be translated or simulated.
                         msg = None
                         if all_dat[self._modelica_tool]['translate'] is False:
