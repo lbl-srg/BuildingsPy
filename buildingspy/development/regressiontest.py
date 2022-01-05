@@ -819,7 +819,6 @@ class Tester(object):
                     with open(filNam, mode="w", encoding="utf-8") as fil:
                         fil.write(filCon)
 
-
     @staticmethod
     def get_plot_variables(line):
         """ For a string of the form `*y={aa,bb,cc}*`, optionally with whitespace characters,
