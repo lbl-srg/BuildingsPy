@@ -123,24 +123,6 @@ class Test_regressiontest_Tester(unittest.TestCase):
         rt.setSinglePackage("MyModelicaLibrary.Examples,MyModelicaLibrary.Examples.FMUs")
         self.assertEqual(6, rt.get_number_of_tests())
 
-    def test_setExcludeTest(self):
-        import buildingspy.development.regressiontest as r
-        print("*** Running test_setExcludeTest that excludes files from unit test.\n")
-        rt = r.Tester(check_html=False)
-        myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
-        skpFil = os.path.join(myMoLib, "Resources", "Scripts", "skipUnitTestList.txt")
-        rt.setLibraryRoot(myMoLib)
-        rt.setExcludeTest(skpFil)
-        ret_val = rt.run()
-        # Check return value to see if test succeeded
-        # ret_val must be non-zero because excluding files triggers a warning.
-        self.assertNotEqual(
-            0,
-            ret_val,
-            "Test failed with return value {}, expected non-zero value.".format(ret_val))
-        # Check for correct number of tests
-        self.assertEqual(1, rt.get_number_of_tests())
-
     def test_areResultsEqual(self):
         """Test legacy comparison tool."""
         import buildingspy.development.regressiontest as r
