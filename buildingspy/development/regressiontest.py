@@ -187,7 +187,7 @@ class Tester(object):
                  blocks   : 2
                  functions: 0
        Using ... of ... processors to run unit tests for dymola.
-       Generated 6 regression tests.
+       Generated 7 regression tests.
        <BLANKLINE>
        Comparison files output by funnel are stored in the directory 'funnel_comp' of size ... MB.
        Run 'report' method of class 'Tester' to access a summary of the comparison results.
@@ -732,12 +732,12 @@ class Tester(object):
 
         For example:
 
-        * If ``packageName = Annex60.Controls.Continous.Examples``,
-          then a test of the ``Annex60`` library will run all examples in
-          ``Annex60.Controls.Continous.Examples``.
-        * If ``packageName = Annex60.Controls.Continous.Examples,Annex60.Controls.Continous.Validation``,
-          then a test of the ``Annex60`` library will run all examples in
-          ``Annex60.Controls.Continous.Examples`` and in ``Annex60.Controls.Continous.Validation``.
+        * If ``packageName = IBPSA.Controls.Continuous.Examples``,
+          then a test of the ``IBPSA`` library will run all examples in
+          ``IBPSA.Controls.Continuous.Examples``.
+        * If ``packageName = IBPSA.Controls.Continuous.Examples,IBPSA.Controls.Continuous.Validation``,
+          then a test of the ``IBPSA`` library will run all examples in
+          ``IBPSA.Controls.Continuous.Examples`` and in ``IBPSA.Controls.Continuous.Validation``.
 
         """
 
@@ -790,22 +790,16 @@ class Tester(object):
         OpenModelica development team.
 
         """
-        import copy
         import glob
-
-        # Update the data dictionary for the whole library
-        old_data_dic = copy.deepcopy(self._data)
-        self._data = []
-        self.setDataDictionary(None)
+        # Create the data dictionary.
+        if len(self._data) == 0:
+            self.setDataDictionary(self._rootPackage)
 
         # Directory where files will be stored
         desDir = os.path.join(self._libHome, "Resources", "Scripts", "OpenModelica", "compareVars")
         if not os.path.exists(desDir):
             os.makedirs(desDir)
-        else:
-            files = glob.glob(os.path.join(desDir, "*.mos"), recursive=False)
-            for fil in files:
-                os.remove(fil)
+
         # Loop over all experiments and write the files.
         for experiment in self._data:
             if 'model_name' in experiment:
@@ -825,8 +819,6 @@ class Tester(object):
                     with open(filNam, mode="w", encoding="utf-8") as fil:
                         fil.write(filCon)
 
-        # Reset self._data
-        self._data = copy.deepcopy(old_data_dic)
 
     @staticmethod
     def get_plot_variables(line):
@@ -1394,7 +1386,7 @@ class Tester(object):
             yInt = [yNew[0], yNew[0]]
 
         # If the variable is heatPort.T or heatPort.Q_flow, with length=2, then
-        # it has been evaluated as a parameter in the Buildings library. In the Annex60
+        # it has been evaluated as a parameter in the Buildings library. In the IBPSA
         # library, this may be a variable as the Buildings library uses a more efficient
         # implementation of the heatPort. Hence, we test for this special case, and
         # store the parameter as if it were a variable so that the reference result are not
