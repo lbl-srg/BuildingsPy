@@ -979,7 +979,7 @@ class Tester(object):
                         'exportFMU': False,
                         'translate': False,
                         'simulate': False
-                        }  # May be switched to True below
+                    }  # May be switched to True below
 
                     for lin in Lines:
                         # Add the model name to the dictionary.
@@ -1135,7 +1135,8 @@ class Tester(object):
         # Add the experiment specifications from conf.json to the data.
         self._add_experiment_specifications()
         # For those records for which Dymola needs to simply export the FMU,
-        # no simulation should be done with any tool (as these models generally require input signals)
+        # no simulation should be done with any tool (as these models generally
+        # require input signals)
         for dat in self._data:
             if dat['dymola']['exportFMU']:
                 dat[self._modelica_tool]['simulate'] = False
@@ -1502,7 +1503,8 @@ class Tester(object):
                 if self._isParameter(yOld):
                     warning = "Absolute error = {:.3e} for {}".format(err_max, varNam)
                 else:
-                    warning = "Absolute error = {:.3e} at t = {} for {}".format(err_max, t_err_max, varNam)
+                    warning = "Absolute error = {:.3e} at t = {} for {}".format(
+                        err_max, t_err_max, varNam)
             funnel_success = True
 
         if keep_dir and funnel_success:
@@ -2039,8 +2041,9 @@ class Tester(object):
                             newTrajectories = True
                             noOldResults.append(varNam)
             if len(errors) > 0:
-                self._reporter.writeError("{}: Errors during result verification.\n           {}".format(
-                    refFilNam, '\n           '.join(errors)))
+                self._reporter.writeError(
+                    "{}: Errors during result verification.\n           {}".format(
+                        refFilNam, '\n           '.join(errors)))
         # Compare the simulation statistics
         # There are these cases:
         # 1. The old reference results have no statistics, in which case new results may be written.
