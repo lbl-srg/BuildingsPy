@@ -790,10 +790,13 @@ class Tester(object):
         OpenModelica development team.
 
         """
+        import copy
         import glob
-        # Create the data dictionary.
-        if len(self._data) == 0:
-            self.setDataDictionary(self._rootPackage)
+
+        # Update the data dictionary for the whole library
+        old_data_dic = copy.deepcopy(self._data)
+        self._data = []
+        self.setDataDictionary(None)
 
         # Directory where files will be stored
         desDir = os.path.join(self._libHome, "Resources", "Scripts", "OpenModelica", "compareVars")
@@ -821,6 +824,10 @@ class Tester(object):
                     # Write the file
                     with open(filNam, mode="w", encoding="utf-8") as fil:
                         fil.write(filCon)
+
+        # Reset self._data
+        self._data = copy.deepcopy(old_data_dic)
+
 
     @staticmethod
     def get_plot_variables(line):
