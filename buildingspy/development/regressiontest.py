@@ -828,7 +828,6 @@ class Tester(object):
         # Reset self._data
         self._data = copy.deepcopy(old_data_dic)
 
-
     @staticmethod
     def get_plot_variables(line):
         """ For a string of the form `*y={aa,bb,cc}*`, optionally with whitespace characters,
