@@ -9,8 +9,11 @@ def _add_exception(return_dict, e, cmd):
     output = return_dict['stdout']
     for line in output.split('\n'):
       if 'terminated' in line:
+        # Found terminated string. Cut everything after the '|' character that OpenModelica writes.
+        idx=line.rfind('|')
+        msg=line[idx+1:].strip()
         # The solver terminated. Add this information to a custom exception message.
-        return_dict['exception'] = f"'{' '.join(cmd)}' caused '{line}'."
+        return_dict['exception'] = f"'{' '.join(cmd)}' caused '{msg}'."
         pass
 
   if not 'exception' in return_dict:
