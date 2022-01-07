@@ -2713,7 +2713,9 @@ class Tester(object):
                 if (self._modelica_tool == 'dymola' and not data['dymola']['exportFMU']):
                     if self._isPresentAndTrue('success', data['dymola']['simulation']):
                         self._reporter.writeWarning(
-                            "Output file of " + data['ScriptFile'] + " is excluded from result test.")
+                            "Output file of " +
+                            data['ScriptFile'] +
+                            " is excluded from result test.")
 
         # Write all results to comparison log file and inform user.
         with open(self._comp_log_file, 'w', encoding="utf-8-sig") as comp_log:
@@ -2724,8 +2726,8 @@ class Tester(object):
                 "Comparison files output by funnel are stored in the directory "
                 "'{}' of size {:.1f} MB.\nRun 'import buildingspy.development.regressiontest as t; t.Tester().report()'\n"
                 "to access a summary of the comparison results.\n").format(
-                self._comp_dir,
-                self._get_size_dir(self._comp_dir) * 1e-6)
+                self._comp_dir, self._get_size_dir(
+                    self._comp_dir) * 1e-6)
             self._reporter.writeOutput(s)
 
         return ret_val

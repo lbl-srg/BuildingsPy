@@ -53,7 +53,7 @@ class Test_example_dymola_runSimulation(unittest.TestCase):
         import shutil
         import os
         shutil.rmtree(self._buiDir)
-        zipFil="v7.0.0.zip"
+        zipFil = "v7.0.0.zip"
         if os.path.exists(zipFil):
             os.remove(zipFil)
 
