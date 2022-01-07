@@ -2177,7 +2177,7 @@ class Tester(object):
                                  color[iPai] + '-', label='New ' + varNam)
 
                     # Test to make sure that this variable has been found in the old results
-                    if noOldResults.count(varNam) == 0:
+                    if varNam in y_ref:
                         if self._isParameter(y_ref[varNam]):
                             # for parameters, don't just draw a dot, as these are hard to see as
                             # they are on the box
