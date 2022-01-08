@@ -2553,6 +2553,12 @@ class Tester(object):
                     dat[self._modelica_tool]['simulation'] = res['simulation']
                     break
 
+        # Write all results to simulator log file
+        with open(self._simulator_log_file, 'w', encoding="utf-8-sig") as sim_log:
+            sim_log.write("{}\n".format(json.dumps(all_res, indent=2, sort_keys=True)))
+
+        retVal = self._writeSummaryMessages()
+
         if iTra > 0:
             print("\nNumber of models that failed translation                     : {}".format(iTra))
         if iSim > 0:
@@ -2560,11 +2566,7 @@ class Tester(object):
         if iOmiSim > 0:
             print("\nNumber of models that configuration excluded from simulation : {}".format(iOmiSim))
 
-        # Write all results to simulator log file
-        with open(self._simulator_log_file, 'w', encoding="utf-8-sig") as sim_log:
-            sim_log.write("{}\n".format(json.dumps(all_res, indent=2, sort_keys=True)))
-
-        return self._writeSummaryMessages()
+        return retVal
 
     def _get_size_dir(self, start_path):
         total_size = 0
@@ -2711,11 +2713,13 @@ class Tester(object):
                 # about these cases. Also, if the simulation failed, there is no need to report,
                 # because simulation failures were already reported as an error earlier.
                 if (self._modelica_tool == 'dymola' and not data['dymola']['exportFMU']):
-                    if self._isPresentAndTrue('success', data['dymola']['simulation']):
-                        self._reporter.writeWarning(
-                            "Output file of " +
-                            data['ScriptFile'] +
-                            " is excluded from result test.")
+                    # data['dymola']['simulation'] is not present for tests that are on the exclude list.
+                    if 'simulation' in data['dymola']:
+                        if self._isPresentAndTrue('success', data['dymola']['simulation']):
+                            self._reporter.writeWarning(
+                                "Output file of " +
+                                data['ScriptFile'] +
+                                " is excluded from result test.")
 
         # Write all results to comparison log file and inform user.
         with open(self._comp_log_file, 'w', encoding="utf-8-sig") as comp_log:
