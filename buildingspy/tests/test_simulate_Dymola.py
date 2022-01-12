@@ -13,7 +13,7 @@ def _simulate(cas):
     """
     from buildingspy.simulate.Dymola import Simulator
 
-    packagePath = os.path.abspath(os.path.join("buildingspy", "tests"))
+    packagePath = os.path.abspath(os.path.join("buildingspy", "tests", "MyModelicaLibrary"))
     s = Simulator(cas['model'], outputDirectory=f"out-{cas['tol']}", packagePath=packagePath)
     s.setTolerance(cas['tol'])
     s.simulate()
@@ -31,7 +31,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         that contains a Modelica package.
         """
         self._packagePath = os.path.abspath(os.path.join(
-            "buildingspy", "tests"))
+            "buildingspy", "tests", "MyModelicaLibrary"))
 
     def test_Constructor(self):
         """
@@ -197,6 +197,18 @@ class Test_simulate_Simulator(unittest.TestCase):
         self.assertEqual(p[0], 0.0)
         # Delete output files
         s.deleteOutputFiles()
+
+    def test_raisesAssertionIfWrongDataType(self):
+        """
+        Tests the :mod:`buildingspy.simulate.Dymola.simulate`
+        function to make sure it raises an assertion if a model fails to translate.
+        """
+        model = "MyModelicaLibrary.Examples.BooleanParameters"
+
+        s = Simulator(model, packagePath=self._packagePath)
+        s.addParameters({'p1': 123})  # p1 is a boolean parameter. This will fail the model.
+        with self.assertRaises(Exception):
+            s.simulate()
 
     def test_timeout(self, timeout=3):
         model = 'MyModelicaLibrary.MyModelTimeOut'

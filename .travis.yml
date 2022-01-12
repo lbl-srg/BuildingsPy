@@ -37,8 +37,8 @@ before_install:
   - chmod +x buildingspy/tests/MyModelicaLibrary/Resources/Scripts/travis/bin/jm_ipython.sh
   - sudo cp buildingspy/tests/MyModelicaLibrary/Resources/Scripts/travis/bin/jm_ipython.sh /usr/local/bin/
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-  - docker pull "$DOCKER_USERNAME"/travis_ubuntu-1804_dymola:2022-x86_64
-  - docker pull "$DOCKER_USERNAME"/travis-ubuntu-1804-optimica:r19089
+  - docker pull "$DOCKER_USERNAME"/travis_ubuntu-2004_dymola:2022x-x86_64
+  - docker pull "$DOCKER_USERNAME"/travis-ubuntu-1804-optimica:r26446
   - python -m pip install --upgrade pip
 
 install:
@@ -68,7 +68,20 @@ script:
  - omc --version
  - make pep8 PEP8_CORRECT_CODE=true
  - make doctest
- - make unittest
+ - make unittest_development_error_dictionary
+ - make unittest_development_merger
+ - make unittest_development_refactor
+ - make unittest_development_regressiontest_jmodelica
+ - make unittest_development_regressiontest_openmodelica
+ - make unittest_development_regressiontest_optimica
+ - make unittest_development_regressiontest
+ - make unittest_development_Validator
+ - make unittest_examples_dymola
+ - make unittest_io_outputfile
+ - make unittest_io_postprocess
+ - make unittest_simulate_Dymola
+ - make unittest_simulate_Optimica
+ - make unittest_simulate_Simulator
  - make doc
 
 after_failure:

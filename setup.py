@@ -31,7 +31,7 @@ setup(
     license="3-clause BSD",
     keywords="modelica dymola openmodelica mat",
     url="http://simulationresearch.lbl.gov/modelica/",
-    python_requires='>=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*, !=3.5.*',
+    python_requires='>=3.6',
     install_requires=[
         'gitpython>=2.1',
         'jinja2>=2.10',
@@ -60,7 +60,6 @@ setup(
         "Development Status :: 5 - Production/Stable",
         "Environment :: Console",
         "License :: OSI Approved :: BSD License",
-        "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3.6",
         "Intended Audience :: End Users/Desktop",
         "Intended Audience :: Science/Research",

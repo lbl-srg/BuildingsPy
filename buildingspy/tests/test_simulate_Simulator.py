@@ -18,7 +18,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         that contains a Modelica package.
         """
         self._packagePath = os.path.abspath(os.path.join(
-            "buildingspy", "tests"))
+            "buildingspy", "tests", "MyModelicaLibrary"))
 
     def test_Constructor(self):
         """

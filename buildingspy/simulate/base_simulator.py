@@ -79,22 +79,18 @@ class _BaseSimulator(object):
     def setPackagePath(self, packagePath):
         """ Set the path specified by ``packagePath``.
 
-        :param packagePath: The path where the Modelica package to be loaded is located.
+        :param packagePath: The path where the Modelica ``package.mo`` file is located.
 
-        It first checks whether the path exists and whether it is a directory.
-        If both conditions are satisfied, the path is set.
+        It checks whether the file ``package.mo`` exists in the directory ``packagePath``,
+        and then sets the package path.
         Otherwise, a ``ValueError`` is raised.
         """
         import os
 
         # Check whether the package Path parameter is correct
-        if not os.path.exists(packagePath):
-            msg = "Argument packagePath=%s does not exist." % packagePath
-            raise ValueError(msg)
-
-        if not os.path.isdir(packagePath):
-            msg = "Argument packagePath=%s must be a directory " % packagePath
-            msg += "containing a Modelica package."
+        fil = os.path.join(packagePath, "package.mo")
+        if not os.path.isfile(fil):
+            msg = f"Argument packagePath={packagePath} must be a directory containing 'package.mo'. Did not find '{fil}'"
             raise ValueError(msg)
 
         # All the checks have been successfully passed
@@ -373,12 +369,14 @@ class _BaseSimulator(object):
             em += "       Make sure it is on the PATH variable of your operating system."
             raise RuntimeError(em)
 
-        # Add _packagePath to MODELICAPATH. This is for example needed for
+        # _packagePath is the path that contains the package.mo file.
+        # Export its parent directory to the MODELICAPATH.
+        # This is for example needed for
         # export USE_DOCKER=true
         # python buildingspy/tests/test_simulate_Optimica.py
         # Test_simulate_Simulator.test_setResultFilter
         osEnv = os.environ.copy() if env is None else env
-        osEnv = self.prependToModelicaPath(osEnv, self._packagePath)
+        osEnv = self.prependToModelicaPath(osEnv, os.path.dirname(self._packagePath))
 
         # Run command
         try:
@@ -521,7 +519,7 @@ class _BaseSimulator(object):
 
     @staticmethod
     def prependToModelicaPath(env, path):
-        ''' Prepends `path` to the dictonary `env` and returns it.
+        ''' Prepends `path` to the dictionary `env` and returns it.
 
            :param env: A dictionary that may contain the key `MODELICAPATH`.
            :param path: The directory to add to the front of `MODELICAPATH`.
