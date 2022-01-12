@@ -2695,6 +2695,7 @@ class Tester(object):
                                 data_idx, oldRefFulFilNam, y_sim, y_tra, refFilNam, ans,
                             )
                         else:
+                            # No old reference data found
                             if data[self._modelica_tool]['simulate']:
                                 noOldResults = []
                                 # add all names since we do not have any reference results yet
@@ -2718,8 +2719,6 @@ class Tester(object):
                                                               oldRefFulFilNam)
                             else:
                                 updateReferenceData = True
-                                self._reporter.writeError(
-                                    "Did not write new reference file %s." % oldRefFulFilNam)
                         if updateReferenceData:    # If the reference data of any variable was updated
                             # Make dictionary to save the results and the svn information
                             self._writeReferenceResults(oldRefFulFilNam, y_sim, y_tra)
