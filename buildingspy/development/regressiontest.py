@@ -2631,8 +2631,9 @@ class Tester(object):
                 else:
                     # if there was no error for this test case, check user feedback for result
                     if get_user_prompt:
-                        # Reset answer, unless it is set to Y or N
-                        if not (ans == "Y" or ans == "N"):
+                        # Reset answer, unless it is set to Y or N, or
+                        # unless the tests run in batch mode
+                        if not (self._batch or ans == "Y" or ans == "N"):
                             ans = "-"
                         updateReferenceData = False
                         # check if reference results already exist in library
@@ -2646,14 +2647,16 @@ class Tester(object):
                                 data_idx, oldRefFulFilNam, y_sim, y_tra, refFilNam, ans,
                             )
                         else:
+                            # Reference file does not exist
                             if data[self._modelica_tool]['simulate']:
                                 noOldResults = []
                                 # add all names since we do not have any reference results yet
                                 for pai in y_sim:
                                     t_ref = pai["time"]
                                 noOldResults = noOldResults + list(pai.keys())
-                                self._legacy_plot(y_sim, t_ref, {}, noOldResults, dict(),
-                                                  "New results: " + data['ScriptFile'])
+                                if not self._batch:
+                                    self._legacy_plot(y_sim, t_ref, {}, noOldResults, dict(),
+                                                      "New results: " + data['ScriptFile'])
                                 # Reference file does not exist
                                 print(
                                     "*** Warning: Reference file {} does not yet exist.".format(refFilNam))
