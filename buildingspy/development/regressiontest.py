@@ -2703,12 +2703,13 @@ class Tester(object):
                                 for pai in y_sim:
                                     t_ref = pai["time"]
                                 noOldResults = noOldResults + list(pai.keys())
-                                if not (self._batch or self._OCT_VERIFICATION):
-                                    self._legacy_plot(y_sim, t_ref, {}, noOldResults, dict(),
-                                                      "New results: " + data['ScriptFile'])
-                                # Reference file does not exist
-                                print(
-                                    "*** Warning: Reference file {} does not yet exist.".format(refFilNam))
+                                if not self._OCT_VERIFICATION:
+                                    if not self._batch:
+                                        self._legacy_plot(y_sim, t_ref, {}, noOldResults, dict(),
+                                                          "New results: " + data['ScriptFile'])
+                                    # Reference file does not exist, write warning, unless we are in OCT_VERIFICATION mode
+                                    print(
+                                        "*** Warning: Reference file {} does not yet exist.".format(refFilNam))
                                 while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
                                     print("             Create new file?")
                                     ans = input(
