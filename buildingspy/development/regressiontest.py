@@ -2654,8 +2654,9 @@ class Tester(object):
                                 for pai in y_sim:
                                     t_ref = pai["time"]
                                 noOldResults = noOldResults + list(pai.keys())
-                                self._legacy_plot(y_sim, t_ref, {}, noOldResults, dict(),
-                                                  "New results: " + data['ScriptFile'])
+                                if not self._batch:
+                                    self._legacy_plot(y_sim, t_ref, {}, noOldResults, dict(),
+                                                      "New results: " + data['ScriptFile'])
                                 # Reference file does not exist
                                 print(
                                     "*** Warning: Reference file {} does not yet exist.".format(refFilNam))
