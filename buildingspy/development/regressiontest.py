@@ -211,41 +211,26 @@ class Tester(object):
     `Tolerance="value"`.
 
     For OpenModelica, OPTIMICA and JModelica, a JSON file stored as
-    ``Resources/Scripts/BuildingsPy/conf.json`` can be used
+    ``Resources/Scripts/BuildingsPy/conf.yml`` (or for backward compatibility, in `conf.json`) can be used
     to further configure tests. The file has the syntax below,
     where ``openmodelica``, ``optimica`` or ``jmodelica`` specifies the tool.
 
     .. code-block:: javascript
 
-       [
-         {
-           "optimica": {
-             "ncp": 500,
-             "rtol": 1E-6,
-             "solver": "CVode",
-             "simulate": True,
-             "translate": True,
-             "time_out": 600
-           },
-           "model_name": "Buildings.Fluid.Examples.FlowSystem.Simplified2"
-         }
-       ]
+       - model_name: Buildings.Fluid.Examples.FlowSystem.Simplified2
+         optimica:
+           ncp: 500,
+           rtol: 1E-6,
+           solver: "CVode",
+           simulate: True,
+           translate: True,
+           time_out: 600
+           comment: 'Add some comment and ideally a link to a github issue'
 
-    For Dymola, this file can be used with these settings:
 
-    .. code-block:: javascript
+    For Dymola, or OpenModelica, replace ``optimica`` with ``dymola`` or ``openmodelica``.
 
-       [
-         {
-           "dymola": {
-             "simulate": True,
-             "translate": True,
-           },
-           "model_name": "Buildings.Fluid.Examples.FlowSystem.Simplified2"
-         }
-       ]
-
-    Any JSON elements are optional, and the entries shown above
+    Any entries are optional, and the entries shown above
     are the default values, except for the relative tolerance `rtol`
     which is read from the `.mo` file. However, with `rtol`, this
     value can be overwritten.
@@ -1149,11 +1134,12 @@ class Tester(object):
     def _add_experiment_specifications(self):
         """ Add the experiment specification to the data structure.
 
-            This method reads the `Resources/Scripts/BuildingsPy/conf.json` file
+            This method reads the `Resources/Scripts/BuildingsPy/conf.yml` file
             and adds it to the data structure.
         """
         import copy
         import json
+        import yaml
 
         if self._modelica_tool != 'dymola':
             def_dic = {}
@@ -1176,11 +1162,19 @@ class Tester(object):
 
         # Get configuration data from file, if present
         conf_dir = os.path.join(self._libHome, 'Resources', 'Scripts', 'BuildingsPy')
-        conf_file = os.path.join(conf_dir, 'conf.json')
+        conf_json = os.path.join(conf_dir, 'conf.json')
+        conf_yml = os.path.join(conf_dir, 'conf.yml')
 
-        if os.path.exists(conf_file):
-            with open(conf_file, 'r') as f:
-                conf_data = json.load(f)
+        if os.path.exists(conf_json) and os.path.exists(conf_yml):
+            raise ValueError(f"Found {conf_yml} and {conf_json}. Only one must exist. Future versions will only support the .yml file.")
+
+        if os.path.exists(conf_json) or os.path.exists(conf_yml):
+            if os.path.exists(conf_yml):
+                with open(conf_yml, 'r') as f:
+                    conf_data = yaml.safe_load(f)
+            else:
+                with open(conf_json, 'r') as f:
+                    conf_data = json.load(f)
 
             # Add model specific data
             for con_dat in conf_data:
