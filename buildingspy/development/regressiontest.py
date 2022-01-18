@@ -1166,7 +1166,8 @@ class Tester(object):
         conf_yml = os.path.join(conf_dir, 'conf.yml')
 
         if os.path.exists(conf_json) and os.path.exists(conf_yml):
-            raise ValueError(f"Found {conf_yml} and {conf_json}. Only one must exist. Future versions will only support the .yml file.")
+            raise ValueError(
+                f"Found {conf_yml} and {conf_json}. Only one must exist. Future versions will only support the .yml file.")
 
         if os.path.exists(conf_json) or os.path.exists(conf_yml):
             if os.path.exists(conf_yml):
@@ -1186,16 +1187,7 @@ class Tester(object):
                             if key == self._modelica_tool:
                                 for k in con_dat[self._modelica_tool]:
                                     val = con_dat[self._modelica_tool][k]
-
-                                    if k == 'translate':
-                                        all_dat[self._modelica_tool][k] = val
-                                        # Write a warning if a model is not translated
-                                        if not val:
-                                            # Set simulate to false as well as it can't be simulated
-                                            # if not translated
-                                            all_dat[self._modelica_tool]['simulate'] = False
-                                    else:
-                                        all_dat[self._modelica_tool][k] = val
+                                    all_dat[self._modelica_tool][k] = val
                             else:
                                 if key != 'dymola':
                                     all_dat[key] = con_dat[key]
@@ -1213,6 +1205,10 @@ class Tester(object):
                             if 'comment' in all_dat[self._modelica_tool]:
                                 msg = f"{msg} {all_dat[self._modelica_tool]['comment']}"
                             self._reporter.writeOutput(msg)
+                    # Set simulate to false as well as it can't be simulated
+                    # if not translated
+                    if 'translate' in all_dat['model_name'] and all_dat[self._modelica_tool]['model_name']['translate'] == False:
+                        all_dat[self._modelica_tool]['simulate'] = False
 
     def _checkDataDictionary(self):
         """ Check if the data used to run the regression tests do not have duplicate ``*.fmu`` files
