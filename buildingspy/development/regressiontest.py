@@ -2667,7 +2667,7 @@ class Tester(object):
                     self._reporter.writeError(em)
                 else:
                     # if there was no error for this test case, check user feedback for result
-                    if get_user_prompt: # and data[self._modelica_tool]['simulate']:
+                    if get_user_prompt:  # and data[self._modelica_tool]['simulate']:
                         # Reset answer, unless it is set to Y or N, or
                         # unless the tests run in batch mode
                         if not (self._batch or ans == "Y" or ans == "N"):
@@ -2717,7 +2717,8 @@ class Tester(object):
                 # about these cases. Also, if the simulation failed, there is no need to report,
                 # because simulation failures were already reported as an error earlier.
                 if (self._modelica_tool == 'dymola' and not data['dymola']['exportFMU']):
-                    # data['dymola']['simulation'] is not present for tests that are on the exclude list.
+                    # data['dymola']['simulation'] is not present for tests that are on the
+                    # exclude list.
                     if 'simulation' in data['dymola']:
                         if self._isPresentAndTrue('success', data['dymola']['simulation']):
                             self._reporter.writeWarning(
