@@ -183,6 +183,7 @@ class Tester(object):
        >>> myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
        >>> rt.setLibraryRoot(myMoLib)
        >>> rt.run()                    # doctest: +ELLIPSIS
+       BuildingsPy regression tests.
        Number of models   : 10
                  blocks   : 2
                  functions: 0
@@ -374,6 +375,10 @@ class Tester(object):
             self._color_OK = ''
             self._color_ERROR = ''
             self._color_ENDC = ''
+
+        # Print number of classes
+        print("BuildingsPy regression tests.")
+        self.printNumberOfClasses()
 
     def report(self, timeout=600, browser=None, autoraise=True, comp_file=None):
         """Builds and displays HTML report.
@@ -1131,6 +1136,19 @@ class Tester(object):
 
         return
 
+    def _sort_yml_file(self, conf_data, conf_file_name):
+        """ Sort the content of the yml file and write it back to disk with the extension sorted.
+        """
+        import yaml as y
+        import sys
+        # Sort the list of dictionary items
+        sor = sorted(conf_data, key = lambda i: i['model_name'])
+        if not sor == conf_data:
+            fname = f"{conf_file_name}.sorted"
+            self._reporter.writeWarning(f"Configuration file was not sorted. Wrote sorted configuration data to {fname}.")
+            with open(fname, 'w') as f:
+                y.dump(sor, f, sort_keys=False, width=4096)
+
     def _validate_experiment_specifications(self, conf_data, conf_file_name):
         from cerberus import Validator
         # Read schema
@@ -1207,6 +1225,7 @@ class Tester(object):
                 conf_file_name = conf_yml
                 with open(conf_yml, 'r') as f:
                     conf_data = yaml.safe_load(f)
+                self._sort_yml_file(conf_data, conf_file_name)
             else:
                 conf_file_name = conf_json
                 with open(conf_json, 'r') as f:
@@ -3659,9 +3678,6 @@ exit();
         if self._skip_verification:
             self._reporter.writeOutput(
                 "Time series of simulation results will not be verified.")
-
-        # Count number of classes
-        self.printNumberOfClasses()
 
         # Write the run scripts
         self._write_runscripts()
