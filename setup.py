@@ -42,6 +42,7 @@ setup(
         'simplejson>=3.16',
         'six>=1.14',
         'pyfunnel>=0.3.0',
+        'yaml>=5.3.1',
     ],
     packages=[
         MAIN_PACKAGE,
