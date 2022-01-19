@@ -1131,6 +1131,39 @@ class Tester(object):
 
         return
 
+    def _validate_experiment_specifications(self, conf_data, conf_file_name):
+        from cerberus import Validator
+        # Read schema
+        with open(os.path.join(
+            os.path.dirname(__file__), os.path.pardir, 'templates', 'regressiontest_conf.py'), 'r') as f:
+            schema = json.load(f)
+        v = Validator(schema)
+        # Validate
+        found_error = False
+        for dat in conf_data:
+            if not v.validate(dat, schema):
+                for k in v.errors.keys():
+                    self._reporter.writeError(f"{conf_file_name}:  {k} {v.errors[k]} error in '{str(dat)}'")
+                found_error = True
+        if found_error:
+            raise ValueError(f"Failed to validate configuration file {conf_file_name}.")
+
+    def _validate_experiment_specifications_model_names(self, conf_data, conf_file_name):
+        """ Make sure each model_name is unique
+        """
+        names = []
+        for dat in conf_data:
+            names.append(dat['model_name'])
+        found_error = False
+        for name in names:
+            if names.count(name) > 1:
+                found_error = True
+                self._reporter.writeError(f"{conf_file_name}: 'model_name: {name}' is duplicate.")
+        if found_error:
+            raise ValueError(f"Failed to validate configuration file {conf_file_name}.")
+
+
+
     def _add_experiment_specifications(self):
         """ Add the experiment specification to the data structure.
 
@@ -1171,11 +1204,16 @@ class Tester(object):
 
         if os.path.exists(conf_json) or os.path.exists(conf_yml):
             if os.path.exists(conf_yml):
+                conf_file_name = conf_yml
                 with open(conf_yml, 'r') as f:
                     conf_data = yaml.safe_load(f)
             else:
+                conf_file_name = conf_json
                 with open(conf_json, 'r') as f:
                     conf_data = json.load(f)
+            # Validate the configuration file
+            self._validate_experiment_specifications(conf_data, conf_file_name)
+            self._validate_experiment_specifications_model_names(conf_data, conf_file_name)
 
             # Add model specific data
             for con_dat in conf_data:
