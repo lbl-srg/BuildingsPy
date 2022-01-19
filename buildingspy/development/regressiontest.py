@@ -1121,6 +1121,7 @@ class Tester(object):
             msg = """Did not find any regression tests in '%s'.""" % root_package
             self._reporter.writeError(msg)
 
+        # Make sure there are no duplicate data
         self._checkDataDictionary()
         # Raise an error if there was any error reported.
         if self._reporter.getNumberOfErrors() > 0:
@@ -1193,6 +1194,15 @@ class Tester(object):
         import json
         import yaml
 
+
+        def _verify_model_exists(model_name):
+            """ Verify that `model_name` exists. If it does not exist, log an error.
+            """
+            mo_name = os.path.abspath(f"{os.path.join(self._libHome, '..', model_name.replace('.', os.path.sep))}.mo")
+            if not os.path.isfile(mo_name):
+                self._reporter.writeError(f"{conf_file_name} specifies {con_dat['model_name']}, but there is no model file {mo_name}.")
+
+
         if self._modelica_tool != 'dymola':
             def_dic = {}
             def_dic[self._modelica_tool] = {
@@ -1235,6 +1245,12 @@ class Tester(object):
             self._validate_experiment_specifications(conf_data, conf_file_name)
             self._validate_experiment_specifications_model_names(conf_data, conf_file_name)
 
+            # Validate entries for model_name
+            for con_dat in conf_data:
+                _verify_model_exists(con_dat['model_name'])
+            if self._reporter.getNumberOfErrors() > 0:
+                raise ValueError(f"Wrong specification in {conf_file_name}.")
+
             # Add model specific data
             for con_dat in conf_data:
                 for all_dat in self._data:
@@ -1267,6 +1283,8 @@ class Tester(object):
                     # if not translated
                     if 'translate' in all_dat['model_name'] and all_dat[self._modelica_tool]['model_name']['translate'] == False:
                         all_dat[self._modelica_tool]['simulate'] = False
+            if self._reporter.getNumberOfErrors() > 0:
+                raise ValueError(f"Wrong specification in {conf_file_name}.")
 
     def _checkDataDictionary(self):
         """ Check if the data used to run the regression tests do not have duplicate ``*.fmu`` files
@@ -3833,33 +3851,6 @@ exit();
 
         return retVal
 
-    def _get_test_models(self, folder=None, packages=None):
-        """
-        Return a list with the full path of test models that were found in ``packages``.
-
-        :param folder: The path to the library to be searched.
-        :param packages: The names of packages containing test models, such as ``Examples`` and ``Tests``
-        :return: A list with the full paths to the ``.mo`` files of the found models.
-        """
-        if folder is None:
-            folder = self._temDir[0]
-
-        res = []
-        for root, __, paths in os.walk(folder):
-            # check if this root has to be analysed
-            if packages is None:
-                checkroot = True
-            elif os.path.split(root)[-1] in packages:
-                checkroot = True
-            else:
-                checkroot = False
-            if checkroot:
-                # take the path if it's a model
-                for path in paths:
-                    if path.endswith('.mo') and not path.endswith('package.mo'):
-                        res.append(os.path.join(root, path))
-        return res
-
     def _model_from_mo(self, mo_file):
         """Return the model name from a .mo file"""
         # split the path of the mo_file
@@ -3870,38 +3861,3 @@ exit();
         model = '.'.join(splt[root:])
         # remove the '.mo' at the end
         return model[:-3]
-
-    def _writeOMRunScript(self, worDir, models, cmpl, simulate):
-        """
-        Write an OpenModelica run script to test model compliance
-
-        :param: wordir: path to working directory
-        :param: models is a list of model names, typically obtained from
-        :func:`~buildingspy.regressiontest.Tester._get_test_models`
-        :param: cmpl, simulate: booleans specifying if the models have to be
-        compiled and simulated respectively.
-
-        """
-
-        mosfilename = os.path.join(worDir, 'OMTests.mos')
-
-        with open(mosfilename, mode="w", encoding="utf-8") as mosfile:
-            # preamble
-            mosfile.write(
-                "//Automatically generated script for testing model compliance with OpenModelica.\n")
-            mosfile.write("loadModel(Modelica, {\"3.2\"});\n")
-            mosfile.write("getErrorString();\n")
-            mosfile.write("loadModel({});\n\n".format(self.getLibraryName()))
-
-            # one line per model
-            comp = ['checkModel(' + m + '); getErrorString();\n' for m in models]
-            sim = ['simulate(' + m + '); getErrorString();\n' for m in models]
-
-            for c, s in zip(comp, sim):
-                if cmpl:
-                    mosfile.write(c)
-                if simulate:
-                    mosfile.write(s)
-
-        self._reporter.writeOutput('OpenModelica script {} created'.format(mosfilename))
-        return mosfilename
