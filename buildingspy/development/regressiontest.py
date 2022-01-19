@@ -1194,14 +1194,14 @@ class Tester(object):
         import json
         import yaml
 
-
         def _verify_model_exists(model_name):
             """ Verify that `model_name` exists. If it does not exist, log an error.
             """
-            mo_name = os.path.abspath(f"{os.path.join(self._libHome, '..', model_name.replace('.', os.path.sep))}.mo")
+            mo_name = os.path.abspath(
+                f"{os.path.join(self._libHome, '..', model_name.replace('.', os.path.sep))}.mo")
             if not os.path.isfile(mo_name):
-                self._reporter.writeError(f"{conf_file_name} specifies {con_dat['model_name']}, but there is no model file {mo_name}.")
-
+                self._reporter.writeError(
+                    f"{conf_file_name} specifies {con_dat['model_name']}, but there is no model file {mo_name}.")
 
         if self._modelica_tool != 'dymola':
             def_dic = {}
@@ -1221,6 +1221,7 @@ class Tester(object):
                         all_dat[self._modelica_tool] = {}
                     all_dat[self._modelica_tool][key] = copy.deepcopy(
                         def_dic[self._modelica_tool][key])
+        _print_dictionary("self._data is now ", self._data)
 
         # Get configuration data from file, if present
         conf_dir = os.path.join(self._libHome, 'Resources', 'Scripts', 'BuildingsPy')
@@ -1268,7 +1269,10 @@ class Tester(object):
                                 else:
                                     # Don't override the already set data for dymola
                                     for con_key in con_dat.keys():
-                                        all_dat['dymola'][con_key] = con_dat[con_key]
+                                        # if con_dat[con_key] is a dictionary, then it is the specification for openmodelica or optimica.
+                                        # Hence, don't add it to dymola
+                                        if not type(con_dat[con_key]) is dict:
+                                            all_dat['dymola'][con_key] = con_dat[con_key]
                         # Write warning if this model should not be translated or simulated.
                         msg = None
                         if all_dat[self._modelica_tool]['translate'] is False:
@@ -1279,10 +1283,12 @@ class Tester(object):
                             if 'comment' in all_dat[self._modelica_tool]:
                                 msg = f"{msg} {all_dat[self._modelica_tool]['comment']}"
                             self._reporter.writeOutput(msg)
-                    # Set simulate to false as well as it can't be simulated
-                    # if not translated
-                    if 'translate' in all_dat['model_name'] and all_dat[self._modelica_tool]['model_name']['translate'] == False:
-                        all_dat[self._modelica_tool]['simulate'] = False
+            for all_dat in self._data:
+                # Set simulate to false as well as it can't be simulated
+                # if not translated
+                if 'translate' in all_dat[self._modelica_tool] and all_dat[self._modelica_tool]['translate'] == False:
+                    all_dat[self._modelica_tool]['simulate'] = False
+            # Stop if there were any errors
             if self._reporter.getNumberOfErrors() > 0:
                 raise ValueError(f"Wrong specification in {conf_file_name}.")
 
