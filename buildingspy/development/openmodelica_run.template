@@ -20,13 +20,13 @@ def _add_exception(return_dict, e, cmd):
     # Did not find 'terminated' in message, handle exception as usual
     return_dict['exception'] = '{}: {}'.format(type(e).__name__, e)
 
-def _run_process(return_dict, cmd, worDir):
+def _run_process(return_dict, cmd, worDir, timeout):
   import subprocess
 
   output = subprocess.check_output(
     cmd,
     cwd = worDir,
-    timeout={{ time_out }},
+    timeout=timeout,
     stderr=subprocess.STDOUT,
     shell=False)
 
@@ -37,7 +37,7 @@ def _run_process(return_dict, cmd, worDir):
      return_dict['stdout'] = output.decode("utf-8")
   return
 
-def _translate(model):
+def _translate(model, timeout):
   import subprocess
   return_dict = {}
 
@@ -71,13 +71,13 @@ exit(retVal);
     # Translate and compile model
     cmd = ["omc", scr_nam]
     return_dict['cmd'] = ' '.join(cmd)
-    _run_process(return_dict, cmd, worDir)
+    _run_process(return_dict, cmd, worDir, timeout)
 
   except Exception as e:
     _add_exception(return_dict, e, cmd)
   return return_dict
 
-def _simulate(model):
+def _simulate(model, timeout):
   import os
   import subprocess
 
@@ -97,7 +97,7 @@ exit(retVal);
 """)
     cmd = ["omc", scr_nam]
     return_dict['cmd'] = ' '.join(cmd)
-    output = _run_process(return_dict, cmd, worDir)
+    output = _run_process(return_dict, cmd, worDir, timeout)
 
   except Exception as e:
     _add_exception(return_dict, e, cmd)
@@ -119,7 +119,7 @@ def run():
   import traceback
   import sys
 
-  time_out = 300
+  timeout = {{ time_out }}
   model = "{{ model }}"
   result = {"model": model,
             "working_directory": "{{ working_directory }}",
@@ -134,19 +134,19 @@ def run():
     pass
 
   try:
-    result["translation"] = _translate(model = model)
+    result["translation"] = _translate(model, timeout)
 
   except Exception as e:
     msg = "{}: {}".format(type(e).__name__, str(e))
     if msg == "RuntimeError: Process timeout":
-        msg = msg + " after {} seconds".format(time_out)
+        msg = msg + " after {} seconds".format(timeout)
     result["translation"]["exception"] = msg
     result["translation"]["traceback"] = traceback.format_exc()
 
   if {{ simulate }}:
     if result["translation"]["success"]:
       # Simulate model
-      result["simulation"] = _simulate(model = model)
+      result["simulation"] = _simulate(model, timeout)
     else:
       result["simulation"]["message"] = "Simulation skipped because translation failed."
   else:
