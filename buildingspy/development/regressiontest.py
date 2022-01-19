@@ -1221,7 +1221,6 @@ class Tester(object):
                         all_dat[self._modelica_tool] = {}
                     all_dat[self._modelica_tool][key] = copy.deepcopy(
                         def_dic[self._modelica_tool][key])
-        _print_dictionary("self._data is now ", self._data)
 
         # Get configuration data from file, if present
         conf_dir = os.path.join(self._libHome, 'Resources', 'Scripts', 'BuildingsPy')
