@@ -8,6 +8,7 @@ pytidylib==0.3.2
 simplejson==3.16.0
 six==1.14.0
 pyfunnel==0.3.0
+yaml==5.3.1
 
 # For documentation and testing.
 setuptools==45.2.0; python_version>='3.8'
