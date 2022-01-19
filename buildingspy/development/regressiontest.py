@@ -1142,18 +1142,19 @@ class Tester(object):
         import yaml as y
         import sys
         # Sort the list of dictionary items
-        sor = sorted(conf_data, key = lambda i: i['model_name'])
+        sor = sorted(conf_data, key=lambda i: i['model_name'])
         if not sor == conf_data:
             fname = f"{conf_file_name}.sorted"
-            self._reporter.writeWarning(f"Configuration file was not sorted. Wrote sorted configuration data to {fname}.")
+            self._reporter.writeWarning(
+                f"Configuration file was not sorted. Wrote sorted configuration data to {fname}.")
             with open(fname, 'w') as f:
-                y.dump(sor, f, sort_keys=False, width=4096)
+                y.safe_dump(sor, f, sort_keys=False, width=4096)
 
     def _validate_experiment_specifications(self, conf_data, conf_file_name):
         from cerberus import Validator
         # Read schema
         with open(os.path.join(
-            os.path.dirname(__file__), os.path.pardir, 'templates', 'regressiontest_conf.py'), 'r') as f:
+                os.path.dirname(__file__), os.path.pardir, 'templates', 'regressiontest_conf.py'), 'r') as f:
             schema = json.load(f)
         v = Validator(schema)
         # Validate
@@ -1161,7 +1162,8 @@ class Tester(object):
         for dat in conf_data:
             if not v.validate(dat, schema):
                 for k in v.errors.keys():
-                    self._reporter.writeError(f"{conf_file_name}:  {k} {v.errors[k]} error in '{str(dat)}'")
+                    self._reporter.writeError(
+                        f"{conf_file_name}:  {k} {v.errors[k]} error in '{str(dat)}'")
                 found_error = True
         if found_error:
             raise ValueError(f"Failed to validate configuration file {conf_file_name}.")
@@ -1179,8 +1181,6 @@ class Tester(object):
                 self._reporter.writeError(f"{conf_file_name}: 'model_name: {name}' is duplicate.")
         if found_error:
             raise ValueError(f"Failed to validate configuration file {conf_file_name}.")
-
-
 
     def _add_experiment_specifications(self):
         """ Add the experiment specification to the data structure.
