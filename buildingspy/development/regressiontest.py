@@ -183,7 +183,6 @@ class Tester(object):
        >>> myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
        >>> rt.setLibraryRoot(myMoLib)
        >>> rt.run()                    # doctest: +ELLIPSIS
-       BuildingsPy regression tests.
        Number of models   : 10
                  blocks   : 2
                  functions: 0
@@ -376,10 +375,6 @@ class Tester(object):
             self._color_OK = ''
             self._color_ERROR = ''
             self._color_ENDC = ''
-
-        # Print number of classes
-        print("BuildingsPy regression tests.")
-        self.printNumberOfClasses()
 
     def report(self, timeout=600, browser=None, autoraise=True, comp_file=None):
         """Builds and displays HTML report.
@@ -3663,6 +3658,9 @@ exit();
         if self._comp_tool == 'funnel':
             shutil.rmtree(self._comp_dir, ignore_errors=True)
             os.makedirs(self._comp_dir)
+
+        # Print number of classes
+        self.printNumberOfClasses()
 
         # Reset the number of processors to use no more processors than there are
         # examples to be run
