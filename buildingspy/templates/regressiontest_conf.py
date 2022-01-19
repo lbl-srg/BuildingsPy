@@ -3,28 +3,31 @@
     "dymola": {
         "type": "dict",
         "schema": {
-            "simulate": {"type": "boolean"},
             "translate": {"type": "boolean"},
+            "simulate": {"type": "boolean"},
             "comment": {"type": "string"}
         }
     },
     "optimica": {
         "type": "dict",
         "schema": {
-            "simulate": {"type": "boolean"},
             "translate": {"type": "boolean"},
+            "simulate": {"type": "boolean"},
             "comment": {"type": "string"},
+            "solver": {"type": "string"},
             "rtol": {"type": "number"},
-            "solver": {"type": "string"}
+            "ncp": {"type": "integer", "min": 500}
         }
     },
     "openmodelica": {
         "type": "dict",
         "schema": {
-            "simulate": {"type": "boolean"},
             "translate": {"type": "boolean"},
+            "simulate": {"type": "boolean"},
             "comment": {"type": "string"},
-            "solver": {"type": "string"}
+            "solver": {"type": "string"},
+            "rtol": {"type": "number"},
+            "ncp": {"type": "integer", "min": 500}
         }
     }
 }

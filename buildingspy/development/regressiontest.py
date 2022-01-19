@@ -229,7 +229,8 @@ class Tester(object):
            comment: 'Add some comment and ideally a link to a github issue'
 
 
-    For Dymola, or OpenModelica, replace ``optimica`` with ``dymola`` or ``openmodelica``.
+    For OpenModelica, replace ``optimica`` with ``openmodelica``.
+    For the detailed specifiation of allowed fields, see ``buildingspy/templates/regressiontest_conf.py``.
 
     Any entries are optional, and the entries shown above
     are the default values, except for the relative tolerance `rtol`
