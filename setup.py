@@ -42,6 +42,8 @@ setup(
         'simplejson>=3.16',
         'six>=1.14',
         'pyfunnel>=0.3.0',
+        'PyYAML>=5.3.1',
+        'cerberus>=1.3.4',
     ],
     packages=[
         MAIN_PACKAGE,

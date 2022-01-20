@@ -1,10 +1,16 @@
 #!/bin/bash
-# This is invoked from the Buildings directory.
-# Hence, we need to share one level up
-cur_dir=`pwd`
-bas_nam=`basename ${cur_dir}`
-sha_dir=`dirname ${cur_dir}`
-
+#################################################
+# Shell script that simulates with OpenModelica using
+# a docker image of OMC
+#
+# The main purpose of this script is to export
+# MODELICAPATH
+# updated for the docker, and to mount the
+# required directories.
+#################################################
+set -e
+IMG_NAME=${OMC_VERSION}
+DOCKER_USERNAME=michaelwetter
 
 # Function declarations
 function create_mount_command()
@@ -41,31 +47,51 @@ if [ -z ${MODELICAPATH+x} ]; then
     MODELICAPATH=`pwd`
 else
     # Add the current directory to the front of the Modelica path.
-    # This will export the directory to the docker.
+    # This will export the directory to the docker, and also set
+    # it in the MODELICAPATH so that OPTIMICA finds it.
     MODELICAPATH=`pwd`:${MODELICAPATH}
 fi
 
 # Create the command to mount all directories in read-only mode
-# a) for MODELICAPATH
 MOD_MOUNT=`create_mount_command ${MODELICAPATH}`
 
 # Prepend /mnt/ in front of each entry, which will then be used as the MODELICAPATH
 DOCKER_MODELICAPATH=`update_path_variable ${MODELICAPATH}`
 
-
 # If the current directory is part of the argument list,
 # replace it with . as the docker may have a different file structure
+cur_dir=`pwd`
+bas_nam=`basename "${cur_dir}"`
 arg_lis=`echo $@ | sed -e "s|${cur_dir}|.|g"`
+
+# Set variable for shared directory
+sha_dir=`dirname "${cur_dir}"`
+
+# Check if the python script should be run interactively (if -i is specified)
+while [ $# -ne 0 ]
+do
+    arg="$1"
+    case "$arg" in
+        -i)
+            interactive=true
+            DOCKER_INTERACTIVE=-t
+            ;;
+    esac
+    shift
+done
+
+# --user=${UID} \
+
 docker run \
   --user=${UID} \
-  --mac-address=${MAC_ADDRESS} \
-  -v /tmp/.X11-unix:/tmp/.X11-unix \
-  -e DISPLAY=${DISPLAY} \
+  -i \
+  $DOCKER_INTERACTIVE \
   --detach=false \
-  --rm \
   ${MOD_MOUNT} \
   -v ${sha_dir}:/mnt/shared \
-  ${DOCKER_USERNAME}/${DYMOLA_VERSION} /bin/bash -c \
-  "export MODELICAPATH=${DOCKER_MODELICAPATH} && \
-  cd /mnt/shared/${bas_nam} && \
-  dymola ${arg_lis}"
+  --rm \
+  ${DOCKER_USERNAME}/${IMG_NAME} /bin/bash -c \
+  "export OPENMODELICALIBRARY=${DOCKER_MODELICAPATH}:/usr/lib/omlibrary && \
+  cd \"/mnt/shared/${bas_nam}\" && \
+  omc ${arg_lis}"
+exit $?
