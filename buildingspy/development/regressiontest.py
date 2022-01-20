@@ -368,11 +368,13 @@ class Tester(object):
         if color:
             self._color_BOLD = '\033[1m'
             self._color_OK = '\033[1;32m'
+            self._color_GREY = '\033[90m'
             self._color_ERROR = '\033[91m'
             self._color_ENDC = '\033[0m'
         else:
             self._color_BOLD = ''
             self._color_OK = ''
+            self._color_GREY = ''
             self._color_ERROR = ''
             self._color_ENDC = ''
 
@@ -1275,7 +1277,7 @@ class Tester(object):
                             msg = f"{all_dat['model_name']}: Requested to be excluded from simulation."
                         if msg is not None:
                             if 'comment' in all_dat[self._modelica_tool]:
-                                msg = f"{msg} {all_dat[self._modelica_tool]['comment']}"
+                                msg = f"{msg} {self._color_GREY}{all_dat[self._modelica_tool]['comment']}{self._color_ENDC}"
                             self._reporter.writeOutput(msg)
             for all_dat in self._data:
                 # Set simulate to false as well as it can't be simulated
@@ -2599,11 +2601,12 @@ class Tester(object):
                                         if ele['dymola']['exportFMU']:
                                             mustExportFMU = True
                                             break
-                                if not mustExportFMU:
-                                    # This is a model that usually should be simulated,
-                                    # and not only a model that need to be exported as an FMU
-                                    print("*** Did not simulate {}".format(res['model']))
-                                    iOmiSim = iOmiSim + 1
+#                               The models that are not simulated are already reported.
+#                                if not mustExportFMU:
+#                                    # This is a model that usually should be simulated,
+#                                    # and not only a model that need to be exported as an FMU
+#                                    print("*** Did not simulate {}".format(res['model']))
+#                                    iOmiSim = iOmiSim + 1
                             else:
                                 em = f"Simulation of {res['model']} failed: '{res['simulation']['exception']}'. Directory is '{res['working_directory']}'."
                                 self._reporter.writeError(em)
