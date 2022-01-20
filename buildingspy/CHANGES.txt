@@ -1,6 +1,8 @@
 BuildingsPy Changelog
 ---------------------
 - For unit tests, enabled option to run tests with OpenModelica.
+  This change also allows specifying the test configuration in the more concise
+  conf.yml rather than conf.json file.
   (https://github.com/lbl-srg/BuildingsPy/issues/453)
 - For unit tests, added option to exclude files for dymola in library configuration script.
   Due to this change, the function regressiontest.setExcludeTest has been removed.
