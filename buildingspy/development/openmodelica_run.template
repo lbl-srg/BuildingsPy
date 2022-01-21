@@ -22,12 +22,15 @@ def _add_exception(return_dict, e, cmd):
 
 def _run_process(return_dict, cmd, worDir, timeout):
   import subprocess
+  import os
+  env = os.environ.copy()
 
   output = subprocess.check_output(
     cmd,
     cwd = worDir,
     timeout=timeout,
     stderr=subprocess.STDOUT,
+    env = env,
     shell=False)
 
   return_dict['success'] = True
@@ -55,7 +58,7 @@ setCommandLineOptions("-d=stateselection");
 //setCommandLineOptions("-d=execstat");
 setMatchingAlgorithm("PFPlusExt");
 setIndexReductionMethod("dynamicStateSelection");
-loadFile("{{ library_name }}/package.mo");
+//loadFile("{{ library_name }}/package.mo");
 translated := translateModel({model}, method="{{ solver }}", tolerance={{ rtol }}, numberOfIntervals={{ ncp }}, variableFilter="{{ filter }}");
 getErrorString();
 
