@@ -1205,7 +1205,7 @@ class Tester(object):
             def_dic[self._modelica_tool] = {
                 'translate': True,
                 'simulate': True,
-                'solver': 'CVode' if self._modelica_tool != 'openmodelica' else 'cvode',
+                'solver': 'CVode' if self._modelica_tool != 'openmodelica' else 'dassl',
                 'ncp': 500,
                 'time_out': 300
             }
