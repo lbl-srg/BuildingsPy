@@ -2803,8 +2803,7 @@ class Tester(object):
             s = """Comparison files output by funnel are stored in the directory '{}' of size {:.1f} MB.
 Run 'python -c "import buildingspy.development.regressiontest as t; t.Tester().report()"'
 to access a summary of the comparison results.\n""".format(
-                self._comp_dir, self._get_size_dir(
-                    self._comp_dir) * 1e-6)
+                self._comp_dir, self._get_size_dir(self._comp_dir) * 1e-6)
             self._reporter.writeOutput(s)
 
         return ret_val
