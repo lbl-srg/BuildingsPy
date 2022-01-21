@@ -190,7 +190,7 @@ class Tester(object):
        Generated 7 regression tests.
        <BLANKLINE>
        Comparison files output by funnel are stored in the directory 'funnel_comp' of size ... MB.
-       Run 'import buildingspy.development.regressiontest as t; t.Tester().report()'
+       Run 'python -c "import buildingspy.development.regressiontest as t; t.Tester().report()"'
        to access a summary of the comparison results.
        <BLANKLINE>
        Script that runs unit tests had 0 warnings and 0 errors.
@@ -2800,12 +2800,10 @@ class Tester(object):
             comp_log.write("{}\n".format(json.dumps(self._comp_info, indent=2, sort_keys=True)))
 
         if self._comp_tool == 'funnel':
-            s = (
-                "Comparison files output by funnel are stored in the directory "
-                "'{}' of size {:.1f} MB.\nRun 'import buildingspy.development.regressiontest as t; t.Tester().report()'\n"
-                "to access a summary of the comparison results.\n").format(
-                self._comp_dir, self._get_size_dir(
-                    self._comp_dir) * 1e-6)
+            s = """Comparison files output by funnel are stored in the directory '{}' of size {:.1f} MB.
+Run 'python -c "import buildingspy.development.regressiontest as t; t.Tester().report()"'
+to access a summary of the comparison results.\n""".format(
+                self._comp_dir, self._get_size_dir(self._comp_dir) * 1e-6)
             self._reporter.writeOutput(s)
 
         return ret_val
@@ -3652,6 +3650,8 @@ exit();
         - returns 0 if no errors and no warnings occurred, or non-zero otherwise.
 
         """
+        from sys import platform
+
         self.checkPythonModuleAvailability()
 
         if self.get_number_of_tests() == 0:
@@ -3723,7 +3723,15 @@ exit();
                 else:
                     cmd = [self.getModelicaCommand(), "runAll.mos", "/nowindow"]
             elif self._modelica_tool == 'openmodelica':
-                cmd = ["python", "./run.py"]
+                # OS X invokes python 2.7 if the command below is python, despite of having
+                # alias python=python3 in .bashrc.
+                # Hence, we invoke python3 for OS X.
+                # (The unit tests would fail with
+                # invalid syntax for f"'{' '.join(cmd)}' caused '{msg}'.")
+                if platform == "darwin":
+                    cmd = ["python3", "./run.py"]
+                else:
+                    cmd = ["python", "./run.py"]
             elif self._modelica_tool != 'dymola':
                 cmd = [self.getModelicaCommand(), "run.py"]
             if self._nPro > 1:
