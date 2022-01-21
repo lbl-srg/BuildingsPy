@@ -3652,6 +3652,8 @@ exit();
         - returns 0 if no errors and no warnings occurred, or non-zero otherwise.
 
         """
+        from sys import platform
+
         self.checkPythonModuleAvailability()
 
         if self.get_number_of_tests() == 0:
@@ -3723,7 +3725,13 @@ exit();
                 else:
                     cmd = [self.getModelicaCommand(), "runAll.mos", "/nowindow"]
             elif self._modelica_tool == 'openmodelica':
-                cmd = ["python", "./run.py"]
+                # OS X invokes python 2.7 if the command below is python.
+                # Hence, we invoke python3 for that operating system.
+                # (The unit tests would fail with invalid syntax for f"'{' '.join(cmd)}' caused '{msg}'.")
+                if platform == "darwin":
+                    cmd = ["python3", "./run.py"]
+                else:
+                    cmd = ["python", "./run.py"]
             elif self._modelica_tool != 'dymola':
                 cmd = [self.getModelicaCommand(), "run.py"]
             if self._nPro > 1:
