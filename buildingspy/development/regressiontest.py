@@ -1272,9 +1272,9 @@ class Tester(object):
                         # Write warning if this model should not be translated or simulated.
                         msg = None
                         if all_dat[self._modelica_tool]['translate'] is False:
-                            msg = f"{all_dat['model_name']}: Requested to be excluded from translation."
+                            msg = f"{all_dat['model_name']}: Excluded from translation."
                         elif all_dat[self._modelica_tool]['simulate'] is False:
-                            msg = f"{all_dat['model_name']}: Requested to be excluded from simulation."
+                            msg = f"{all_dat['model_name']}: Excluded from simulation."
                         if msg is not None:
                             if 'comment' in all_dat[self._modelica_tool]:
                                 msg = f"{msg} {self._color_GREY}{all_dat[self._modelica_tool]['comment']}{self._color_ENDC}"
