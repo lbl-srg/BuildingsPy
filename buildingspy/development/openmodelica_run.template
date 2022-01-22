@@ -51,8 +51,6 @@ setCommandLineOptions("-d=initialization");
 setCommandLineOptions("-d=backenddaeinfo");
 setCommandLineOptions("-d=discreteinfo");
 setCommandLineOptions("-d=stateselection");
-//setCommandLineOptions("-solver=cvode");
-//setCommandLineOptions("-d=execstat");
 setMatchingAlgorithm("PFPlusExt");
 setIndexReductionMethod("dynamicStateSelection");
 loadFile("{{ library_name }}/package.mo");
@@ -92,7 +90,7 @@ def _simulate(model, timeout):
     worDir = "{{ working_directory }}"
     scr_nam = f"{model}_simulate.mos"
     with open(scr_nam, 'w') as f:
-        f.write(f"""retVal := system("./{model} -s cvode -steps -cpu -lv LOG_STATS");
+        f.write(f"""retVal := system("./{model} -s {{ solver }} -steps -cpu -lv LOG_STATS");
 exit(retVal);
 """)
     cmd = ["omc", scr_nam]
