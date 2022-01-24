@@ -2489,7 +2489,7 @@ class Tester(object):
              'pattern': r"(\d+) state events",
              'val': 0},
             {"key": 'elapsed_time',
-             'pattern': r"(\d+)s [100.0%] total",
+             'pattern': r"(\S+)s \[100.0%\] total",
              'val': 0}
         ]
         for ele in struct:
