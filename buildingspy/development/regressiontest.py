@@ -2489,13 +2489,13 @@ class Tester(object):
              'pattern': r"(\d+) state events",
              'val': 0},
             {"key": 'elapsed_time',
-             'pattern': r"(\d+)s [100.0%] total",
+             'pattern': r"(\S+)s \[100.0%\] total",
              'val': 0}
         ]
         for ele in struct:
             r = re.search(ele['pattern'], simulation_text)
             if r is not None:
-                ele['val'] = r.group(1)
+                ele['val'] = float(r.group(1)) if ele['key'] is 'elapsed_time' else r.group(1)
         res = {}
         for ele in struct:
             res[ele['key']] = ele['val']
