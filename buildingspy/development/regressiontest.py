@@ -2495,7 +2495,7 @@ class Tester(object):
         for ele in struct:
             r = re.search(ele['pattern'], simulation_text)
             if r is not None:
-                ele['val'] = float(r.group(1)) if ele['key'] is 'elapsed_time' else r.group(1)
+                ele['val'] = float(r.group(1)) if ele['key'] == 'elapsed_time' else r.group(1)
         res = {}
         for ele in struct:
             res[ele['key']] = ele['val']
