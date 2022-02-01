@@ -138,7 +138,7 @@ class Tester(object):
     :param skip_verification: Boolean (default ``False``).
             If ``True``, unit test results are not verified against reference points.
     :param color: Boolean (default ``False``).
-            If ``True``, command line output will be in color.
+            If ``True``, command line output will be in color (ignored on Windows).
 
     This class can be used to run all regression tests.
 
@@ -249,6 +249,8 @@ class Tester(object):
         skip_verification=False,
         color=False
     ):
+        import platform
+
         """ Constructor."""
         if tool == 'optimica':
             e = error_dictionary_optimica
@@ -364,8 +366,8 @@ class Tester(object):
         # By default, do not show the GUI of the simulator
         self._showGUI = False
 
-        # Enable or disable colored output
-        if color:
+        # Enable or disable colored output on non-windows
+        if color and (platform.system() != "Windows"):
             self._color_BOLD = '\033[1m'
             self._color_OK = '\033[1;32m'
             self._color_GREY = '\033[90m'
@@ -555,9 +557,11 @@ class Tester(object):
         :return: The name of the modelica executable.
 
         """
+        import platform
+
         if self._modelica_tool == 'openmodelica':
             # get the executable for omc, depending on platform
-            if sys.platform == 'win32':
+            if platform.system() == "Windows":
                 try:
                     omc = os.path.join(env['OPENMODELICAHOME'], 'bin', 'omc')
                 except KeyError:
@@ -3121,11 +3125,10 @@ Advanced.GenerateVariableDependencies = false;
             posDDE = "9"  # At position 9 DDE settings should be stored.
             runFil.write(f"""
 // Deactivate DDE
-    (comp, sett) = GetDymolaCompiler();\n')
-
-    DDE_orig = sett[{posDDE}];
-    sett[{posDDE}] = \"DDE=0\"; // Disable DDE
-    SetDymolaCompiler(comp, sett);
+(comp, sett) = GetDymolaCompiler();
+DDE_orig = sett[{posDDE}];
+sett[{posDDE}] = \"DDE=0\"; // Disable DDE
+SetDymolaCompiler(comp, sett);
 """)
         runFil.write('cd(\"{}/{}\");\n'.format(
             (self._temDir[iPro]).replace("\\", "/"),
