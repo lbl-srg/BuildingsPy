@@ -790,7 +790,7 @@ def _getShortName(filePath, classPath):
 
 
 def _updateFile(arg):
-    """ Update all `.mo`, `package.order` and reference result file
+    """ Update all `.mo`, `package.order` and reference result file, and the `conf.yml` file.
 
         The argument `arg` is a list providing
         [
@@ -817,6 +817,7 @@ def _updateFile(arg):
     # - .mo
     # - package.order
     # - ReferenceResults
+    # - conf.yml file
     if srcFil.endswith(".mo"):
         # Replace the Modelica class name that may be used in hyperlinks
         # or when instantiating the class.
@@ -861,6 +862,10 @@ def _updateFile(arg):
         # "....Dymola/Fluid/..."
         def sd(s): return "Resources/Scripts/Dymola/" + s[s.find('.') + 1:].replace(".", "/")
         replace_text_in_file(srcFil, sd(source), sd(target))
+    elif srcFil.endswith("conf.yml"):
+        # Update configuration file of the unit tests, such as
+        # Resources/Scripts/BuildingsPy/conf.yml
+        replace_text_in_file(srcFil, source, target)
     elif srcFil.endswith("package.order"):
         # Update package.order
         write_package_order(os.path.dirname(srcFil))

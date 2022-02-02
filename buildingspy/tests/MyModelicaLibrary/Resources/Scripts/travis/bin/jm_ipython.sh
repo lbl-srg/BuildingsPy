@@ -10,7 +10,7 @@
 #################################################
 set -e
 
-IMG_NAME=travis-ubuntu-1804-optimica:r19089
+IMG_NAME=${OPTIMICA_VERSION}
 DOCKER_USERNAME=michaelwetter
 
 NAME=${DOCKER_USERNAME}/${IMG_NAME}
@@ -107,7 +107,7 @@ DOCKER_FLAGS="\
   ${NAME}"
 
 docker run ${DOCKER_FLAGS} /bin/bash -c \
-  "export MODELICAPATH=${DOCKER_MODELICAPATH}:/opt/oct/ThirdParty/MSL && \
+  "export MODELICAPATH=${DOCKER_MODELICAPATH}:/opt/oct/ThirdParty/MSL/MSL323:/opt/oct/ThirdParty/MSL/MSL400:/opt/oct/ThirdParty/MSL && \
    export PYTHONPATH=${DOCKER_PYTHONPATH} && \
    export IPYTHONDIR=/mnt/shared &&
    alias ipython=ipython3 && \

@@ -115,7 +115,6 @@ def _simulate(proc_num, return_dict):
 
 def run():
     import os
-    import timeit
     import json
     import traceback
     import sys
