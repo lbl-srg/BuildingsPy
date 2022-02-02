@@ -2787,7 +2787,7 @@ class Tester(object):
                     self._reporter.writeError(em)
                 else:
                     # if there was no error for this test case, check user feedback for result
-                    if (get_user_prompt and data[self._modelica_tool]['simulate']) or self._OCT_VERIFICATION:
+                    if (get_user_prompt or self._OCT_VERIFICATION) and data[self._modelica_tool]['simulate']:
                         # Reset answer, unless it is set to Y or N, or
                         # unless the tests run in batch mode
                         if not (self._batch or ans == "Y" or ans == "N"):
