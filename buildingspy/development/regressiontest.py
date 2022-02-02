@@ -2685,8 +2685,9 @@ class Tester(object):
                     self._isPresentAndTrue('exportFMU', data[self._modelica_tool]))
             # Only if the simulation was successful are we reading the results.
             # (Simulation errors are reported earlier already.)
-            if 'simulation' in data[self._modelica_tool]:
-                check_condition = check_condition and data[self._modelica_tool]['simulation']['success']
+            check_condition = check_condition and \
+                'simulation' in data[self._modelica_tool] and \
+                data[self._modelica_tool]['simulation']['success']
 
             if check_condition:
                 get_user_prompt = True
