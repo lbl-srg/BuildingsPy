@@ -2685,9 +2685,9 @@ class Tester(object):
                     self._isPresentAndTrue('exportFMU', data[self._modelica_tool]))
             # Only if the simulation was successful are we reading the results.
             # (Simulation errors are reported earlier already.)
-            check_condition = check_condition and \
-                'simulation' in data[self._modelica_tool] and \
-                data[self._modelica_tool]['simulation']['success']
+
+            if 'simulation' in data[self._modelica_tool]:
+                check_condition = check_condition and data[self._modelica_tool]['simulation']['success']
 
             if check_condition:
                 get_user_prompt = True
@@ -2841,7 +2841,10 @@ to access a summary of the comparison results.\n""".format(
 
         # Read the json file with the statistics
         if not os.path.isfile(self._statistics_log):
-            raise IOError("Statistics file {} does not exist.".format(os.path.abspath(self._statistics_log)))
+            raise IOError(
+                "Statistics file {} does not exist.".format(
+                    os.path.abspath(
+                        self._statistics_log)))
 
         with open(self._statistics_log, mode="rt", encoding="utf-8-sig") as fil:
             try:
