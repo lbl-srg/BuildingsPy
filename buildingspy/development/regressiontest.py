@@ -2765,7 +2765,7 @@ class Tester(object):
                                 for pai in y_sim:
                                     t_ref = pai["time"]
                                 noOldResults = noOldResults + list(pai.keys())
-                                if not self._batch:
+                                if not (self._batch or ans == "Y" or ans == "N"):
                                     self._legacy_plot(y_sim, t_ref, {}, noOldResults, dict(),
                                                       "New results: " + data['ScriptFile'])
                                 # Reference file does not exist
