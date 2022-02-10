@@ -2035,7 +2035,7 @@ class Tester(object):
             if 'BUILDINGSPY_SKIP_STATISTICS_VERIFICATION' in os.environ:
                 if model_name in os.environ['BUILDINGSPY_SKIP_STATISTICS_VERIFICATION']:
                     print(
-                        f"Excluding {model_name} from comparison of initialization statistics on Travis CI.")
+                        f"Excluding {model_name} from comparison of initialization statistics and result comparison on Travis CI.")
                     return False
             return True
 
@@ -2732,9 +2732,9 @@ class Tester(object):
                     self._isPresentAndTrue('exportFMU', data[self._modelica_tool]))
             # Only if the simulation was successful are we reading the results.
             # (Simulation errors are reported earlier already.)
-            check_condition = check_condition and \
-                'simulation' in data[self._modelica_tool] and \
-                data[self._modelica_tool]['simulation']['success']
+
+            if 'simulation' in data[self._modelica_tool]:
+                check_condition = check_condition and data[self._modelica_tool]['simulation']['success']
 
             if check_condition:
                 get_user_prompt = True
@@ -2813,7 +2813,7 @@ class Tester(object):
                                     t_ref = pai["time"]
                                 noOldResults = noOldResults + list(pai.keys())
                                 if not self._OCT_VERIFICATION:
-                                    if not self._batch:
+                                    if not (self._batch or ans == "Y" or ans == "N"):
                                         self._legacy_plot(y_sim, t_ref, {}, noOldResults, dict(),
                                                           "New results: " + data['ScriptFile'])
                                     # Reference file does not exist, write warning, unless we are in OCT_VERIFICATION mode
@@ -2823,7 +2823,7 @@ class Tester(object):
                                     print("             Create new file?")
                                     ans = input(
                                         "             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
-                                if ans == "y" or ans == "Y":
+                                if self._OCT_VERIFICATION or ans == "y" or ans == "Y":
                                     updateReferenceData = True
                                 else:
                                     self._reporter.writeError("Did not write new reference file %s." %
@@ -2893,7 +2893,10 @@ to access a summary of the comparison results.\n""".format(
 
         # Read the json file with the statistics
         if not os.path.isfile(self._statistics_log):
-            raise IOError("Statistics file {} does not exist.".format(self._statistics_log))
+            raise IOError(
+                "Statistics file {} does not exist.".format(
+                    os.path.abspath(
+                        self._statistics_log)))
 
         with open(self._statistics_log, mode="rt", encoding="utf-8-sig") as fil:
             try:
@@ -3801,53 +3804,53 @@ exit();
                 if len(self._data) > 0:
                     runSimulation(tem_dir[0], cmd)
 
-            # Concatenate simulator output files into one file
-            with open(self._simulator_log_file, mode="w", encoding="utf-8") as logFil:
-                for d in self._temDir:
-                    for temLogFilNam in glob.glob(
-                        os.path.join(
-                            d,
-                            self.getLibraryName(),
-                            '*.translation.log')):
-                        if os.path.exists(temLogFilNam):
-                            with open(temLogFilNam, mode="r", encoding="utf-8-sig") as fil:
-                                data = fil.read()
-                            logFil.write(data)
-                        else:
-                            self._reporter.writeError(
-                                "Log file '" + temLogFilNam + "' does not exist.\n")
-                            retVal = 1
+        # Concatenate simulator output files into one file
+        with open(self._simulator_log_file, mode="w", encoding="utf-8") as logFil:
+            for d in self._temDir:
+                for temLogFilNam in glob.glob(
+                    os.path.join(
+                        d,
+                        self.getLibraryName(),
+                        '*.translation.log')):
+                    if os.path.exists(temLogFilNam):
+                        with open(temLogFilNam, mode="r", encoding="utf-8-sig") as fil:
+                            data = fil.read()
+                        logFil.write(data)
+                    else:
+                        self._reporter.writeError(
+                            "Log file '" + temLogFilNam + "' does not exist.\n")
+                        retVal = 1
 
-            # Concatenate simulator statistics into one file
-            if self._modelica_tool == 'dymola':
-                with open(self._statistics_log, mode="w", encoding="utf-8") as logFil:
-                    stat = list()
-                    for d in self._temDir:
-                        temLogFilNam = os.path.join(d, self.getLibraryName(), self._statistics_log)
-                        if os.path.exists(temLogFilNam):
-                            with open(temLogFilNam.replace('Temp\tmp', 'Temp\\tmp'), mode="r", encoding="utf-8-sig") as temSta:
-                                try:
-                                    jsonLog = json.load(temSta)
-                                    cas = jsonLog["testCase"]
-                                    # Iterate over all test cases of this output file
-                                    for ele in cas:
-                                        stat.append(ele)
-                                except ValueError as e:
-                                    self._reporter.writeError(
-                                        "Decoding '%s' failed: %s" % (temLogFilNam, e))
-                                    raise
-                        else:
-                            self._reporter.writeError(
-                                "Log file '" + temLogFilNam + "' does not exist.\n")
-                            retVal = 1
-                    # Dump an array of testCase objects
-                    # dump to a string first using json.dumps instead of json.dump
-                    json_string = json.dumps({"testCase": stat},
-                                             ensure_ascii=False,
-                                             indent=4,
-                                             separators=(',', ': '),
-                                             sort_keys=True)
-                    logFil.write(json_string)
+        # Concatenate simulator statistics into one file
+        if self._modelica_tool == 'dymola':
+            with open(self._statistics_log, mode="w", encoding="utf-8") as logFil:
+                stat = list()
+                for d in self._temDir:
+                    temLogFilNam = os.path.join(d, self.getLibraryName(), self._statistics_log)
+                    if os.path.exists(temLogFilNam):
+                        with open(temLogFilNam.replace('Temp\tmp', 'Temp\\tmp'), mode="r", encoding="utf-8-sig") as temSta:
+                            try:
+                                jsonLog = json.load(temSta)
+                                cas = jsonLog["testCase"]
+                                # Iterate over all test cases of this output file
+                                for ele in cas:
+                                    stat.append(ele)
+                            except ValueError as e:
+                                self._reporter.writeError(
+                                    "Decoding '%s' failed: %s" % (temLogFilNam, e))
+                                raise
+                    else:
+                        self._reporter.writeError(
+                            "Log file '" + temLogFilNam + "' does not exist.\n")
+                        retVal = 1
+                # Dump an array of testCase objects
+                # dump to a string first using json.dumps instead of json.dump
+                json_string = json.dumps({"testCase": stat},
+                                         ensure_ascii=False,
+                                         indent=4,
+                                         separators=(',', ': '),
+                                         sort_keys=True)
+                logFil.write(json_string)
 
         # Check reference results
         if self._batch:
