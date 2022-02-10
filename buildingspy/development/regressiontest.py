@@ -190,7 +190,7 @@ class Tester(object):
        Generated 7 regression tests.
        <BLANKLINE>
        Comparison files output by funnel are stored in the directory 'funnel_comp' of size ... MB.
-       Run 'python -c "import buildingspy.development.regressiontest as t; t.Tester(tool=\"dymola\").report()"'
+       Run 'python -c "import buildingspy.development.regressiontest as t; t.Tester(tool=\\\"dymola\\\").report()"'
        to access a summary of the comparison results.
        <BLANKLINE>
        Script that runs unit tests had 0 warnings and 0 errors.
