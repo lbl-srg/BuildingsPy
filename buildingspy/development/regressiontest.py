@@ -190,7 +190,7 @@ class Tester(object):
        Generated 7 regression tests.
        <BLANKLINE>
        Comparison files output by funnel are stored in the directory 'funnel_comp' of size ... MB.
-       Run 'python -c "import buildingspy.development.regressiontest as t; t.Tester().report()"'
+       Run 'python -c "import buildingspy.development.regressiontest as t; t.Tester(tool=\\\"dymola\\\").report()"'
        to access a summary of the comparison results.
        <BLANKLINE>
        Script that runs unit tests had 0 warnings and 0 errors.
@@ -229,7 +229,7 @@ class Tester(object):
 
 
     For OpenModelica, replace ``optimica`` with ``openmodelica``.
-    For the detailed specifiation of allowed fields, see ``buildingspy/templates/regressiontest_conf.py``.
+    For the detailed specification of allowed fields, see ``buildingspy/templates/regressiontest_conf.py``.
 
     Any entries are optional, and the entries shown above
     are the default values, except for the relative tolerance `rtol`
@@ -2806,9 +2806,9 @@ class Tester(object):
 
         if self._comp_tool == 'funnel':
             s = """Comparison files output by funnel are stored in the directory '{}' of size {:.1f} MB.
-Run 'python -c "import buildingspy.development.regressiontest as t; t.Tester().report()"'
+Run 'python -c "import buildingspy.development.regressiontest as t; t.Tester(tool=\\\"{}\\\").report()"'
 to access a summary of the comparison results.\n""".format(
-                self._comp_dir, self._get_size_dir(self._comp_dir) * 1e-6)
+                self._comp_dir, self._get_size_dir(self._comp_dir) * 1e-6, self._modelica_tool)
             self._reporter.writeOutput(s)
 
         return ret_val
@@ -2826,7 +2826,7 @@ to access a summary of the comparison results.\n""".format(
                     m = re.search(v["tool_message"], line)
                     if m is not None:
                         stat[k] = stat[k] + int(m.group(1))
-                # otherwise, default: count the number of line occurences
+                # otherwise, default: count the number of line occurrences
                 else:
                     if v["tool_message"] in line:
                         stat[k] = stat[k] + 1
@@ -3653,7 +3653,7 @@ exit();
         - for Dymola, compares the results of the new simulations with
           reference results that are stored in ``Resources/ReferenceResults``,
         - writes the message `Regression tests completed successfully.`
-          if no error occured,
+          if no error occurred,
         - returns 0 if no errors and no warnings occurred, or non-zero otherwise.
 
         """
