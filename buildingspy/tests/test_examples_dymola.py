@@ -64,9 +64,7 @@ class Test_example_dymola_runSimulation(unittest.TestCase):
         """
         import os
         import buildingspy.examples.dymola.runSimulation as s
-        os.chdir("Buildings")
         s.main()
-        os.chdir("..")
 
     def test_plotResult(self):
         """
