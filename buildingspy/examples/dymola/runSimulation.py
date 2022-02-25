@@ -40,6 +40,8 @@ def main():
     # Run all cases in parallel
     po = Pool()
     po.map(simulateCase, li)
+    po.close()
+    po.join()
 
     # Clean up
     shutil.rmtree('case1')

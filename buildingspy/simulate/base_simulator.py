@@ -39,9 +39,7 @@ class _BaseSimulator(object):
 
         # Check if the packagePath parameter is correct
         self._packagePath = None
-        if packagePath is None:
-            self.setPackagePath(os.path.abspath('.'))
-        else:
+        if packagePath is not None:
             self.setPackagePath(packagePath)
 
         self.modelName = modelName
@@ -311,7 +309,10 @@ class _BaseSimulator(object):
         import os
         import tempfile
         import getpass
-        curDir = os.path.abspath(self._packagePath)
+        if self._packagePath is None:
+            curDir = os.path.abspath(self._packagePath)
+        else:
+            curDir = os.path.abspath(".")
         ds = curDir.split(os.sep)
         dirNam = ds[len(ds) - 1]
         worDir = os.path.join(tempfile.mkdtemp(
@@ -376,7 +377,10 @@ class _BaseSimulator(object):
         # python buildingspy/tests/test_simulate_Optimica.py
         # Test_simulate_Simulator.test_setResultFilter
         osEnv = os.environ.copy() if env is None else env
-        osEnv = self.prependToModelicaPath(osEnv, os.path.dirname(self._packagePath))
+        if self._packagePath is None:
+            osEnv = self.prependToModelicaPath(osEnv, os.path.abspath("."))
+        else:
+            osEnv = self.prependToModelicaPath(osEnv, os.path.dirname(self._packagePath))
 
         # Run command
         try:
@@ -534,8 +538,11 @@ class _BaseSimulator(object):
             >>> env = s.prependToModelicaPath(env, os.getcwd())
 
          '''
-        if 'MODELICAPATH' in env:
-            env['MODELICAPATH'] = ":".join([path, env['MODELICAPATH']])
+        if path is None:
+            return env
         else:
-            env['MODELICAPATH'] = path
-        return env
+            if 'MODELICAPATH' in env:
+                env['MODELICAPATH'] = ":".join([path, env['MODELICAPATH']])
+            else:
+                env['MODELICAPATH'] = path
+            return env
