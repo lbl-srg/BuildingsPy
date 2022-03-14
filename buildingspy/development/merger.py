@@ -52,7 +52,8 @@ class IBPSA(object):
         # Exclude packages and files
         self.set_excluded_directories(["Experimental",
                                        "Obsolete",
-                                       ".FMUOutput"])
+                                       ".FMUOutput",
+                                       ".vscode"])
         self._excluded_files = [os.path.join(ibpsa_dir, "package.mo"),
                                 os.path.join(ibpsa_dir, "dymosim"),
                                 os.path.join(ibpsa_dir, "dymosim.exe"),
@@ -72,6 +73,7 @@ class IBPSA(object):
                                 os.path.join(ibpsa_dir, "*.pdf"),
                                 os.path.join(ibpsa_dir, "*.svg"),
                                 os.path.join(ibpsa_dir, "*.pyc"),
+                                os.path.join(ibpsa_dir, "*~"),
                                 os.path.join(ibpsa_dir, "nohup.out"),
                                 os.path.join(ibpsa_dir, "funnel_comp", "plot.html"),
                                 os.path.join(ibpsa_dir, "funnel_comp", "**", "*.csv"),
