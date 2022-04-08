@@ -370,12 +370,14 @@ class Tester(object):
             self._color_BOLD = '\033[1m'
             self._color_OK = '\033[1;32m'
             self._color_GREY = '\033[90m'
+            self._color_WARNING = '\033[93m'
             self._color_ERROR = '\033[91m'
             self._color_ENDC = '\033[0m'
         else:
             self._color_BOLD = ''
             self._color_OK = ''
             self._color_GREY = ''
+            self._color_WARNING = ''
             self._color_ERROR = ''
             self._color_ENDC = ''
 
@@ -2153,14 +2155,16 @@ class Tester(object):
         # reject the new values.
         if (newTrajectories or newStatistics) and (not self._batch) and (
                 not ans == "N") and (not ans == "Y"):
-            print(f"{self._color_ERROR}             For {refFilNam},")
             if newTrajectories and newStatistics:
+                print(f"{self._color_ERROR}             For {refFilNam},")
                 print(
                     f"             update reference files with new {self._color_BOLD}statistics and trajectories{self._color_ERROR}?{self._color_ENDC}")
             elif newStatistics:
+                print(f"{self._color_WARNING}             For {refFilNam},")
                 print(
-                    f"             update reference files with new {self._color_BOLD}statistics{self._color_ERROR}?{self._color_ENDC}")
+                    f"             update reference files with new {self._color_BOLD}statistics{self._color_WARNING}?{self._color_ENDC}")
             else:
+                print(f"{self._color_ERROR}             For {refFilNam},")
                 print(
                     f"             update reference files with new {self._color_BOLD}trajectories{self._color_ERROR}?{self._color_ENDC}")
 
