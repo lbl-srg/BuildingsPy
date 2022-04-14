@@ -1,5 +1,7 @@
 BuildingsPy Changelog
 ---------------------
+- For simulation and unit tests, updated the API for OPTIMICA to the one used in oct-r28242
+  (https://github.com/lbl-srg/BuildingsPy/issues/479)
 - For simulation, corrected a bug that led to an error message when a model from the Modelica Standard Library is simulated
   (https://github.com/lbl-srg/BuildingsPy/issues/472)
 - For unit tests, enabled option to run tests with OpenModelica.

@@ -42,11 +42,24 @@ def _translate(proc_num, return_dict):
     # Grab the stdoutput
     out = og.OutputGrabber()
     out.start()
+
+    # OCT r28242 ignores MODELICAPATH and instead needs to have it set through a function argument.
+    removed_modelica_path = False
+    if 'MODELICAPATH' in os.environ:
+      modelicapath=os.environ['MODELICAPATH']
+      del os.environ['MODELICAPATH']
+      removed_modelica_path = True
+    else:
+      modelicapath=os.path.abspath('.')
+
     fmu_name = compile_fmu("{{ model }}{{ model_modifier }}",
+                           modelicapath=modelicapath,
                            version="2.0",
                            compiler_log_level='warning',
                            compiler_options = {"generate_html_diagnostics" : generate_html_diagnostics,
                                                "nle_solver_tol_factor": 1e-2})
+    if removed_modelica_path:
+      os.environ['MODELICAPATH'] = modelicapath
     out.stop()
 
     # Copy style sheets.
