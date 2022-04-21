@@ -1414,7 +1414,7 @@ class Tester(object):
                     # This must be an error, otherwise the user would be asked
                     # to accept a reference result file with a variable that does not exist.
                     errors.append("%s uses %s which does not exist in %s.\n" %
-                                    (data['ScriptFile'], var, data['ResultFile']))
+                                  (data['ScriptFile'], var, data['ResultFile']))
                 else:
                     # Store time grid.
                     if ('time' not in dat):
@@ -2775,14 +2775,16 @@ class Tester(object):
 
                                 if not (self._batch or ans == "Y" or ans == "N"):
                                     if t_ref is None:
-                                        self._reporter.writeError(f"Test case {refFilNam} has no simulation output to compare. You need to add at least one variable to compare.")
+                                        self._reporter.writeError(
+                                            f"Test case {refFilNam} has no simulation output to compare. You need to add at least one variable to compare.")
                                     else:
                                         self._legacy_plot(y_sim, t_ref, {}, noOldResults, dict(),
                                                           "New results: " + data['ScriptFile'])
                                         # Reference file does not exist
                                         print(
                                             "*** Warning: Reference file {} does not yet exist.".format(refFilNam))
-                                        while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
+                                        while not (
+                                                ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
                                             print("             Create new file?")
                                             ans = input(
                                                 "             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
