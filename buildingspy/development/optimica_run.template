@@ -1,6 +1,3 @@
-# Import the class that grabs stdout
-import OutputGrabber as og
-
 def process_with_timeout(target, timeout):
     import multiprocessing
     import time
@@ -39,10 +36,6 @@ def _translate(proc_num, return_dict):
   generate_html_diagnostics={{ generate_html_diagnostics }}
 
   try:
-    # Grab the stdoutput
-    out = og.OutputGrabber()
-    out.start()
-
     # OCT r28242 ignores MODELICAPATH and instead needs to have it set through a function argument.
     removed_modelica_path = False
     if 'MODELICAPATH' in os.environ:
@@ -52,15 +45,15 @@ def _translate(proc_num, return_dict):
     else:
       modelicapath=os.path.abspath('.')
 
+    compilation_log = "{{ model }}".replace('.', '_') + "_compile.log"
     fmu_name = compile_fmu("{{ model }}{{ model_modifier }}",
                            modelicapath=modelicapath,
                            version="2.0",
-                           compiler_log_level='warning',
+                           compiler_log_level=f"warning:{compilation_log}",
                            compiler_options = {"generate_html_diagnostics" : generate_html_diagnostics,
                                                "nle_solver_tol_factor": 1e-2})
     if removed_modelica_path:
       os.environ['MODELICAPATH'] = modelicapath
-    out.stop()
 
     # Copy style sheets.
     # This is a hack to get the css and js files to render the html diagnostics.
@@ -71,8 +64,18 @@ def _translate(proc_num, return_dict):
             if os.path.exists(src):
                 des = os.path.join(htm_dir, fil)
                 shutil.copyfile(src, des)
+
+    # Read log file
+    out = None
+    if os.path.isfile(compilation_log):
+      with open(compilation_log, 'r') as f:
+        out = f.readlines()
+    else:
+      out = f"Error: Log file {compilation_log} does not exist."
+
+
     # The standard output is returned as a list, with each line being an element
-    return_dict[proc_num] = {'success': True, 'fmu_name': str(fmu_name), 'stdout': out.capturedtext.split('\n')}
+    return_dict[proc_num] = {'success': True, 'fmu_name': str(fmu_name), 'stdout': out}
 
   except Exception as e:
     return_dict[proc_num] = {'success': False,
@@ -81,6 +84,9 @@ def _translate(proc_num, return_dict):
 
 def _simulate(proc_num, return_dict):
   from pyfmi import load_fmu
+
+  # Import the class that grabs stdout
+  import OutputGrabber as og
 
   if not {{ simulate }}:
     return_dict[proc_num] = {'success': False,
