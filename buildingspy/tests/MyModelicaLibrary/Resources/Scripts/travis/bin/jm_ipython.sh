@@ -106,8 +106,9 @@ DOCKER_FLAGS="\
   -w /mnt/shared/${bas_nam} \
   ${NAME}"
 
+# Exporting MSL is needed for JModelica, but not for OPTIMICA
 docker run ${DOCKER_FLAGS} /bin/bash -c \
-  "export MODELICAPATH=${DOCKER_MODELICAPATH} && \
+  "export MODELICAPATH=${DOCKER_MODELICAPATH}:/opt/oct/ThirdParty/MSL/MSL323:/opt/oct/ThirdParty/MSL/MSL400:/opt/oct/ThirdParty/MSL && \
    export PYTHONPATH=${DOCKER_PYTHONPATH} && \
    export IPYTHONDIR=/mnt/shared &&
    alias ipython=ipython3 && \
