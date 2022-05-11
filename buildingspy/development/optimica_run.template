@@ -74,7 +74,7 @@ def _translate(proc_num, return_dict):
     # This is a hack to get the css and js files to render the html diagnostics.
     htm_dir = os.path.splitext(os.path.basename(fmu_name))[0] + "_html_diagnostics"
     if generate_html_diagnostics and os.path.exists(htm_dir):
-        for fil in ["scripts.js", "style.css", "html-diagnostics.css", zepto.min.js"]:
+        for fil in ["scripts.js", "style.css", "html-diagnostics.css", "zepto.min.js"]:
             src = os.path.join(".jmodelica_html", fil)
             if os.path.exists(src):
                 des = os.path.join(htm_dir, fil)
