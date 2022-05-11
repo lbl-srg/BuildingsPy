@@ -1,5 +1,6 @@
 BuildingsPy Changelog
 ---------------------
+- Removed JModelica support, and added support for new OPTIMICA compile_fmu API.
 - For simulation and unit tests, updated the API for OPTIMICA to the one used in oct-2022-05-09-master-4b0cd2bf71
   (https://github.com/lbl-srg/BuildingsPy/issues/479)
 - For simulation, corrected a bug that led to an error message when a model from the Modelica Standard Library is simulated
