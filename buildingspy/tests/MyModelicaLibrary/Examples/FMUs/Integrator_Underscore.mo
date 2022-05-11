@@ -1,6 +1,6 @@
 within MyModelicaLibrary.Examples.FMUs;
 block Integrator_Underscore "Block to demonstrate the FMU export"
-  extends Modelica.Blocks.Interfaces.BlockIcon;
+  extends Modelica.Blocks.Icons.Block;
 
   parameter Real k = -1 "Gain";
 

@@ -41,9 +41,6 @@ unittest_development_merger:
 unittest_development_refactor:
 	python3 buildingspy/tests/test_development_refactor.py
 
-unittest_development_regressiontest_jmodelica:
-	python3 buildingspy/tests/test_development_regressiontest_jmodelica.py
-
 unittest_development_regressiontest_openmodelica:
 	python3 buildingspy/tests/test_development_regressiontest_openmodelica.py
 

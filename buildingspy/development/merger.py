@@ -83,8 +83,6 @@ class IBPSA(object):
                                 os.path.join(ibpsa_dir, "Resources",
                                              "Scripts", "travis", "Makefile"),
                                 os.path.join(ibpsa_dir, "Resources",
-                                             "Scripts", "github-actions", "jmodelica", "jm_ipython.sh"),
-                                os.path.join(ibpsa_dir, "Resources",
                                              "Scripts", "BuildingsPy", "conf.json"),
                                 os.path.join(ibpsa_dir, "Resources",
                                              "Scripts", "BuildingsPy", "conf.yml"),

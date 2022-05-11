@@ -1,6 +1,3 @@
-# Import the class that grabs stdout
-import OutputGrabber as og
-
 def process_with_timeout(target, timeout):
     import multiprocessing
     import time
@@ -35,31 +32,65 @@ def process_with_timeout(target, timeout):
 def _translate(proc_num, return_dict):
   import os
   from pymodelica import compile_fmu
+  from inspect import signature
 
   generate_html_diagnostics={{ generate_html_diagnostics }}
 
   try:
-    # Grab the stdoutput
-    out = og.OutputGrabber()
-    out.start()
-    fmu_name = compile_fmu("{{ model }}{{ model_modifier }}",
-                           version="2.0",
-                           compiler_log_level='warning',
-                           compiler_options = {"generate_html_diagnostics" : generate_html_diagnostics,
-                                               "nle_solver_tol_factor": 1e-2})
-    out.stop()
+    # OCT r28242 ignores MODELICAPATH and instead needs to have it set through a function argument.
+    compilation_log = "{{ model }}".replace('.', '_') + "_compile.log"
+    version="2.0"
+    compiler_log_level=f"warning:{compilation_log}"
+    compiler_options = {"generate_html_diagnostics" : generate_html_diagnostics,
+                        "nle_solver_tol_factor": 1e-2} # 1e-2 is the default
+
+    sig = signature(compile_fmu)
+    if "modelicapath" in str(sig):
+      # This is the new API that uses modelicapath as a function argument.
+
+      removed_modelica_path = False
+      if 'MODELICAPATH' in os.environ:
+        modelicapath=os.environ['MODELICAPATH']
+        del os.environ['MODELICAPATH']
+        removed_modelica_path = True
+      else:
+        modelicapath=os.path.abspath('.')
+
+      fmu_name = compile_fmu("{{ model }}{{ model_modifier }}",
+                             modelicapath=modelicapath,
+                             version=version,
+                             compiler_log_level=compiler_log_level,
+                             compiler_options=compiler_options)
+    else:
+      fmu_name = compile_fmu("{{ model }}{{ model_modifier }}",
+                             version=version,
+                             compiler_log_level=compiler_log_level,
+                             compiler_options=compiler_options)
+
+    if removed_modelica_path:
+      os.environ['MODELICAPATH'] = modelicapath
 
     # Copy style sheets.
     # This is a hack to get the css and js files to render the html diagnostics.
     htm_dir = os.path.splitext(os.path.basename(fmu_name))[0] + "_html_diagnostics"
     if generate_html_diagnostics and os.path.exists(htm_dir):
-        for fil in ["scripts.js", "style.css", "zepto.min.js"]:
+        for fil in ["scripts.js", "style.css", "html-diagnostics.css", "zepto.min.js"]:
             src = os.path.join(".jmodelica_html", fil)
             if os.path.exists(src):
                 des = os.path.join(htm_dir, fil)
                 shutil.copyfile(src, des)
+
+    # Read log file
+    out = None
+    if os.path.isfile(compilation_log):
+      with open(compilation_log, 'r') as f:
+        out = f.readlines()
+    else:
+      out = f"Error: Log file {compilation_log} does not exist."
+
+
     # The standard output is returned as a list, with each line being an element
-    return_dict[proc_num] = {'success': True, 'fmu_name': str(fmu_name), 'stdout': out.capturedtext.split('\n')}
+    return_dict[proc_num] = {'success': True, 'fmu_name': str(fmu_name), 'stdout': out}
 
   except Exception as e:
     return_dict[proc_num] = {'success': False,
@@ -68,6 +99,9 @@ def _translate(proc_num, return_dict):
 
 def _simulate(proc_num, return_dict):
   from pyfmi import load_fmu
+
+  # Import the class that grabs stdout
+  import OutputGrabber as og
 
   if not {{ simulate }}:
     return_dict[proc_num] = {'success': False,
