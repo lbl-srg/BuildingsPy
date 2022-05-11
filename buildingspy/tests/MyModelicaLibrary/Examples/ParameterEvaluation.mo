@@ -5,7 +5,8 @@ model ParameterEvaluation
   parameter Integer n = integer(1/x) "Dimension";
   Real T[n] "Vector";
 equation
-  der(T) = ones(n)
+  der(T) = ones(n);
+
   annotation (Documentation(info="<html>
 <p>
 This model is used in the Python regression tests to ensure that BuildingsPy
@@ -13,5 +14,4 @@ throws an exception if it attempts to change a structural parameter after
 the compilation.
 </p>
 </html>"));
-
 end ParameterEvaluation;
