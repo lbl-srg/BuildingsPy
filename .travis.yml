@@ -73,7 +73,6 @@ script:
  - make unittest_development_error_dictionary
  - make unittest_development_merger
  - make unittest_development_refactor
- - make unittest_development_regressiontest_jmodelica
  - make unittest_development_regressiontest_openmodelica
  - make unittest_development_regressiontest_optimica
  - make unittest_development_regressiontest
