@@ -4,10 +4,6 @@
 
   Class that translates and simulates a Modelica model with OPTIMICA.
 
-  Note that because OPTIMICA and JModelica have a similar API, and because
-  they are invoked by the same script, this class
-  should also work with JModelica.
-
   For a similar class that uses Dymola, see :func:`buildingspy.simulate.Dymola`.
 
 """
@@ -205,7 +201,7 @@ class Simulator(bs._BaseSimulator):
 
             template = env.get_template("optimica_run.template")
 
-            # Note that filter argument must respect glob syntax ([ is escaped with []]) + JModelica mat file
+            # Note that filter argument must respect glob syntax ([ is escaped with []]) + OPTIMICA mat file
             # stores matrix variables with no space e.g. [1,1].
             txt = template.render(
                 model=self.modelName,
