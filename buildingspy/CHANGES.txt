@@ -1,6 +1,10 @@
 BuildingsPy Changelog
 ---------------------
 
+Version 4.x.x, May 12, 2022 -- Release 4.0
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- xxx
+
 Version 4.0.0, May 12, 2022 -- Release 4.0
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 - Removed JModelica support, and added support for new OPTIMICA compile_fmu API.
