@@ -1,0 +1,5 @@
+simulateModel("MyModelicaLibrary.Examples.NoSolution", tolerance=1e-6, stopTime=1.0, method="CVode");
+createPlot(
+  id=1,
+  y={"x", "y"}
+)
