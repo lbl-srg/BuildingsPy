@@ -3249,7 +3249,11 @@ Modelica.Utilities.Streams.print("      }},", "{statisticsLog}");
 
             # Only translation requested, but no simulation.
             ##########################################################################
-            if self._isPresentAndTrue('translate', tra_data_pro[i]['dymola']) and not self._isPresentAndTrue('simulate', tra_data_pro[i]['dymola']):
+            if self._isPresentAndTrue(
+                    'translate',
+                    tra_data_pro[i]['dymola']) and not self._isPresentAndTrue(
+                    'simulate',
+                    tra_data_pro[i]['dymola']):
                 template = r"""
 {set_non_pedantic}
 retVal = translateModel("{model_name}");
