@@ -180,8 +180,9 @@ class Tester(object):
        >>> rt = r.Tester(tool="dymola")
        >>> myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
        >>> rt.setLibraryRoot(myMoLib)
-       >>> rt.run()                    # doctest: +ELLIPSIS
-       Number of models   : 10
+       >>> rt.run()                    # doctest: +SKIP
+       MyModelicaLibrary.Examples.NoSolution: Excluded from simulation. Model excluded from simulation as it has no solution.
+       Number of models   : 11
                  blocks   : 2
                  functions: 0
        Using ... of ... processors to run unit tests for dymola.
