@@ -180,8 +180,9 @@ class Tester(object):
        >>> rt = r.Tester(tool="dymola")
        >>> myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
        >>> rt.setLibraryRoot(myMoLib)
-       >>> rt.run()                    # doctest: +ELLIPSIS
-       Number of models   : 10
+       >>> rt.run()                    # doctest: +SKIP
+       MyModelicaLibrary.Examples.NoSolution: Excluded from simulation. Model excluded from simulation as it has no solution.
+       Number of models   : 11
                  blocks   : 2
                  functions: 0
        Using ... of ... processors to run unit tests for dymola.
@@ -3246,7 +3247,51 @@ Modelica.Utilities.Streams.print("      }},", "{statisticsLog}");
             runFil.write(template.format(**values))
             ##########################################################################
             # Write commands for checking translation and simulation results.
-            if self._isPresentAndTrue('translate', tra_data_pro[i]['dymola']):
+
+            # Only translation requested, but no simulation.
+            ##########################################################################
+            if self._isPresentAndTrue(
+                    'translate',
+                    tra_data_pro[i]['dymola']) and not self._isPresentAndTrue(
+                    'simulate',
+                    tra_data_pro[i]['dymola']):
+                template = r"""
+{set_non_pedantic}
+retVal = translateModel("{model_name}");
+Modelica.Utilities.Streams.print("Translated {model_name} successfully: " + String(retVal));
+{set_pedantic}
+savelog("{model_name}.translation.log");
+if Modelica.Utilities.Files.exist("dslog.txt") then
+  Modelica.Utilities.Files.move("dslog.txt", "{model_name}.dslog.log");
+end if;
+iSuc=0;
+if Modelica.Utilities.Files.exist("{model_name}.dslog.log") then
+  iLin=1;
+  endOfFile=false;
+  while (not endOfFile) loop
+    (_line, endOfFile)=Modelica.Utilities.Streams.readLine("{model_name}.dslog.log", iLin);
+    iLin=iLin+1;
+    iSuc=iSuc+Modelica.Utilities.Strings.count(_line, "Translated {model_name} successfully: true.");
+  end while;
+  Modelica.Utilities.Streams.close("{model_name}.dslog.log");
+else
+  Modelica.Utilities.Streams.print("{model_name}.dslog.log was not generated.", "{model_name}.log");
+end if;
+"""
+                runFil.write(template.format(**values))
+                template = r"""
+Modelica.Utilities.Streams.print("      \"translate\" : {{", "{statisticsLog}");
+Modelica.Utilities.Streams.print("        \"command\" :\"translateModel(\\\"{model_name}\\\");\",", "{statisticsLog}");
+Modelica.Utilities.Streams.print("        \"translationLog\"  : \"{translationLog}\",", "{statisticsLog}");
+Modelica.Utilities.Streams.print("        \"result\"  : " + String(iSuc > 0), "{statisticsLog}");
+"""
+                runFil.write(template.format(**values))
+                _write_translation_stats(runFil, values)
+                _print_end_of_json(isLastItem,
+                                   runFil,
+                                   self._statistics_log)
+            # Simulation requested
+            if self._isPresentAndTrue('simulate', tra_data_pro[i]['dymola']):
                 # Remove dslog.txt, run a simulation, rename dslog.txt, and
                 # scan this log file for errors.
                 # This is needed as RunScript returns true even if the simulation failed.
@@ -3625,7 +3670,13 @@ exit();
             staVal = simplejson.loads(f.read())
         data = []
         for case in staVal['testCase']:
-            if 'FMUExport' not in case:
+            if 'translate' in case:
+                temp = {}
+                temp['model'] = case['model']
+                temp['translation'] = {}
+                temp['translation']['success'] = case['translate']['result']
+                data.append(temp)
+            if 'simulate' in case:
                 temp = {}
                 temp['model'] = case['model']
                 temp['simulation'] = {}

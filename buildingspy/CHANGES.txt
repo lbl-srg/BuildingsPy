@@ -1,9 +1,10 @@
 BuildingsPy Changelog
 ---------------------
 
-Version 4.x.x, May 12, 2022 -- Release 4.0
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-- xxx
+Version 4.x.x, xxx -- Release 4.0
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- Add option to exclude simulation of models from Dymola CI tests.
+  (https://github.com/lbl-srg/BuildingsPy/pull/486)
 
 Version 4.0.0, May 12, 2022 -- Release 4.0
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
