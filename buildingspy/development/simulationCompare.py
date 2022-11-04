@@ -161,7 +161,7 @@ class Comparison(object):
         os.chdir(self._cwd)
 
     @staticmethod
-    def sortSimulationData(case):
+    def _sortSimulationData(case):
         ''' Filter the needed data from log file
 
         The unit test generated log file "comparison-xxx.log", which is then renamed as case['name'], contains more
@@ -424,7 +424,7 @@ class Comparison(object):
         return style
 
 
-    def generateHtmlTable(self, data):
+    def _generateHtmlTable(self, data):
         ''' Html table template
         '''
         # style section
@@ -585,27 +585,39 @@ class Comparison(object):
         return htmltext, sortedList
 
 
-    def runCases(self, cases):
+    def _runCases(self):
         ''' Run simulations
         '''
         lib_dir = self._create_and_return_working_directory()
         self._clone_repository(lib_dir)
-        for case in cases:
+        for case in self._cases:
             d = self._checkout_branch(lib_dir, case['branch'])
             case['commit'] = d['commit']
             self._simulate(case, lib_dir)
         shutil.rmtree(lib_dir)
 
 
-    def generateTables(self, cases):
-        ''' Generate html tables
+    def run(self):
+        ''' Run the comparison and generate the output
         '''
+        self._runCases()
+
+    def post_process(self, tolAbsTim = None, tolRelTim = None):
+        ''' Generate the html tables
+            :param tolAbsTim: float. Optional argument for absolute tolerance in time, if exceeded, results will be flagged in summary table.
+            :param tolRelTim: float. Optional argument for relative tolerance in time, if exceeded, results will be flagged in summary table.
+
+        '''
+
+        _tolAbsTim = self._tolAbsTim if tolAbsTim is None else tolAbsTim
+        _tolRelTim = self._tolRelTim if tolRelTim is None else tolRelTim
+
         logs = list()
-        for case in cases:
+        for case in self._cases:
             # filter simulation log
             temp = {'branch': case['branch'],
                     'tool': case['tool'],
-                    'log': Comparison.sortSimulationData(case)}
+                    'log': Comparison._sortSimulationData(case)}
             logs.append(temp)
 
         toolsCompare = list()
@@ -624,7 +636,7 @@ class Comparison(object):
                 data['logs'] = temp
                 branchesCompare.append(data)
             # refactor data structure
-            branchesData = Comparison._refactorDataStructure(branchesCompare, self.tolAbsTime, self.tolRelTime)
+            branchesData = Comparison._refactorDataStructure(branchesCompare, _tolAbsTime, _tolRelTime)
             # generate html table file
             Comparison._generateTable(branchesData)
 
