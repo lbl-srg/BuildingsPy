@@ -53,6 +53,9 @@ unittest_development_regressiontest:
 unittest_development_Validator:
 	python3 buildingspy/tests/test_development_Validator.py
 
+unittest_development_Comparison:
+	python3 buildingspy/tests/test_development_Comparison.py
+
 unittest_examples_dymola:
 	python3 buildingspy/tests/test_examples_dymola.py
 

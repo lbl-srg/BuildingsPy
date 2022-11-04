@@ -56,17 +56,17 @@ class Comparison(object):
         nPro = 0,
         simulate = True,
         tolAbsTime = 0.1,
-        tolRelTime = 0.1
-    ):
-        self._cwd = os.getcwd(),
-        self._tools = tools,
-        self._branches = branches,
-        self._package = package,
-        self._lib_src = repo,
-        self._nPro = nPro,
-        self._simulate = simulate,
-        self._tolAbsTime = tolAbsTime,
-        self._tolRelTime = tolRelTime,
+        tolRelTime = 0.1):
+
+        self._cwd = os.getcwd()
+        self._tools = tools
+        self._branches = branches
+        self._package = package
+        self._lib_src=repo
+        self._nPro = nPro
+        self._simulate = simulate
+        self._tolAbsTime = tolAbsTime
+        self._tolRelTime = tolRelTime
         self._generate_tables = True
 
 
@@ -96,15 +96,15 @@ class Comparison(object):
         return worDir
 
 
-    def _clone_repository(self, working_directory, from_git_hub = True):
+    def _clone_repository(self, working_directory):
         '''Clone or copy repository to working directory'''
-        if from_git_hub:
-            print(f'*** Cloning repository {self._lib_src}')
-            git.Repo.clone_from(self._lib_src, working_directory)
-        else:
-            shutil.rmtree(working_directory)
-            print(f'*** Copying repository from {self._lib_src} to {working_directory}')
-            shutil.copytree(self._lib_src, working_directory)
+#        if from_git_hub:
+        print(f'*** Cloning repository {self._lib_src}')
+        git.Repo.clone_from(self._lib_src, working_directory)
+#        else:
+#            shutil.rmtree(working_directory)
+#            print(f'*** Copying repository from {self._lib_src} to {working_directory}')
+#            shutil.copytree(self._lib_src, working_directory)
 
     @staticmethod
     def _checkout_branch(working_directory, branch):
@@ -143,13 +143,13 @@ class Comparison(object):
             sys.stderr.write("Execution of '" + command + "' failed.")
 
 
-    def _simulate(self, case, wor_dir):
+    def _simulateCase(self, case, wor_dir):
         ''' Set up unit tests and save log file
         '''
-        bdg_dir = os.path.join(wor_dir, self._package)
+        bdg_dir = os.path.join(wor_dir, self._package.split(".")[0])
         os.chdir(bdg_dir)
         # run unit test
-        Comparison._runUnitTest(case['package'], case['tool'])
+        self._runUnitTest(case['package'], case['tool'])
         # copy the log files to current working directory
         logFil = "comparison-%s.log" % case['tool']
         if os.path.exists(logFil):
@@ -261,9 +261,9 @@ class Comparison(object):
                         filNam = os.path.join(htmlTableDir, "branches_compare_%s.html" % tool)
                         texTab = os.path.join(latexTableDir, "branches_compare_%s.tex" % tool)
                         # generate html table content
-                        htmltext, flagModels = Comparison._generateHtmlTable(data['logs'])
+                        htmltext, flagModels = self._generateHtmlTable(data['logs'])
                         Comparison._writeFile(filNam, htmltext)
-                        Comparison._generateTexTable(texTab, flagModels)
+                        self._generateTexTable(texTab, flagModels)
             # generate tools comparison tables
             if len(self._tools) > 1:
                 for branch in self._branches:
@@ -271,9 +271,9 @@ class Comparison(object):
                         filNam = os.path.join(htmlTableDir, "tools_compare_%s.html" % branch)
                         texTab = os.path.join(latexTableDir, "tools_compare_%s.tex" % branch)
                         # generate html table content
-                        htmltext, flagModels = Comparison._generateHtmlTable(data['logs'])
+                        htmltext, flagModels = self._generateHtmlTable(data['logs'])
                         Comparison._writeFile(filNam, htmltext)
-                        Comparison._generateTexTable(texTab, flagModels)
+                        self._generateTexTable(texTab, flagModels)
 
 
     def _generateTexTable(self, filNam, models):
@@ -306,20 +306,20 @@ class Comparison(object):
         # column head
         head = '''Model'''
         for i in range(len(log)):
-            head = head + '''&$t_{%s}$ in [s]''' % log[i]['label'].replace('_', '\_')
+            head = head + '''&$t_{%s}$ in [s]''' % log[i]['label'].replace('_', '\\_')
         head = head + '''&$t_{2}/t_{1}$\\\\'''
         head = head +'''[2.5ex] \\hline''' + os.linesep
         row = ''
         for i in range(len(models)):
             ithModel = models[i]
             temp = ''
-            fillColor = Comparison._textTableColor(ithModel['relTim'])
+            fillColor = self._textTableColor(ithModel['relTim'])
             temp = '''\\rowcolor[HTML]{%s} ''' % fillColor + os.linesep
-            temp = temp + '''{\\small ''' + '''\lstinline|''' + ithModel['model'].replace(f'{self._package}.','') + '''|}'''
+            temp = temp + '''{\\small ''' + '''\\lstinline|''' + ithModel['model'].replace(f'{self._package}.','') + '''|}'''
             for j in range(len(log)):
                 temp = temp + '&' + '{\\small ' + '{:.3f}'.format(ithModel['log'][j]['elapsed_time']) + '}'
             temp = temp + '&' + '{\\small ' + '{:.2f}'.format(ithModel['relTim']) + '}'
-            temp = temp +'''\\\[2.5ex] \hline''' + os.linesep
+            temp = temp +'''\\\\[2.5ex] \\hline''' + os.linesep
             row = row + temp
         end = '''
 \\end{longtable}
@@ -376,6 +376,7 @@ class Comparison(object):
     def _writeFile(filNam, content):
         ''' Write html table to file
         '''
+        print(f"*** writing {filNam}")
         with open(filNam, 'w+') as f:
             f.write(content)
 
@@ -497,12 +498,12 @@ class Comparison(object):
         for i in range(numberOfModels):
             if numberOfDataSet > len(data[i]['simulation']):
                 # This option was not simulated for all cases
-                break
+                continue
 
             modelData = '''<tr>''' + os.linesep
             flag = data[i]['flag']
             relTim = data[i]['relTim']
-            tgStyle = 'tg-' + Comparison._chooseStyle(relTim, flag)
+            tgStyle = 'tg-' + self._chooseStyle(relTim, flag)
             if flag:
                 flagModelListTemp = {'model': data[i]['model']}
                 flagModelListTemp['relTim'] = relTim
@@ -543,7 +544,7 @@ class Comparison(object):
             singleModel = sortedList[i]
             modelData = '''<tr>''' + os.linesep
             relTim = singleModel['relTim']
-            tgStyle = 'tg-' + Comparison._chooseStyle(relTim, True)
+            tgStyle = 'tg-' + self._chooseStyle(relTim, True)
             modelName = singleModel['model']
             temp1 = '''<td class="%s">%s</td>''' % (tgStyle, modelName)
             modelData = modelData + temp1 + os.linesep
@@ -585,35 +586,40 @@ class Comparison(object):
         return htmltext, sortedList
 
 
-    def _runCases(self):
+    def _runCases(self, cases):
         ''' Run simulations
         '''
         lib_dir = self._create_and_return_working_directory()
         self._clone_repository(lib_dir)
-        for case in self._cases:
+        for case in cases:
             d = self._checkout_branch(lib_dir, case['branch'])
             case['commit'] = d['commit']
-            self._simulate(case, lib_dir)
+            self._simulateCase(case, lib_dir)
         shutil.rmtree(lib_dir)
 
 
     def run(self):
-        ''' Run the comparison and generate the output
-        '''
-        self._runCases()
+        ''' Run the comparison and generate the output.
 
-    def post_process(self, tolAbsTim = None, tolRelTim = None):
+            The output files will be in the directory ``results``, and the raw test data
+            are in the directories with the same names as specified by the parameter ``tools``.
+        '''
+        cases = self._get_cases()
+        self._runCases(cases)
+        self.post_process()
+
+    def post_process(self, tolAbsTime = None, tolRelTime = None):
         ''' Generate the html tables
-            :param tolAbsTim: float. Optional argument for absolute tolerance in time, if exceeded, results will be flagged in summary table.
-            :param tolRelTim: float. Optional argument for relative tolerance in time, if exceeded, results will be flagged in summary table.
+            :param tolAbsTime: float. Optional argument for absolute tolerance in time, if exceeded, results will be flagged in summary table.
+            :param tolRelTime: float. Optional argument for relative tolerance in time, if exceeded, results will be flagged in summary table.
 
         '''
 
-        _tolAbsTim = self._tolAbsTim if tolAbsTim is None else tolAbsTim
-        _tolRelTim = self._tolRelTim if tolRelTim is None else tolRelTim
+        _tolAbsTime = self._tolAbsTime if tolAbsTime is None else tolAbsTime
+        _tolRelTime = self._tolRelTime if tolRelTime is None else tolRelTime
 
         logs = list()
-        for case in self._cases:
+        for case in self._get_cases():
             # filter simulation log
             temp = {'branch': case['branch'],
                     'tool': case['tool'],
@@ -638,7 +644,7 @@ class Comparison(object):
             # refactor data structure
             branchesData = Comparison._refactorDataStructure(branchesCompare, _tolAbsTime, _tolRelTime)
             # generate html table file
-            Comparison._generateTable(branchesData)
+            self._generateTable(branchesData)
 
         # comparison between different tools on same branch
         if len(self._tools) > 1:
@@ -653,6 +659,6 @@ class Comparison(object):
                 data['logs'] = temp
                 toolsCompare.append(data)
             # refactor data structure
-            toolsData = Comparison._refactorDataStructure(toolsCompare)
+            toolsData = Comparison._refactorDataStructure(toolsCompare, _tolAbsTime, _tolRelTime)
             # generate html table file
-            Comparison._generateTable(toolsData)
+            self._generateTable(toolsData)
