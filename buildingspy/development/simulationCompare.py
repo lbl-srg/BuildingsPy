@@ -149,7 +149,7 @@ class Comparison(object):
         bdg_dir = os.path.join(wor_dir, self._package)
         os.chdir(bdg_dir)
         # run unit test
-        _runUnitTest(case['package'], case['tool'])
+        Comparison._runUnitTest(case['package'], case['tool'])
         # copy the log files to current working directory
         logFil = "comparison-%s.log" % case['tool']
         if os.path.exists(logFil):
@@ -178,7 +178,7 @@ class Comparison(object):
         return logs
 
     @staticmethod
-    def _refactorLogsStructure(logs):
+    def _refactorLogsStructure(logs, tolAbsTime, tolRelTime):
         ''' Change the structure:
         --From--
         "logs": [{"label": 'branch1', "log": [{"model": model1, "simulation": simulation_log},
@@ -234,13 +234,13 @@ class Comparison(object):
 
 
     @staticmethod
-    def _refactorDataStructure(data):
+    def _refactorDataStructure(data, tolAbsTime, tolRelTime):
         ''' Change data structure
         '''
         refactoredData = list()
         for ele in data:
             temp = {'label': ele['label']}
-            logs = _refactorLogsStructure(ele['logs'])
+            logs = Comparison._refactorLogsStructure(ele['logs'], tolAbsTime, tolRelTime)
             temp['logs'] = logs
             refactoredData.append(temp)
         return refactoredData
@@ -261,9 +261,9 @@ class Comparison(object):
                         filNam = os.path.join(htmlTableDir, "branches_compare_%s.html" % tool)
                         texTab = os.path.join(latexTableDir, "branches_compare_%s.tex" % tool)
                         # generate html table content
-                        htmltext, flagModels = generateHtmlTable(data['logs'])
-                        _generateFile(filNam, htmltext)
-                        _generateTexTable(texTab, flagModels)
+                        htmltext, flagModels = Comparison._generateHtmlTable(data['logs'])
+                        Comparison._writeFile(filNam, htmltext)
+                        Comparison._generateTexTable(texTab, flagModels)
             # generate tools comparison tables
             if len(self._tools) > 1:
                 for branch in self._branches:
@@ -271,12 +271,12 @@ class Comparison(object):
                         filNam = os.path.join(htmlTableDir, "tools_compare_%s.html" % branch)
                         texTab = os.path.join(latexTableDir, "tools_compare_%s.tex" % branch)
                         # generate html table content
-                        htmltext, flagModels = generateHtmlTable(data['logs'])
-                        _generateFile(filNam, htmltext)
-                        _generateTexTable(texTab, flagModels)
+                        htmltext, flagModels = Comparison._generateHtmlTable(data['logs'])
+                        Comparison._writeFile(filNam, htmltext)
+                        Comparison._generateTexTable(texTab, flagModels)
 
 
-    def _generateTexTable(filNam, models):
+    def _generateTexTable(self, filNam, models):
         try:
             log = models[0]['log']
         except IndexError:  # No flagged model to process.
@@ -313,7 +313,7 @@ class Comparison(object):
         for i in range(len(models)):
             ithModel = models[i]
             temp = ''
-            fillColor = textTableColor(ithModel['relTim'])
+            fillColor = Comparison._textTableColor(ithModel['relTim'])
             temp = '''\\rowcolor[HTML]{%s} ''' % fillColor + os.linesep
             temp = temp + '''{\\small ''' + '''\lstinline|''' + ithModel['model'].replace(f'{self._package}.','') + '''|}'''
             for j in range(len(log)):
@@ -325,11 +325,11 @@ class Comparison(object):
 \\end{longtable}
 \\end{document}'''
         content = begin + column + captionLabel + hline + head + row + end
-        _generateFile(filNam, content)
+        Comparison._writeFile(filNam, content)
 
 
-    def textTableColor(relTim):
-        dif = relTim - 1 - tolRelTime if relTim > 1 else (1-relTim) - tolRelTime
+    def _textTableColor(self, relTim):
+        dif = relTim - 1 - self._tolRelTime if relTim > 1 else (1-relTim) - self._tolRelTime
         dR = 0.5
         dG = 0.1
         if dif < 0:
@@ -372,16 +372,17 @@ class Comparison(object):
         return color
 
 
-    def _generateFile(filNam, content):
+    @staticmethod
+    def _writeFile(filNam, content):
         ''' Write html table to file
         '''
         with open(filNam, 'w+') as f:
             f.write(content)
 
 
-    def chooseStyle(relTim, flag):
+    def _chooseStyle(self, relTim, flag):
         # relTim is  (elaTim-t_0) / t_0
-        dif = relTim - 1 - tolRelTime if relTim > 1 else (1-relTim) - tolRelTime
+        dif = relTim - 1 - self._tolRelTime if relTim > 1 else (1-relTim) - self._tolRelTime
         dR = 0.5
         dG = 0.1
         style = 'normal'
@@ -423,7 +424,7 @@ class Comparison(object):
         return style
 
 
-    def generateHtmlTable(data):
+    def generateHtmlTable(self, data):
         ''' Html table template
         '''
         # style section
@@ -501,7 +502,7 @@ class Comparison(object):
             modelData = '''<tr>''' + os.linesep
             flag = data[i]['flag']
             relTim = data[i]['relTim']
-            tgStyle = 'tg-' + chooseStyle(relTim, flag)
+            tgStyle = 'tg-' + Comparison._chooseStyle(relTim, flag)
             if flag:
                 flagModelListTemp = {'model': data[i]['model']}
                 flagModelListTemp['relTim'] = relTim
@@ -542,7 +543,7 @@ class Comparison(object):
             singleModel = sortedList[i]
             modelData = '''<tr>''' + os.linesep
             relTim = singleModel['relTim']
-            tgStyle = 'tg-' + chooseStyle(relTim, True)
+            tgStyle = 'tg-' + Comparison._chooseStyle(relTim, True)
             modelName = singleModel['model']
             temp1 = '''<td class="%s">%s</td>''' % (tgStyle, modelName)
             modelData = modelData + temp1 + os.linesep
@@ -568,7 +569,7 @@ class Comparison(object):
                      (i.e. <code>(t<sub>max</sub> - t<sub>min</sub>)/t<sub>max</sub></code>)
                      is greater than %.2f.</font>
                      </p>
-                    ''' % (tolAbsTime, tolRelTime)
+                    ''' % (self._tolAbsTime, self._tolRelTime)
         flagModels = colGro + heaGro + flaggedModels + os.linesep + \
                     '''</table>'''
         allModelInfo = '''<br/><br/>
@@ -579,20 +580,20 @@ class Comparison(object):
         allModels = colGro + heaGro + models + os.linesep + \
                     '''</table>'''
 
-        # assembel html content
+        # assemble html content
         htmltext = '''<html>''' + os.linesep + style + flagInfo + flagModels + allModelInfo + allModels + '''</html>'''
         return htmltext, sortedList
 
 
-    def runCases(cases):
+    def runCases(self, cases):
         ''' Run simulations
         '''
-        lib_dir = _create_and_return_working_directory()
-        self._clone_repository(lib_dir, FROM_GIT_HUB)
+        lib_dir = self._create_and_return_working_directory()
+        self._clone_repository(lib_dir)
         for case in cases:
-            d = _checkout_branch(lib_dir, case['branch'])
+            d = self._checkout_branch(lib_dir, case['branch'])
             case['commit'] = d['commit']
-            _simulate(case, lib_dir)
+            self._simulate(case, lib_dir)
         shutil.rmtree(lib_dir)
 
 
@@ -604,7 +605,7 @@ class Comparison(object):
             # filter simulation log
             temp = {'branch': case['branch'],
                     'tool': case['tool'],
-                    'log': sortSimulationData(case)}
+                    'log': Comparison.sortSimulationData(case)}
             logs.append(temp)
 
         toolsCompare = list()
@@ -623,9 +624,9 @@ class Comparison(object):
                 data['logs'] = temp
                 branchesCompare.append(data)
             # refactor data structure
-            branchesData = _refactorDataStructure(branchesCompare)
+            branchesData = Comparison._refactorDataStructure(branchesCompare, self.tolAbsTime, self.tolRelTime)
             # generate html table file
-            _generateTable(branchesData)
+            Comparison._generateTable(branchesData)
 
         # comparison between different tools on same branch
         if len(self._tools) > 1:
@@ -640,6 +641,6 @@ class Comparison(object):
                 data['logs'] = temp
                 toolsCompare.append(data)
             # refactor data structure
-            toolsData = _refactorDataStructure(toolsCompare)
+            toolsData = Comparison._refactorDataStructure(toolsCompare)
             # generate html table file
-            _generateTable(toolsData)
+            Comparison._generateTable(toolsData)
