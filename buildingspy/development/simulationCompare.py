@@ -16,6 +16,7 @@ import tempfile
 
 from distutils.dir_util import mkpath
 
+
 class Comparison(object):
     """ Class that compares various simulation statistics across tools or branches.
 
@@ -48,28 +49,26 @@ class Comparison(object):
     """
 
     def __init__(
-        self,
-        tools,
-        branches,
-        package,
-        repo,
-        nPro = 0,
-        simulate = True,
-        tolAbsTime = 0.1,
-        tolRelTime = 0.1):
+            self,
+            tools,
+            branches,
+            package,
+            repo,
+            nPro=0,
+            simulate=True,
+            tolAbsTime=0.1,
+            tolRelTime=0.1):
 
         self._cwd = os.getcwd()
         self._tools = tools
         self._branches = branches
         self._package = package
-        self._lib_src=repo
+        self._lib_src = repo
         self._nPro = nPro
         self._simulate = simulate
         self._tolAbsTime = tolAbsTime
         self._tolRelTime = tolRelTime
         self._generate_tables = True
-
-
 
     def _get_cases(self):
         ''' Set up simulation cases.
@@ -77,7 +76,7 @@ class Comparison(object):
         cases = list()
         for tool in self._tools:
             for branch in self._branches:
-                cases.append( \
+                cases.append(
                     {'package': self._package,
                      'tool': tool,
                      'branch': branch})
@@ -91,10 +90,9 @@ class Comparison(object):
     def _create_and_return_working_directory():
         ''' Create working directory.
         '''
-        worDir = tempfile.mkdtemp( prefix='tmp-simulationCompare-' + getpass.getuser() )
+        worDir = tempfile.mkdtemp(prefix='tmp-simulationCompare-' + getpass.getuser())
         print("Created directory {}".format(worDir))
         return worDir
-
 
     def _clone_repository(self, working_directory):
         '''Clone or copy repository to working directory'''
@@ -121,7 +119,6 @@ class Comparison(object):
 
         return d
 
-
     def _runUnitTest(self, package, tool):
         ''' Execute unit tests.
         '''
@@ -141,7 +138,6 @@ class Comparison(object):
             os.system(command)
         except OSError:
             sys.stderr.write("Execution of '" + command + "' failed.")
-
 
     def _simulateCase(self, case, wor_dir):
         ''' Set up unit tests and save log file
@@ -195,7 +191,7 @@ class Comparison(object):
         '''
         minLog = 0
         modelNumber = len(logs[0]['log'])
-        for i in range(1,len(logs)):
+        for i in range(1, len(logs)):
             ithCaseModelNumber = len(logs[i]['log'])
             if ithCaseModelNumber < modelNumber:
                 modelNumber = ithCaseModelNumber
@@ -210,7 +206,7 @@ class Comparison(object):
                 for l in range(len(logs[k]['log'])):
                     if logs[k]['log'][l]['model'] == logs[minLog]['log'][j]['model']:
                         temp = {'label': logs[k]['label'],
-                                 'log': logs[k]['log'][l]['simulation']}
+                                'log': logs[k]['log'][l]['simulation']}
                         simulation.append(temp)
             model['simulation'] = simulation
             # find the maximum simulation time
@@ -218,7 +214,7 @@ class Comparison(object):
             t_max = t_0
             relTim = 0
             relTim = 0
-            for m in range(1,len(model['simulation'])):
+            for m in range(1, len(model['simulation'])):
                 elaTim = model['simulation'][m]['log']['elapsed_time']
                 if t_0 > 1E-10:
                     relTim = elaTim / t_0
@@ -226,12 +222,11 @@ class Comparison(object):
                     t_max = elaTim
             # check if the model should be flagged as the simulation times are
             # significantly different between different tools or branches
-            if t_max > tolAbsTime and abs(1-relTim) > tolRelTime:
+            if t_max > tolAbsTime and abs(1 - relTim) > tolRelTime:
                 model['flag'] = True
             model['relTim'] = relTim
             refactoredLogs.append(model)
         return refactoredLogs
-
 
     @staticmethod
     def _refactorDataStructure(data, tolAbsTime, tolRelTime):
@@ -244,7 +239,6 @@ class Comparison(object):
             temp['logs'] = logs
             refactoredData.append(temp)
         return refactoredData
-
 
     def _generateTable(self, dataSet):
         ''' Generate html table and write it to file
@@ -261,7 +255,7 @@ class Comparison(object):
                         filNam = os.path.join(htmlTableDir, "branches_compare_%s.html" % tool)
                         texTab = os.path.join(latexTableDir, "branches_compare_%s.tex" % tool)
                         # generate html table content
-                        htmltext, flagModels = self._generateHtmlTable(data['logs'])
+                        htmltext, flagModels = self._generateHtmlTable(data['logs'], 'branches')
                         Comparison._writeFile(filNam, htmltext)
                         self._generateTexTable(texTab, flagModels)
             # generate tools comparison tables
@@ -271,10 +265,9 @@ class Comparison(object):
                         filNam = os.path.join(htmlTableDir, "tools_compare_%s.html" % branch)
                         texTab = os.path.join(latexTableDir, "tools_compare_%s.tex" % branch)
                         # generate html table content
-                        htmltext, flagModels = self._generateHtmlTable(data['logs'])
+                        htmltext, flagModels = self._generateHtmlTable(data['logs'], 'tools')
                         Comparison._writeFile(filNam, htmltext)
                         self._generateTexTable(texTab, flagModels)
-
 
     def _generateTexTable(self, filNam, models):
         try:
@@ -284,7 +277,7 @@ class Comparison(object):
 
         totalColumns = 2 + len(log)
         begin = \
-        r'''\documentclass{article}
+            r'''\documentclass{article}
 \usepackage[table]{xcolor}
 \usepackage{longtable}
 \usepackage{listings}
@@ -294,12 +287,12 @@ class Comparison(object):
 '''
 
         column = \
-        r'''\begin{longtable}{|p{9cm}|'''
+            r'''\begin{longtable}{|p{9cm}|'''
         captionLabel = \
-        r'''\caption{\tableCaption}
+            r'''\caption{\tableCaption}
 \label{\tableLabel}\\
     '''
-        for i in range(totalColumns-2):
+        for i in range(totalColumns - 2):
             column = column + '''p{2cm}|'''
         column = column + 'p{1cm}|}' + os.linesep
         hline = '''\\hline''' + os.linesep
@@ -308,18 +301,20 @@ class Comparison(object):
         for i in range(len(log)):
             head = head + '''&$t_{%s}$ in [s]''' % log[i]['label'].replace('_', '\\_')
         head = head + '''&$t_{2}/t_{1}$\\\\'''
-        head = head +'''[2.5ex] \\hline''' + os.linesep
+        head = head + '''[2.5ex] \\hline''' + os.linesep
         row = ''
         for i in range(len(models)):
             ithModel = models[i]
             temp = ''
             fillColor = self._textTableColor(ithModel['relTim'])
             temp = '''\\rowcolor[HTML]{%s} ''' % fillColor + os.linesep
-            temp = temp + '''{\\small ''' + '''\\lstinline|''' + ithModel['model'].replace(f'{self._package}.','') + '''|}'''
+            temp = temp + '''{\\small ''' + '''\\lstinline|''' + \
+                ithModel['model'].replace(f'{self._package}.', '') + '''|}'''
             for j in range(len(log)):
-                temp = temp + '&' + '{\\small ' + '{:.3f}'.format(ithModel['log'][j]['elapsed_time']) + '}'
+                temp = temp + '&' + '{\\small ' + \
+                    '{:.3f}'.format(ithModel['log'][j]['elapsed_time']) + '}'
             temp = temp + '&' + '{\\small ' + '{:.2f}'.format(ithModel['relTim']) + '}'
-            temp = temp +'''\\\\[2.5ex] \\hline''' + os.linesep
+            temp = temp + '''\\\\[2.5ex] \\hline''' + os.linesep
             row = row + temp
         end = '''
 \\end{longtable}
@@ -327,50 +322,48 @@ class Comparison(object):
         content = begin + column + captionLabel + hline + head + row + end
         Comparison._writeFile(filNam, content)
 
-
     def _textTableColor(self, relTim):
-        dif = relTim - 1 - self._tolRelTime if relTim > 1 else (1-relTim) - self._tolRelTime
+        dif = relTim - 1 - self._tolRelTime if relTim > 1 else (1 - relTim) - self._tolRelTime
         dR = 0.5
         dG = 0.1
         if dif < 0:
             color = 'FFFFFF'
-        elif dif>=0:
+        elif dif >= 0:
             if relTim < 1:
-                if dif >=0 and dif < dG:
+                if dif >= 0 and dif < dG:
                     color = 'edfef2'
-                elif dif >= dG and dif < 2*dG:
+                elif dif >= dG and dif < 2 * dG:
                     color = 'dbfde4'
-                elif dif >= 2*dG and dif < 3*dG:
+                elif dif >= 2 * dG and dif < 3 * dG:
                     color = 'c9fcd7'
-                elif dif >= 3*dG and dif < 4*dG:
+                elif dif >= 3 * dG and dif < 4 * dG:
                     color = 'b6fbca'
-                elif dif >= 4*dG and dif < 5*dG:
+                elif dif >= 4 * dG and dif < 5 * dG:
                     color = 'a4fbbc'
-                elif dif >= 5*dG and dif < 6*dG:
+                elif dif >= 5 * dG and dif < 6 * dG:
                     color = '92faaf'
-                elif dif >= 6*dG and dif < 7*dG:
+                elif dif >= 6 * dG and dif < 7 * dG:
                     color = '80f9a1'
                 else:
                     color = '6ef894'
             else:
-                if dif >=0 and dif < dR:
+                if dif >= 0 and dif < dR:
                     color = 'feeded'
-                elif dif >= dR and dif < 2*dR:
+                elif dif >= dR and dif < 2 * dR:
                     color = 'fddbdb'
-                elif dif >= 2*dR and dif < 3*dR:
+                elif dif >= 2 * dR and dif < 3 * dR:
                     color = 'fcc9c9'
-                elif dif >= 3*dR and dif < 4*dR:
+                elif dif >= 3 * dR and dif < 4 * dR:
                     color = 'fbb6b6'
-                elif dif >= 4*dR and dif < 5*dR:
+                elif dif >= 4 * dR and dif < 5 * dR:
                     color = 'fba4a4'
-                elif dif >= 5*dR and dif < 6*dR:
+                elif dif >= 5 * dR and dif < 6 * dR:
                     color = 'fa9292'
-                elif dif >= 6*dR and dif < 7*dR:
+                elif dif >= 6 * dR and dif < 7 * dR:
                     color = 'f98080'
                 else:
                     color = 'f86e6e'
         return color
-
 
     @staticmethod
     def _writeFile(filNam, content):
@@ -380,52 +373,50 @@ class Comparison(object):
         with open(filNam, 'w+') as f:
             f.write(content)
 
-
     def _chooseStyle(self, relTim, flag):
         # relTim is  (elaTim-t_0) / t_0
-        dif = relTim - 1 - self._tolRelTime if relTim > 1 else (1-relTim) - self._tolRelTime
+        dif = relTim - 1 - self._tolRelTime if relTim > 1 else (1 - relTim) - self._tolRelTime
         dR = 0.5
         dG = 0.1
         style = 'normal'
-        if dif>=0 and flag:
+        if dif >= 0 and flag:
             if relTim < 1:
-                if dif >=0 and dif < dG:
+                if dif >= 0 and dif < dG:
                     style = 'g-1'
-                elif dif >= dG and dif < 2*dG:
+                elif dif >= dG and dif < 2 * dG:
                     style = 'g-2'
-                elif dif >= 2*dG and dif < 3*dG:
+                elif dif >= 2 * dG and dif < 3 * dG:
                     style = 'g-3'
-                elif dif >= 3*dG and dif < 4*dG:
+                elif dif >= 3 * dG and dif < 4 * dG:
                     style = 'g-4'
-                elif dif >= 4*dG and dif < 5*dG:
+                elif dif >= 4 * dG and dif < 5 * dG:
                     style = 'g-5'
-                elif dif >= 5*dG and dif < 6*dG:
+                elif dif >= 5 * dG and dif < 6 * dG:
                     style = 'g-6'
-                elif dif >=6*dG and dif < 7*dG:
+                elif dif >= 6 * dG and dif < 7 * dG:
                     style = 'g-7'
                 else:
                     style = 'g-8'
             else:
-                if dif >=0 and dif < dR:
+                if dif >= 0 and dif < dR:
                     style = 'r-1'
-                elif dif >= dR and dif < 2*dR:
+                elif dif >= dR and dif < 2 * dR:
                     style = 'r-2'
-                elif dif >= 2*dR and dif < 3*dR:
+                elif dif >= 2 * dR and dif < 3 * dR:
                     style = 'r-3'
-                elif dif >= 3*dR and dif < 4*dR:
+                elif dif >= 3 * dR and dif < 4 * dR:
                     style = 'r-4'
-                elif dif >= 4*dR and dif < 5*dR:
+                elif dif >= 4 * dR and dif < 5 * dR:
                     style = 'r-5'
-                elif dif >= 5*dR and dif < 6*dR:
+                elif dif >= 5 * dR and dif < 6 * dR:
                     style = 'r-6'
-                elif dif >=6*dR and dif < 7*dR:
+                elif dif >= 6 * dR and dif < 7 * dR:
                     style = 'r-7'
                 else:
                     style = 'r-8'
         return style
 
-
-    def _generateHtmlTable(self, data):
+    def _generateHtmlTable(self, data, tools_or_branches):
         ''' Html table template
         '''
         # style section
@@ -442,7 +433,7 @@ class Comparison(object):
     .tg .tg-g-5{background-color:#a4fbbc;border-color:inherit;text-align:left;overflow:auto;vertical-align:center}
     .tg .tg-g-6{background-color:#92faaf;border-color:inherit;text-align:left;overflow:auto;vertical-align:center}
     .tg .tg-g-7{background-color:#80f9a1;border-color:inherit;text-align:left;overflow:auto;vertical-align:center}
-    .tg .tg-g-8{background-color:#6ef894;border-color:inherit;text-align:left;overflow:auto;vertical-align:center
+    .tg .tg-g-8{background-color:#6ef894;border-color:inherit;text-align:left;overflow:auto;vertical-align:center}
 
     .tg .tg-r-1{background-color:#feeded;border-color:inherit;text-align:left;overflow:auto;vertical-align:center}
     .tg .tg-r-2{background-color:#fddbdb;border-color:inherit;text-align:left;overflow:auto;vertical-align:center}
@@ -460,15 +451,15 @@ class Comparison(object):
         # calculate column width
         firstSimulationLog = data[0]['simulation']
         numberOfDataSet = len(firstSimulationLog)
-        colWidth = 100/(3 + numberOfDataSet*3 + 1)
+        colWidth = 100 / (3 + numberOfDataSet * 3 + 1)
 
         # specify column style
         colGro = '''
             <table class="tg sortable" style="undefined">
                 <colgroup>
             <col style="width: %.2f%%">
-            ''' % (3*colWidth)
-        for i in range(3*numberOfDataSet + 1):
+            ''' % (3 * colWidth)
+        for i in range(3 * numberOfDataSet + 1):
             temp = '''<col style="width: %.2f%%">''' % colWidth + os.linesep
             colGro = colGro + temp
         colGro = colGro + '''</colgroup>''' + os.linesep
@@ -495,38 +486,40 @@ class Comparison(object):
         # write simulation logs of each model
         flagModelList = list()
         models = ''
-        for i in range(numberOfModels):
-            if numberOfDataSet > len(data[i]['simulation']):
-                # This option was not simulated for all cases
-                continue
+        failedModels = list()
+        for entry in data:
+            suc = entry['simulation'][0]['log']['success']
+            if suc is not True:
+                failedModels.append(entry['model'])
 
+        for entry in data:
             modelData = '''<tr>''' + os.linesep
-            flag = data[i]['flag']
-            relTim = data[i]['relTim']
+            flag = entry['flag']
+            relTim = entry['relTim']
             tgStyle = 'tg-' + self._chooseStyle(relTim, flag)
             if flag:
-                flagModelListTemp = {'model': data[i]['model']}
+                flagModelListTemp = {'model': entry['model']}
                 flagModelListTemp['relTim'] = relTim
-            temp1 = '''<td class="%s">%s</td>''' % (tgStyle, data[i]['model'])
+            temp1 = '''<td class="%s">%s</td>''' % (tgStyle, entry['model'])
             modelData = modelData + temp1 + os.linesep
             temp2 = ''
             temp3 = list()
             for j in range(numberOfDataSet):
-                variableSet = data[i]['simulation'][j]['log']
+                variableSet = entry['simulation'][j]['log']
                 elapsed_time = variableSet['elapsed_time']
                 state_events = variableSet['state_events']
                 jacobians = variableSet['jacobians']
-                flagTemp = {'elapsed_time': elapsed_time, \
-                            'state_events': state_events, \
+                flagTemp = {'elapsed_time': elapsed_time,
+                            'state_events': state_events,
                             'jacobians': jacobians,
-                            'label': data[i]['simulation'][j]['label']}
+                            'label': entry['simulation'][j]['label']}
                 temp3.append(flagTemp)
                 temp2 = temp2 + '''
                     <td class="%s">%.4f</td>
                     <td class="%s">%d</td>
                     <td class="%s">%d</td>
-                ''' % (tgStyle, elapsed_time, \
-                       tgStyle, int(state_events), \
+                ''' % (tgStyle, elapsed_time,
+                       tgStyle, int(state_events),
                        tgStyle, int(jacobians))
             if flag:
                 flagModelListTemp['log'] = temp3
@@ -540,28 +533,45 @@ class Comparison(object):
 
         # write flagged models
         flaggedModels = ''
-        for i in range(len(sortedList)):
-            singleModel = sortedList[i]
+        for model in sortedList:
             modelData = '''<tr>''' + os.linesep
-            relTim = singleModel['relTim']
+            relTim = model['relTim']
             tgStyle = 'tg-' + self._chooseStyle(relTim, True)
-            modelName = singleModel['model']
+            modelName = model['model']
             temp1 = '''<td class="%s">%s</td>''' % (tgStyle, modelName)
             modelData = modelData + temp1 + os.linesep
-            temp2=''
-            for j in range(len(singleModel['log'])):
-                oneSet = singleModel['log'][j]
+            temp2 = ''
+            for j in range(len(model['log'])):
+                oneSet = model['log'][j]
                 temp2 = temp2 + '''
                     <td class="%s">%.4f</td>
                     <td class="%s">%d</td>
                     <td class="%s">%d</td>
-                ''' % (tgStyle, oneSet['elapsed_time'], \
-                       tgStyle, int(oneSet['state_events']), \
+                ''' % (tgStyle, oneSet['elapsed_time'],
+                       tgStyle, int(oneSet['state_events']),
                        tgStyle, int(oneSet['jacobians']))
             modelData = modelData + temp2 + os.linesep
             modelData = modelData + '''<td class="%s">%.2f</td>''' % (tgStyle, relTim) + os.linesep
             modelData = modelData + '''</tr>''' + os.linesep
             flaggedModels = flaggedModels + os.linesep + modelData
+
+        failedFlagText = ''
+        if tools_or_branches == 'branches':
+            failedFlagText = 'failed in one or more branches'
+        else:
+            failedFlagText = 'failed or excluded by one or more tools'
+        failedModelsInfo = ''
+        if len(failedModels) > 0:
+            failedModelsInfo = '''<br/>
+                                <p><font size="+1.5">
+                                Following models were flagged for %s.</font>
+                                </p>
+                                ''' % failedFlagText
+            failedModelsInfo += os.linesep
+            failedModelsInfo += '''<table class="tg sortable" style="undefined">''' + os.linesep
+            for i in range(len(failedModels)):
+                failedModelsInfo += '''<tr><td class="tg-r-8">%s</td></tr>''' % failedModels[i] + os.linesep
+            failedModelsInfo += '''</table>'''
 
         flagInfo = '''<br/>
                      <p><font size="+1.5">
@@ -572,19 +582,19 @@ class Comparison(object):
                      </p>
                     ''' % (self._tolAbsTime, self._tolRelTime)
         flagModels = colGro + heaGro + flaggedModels + os.linesep + \
-                    '''</table>'''
+            '''</table>'''
         allModelInfo = '''<br/><br/>
                         <p><font size="+1.5">
                         Following models are in package <code>%s</code>:
                         </font></p>
                         ''' % self._package
         allModels = colGro + heaGro + models + os.linesep + \
-                    '''</table>'''
+            '''</table>'''
 
         # assemble html content
-        htmltext = '''<html>''' + os.linesep + style + flagInfo + flagModels + allModelInfo + allModels + '''</html>'''
+        htmltext = '''<html>''' + os.linesep + style + failedModelsInfo + \
+            flagInfo + flagModels + allModelInfo + allModels + '''</html>'''
         return htmltext, sortedList
-
 
     def _runCases(self, cases):
         ''' Run simulations
@@ -597,7 +607,6 @@ class Comparison(object):
             self._simulateCase(case, lib_dir)
         shutil.rmtree(lib_dir)
 
-
     def run(self):
         ''' Run the comparison and generate the output.
 
@@ -608,7 +617,7 @@ class Comparison(object):
         self._runCases(cases)
         self.post_process()
 
-    def post_process(self, tolAbsTime = None, tolRelTime = None):
+    def post_process(self, tolAbsTime=None, tolRelTime=None):
         ''' Generate the html tables
             :param tolAbsTime: float. Optional argument for absolute tolerance in time, if exceeded, results will be flagged in summary table.
             :param tolRelTime: float. Optional argument for relative tolerance in time, if exceeded, results will be flagged in summary table.
@@ -631,7 +640,7 @@ class Comparison(object):
 
         # comparison between different branches with same tool
         if len(self._branches) > 1:
-            for tool in self._tools: # [dymola, jmodelica]
+            for tool in self._tools:  # [dymola, jmodelica]
                 data = {'label': tool}
                 temp = list()
                 for log in logs:
@@ -642,7 +651,8 @@ class Comparison(object):
                 data['logs'] = temp
                 branchesCompare.append(data)
             # refactor data structure
-            branchesData = Comparison._refactorDataStructure(branchesCompare, _tolAbsTime, _tolRelTime)
+            branchesData = Comparison._refactorDataStructure(
+                branchesCompare, _tolAbsTime, _tolRelTime)
             # generate html table file
             self._generateTable(branchesData)
 
