@@ -36,3 +36,10 @@ Error dictionary
 .. automodule:: buildingspy.development.error_dictionary
 .. autoclass:: buildingspy.development.error_dictionary.ErrorDictionary
    :members:
+
+Comparing simulation performance
+--------------------------------
+
+.. automodule:: buildingspy.development.simulationCompare
+.. autoclass:: buildingspy.development.simulationCompare.Comparison
+   :members:

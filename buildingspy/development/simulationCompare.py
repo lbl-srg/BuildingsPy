@@ -20,6 +20,13 @@ from distutils.dir_util import mkpath
 class Comparison(object):
     """ Class that compares various simulation statistics across tools or branches.
 
+    This class allows comparing various simulation performance indicators
+    (CPU time, number of state events, number of Jacobian evaluations)
+    across Modelica simulation tools and across github branches.
+    The tests can be run across a whole library, or across an individual Modelica package.
+    The results will be summarized in a table format that compares the performance
+    across tools and branches.
+
     Initiate with the following optional arguments:
 
     :param tools: A list of tools to compare, such as ``['openmodelica', 'dymola']``.
@@ -28,8 +35,6 @@ class Comparison(object):
     :param repo: Name of repository, such as ``https://github.com/lbl-srg/modelica-buildings``.
     :param nPro: Number of threads that are used to run the translations and simulations.
                  Set to ``0`` to use all processors.
-    :param simulate: Boolean (default ``True``). Set to ``False`` to skip the translation and simulation.
-                 This may be used to regenerate tables for different tolerance settings.
     :param tolAbsTim: float (default ``0.1``). Absolute tolerance in time, if exceeded, results will be flagged in summary table.
     :param tolRelTim: float (default ``0.1``). Relative tolerance in time, if exceeded, results will be flagged in summary table.
 
@@ -41,9 +46,24 @@ class Comparison(object):
 
        >>> import os
        >>> import buildingspy.development.simulationCompare as s
-       >>> s = sc.Comparison(tools=['dymola', 'openmodelica'], branches=['master'],
-           package='Buildings', repo='https://github.com/lbl-srg/modelica-buildings')
-       >>> s.run()                    # doctest: +SKIP
+       >>> s = sc.Comparison(
+             tools=['dymola', 'openmodelica'],
+             branches=['master'],
+             package='Buildings',
+             repo='https://github.com/lbl-srg/modelica-buildings')
+       >>> s.run()                                           # doctest: +SKIP
+
+
+    To change the comparison for different tolerances without running the simulations again, type
+
+       >>> import os
+       >>> import buildingspy.development.simulationCompare as s
+       >>> s = sc.Comparison(
+             tools=['dymola', 'openmodelica'],
+             branches=['master'],
+             package='Buildings',
+             repo='https://github.com/lbl-srg/modelica-buildings')
+       >>> s.post_process(tolAbsTime=0.2, tolRelTime=0.2)     # doctest: +SKIP
 
 
     """
@@ -65,7 +85,6 @@ class Comparison(object):
         self._package = package
         self._lib_src = repo
         self._nPro = nPro
-        self._simulate = simulate
         self._tolAbsTime = tolAbsTime
         self._tolRelTime = tolRelTime
         self._generate_tables = True
@@ -619,7 +638,11 @@ class Comparison(object):
         self.post_process()
 
     def post_process(self, tolAbsTime=None, tolRelTime=None):
-        ''' Generate the html tables
+        ''' Generate the html tables.
+
+            This function post-processes the simulations, generates the overview tables, and writes the tables
+            to the directory `results`.
+
             :param tolAbsTime: float. Optional argument for absolute tolerance in time, if exceeded, results will be flagged in summary table.
             :param tolRelTime: float. Optional argument for relative tolerance in time, if exceeded, results will be flagged in summary table.
 
