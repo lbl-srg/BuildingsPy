@@ -6,5 +6,6 @@ This module contains the classes
 - *Validator* that validates the html code of the info section of the `.mo` files, and
 - *IBPSA* that synchronizes Modelica libraries with the `IBPSA` library.
 - *ErrorDictionary* that contains information about possible error strings.
+- *Comparison* that compares the simulation performance across simulation tools or git branches.
 
 """

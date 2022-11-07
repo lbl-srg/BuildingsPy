@@ -22,7 +22,7 @@ class Comparison(object):
 
     This class allows comparing various simulation performance indicators
     (CPU time, number of state events, number of Jacobian evaluations)
-    across Modelica simulation tools and across github branches.
+    across Modelica simulation tools and across git branches.
     The tests can be run across a whole library, or across an individual Modelica package.
     The results will be summarized in a table format that compares the performance
     across tools and branches.
