@@ -6,10 +6,10 @@ import os
 import unittest
 
 
-class Test_development_Comparison(unittest.TestCase):
+class Test_development_Comparator(unittest.TestCase):
    """
       This class contains the unit tests for
-      :mod:`buildingspy.development.Comparison`.
+      :mod:`buildingspy.development.Comparator`.
    """
 
    def assertIsFile(self, path):
@@ -24,7 +24,7 @@ class Test_development_Comparison(unittest.TestCase):
       repo="https://github.com/ibpsa/modelica-ibpsa"
       tools=['dymola', 'openmodelica']
 
-      s = sc.Comparison(
+      s = sc.Comparator(
          tools=tools,
          branches=['master'],
          package="IBPSA.Utilities.Psychrometrics.Examples",

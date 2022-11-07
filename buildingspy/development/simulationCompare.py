@@ -17,7 +17,7 @@ import tempfile
 from distutils.dir_util import mkpath
 
 
-class Comparison(object):
+class Comparator(object):
     """ Class that compares various simulation statistics across tools or branches.
 
     This class allows comparing various simulation performance indicators
@@ -46,7 +46,7 @@ class Comparison(object):
 
        >>> import os
        >>> import buildingspy.development.simulationCompare as s
-       >>> s = sc.Comparison(
+       >>> s = sc.Comparator(
              tools=['dymola', 'openmodelica'],
              branches=['master'],
              package='Buildings',

@@ -41,5 +41,5 @@ Comparing simulation performance
 --------------------------------
 
 .. automodule:: buildingspy.development.simulationCompare
-.. autoclass:: buildingspy.development.simulationCompare.Comparison
+.. autoclass:: buildingspy.development.simulationCompare.Comparator
    :members:
