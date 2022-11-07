@@ -489,6 +489,7 @@ class Comparison(object):
         failedModels = list()
         for entry in data:
             suc = entry['simulation'][0]['log']['success']
+            print(f"*** testing model {entry['model']} {suc}")
             if suc is not True:
                 failedModels.append(entry['model'])
 
