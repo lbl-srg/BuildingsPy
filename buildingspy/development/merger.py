@@ -60,7 +60,7 @@ class IBPSA(object):
                                 os.path.join(ibpsa_dir, "request"),
                                 os.path.join(ibpsa_dir, "status"),
                                 os.path.join(ibpsa_dir, "success"),
-                                os.path.join(ibpsa_dir, "ds*.txt"),
+                                os.path.join(ibpsa_dir, "*.txt"),
                                 os.path.join(ibpsa_dir, "*.c"),
                                 os.path.join(ibpsa_dir, "*.exe"),
                                 os.path.join(ibpsa_dir, "*.csv"),
