@@ -3,6 +3,9 @@ BuildingsPy Changelog
 
 Version 4.x.x, xxx -- Release 4.0
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- Added class buildingspy.development.simulationCompare that compares
+  the simulation performance across tools or git branches.
+  (https://github.com/lbl-srg/BuildingsPy/issues/492)
 - Add option to exclude simulation of models from Dymola CI tests.
   (https://github.com/lbl-srg/BuildingsPy/pull/486)
 
