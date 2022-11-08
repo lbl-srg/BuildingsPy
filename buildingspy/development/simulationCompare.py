@@ -186,7 +186,7 @@ class Comparator(object):
         with io.open(case['name'], mode="rt", encoding="utf-8-sig") as log:
             stat = json.loads(log.read())
         for ele in stat:
-            if "simulation" in ele and ele["simulation"]["success"]:
+            if "simulation" in ele:
                 temp = {"model": ele["model"],
                         "simulation": ele["simulation"]}
                 logs.append(temp)
@@ -254,7 +254,7 @@ class Comparator(object):
         refactoredData = list()
         for ele in data:
             temp = {'label': ele['label']}
-            logs = Comparison._refactorLogsStructure(ele['logs'], tolAbsTime, tolRelTime)
+            logs = Comparator._refactorLogsStructure(ele['logs'], tolAbsTime, tolRelTime)
             temp['logs'] = logs
             refactoredData.append(temp)
         return refactoredData
@@ -264,29 +264,29 @@ class Comparator(object):
         '''
         htmlTableDir = os.path.join(self._cwd, 'results', 'html')
         mkpath(htmlTableDir)
-        latexTableDir = os.path.join(self._cwd, 'results', 'latex')
-        mkpath(latexTableDir)
+        # latexTableDir = os.path.join(self._cwd, 'results', 'latex')
+        # mkpath(latexTableDir)
         for data in dataSet:
             # generate branches comparison tables
             if len(self._branches) > 1:
                 for tool in self._tools:
                     if data['label'] == tool:
                         filNam = os.path.join(htmlTableDir, "branches_compare_%s.html" % tool)
-                        texTab = os.path.join(latexTableDir, "branches_compare_%s.tex" % tool)
+                        # texTab = os.path.join(latexTableDir, "branches_compare_%s.tex" % tool)
                         # generate html table content
                         htmltext, flagModels = self._generateHtmlTable(data['logs'], 'branches')
-                        Comparison._writeFile(filNam, htmltext)
-                        self._generateTexTable(texTab, flagModels)
+                        Comparator._writeFile(filNam, htmltext)
+                        # self._generateTexTable(texTab, flagModels)
             # generate tools comparison tables
             if len(self._tools) > 1:
                 for branch in self._branches:
                     if data['label'] == branch:
                         filNam = os.path.join(htmlTableDir, "tools_compare_%s.html" % branch)
-                        texTab = os.path.join(latexTableDir, "tools_compare_%s.tex" % branch)
+                        # texTab = os.path.join(latexTableDir, "tools_compare_%s.tex" % branch)
                         # generate html table content
                         htmltext, flagModels = self._generateHtmlTable(data['logs'], 'tools')
-                        Comparison._writeFile(filNam, htmltext)
-                        self._generateTexTable(texTab, flagModels)
+                        Comparator._writeFile(filNam, htmltext)
+                        # self._generateTexTable(texTab, flagModels)
 
     def _generateTexTable(self, filNam, models):
         try:
@@ -339,7 +339,7 @@ class Comparator(object):
 \\end{longtable}
 \\end{document}'''
         content = begin + column + captionLabel + hline + head + row + end
-        Comparison._writeFile(filNam, content)
+        Comparator._writeFile(filNam, content)
 
     def _textTableColor(self, relTim):
         dif = relTim - 1 - self._tolRelTime if relTim > 1 else (1 - relTim) - self._tolRelTime
@@ -506,13 +506,24 @@ class Comparator(object):
         flagModelList = list()
         models = ''
         failedModels = list()
+        newData = list()
         for entry in data:
-            suc = entry['simulation'][0]['log']['success']
+            entSim = entry['simulation']
+            suc = True
+            failedIn = list()
+            for simLog in entSim:
+                suc = suc and simLog['log']['success']
+                if simLog['log']['success'] is not True:
+                    failedIn.append(simLog['label'])
             print(f"*** testing model {entry['model']} {suc}")
+            if suc:
+                newData.append(entry)
             if suc is not True:
-                failedModels.append(entry['model'])
+                temp = {'model': entry['model']}
+                temp['logs'] = failedIn
+                failedModels.append(temp)
 
-        for entry in data:
+        for entry in newData:
             modelData = '''<tr>''' + os.linesep
             flag = entry['flag']
             relTim = entry['relTim']
@@ -577,9 +588,9 @@ class Comparator(object):
 
         failedFlagText = ''
         if tools_or_branches == 'branches':
-            failedFlagText = 'failed in one or more branches'
+            failedFlagText = 'failed in branches'
         else:
-            failedFlagText = 'failed or excluded by one or more tools'
+            failedFlagText = 'failed or excluded by tools'
         failedModelsInfo = ''
         if len(failedModels) > 0:
             failedModelsInfo = '''<br/>
@@ -589,8 +600,11 @@ class Comparator(object):
                                 ''' % failedFlagText
             failedModelsInfo += os.linesep
             failedModelsInfo += '''<table class="tg sortable" style="undefined">''' + os.linesep
+            failedModelsInfo += '''<tr><th class="tg-head">Model</th><th class="tg-head">Failed Info</th> </tr>''' + os.linesep
             for i in range(len(failedModels)):
-                failedModelsInfo += '''<tr><td class="tg-r-8">%s</td></tr>''' % failedModels[i] + os.linesep
+                failedTxt = ', '.join(failedModels[i]['logs'])
+                failedModelsInfo += '''<tr><td class="tg-r-8">%s</td><td>%s</td></tr>
+                                    ''' % (failedModels[i]['model'], failedTxt) + os.linesep
             failedModelsInfo += '''</table>'''
 
         flagInfo = '''<br/>
@@ -656,7 +670,7 @@ class Comparator(object):
             # filter simulation log
             temp = {'branch': case['branch'],
                     'tool': case['tool'],
-                    'log': Comparison._sortSimulationData(case)}
+                    'log': Comparator._sortSimulationData(case)}
             logs.append(temp)
 
         toolsCompare = list()
@@ -675,7 +689,7 @@ class Comparator(object):
                 data['logs'] = temp
                 branchesCompare.append(data)
             # refactor data structure
-            branchesData = Comparison._refactorDataStructure(
+            branchesData = Comparator._refactorDataStructure(
                 branchesCompare, _tolAbsTime, _tolRelTime)
             # generate html table file
             self._generateTable(branchesData)
@@ -693,6 +707,7 @@ class Comparator(object):
                 data['logs'] = temp
                 toolsCompare.append(data)
             # refactor data structure
-            toolsData = Comparison._refactorDataStructure(toolsCompare, _tolAbsTime, _tolRelTime)
+            toolsData = Comparator._refactorDataStructure(toolsCompare, _tolAbsTime, _tolRelTime)
             # generate html table file
+            # print(toolsData)
             self._generateTable(toolsData)
