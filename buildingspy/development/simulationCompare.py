@@ -228,6 +228,11 @@ class Comparator(object):
                                 'log': logs[k]['log'][l]['simulation']}
                         simulation.append(temp)
             model['simulation'] = simulation
+            # check if the model runs successfully in all branches or tools
+            suc = Comparator._checkSimulation(model)
+            if suc is not True:
+                refactoredLogs.append(model)
+                continue
             # find the maximum simulation time
             t_0 = model['simulation'][0]['log']['elapsed_time']
             t_max = t_0
@@ -246,6 +251,17 @@ class Comparator(object):
             model['relTim'] = relTim
             refactoredLogs.append(model)
         return refactoredLogs
+
+    @staticmethod
+    def _checkSimulation(model):
+        ''' Check if the model runs successfully in all branches or tools
+        '''
+        suc = True
+        simLogs = model['simulation']
+        for i in range(len(simLogs)):
+            logSuc = simLogs[i]['log']['success']
+            suc = suc and logSuc
+        return suc
 
     @staticmethod
     def _refactorDataStructure(data, tolAbsTime, tolRelTime):
@@ -468,8 +484,8 @@ class Comparator(object):
 '''
 
         # calculate column width
-        firstSimulationLog = data[0]['simulation']
-        numberOfDataSet = len(firstSimulationLog)
+        fullLabels = self._tools if tools_or_branches == 'tools' else self._branches
+        numberOfDataSet = len(fullLabels)
         colWidth = 100 / (3 + numberOfDataSet * 3 + 1)
 
         # specify column style
@@ -489,7 +505,7 @@ class Comparator(object):
                 <th class="tg-head">Model</th>
             '''
         for i in range(numberOfDataSet):
-            label = firstSimulationLog[i]['label']
+            label = fullLabels[i]
             temp = '''
                 <th class="tg-head">%s<br/>-<br/>Elapsed time (s)</td>
                 <th class="tg-head">%s<br/>-<br/>State events</td>
@@ -511,10 +527,28 @@ class Comparator(object):
             entSim = entry['simulation']
             suc = True
             failedIn = list()
-            for simLog in entSim:
-                suc = suc and simLog['log']['success']
-                if simLog['log']['success'] is not True:
-                    failedIn.append(simLog['label'])
+            if (len(entSim) == numberOfDataSet):
+                # the model has been translated, but may not be simulated.
+                for simLog in entSim:
+                    suc = suc and simLog['log']['success']
+                    if simLog['log']['success'] is not True:
+                        failedIn.append(simLog['label'])
+            else:
+                # the model is not translated by one/more tools or in one/more branches
+                suc = False
+                if (len(entSim) == 0):
+                    tmp = ' ,'.join(fullLabels)
+                    failedIn.append(tmp)
+                else:
+                    # list the successful run
+                    sucLab = list()
+                    for simLog in entSim:
+                        if simLog['log']['success']:
+                            sucLab.append(simLog['label'])
+                    # filter the tools or branches that do not simulate or translate
+                    for fulLab in fullLabels:
+                        if fulLab not in sucLab:
+                            failedIn.append(fulLab)
             print(f"*** testing model {entry['model']} {suc}")
             if suc:
                 newData.append(entry)
