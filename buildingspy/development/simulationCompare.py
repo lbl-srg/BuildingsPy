@@ -528,13 +528,13 @@ class Comparator(object):
             suc = True
             failedIn = list()
             if (len(entSim) == numberOfDataSet):
-                # the model has been translated, but may not be simulated.
+                # the model has been translated by all tools/in all branches so it has fully set of simulation log, but it may not be simulated successfully.
                 for simLog in entSim:
                     suc = suc and simLog['log']['success']
                     if simLog['log']['success'] is not True:
                         failedIn.append(simLog['label'])
             else:
-                # the model is not translated by one/more tools or in one/more branches
+                # the model is not translated by one/more tools or in one/more branches so it does not have fully set of simulation log.
                 suc = False
                 if (len(entSim) == 0):
                     tmp = ' ,'.join(fullLabels)
@@ -545,7 +545,7 @@ class Comparator(object):
                     for simLog in entSim:
                         if simLog['log']['success']:
                             sucLab.append(simLog['label'])
-                    # filter the tools or branches that do not simulate or translate
+                    # filter the tools or branches that do not simulate or translate the model
                     for fulLab in fullLabels:
                         if fulLab not in sucLab:
                             failedIn.append(fulLab)
