@@ -3207,6 +3207,7 @@ Modelica.Utilities.Streams.print("{\"testCase\" : [", "%s");
                                      tra_data['ScriptFile'])
             absMosFilNam = os.path.join(self._temDir[iPro], mosFilNam)
             values = {
+                "libraryName": self.getLibraryName(),
                 "mosWithPath": mosFilNam.replace(
                     "\\",
                     "/"),
@@ -3325,7 +3326,7 @@ Modelica.Utilities.Streams.print("        \"result\"  : " + String(iSuc > 0), "{
             # Modelica.Utilities.Streams.readFile
             template = r"""
 {set_non_pedantic}
-rScript=RunScript("Resources/Scripts/Dymola/{scriptFile}");
+rScript=RunScript("modelica://{libraryName}/Resources/Scripts/Dymola/{scriptFile}");
 {set_pedantic}
 savelog("{model_name}.translation.log");
 if Modelica.Utilities.Files.exist("dslog.txt") then
@@ -3387,7 +3388,7 @@ end if;
             runFil.write(template.format(**values))
             template = r"""
 Modelica.Utilities.Streams.print("      \"simulate\" : {{", "{statisticsLog}");
-Modelica.Utilities.Streams.print("        \"command\" : \"RunScript(\\\"Resources/Scripts/Dymola/{scriptFile}\\\");\",", "{statisticsLog}");
+Modelica.Utilities.Streams.print("        \"command\" : \"RunScript(\\\"modelica://{libraryName}/Resources/Scripts/Dymola/{scriptFile}\\\");\",", "{statisticsLog}");
 Modelica.Utilities.Streams.print("        \"translationLog\"  : \"{translationLog}\",", "{statisticsLog}");
 Modelica.Utilities.Streams.print("        \"elapsed_time\"  :" + intTim + ",", "{statisticsLog}");
 Modelica.Utilities.Streams.print("        \"jacobians\"  :" + numJac + ",", "{statisticsLog}");
@@ -3406,7 +3407,7 @@ Modelica.Utilities.Streams.print("        \"result\"  : " + String(iSuc > 0), "{
         if tra_data['dymola']['exportFMU']:
             template = r"""
 Modelica.Utilities.Files.removeFile("{FMUName}");
-RunScript("Resources/Scripts/Dymola/{scriptFile}");
+RunScript("modelica://{libraryName}/Resources/Scripts/Dymola/{scriptFile}");
 savelog("{model_name}.translation.log");
 if Modelica.Utilities.Files.exist("dslog.txt") then
   Modelica.Utilities.Files.move("dslog.txt", "{model_name}.dslog.log");
@@ -3428,7 +3429,7 @@ end if;
             runFil.write(template.format(**values))
             template = r"""
 Modelica.Utilities.Streams.print("      \"FMUExport\" : {{", "{statisticsLog}");
-Modelica.Utilities.Streams.print("        \"command\" :\"RunScript(\\\"Resources/Scripts/Dymola/{scriptFile}\\\");\",", "{statisticsLog}");
+Modelica.Utilities.Streams.print("        \"command\" :\"RunScript(\\\"modelica://{libraryName}/Resources/Scripts/Dymola/{scriptFile}\\\");\",", "{statisticsLog}");
 Modelica.Utilities.Streams.print("        \"translationLog\"  : \"{translationLog}\",", "{statisticsLog}");
 Modelica.Utilities.Streams.print("        \"result\"  : " + String(iSuc > 0), "{statisticsLog}");
 """
@@ -3636,13 +3637,13 @@ exit();
                 # assemble command
                 cmd = list()
                 cmd.append(f"{self.getModelicaCommand()}")
-                cmd.append(f"{self.getLibraryName()}{os.path.sep}run_{model}.mos")
+                cmd.append(f"run_{model}.mos")
                 if not self._showGUI:
                     cmd.append("/nowindow")
 
                 txt = tem_mod.render(
                     model=model,
-                    working_directory=directory,
+                    working_directory=os.path.join(directory, self.getLibraryName()),
                     library_name=self.getLibraryName(),
                     # ncp=dat[self._modelica_tool]['ncp'],
                     # rtol=dat[self._modelica_tool]['rtol'],
