@@ -1199,7 +1199,10 @@ class Tester(object):
                 self._reporter.writeError(
                     f"{conf_file_name} specifies {con_dat['model_name']}, but there is no model file {mo_name}.")
 
-        if self._modelica_tool != 'dymola':
+        if self._modelica_tool == 'dymola':
+            for ent in self._data:
+                ent['dymola']['time_out'] = 300
+        else:  # Non-dymola
             def_dic = {}
             def_dic[self._modelica_tool] = {
                 'translate': True,
@@ -1437,7 +1440,7 @@ class Tester(object):
         :param warning: A list to which all warnings will be appended.
         :param errors: A list to which all errors will be appended.
         :return: The translation log from the `*.translation.log` file as
-        a list of dictionaries.
+        a list of dictionaries, or `None` if `*.translation.log` does not exist.
 
         Extracts and returns the translation log from the `*.translation.log` file as
         a list of dictionaries.
@@ -1446,7 +1449,10 @@ class Tester(object):
         # Get the working directory that contains the ".log" file
         fulFilNam = os.path.join(data['ResultDirectory'],
                                  self.getLibraryName(), data['dymola']['TranslationLogFile'])
-        return of.get_model_statistics(fulFilNam, self._modelica_tool)
+        if os.path.exists(fulFilNam):
+            return of.get_model_statistics(fulFilNam, self._modelica_tool)
+        else:
+            return None
 
     def _legacy_comp(self, tOld, yOld, tNew, yNew, tGriOld, tGriNew, varNam, filNam, tol):
         # Interpolate the new variables to the old time stamps
@@ -2894,23 +2900,31 @@ to access a summary of the comparison results.\n""".format(
             else:
                 key = 'FMUExport'
 
+            logFil = None
             if key in ele:
-                logFil = ele[key]["translationLog"]
-                ele[key] = self._performTranslationErrorChecks(logFil, ele[key])
-                for k, v in list(self._error_dict.get_dictionary().items()):
-                    # For OPTIMICA, we neither have simulate nor FMUExport
-                    if ele[key][k] > 0:
-                        self._reporter.writeWarning(v["model_message"].format(ele[key]["command"]))
-                        self._error_dict.increment_counter(k)
+                if "translationLog" in ele[key]:
+                    logFil = ele[key]["translationLog"]
+                    ele[key] = self._performTranslationErrorChecks(logFil, ele[key])
+                    for k, v in list(self._error_dict.get_dictionary().items()):
+                        # For OPTIMICA, we neither have simulate nor FMUExport
+                        if ele[key][k] > 0:
+                            self._reporter.writeWarning(
+                                v["model_message"].format(ele[key]["command"]))
+                            self._error_dict.increment_counter(k)
 
-            if hasTranslationError:
-                hasTranslationErrors = True
+            if hasTranslationError and logFil is not None:
                 with open(self._failed_simulator_log_file, "a") as f:
                     f.write("===============================\n")
                     f.write("=====START OF NEW LOG FILE=====\n")
                     f.write("===============================\n")
-                    with open(logFil, "r") as f2:
-                        f.write(f2.read())
+                    if os.path.exists(logFil):
+                        with open(logFil, "r") as f2:
+                            f.write(f2.read())
+                    else:
+                        # Logfile does not exists, which may be because simulation was terminated
+                        # due to time out
+                        f.write(
+                            f"Log file {logFil} does not exist, this can happen if the process was terminated due to time out.")
                     f.write("\n\n\n")
 
         if iChe > 0:
@@ -3078,11 +3092,23 @@ to access a summary of the comparison results.\n""".format(
         return key in dic and dic[key]
 
     def _write_runscript_dymola(self, iPro, tra_data_pro):
-        """Create the runAll.mos script for the current processor iPro and for Dymola,
+        """Create the run_modelName.mos scripts for the current processor iPro and for Dymola,
            and return the number of generated regression tests.
 
            :param iPro: The number of the processor.
            :param tra_data_pro: A list with the data for the experiments that require translation, for processor number iPro only.
+        """
+        import platform
+
+        for tra_data in tra_data_pro:
+            self._write_dymola_script(iPro, tra_data)
+
+    def _write_dymola_script(self, iPro, tra_data):
+        """Create the run_modelName.mos script for the current model and for Dymola,
+           and return the number of generated regression tests.
+
+           :param iPro: The number of the processor.
+           :param tra_data: Data for the experiment that requires translation, for processor number iPro only.
         """
         import platform
 
@@ -3108,17 +3134,17 @@ to access a summary of the comparison results.\n""".format(
         ##################################################################
         # Count the number of experiments that need to be simulated or exported as an FMU.
         # This is needed to properly close the json brackets.
-        nItem = 0
+#        nItem = 0
         # Count how many tests need to be simulated.
-        nTes = len(tra_data_pro)
+#        nTes = len(tra_data_pro)
         # Number of generated unit tests
-        nUniTes = 0
+#        nUniTes = 0
 
-        runFil = open(os.path.join(self._temDir[iPro], self.getLibraryName(
-        ), "runAll.mos"), mode="w", encoding="utf-8")
+        statistics_log = f"{tra_data['model_name']}.statistics.log"
+        runFil = open(os.path.join(self._temDir[iPro], self.getLibraryName(),
+                                   f"run_{tra_data['model_name']}.mos"), mode="w", encoding="utf-8")
         runFil.write(
-            f"""
-// File autogenerated for process {iPro + 1} of {self._nPro}
+            f"""// File autogenerated for process {iPro + 1} of {self._nPro}
 // File created for execution by {self._modelica_tool}. Do not edit.
 // Disable parallel computing as this can give slightly different results.
 Advanced.ParallelizeCode = false;
@@ -3153,87 +3179,85 @@ openModel("package.mo")
 Advanced.TranslationInCommandLog := true;
 // Set flag to support string parameters, which is required for the weather
 // data file.
-Modelica.Utilities.Files.remove(\"{self._simulator_log_file}\");
-Modelica.Utilities.Files.remove(\"{self._statistics_log}\");
+//Modelica.Utilities.Files.remove(\"{self._simulator_log_file}\");
+Modelica.Utilities.Files.remove(\"{statistics_log}\");
 """)
         runFil.write(r"""
 Modelica.Utilities.Streams.print("{\"testCase\" : [", "%s");
-""" % self._statistics_log)
+""" % statistics_log)
 
-        for i in range(nTes):
-            if self._isPresentAndTrue(
-                    'translate',
-                    tra_data_pro[i]['dymola']) or self._isPresentAndTrue(
-                    'exportFMU',
-                    tra_data_pro[i]['dymola']):
-                nItem = nItem + 1
-        iItem = 0
-        # Write unit tests for this process
-        for i in range(nTes):
-            # Check if this mos file should be simulated
-            if self._isPresentAndTrue(
-                    'translate',
-                    tra_data_pro[i]['dymola']) or self._isPresentAndTrue(
-                    'exportFMU',
-                    tra_data_pro[i]['dymola']):
-                isLastItem = (iItem == nItem - 1)
-                mosFilNam = os.path.join(self.getLibraryName(),
-                                         "Resources", "Scripts", "Dymola",
-                                         tra_data_pro[i]['ScriptFile'])
-                absMosFilNam = os.path.join(self._temDir[iPro], mosFilNam)
-                values = {
-                    "mosWithPath": mosFilNam.replace(
-                        "\\",
-                        "/"),
-                    "checkCommand": self._getModelCheckCommand(absMosFilNam).replace(
-                        "\\",
-                        "/"),
-                    "checkCommandString": self._getModelCheckCommand(absMosFilNam).replace(
-                        '\"',
-                        r'\\\"'),
-                    "scriptFile": tra_data_pro[i]['ScriptFile'].replace(
-                        "\\",
-                        "/"),
-                    "model_name": tra_data_pro[i]['model_name'].replace(
-                        "\\",
-                        "/"),
-                    "model_name_underscore": tra_data_pro[i]['model_name'].replace(
-                        ".",
-                        "_"),
-                    "start_time": tra_data_pro[i]['startTime'] if 'startTime' in tra_data_pro[i] else 0,
-                    "final_time": tra_data_pro[i]['stopTime'] if 'stopTime' in tra_data_pro[i] else 0,
-                    "statisticsLog": self._statistics_log.replace(
-                        "\\",
-                        "/"),
-                    "translationLog": os.path.join(
-                        self._temDir[iPro],
-                        self.getLibraryName(),
-                        tra_data_pro[i]['model_name'] +
-                        ".translation.log").replace(
-                        "\\",
-                        "/"),
-                    "simulatorLog": self._simulator_log_file.replace(
-                        "\\",
-                        "/")}
-                if 'FMUName' in tra_data_pro[i]['dymola']:
-                    values["FMUName"] = tra_data_pro[i]['dymola']['FMUName']
-             # Delete command log, model_name.simulation.log and dslog.txt
-                runFil.write(f"""
+        # if self._isPresentAndTrue(
+        #        'translate',
+        #        tra_data['dymola']) or self._isPresentAndTrue(
+        #        'exportFMU',
+        #        tra_data['dymola']):
+        #nItem = nItem + 1
+
+#        iItem = 0
+# Write unit tests for this process
+# Check if this mos file should be simulated
+        if self._isPresentAndTrue(
+                'translate',
+                tra_data['dymola']) or self._isPresentAndTrue(
+                'exportFMU',
+                tra_data['dymola']):
+            isLastItem = True  # (iItem == nItem - 1)
+            mosFilNam = os.path.join(self.getLibraryName(),
+                                     "Resources", "Scripts", "Dymola",
+                                     tra_data['ScriptFile'])
+            absMosFilNam = os.path.join(self._temDir[iPro], mosFilNam)
+            values = {
+                "libraryName": self.getLibraryName(),
+                "mosWithPath": mosFilNam.replace(
+                    "\\",
+                    "/"),
+                "checkCommand": self._getModelCheckCommand(absMosFilNam).replace(
+                    "\\",
+                    "/"),
+                "checkCommandString": self._getModelCheckCommand(absMosFilNam).replace(
+                    '\"',
+                    r'\\\"'),
+                "scriptFile": tra_data['ScriptFile'].replace(
+                    "\\",
+                    "/"),
+                "model_name": tra_data['model_name'].replace(
+                    "\\",
+                    "/"),
+                "model_name_underscore": tra_data['model_name'].replace(
+                    ".",
+                    "_"),
+                "start_time": tra_data['startTime'] if 'startTime' in tra_data else 0,
+                "final_time": tra_data['stopTime'] if 'stopTime' in tra_data else 0,
+                "statisticsLog": statistics_log,
+                "translationLog": os.path.join(
+                    self._temDir[iPro],
+                    self.getLibraryName(),
+                    tra_data['model_name'] +
+                    ".translation.log").replace(
+                    "\\",
+                    "/"),
+                "simulatorLog": self._simulator_log_file.replace(
+                    "\\",
+                    "/")}
+            if 'FMUName' in tra_data['dymola']:
+                values["FMUName"] = tra_data['dymola']['FMUName']
+         # Delete command log, model_name.simulation.log and dslog.txt
+            runFil.write(f"""
 Modelica.Utilities.Files.remove(\"{values["model_name"]}.translation.log\");
 Modelica.Utilities.Files.remove(\"dslog.txt\");
 clearlog();
 """)
-            ########################################################################
-            # Write line for model check
-            model_name = values["model_name"]
-            if model_name.startswith("Obsolete.", model_name.find(".") + 1):
-                # This model is in IBPSA.Obsolete, or Buildings.Obsolete etc.
-                values["set_non_pedantic"] = "Advanced.PedanticModelica = false;\n"
-                values["set_pedantic"] = "Advanced.PedanticModelica = true;\n"
-            else:  # Set to empty string as for non-obsolete models, we don't switch to non-pedantic mode
-                values["set_non_pedantic"] = ""
-                values["set_pedantic"] = ""
-            template = r"""
+        ########################################################################
+        # Write line for model check
+        model_name = values["model_name"]
+        if model_name.startswith("Obsolete.", model_name.find(".") + 1):
+            # This model is in IBPSA.Obsolete, or Buildings.Obsolete etc.
+            values["set_non_pedantic"] = "Advanced.PedanticModelica = false;\n"
+            values["set_pedantic"] = "Advanced.PedanticModelica = true;\n"
+        else:  # Set to empty string as for non-obsolete models, we don't switch to non-pedantic mode
+            values["set_non_pedantic"] = ""
+            values["set_pedantic"] = ""
+        template = r"""
 {set_non_pedantic}
 rCheck = {checkCommand};
 {set_pedantic}
@@ -3244,18 +3268,17 @@ Modelica.Utilities.Streams.print("        \"command\" : \"{checkCommandString};\
 Modelica.Utilities.Streams.print("        \"result\"  : " + String(rCheck), "{statisticsLog}");
 Modelica.Utilities.Streams.print("      }},", "{statisticsLog}");
 """
-            runFil.write(template.format(**values))
-            ##########################################################################
-            # Write commands for checking translation and simulation results.
-
-            # Only translation requested, but no simulation.
-            ##########################################################################
-            if self._isPresentAndTrue(
-                    'translate',
-                    tra_data_pro[i]['dymola']) and not self._isPresentAndTrue(
-                    'simulate',
-                    tra_data_pro[i]['dymola']):
-                template = r"""
+        runFil.write(template.format(**values))
+        ##########################################################################
+        # Write commands for checking translation and simulation results.
+        # Only translation requested, but no simulation.
+        ##########################################################################
+        if self._isPresentAndTrue(
+                'translate',
+                tra_data['dymola']) and not self._isPresentAndTrue(
+                'simulate',
+                tra_data['dymola']):
+            template = r"""
 {set_non_pedantic}
 retVal = translateModel("{model_name}");
 Modelica.Utilities.Streams.print("Translated {model_name} successfully: " + String(retVal));
@@ -3278,32 +3301,32 @@ else
   Modelica.Utilities.Streams.print("{model_name}.dslog.log was not generated.", "{model_name}.log");
 end if;
 """
-                runFil.write(template.format(**values))
-                template = r"""
+            runFil.write(template.format(**values))
+            template = r"""
 Modelica.Utilities.Streams.print("      \"translate\" : {{", "{statisticsLog}");
 Modelica.Utilities.Streams.print("        \"command\" :\"translateModel(\\\"{model_name}\\\");\",", "{statisticsLog}");
 Modelica.Utilities.Streams.print("        \"translationLog\"  : \"{translationLog}\",", "{statisticsLog}");
 Modelica.Utilities.Streams.print("        \"result\"  : " + String(iSuc > 0), "{statisticsLog}");
 """
-                runFil.write(template.format(**values))
-                _write_translation_stats(runFil, values)
-                _print_end_of_json(isLastItem,
-                                   runFil,
-                                   self._statistics_log)
-            # Simulation requested
-            if self._isPresentAndTrue('simulate', tra_data_pro[i]['dymola']):
-                # Remove dslog.txt, run a simulation, rename dslog.txt, and
-                # scan this log file for errors.
-                # This is needed as RunScript returns true even if the simulation failed.
-                # We read to dslog file line by line as very long files can lead to
-                # Out of memory for strings
-                # It could due to too large matrices, infinite recursion, or uninitialized variables.
-                # You can increase the size of 'Stringbuffer' in dymola/source/matrixop.h.
-                # The stack of functions is:
-                # Modelica.Utilities.Streams.readFile
-                template = r"""
+            runFil.write(template.format(**values))
+            _write_translation_stats(runFil, values)
+            _print_end_of_json(isLastItem,
+                               runFil,
+                               statistics_log)
+        # Simulation requested
+        if self._isPresentAndTrue('simulate', tra_data['dymola']):
+            # Remove dslog.txt, run a simulation, rename dslog.txt, and
+            # scan this log file for errors.
+            # This is needed as RunScript returns true even if the simulation failed.
+            # We read to dslog file line by line as very long files can lead to
+            # Out of memory for strings
+            # It could due to too large matrices, infinite recursion, or uninitialized variables.
+            # You can increase the size of 'Stringbuffer' in dymola/source/matrixop.h.
+            # The stack of functions is:
+            # Modelica.Utilities.Streams.readFile
+            template = r"""
 {set_non_pedantic}
-rScript=RunScript("Resources/Scripts/Dymola/{scriptFile}");
+rScript=RunScript("modelica://{libraryName}/Resources/Scripts/Dymola/{scriptFile}");
 {set_pedantic}
 savelog("{model_name}.translation.log");
 if Modelica.Utilities.Files.exist("dslog.txt") then
@@ -3362,10 +3385,10 @@ else
   Modelica.Utilities.Streams.print("{model_name}.dslog.log was not generated.", "{model_name}.log");
 end if;
 """
-                runFil.write(template.format(**values))
-                template = r"""
+            runFil.write(template.format(**values))
+            template = r"""
 Modelica.Utilities.Streams.print("      \"simulate\" : {{", "{statisticsLog}");
-Modelica.Utilities.Streams.print("        \"command\" : \"RunScript(\\\"Resources/Scripts/Dymola/{scriptFile}\\\");\",", "{statisticsLog}");
+Modelica.Utilities.Streams.print("        \"command\" : \"RunScript(\\\"modelica://{libraryName}/Resources/Scripts/Dymola/{scriptFile}\\\");\",", "{statisticsLog}");
 Modelica.Utilities.Streams.print("        \"translationLog\"  : \"{translationLog}\",", "{statisticsLog}");
 Modelica.Utilities.Streams.print("        \"elapsed_time\"  :" + intTim + ",", "{statisticsLog}");
 Modelica.Utilities.Streams.print("        \"jacobians\"  :" + numJac + ",", "{statisticsLog}");
@@ -3374,17 +3397,17 @@ Modelica.Utilities.Streams.print("        \"start_time\"  :" + String({start_tim
 Modelica.Utilities.Streams.print("        \"final_time\"  :" + String({final_time}) + ",", "{statisticsLog}");
 Modelica.Utilities.Streams.print("        \"result\"  : " + String(iSuc > 0), "{statisticsLog}");
 """
-                runFil.write(template.format(**values))
-                _write_translation_stats(runFil, values)
-                _print_end_of_json(isLastItem,
-                                   runFil,
-                                   self._statistics_log)
-                ##########################################################################
-                # FMU export
-            if tra_data_pro[i]['dymola']['exportFMU']:
-                template = r"""
+            runFil.write(template.format(**values))
+            _write_translation_stats(runFil, values)
+            _print_end_of_json(isLastItem,
+                               runFil,
+                               statistics_log)
+            ##########################################################################
+            # FMU export
+        if tra_data['dymola']['exportFMU']:
+            template = r"""
 Modelica.Utilities.Files.removeFile("{FMUName}");
-RunScript("Resources/Scripts/Dymola/{scriptFile}");
+RunScript("modelica://{libraryName}/Resources/Scripts/Dymola/{scriptFile}");
 savelog("{model_name}.translation.log");
 if Modelica.Utilities.Files.exist("dslog.txt") then
   Modelica.Utilities.Files.move("dslog.txt", "{model_name}.dslog.log");
@@ -3403,27 +3426,27 @@ else
   Modelica.Utilities.Streams.print("{model_name}.dslog.log was not generated.", "{model_name}.log");
 end if;
 """
-                runFil.write(template.format(**values))
-                template = r"""
+            runFil.write(template.format(**values))
+            template = r"""
 Modelica.Utilities.Streams.print("      \"FMUExport\" : {{", "{statisticsLog}");
-Modelica.Utilities.Streams.print("        \"command\" :\"RunScript(\\\"Resources/Scripts/Dymola/{scriptFile}\\\");\",", "{statisticsLog}");
+Modelica.Utilities.Streams.print("        \"command\" :\"RunScript(\\\"modelica://{libraryName}/Resources/Scripts/Dymola/{scriptFile}\\\");\",", "{statisticsLog}");
 Modelica.Utilities.Streams.print("        \"translationLog\"  : \"{translationLog}\",", "{statisticsLog}");
 Modelica.Utilities.Streams.print("        \"result\"  : " + String(iSuc > 0), "{statisticsLog}");
 """
-                runFil.write(template.format(**values))
-                _write_translation_stats(runFil, values)
-                _print_end_of_json(isLastItem,
-                                   runFil,
-                                   self._statistics_log)
+            runFil.write(template.format(**values))
+            _write_translation_stats(runFil, values)
+            _print_end_of_json(isLastItem,
+                               runFil,
+                               statistics_log)
 
-            if not (tra_data_pro[i]['dymola']['exportFMU']
-                    or tra_data_pro[i]['dymola']['translate']):
-                print(
-                    "****** {} neither requires a simulation nor an FMU export.".format(tra_data_pro[i]['ScriptFile']))
-            self._removePlotCommands(absMosFilNam)
-            self._updateResultFile(absMosFilNam, tra_data_pro[i]['model_name'])
-            nUniTes = nUniTes + 1
-            iItem = iItem + 1
+        if not (tra_data['dymola']['exportFMU']
+                or tra_data['dymola']['translate']):
+            print(
+                "****** {} neither requires a simulation nor an FMU export.".format(tra_data['ScriptFile']))
+        self._removePlotCommands(absMosFilNam)
+        self._updateResultFile(absMosFilNam, tra_data['model_name'])
+#        nUniTes = nUniTes + 1
+#        iItem = iItem + 1
 
         if platform.system() == 'Windows':
             # Reset DDE to original settings
@@ -3438,10 +3461,10 @@ Advanced.GenerateVariableDependencies = orig_Advanced_GenerateVariableDependenci
 exit();
 """)
         runFil.close()
-        return nUniTes
+        return
 
     def _write_runscripts(self):
-        """Create the runAll.mos scripts, one per processor (self._nPro).
+        """Create the run_modelName.mos scripts, one per model.
 
         The commands in the script depend on the tool: 'openmodelica', 'dymola' or 'optimica'
         """
@@ -3499,10 +3522,10 @@ exit();
 
             if self._modelica_tool == 'dymola':
                 # Case for dymola
-                nUniTes = nUniTes + self._write_runscript_dymola(iPro, tra_data_pro)
-            else:
-                # Case for non-dymola
-                nUniTes = nUniTes + self._write_runscript_non_dymola(iPro, tra_data_pro)
+                self._write_runscript_dymola(iPro, tra_data_pro)
+
+            nUniTes = nUniTes + self._write_python_runscripts(iPro, tra_data_pro)
+            self._write_run_all_script(iPro, tra_data_pro)
 
         if nUniTes == 0:
             raise RuntimeError(f"Wrong invocation, generated {nUniTes} unit tests.")
@@ -3517,8 +3540,8 @@ exit();
                 s.add(ele)
         return s
 
-    def _write_runscript_non_dymola(self, iPro, tra_data_pro):
-        """ Write the OpenModelica or OPTIMICA runfile for all experiments in tra_data_pro.
+    def _write_run_all_script(self, iPro, tra_data_pro):
+        """ Write the OpenModelica or OPTIMICA top-level runfile for all experiments in tra_data_pro.
 
         :param iPro: The number of the processor.
         :param tra_data_pro: A list with the data for the experiments that require translation, for this processor only.
@@ -3535,13 +3558,28 @@ exit();
             models_underscore = []
             for dat in tra_data_pro:
                 models_underscore.append(dat['model_name'].replace(".", "_"))
-            template = env.get_template("{}_run_all.template".format(self._modelica_tool))
+            template = env.get_template("run_all.template")
             txt = template.render(models_underscore=sorted(models_underscore))
             # for the special case that no models need to be translated (for this process)
             # we need to add a python command. Otherwise the python file is not valid.
             if (len(tra_data_pro) == 0):
                 txt += "   import os;\n"
             fil.write(txt)
+
+    def _write_python_runscripts(self, iPro, tra_data_pro):
+        """ Write the Python runfiles for all experiments in tra_data_pro.
+
+        :param iPro: The number of the processor.
+        :param tra_data_pro: A list with the data for the experiments that require translation, for this processor only.
+        """
+        import inspect
+        import buildingspy.development.regressiontest as r
+        import jinja2
+
+        directory = self._temDir[iPro]
+
+        path_to_template = os.path.dirname(inspect.getfile(r))
+        env = jinja2.Environment(loader=jinja2.FileSystemLoader(path_to_template))
 
         tem_mod = env.get_template("{}_run.template".format(self._modelica_tool))
 
@@ -3578,7 +3616,7 @@ exit();
                     time_out=dat[self._modelica_tool]['time_out'],
                     filter=filter
                 )
-            else:
+            elif self._modelica_tool == 'optimica':
                 txt = tem_mod.render(
                     model=model,
                     ncp=dat[self._modelica_tool]['ncp'],
@@ -3595,6 +3633,28 @@ exit();
                                    lambda m: '[{}]'.format(m.group()),
                                    re.sub(' ', '', x)) for x in result_variables]
                 )
+            else:  # dymola
+                # assemble command
+                cmd = list()
+                cmd.append(f"{self.getModelicaCommand()}")
+                cmd.append(f"run_{model}.mos")
+                if not self._showGUI:
+                    cmd.append("/nowindow")
+
+                txt = tem_mod.render(
+                    model=model,
+                    working_directory=os.path.join(directory, self.getLibraryName()),
+                    library_name=self.getLibraryName(),
+                    # ncp=dat[self._modelica_tool]['ncp'],
+                    # rtol=dat[self._modelica_tool]['rtol'],
+                    # solver=dat[self._modelica_tool]['solver'],
+                    # start_time='mod.get_default_experiment_start_time()',
+                    # final_time='mod.get_default_experiment_stop_time()',
+                    # simulate=dat[self._modelica_tool]['simulate'],
+                    time_out=dat[self._modelica_tool]['time_out'],
+                    cmd=cmd
+                )
+
             file_name = os.path.join(directory, "{}.py".format(model.replace(".", "_")))
             with open(file_name, mode="w", encoding="utf-8") as fil:
                 fil.write(txt)
@@ -3666,6 +3726,13 @@ exit();
     def _run_simulation_info(self):
         """ Extract simulation data from statistics.json when run unit test with dymola
         """
+
+        def _get(model, key, data):
+            for ent in data:
+                if ent['model_name'] == model:
+                    return ent[key]
+            return 0
+
         with open(self._statistics_log, 'r') as f:
             staVal = simplejson.loads(f.read())
         data = []
@@ -3680,11 +3747,13 @@ exit();
                 temp = {}
                 temp['model'] = case['model']
                 temp['simulation'] = {}
-                temp['simulation']['elapsed_time'] = case['simulate']['elapsed_time']
-                temp['simulation']['start_time'] = case['simulate']['start_time']
-                temp['simulation']['final_time'] = case['simulate']['final_time']
-                temp['simulation']['jacobians'] = case['simulate']['jacobians']
-                temp['simulation']['state_events'] = case['simulate']['state_events']
+                temp['simulation']['elapsed_time'] = case['simulate']['elapsed_time'] if 'elapsed_time' in case['simulate'] else 0
+                temp['simulation']['start_time'] = case['simulate']['start_time'] if 'start_time' in case['simulate'] else _get(
+                    case['model'], 'startTime', self._data)
+                temp['simulation']['final_time'] = case['simulate']['final_time'] if 'final_time' in case['simulate'] else _get(
+                    case['model'], 'stopTime', self._data)
+                temp['simulation']['jacobians'] = case['simulate']['jacobians'] if 'jacobians' in case['simulate'] else 0
+                temp['simulation']['state_events'] = case['simulate']['state_events'] if 'state_events' in case['simulate'] else 0
                 temp['simulation']['success'] = case['simulate']['result']
                 data.append(temp)
         dataJson = simplejson.dumps(data)
@@ -3775,18 +3844,14 @@ exit();
         tem_dir = []
         libNam = self.getLibraryName()
         for di in self._temDir:
-            if self._modelica_tool == 'dymola':
-                tem_dir.append(os.path.join(di, libNam))
-            else:
-                tem_dir.append(di)
+            # if self._modelica_tool == 'dymola':
+            #    tem_dir.append(os.path.join(di, libNam))
+            # else:
+            #    tem_dir.append(di)
+            tem_dir.append(di)
 
         if not self._useExistingResults:
-            if self._modelica_tool == 'dymola':
-                if self._showGUI:
-                    cmd = [self.getModelicaCommand(), "runAll.mos"]
-                else:
-                    cmd = [self.getModelicaCommand(), "runAll.mos", "/nowindow"]
-            elif self._modelica_tool == 'openmodelica':
+            if self._modelica_tool == 'dymola' or self._modelica_tool == 'openmodelica':
                 # OS X invokes python 2.7 if the command below is python, despite of having
                 # alias python=python3 in .bashrc.
                 # Hence, we invoke python3 for OS X.
@@ -3796,8 +3861,9 @@ exit();
                     cmd = ["python3", "./run.py"]
                 else:
                     cmd = ["python", "./run.py"]
-            elif self._modelica_tool != 'dymola':
+            else:
                 cmd = [self.getModelicaCommand(), "run.py"]
+
             if self._nPro > 1:
                 po = multiprocessing.Pool(self._nPro)
                 po.map(functools.partial(runSimulation,
@@ -3831,23 +3897,69 @@ exit();
             with open(self._statistics_log, mode="w", encoding="utf-8") as logFil:
                 stat = list()
                 for d in self._temDir:
-                    temLogFilNam = os.path.join(d, self.getLibraryName(), self._statistics_log)
-                    if os.path.exists(temLogFilNam):
-                        with open(temLogFilNam.replace('Temp\tmp', 'Temp\\tmp'), mode="r", encoding="utf-8-sig") as temSta:
-                            try:
-                                jsonLog = json.load(temSta)
-                                cas = jsonLog["testCase"]
-                                # Iterate over all test cases of this output file
-                                for ele in cas:
-                                    stat.append(ele)
-                            except ValueError as e:
-                                self._reporter.writeError(
-                                    "Decoding '%s' failed: %s" % (temLogFilNam, e))
-                                raise
-                    else:
-                        self._reporter.writeError(
-                            "Log file '" + temLogFilNam + "' does not exist.\n")
-                        retVal = 1
+                    for temLogFilNam in glob.glob(
+                            os.path.join(d, self.getLibraryName(), '*.statistics.log')):
+                        if os.path.exists(temLogFilNam):
+                            with open(temLogFilNam.replace('Temp\tmp', 'Temp\\tmp'), mode="r", encoding="utf-8-sig") as temSta:
+                                try:
+                                    jsonLog = json.load(temSta)
+                                    cas = jsonLog["testCase"]
+                                    # Iterate over all test cases of this output file
+                                    for ele in cas:
+                                        stat.append(ele)
+                                except json.decoder.JSONDecodeError as e:
+                                    # If a run timed out, then temLogFilNam is not a valid json file
+                                    # because the file is written on the fly, and dymola did not finish
+                                    # writing all of it, which results in an invalid file.
+                                    # Check if /tmp/tmp-Buildings-1-o_m7nj7p/Buildings_Examples_VAVReheat_ASHRAE2006_buildingspy.json
+                                    # exists
+                                    modelName = os.path.split(temLogFilNam)[
+                                        1].replace('.statistics.log', '')
+                                    buiLogNam = os.path.join(
+                                        d,
+                                        f"{modelName.replace('.', '_')}_buildingspy.json")
+                                    if os.path.exists(buiLogNam):
+                                        # Read the log file of the python script that invoked dymola
+                                        with open(buiLogNam, mode="r", encoding="utf-8-sig") as buiLog:
+                                            jsonBui = json.load(buiLog)
+                                            # Build up the entry for reporting the case
+                                            if "simulation" in jsonBui and "exception" in jsonBui["simulation"]:
+                                                exception = ''.join(
+                                                    jsonBui['simulation']['exception'])
+                                            else:
+                                                exception = f"JSONDecodeError in {temLogFilNam}: {str(e)}"
+                                            ele = {
+                                                "model": modelName,
+                                                "simulate": {
+                                                    "command": ''.join(
+                                                        jsonBui['simulation']['cmd']),
+                                                    "result": False,
+                                                    "exception": exception}}
+                                            self._reporter.writeError(
+                                                f"Model '{modelName}' failed: {exception}")
+                                            stat.append(ele)
+                                            # Add the failure also to self._data so that
+                                            # _checkReferencePoints is not trying to read the
+                                            # output.
+                                            for ele in self._data:
+                                                if ele['model_name'] == modelName:
+                                                    if "simulation" in ele[self._modelica_tool]:
+                                                        ele[self._modelica_tool]['simulation']['success'] = False
+                                                    else:
+                                                        ele[self._modelica_tool]['simulation'] = {
+                                                            'success': False}
+                                    else:
+                                        self._reporter.writeError(
+                                            f"Decoding '{temLogFilNam}' failed and '{buiLogNam}' does not exist: {e}")
+                                        raise
+                                except ValueError as e:
+                                    self._reporter.writeError(
+                                        "Loading '%s' failed: %s" % (temLogFilNam, e))
+                                    raise
+                        else:
+                            self._reporter.writeError(
+                                "Log file '" + temLogFilNam + "' does not exist.\n")
+                            retVal = 1
                 # Dump an array of testCase objects
                 # dump to a string first using json.dumps instead of json.dump
                 json_string = json.dumps({"testCase": stat},
