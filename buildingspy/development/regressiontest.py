@@ -3558,7 +3558,7 @@ exit();
             models_underscore = []
             for dat in tra_data_pro:
                 models_underscore.append(dat['model_name'].replace(".", "_"))
-            template = env.get_template("{}_run_all.template".format(self._modelica_tool))
+            template = env.get_template("run_all.template")
             txt = template.render(models_underscore=sorted(models_underscore))
             # for the special case that no models need to be translated (for this process)
             # we need to add a python command. Otherwise the python file is not valid.
