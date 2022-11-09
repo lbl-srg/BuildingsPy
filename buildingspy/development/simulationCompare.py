@@ -102,7 +102,9 @@ class Comparator(object):
         for case in cases:
             desDir = os.path.join(self._cwd, case['tool'], case['branch'])
             logFil = os.path.join(desDir, "comparison-%s.log" % case['tool'])
+            commitLog = os.path.join(desDir, "commit.log")
             case['name'] = logFil
+            case['commit'] = commitLog
         return cases
 
     @staticmethod
@@ -168,6 +170,9 @@ class Comparator(object):
         # copy the log files to current working directory
         logFil = "comparison-%s.log" % case['tool']
         if os.path.exists(logFil):
+            # write commit number to the commit.log file
+            with io.open(os.path.join(bdg_dir, "commit.log"), mode="w") as f:
+                f.write(case['commit'])
             logFiles = glob.iglob(os.path.join(bdg_dir, "*.log"))
             desDir = os.path.join(self._cwd, case['tool'], case['branch'])
             mkpath(desDir)
@@ -196,17 +201,17 @@ class Comparator(object):
     def _refactorLogsStructure(logs, tolAbsTime, tolRelTime):
         ''' Change the structure:
         --From--
-        "logs": [{"label": 'branch1', "log": [{"model": model1, "simulation": simulation_log},
-                                              {"model": model2, "simulation": simulation_log}]},
-                 {"label": 'branch2', "log": [{"model": model1, "simulation": simulation_log},
-                                              {"model": model2, "simulation": simulation_log}]}],
+        "logs": [{"label": 'branch1', "commit": string, "log": [{"model": model1, "simulation": simulation_log},
+                                                                {"model": model2, "simulation": simulation_log}]},
+                 {"label": 'branch2', "commit": string, "log": [{"model": model1, "simulation": simulation_log},
+                                                                {"model": model2, "simulation": simulation_log}]}],
         --To--
         "logs": [  {"model": model1,
-                    "simulation": [{"label": branch1, "log": simulation_log},
-                                   {"label": branch2, "log": simulation_log}]},
+                    "simulation": [{"label": branch1, "commit": string, "log": simulation_log},
+                                   {"label": branch2, "commit": string, "log": simulation_log}]},
                    {"model": model2,
-                    "simulation": [{"label": branch1, "log": simulation_log},
-                                   {"label": branch2, "log": simulation_log}]}  ]
+                    "simulation": [{"label": branch1, "commit": string, "log": simulation_log},
+                                   {"label": branch2, "commit": string, "log": simulation_log}]}  ]
         '''
         minLog = 0
         modelNumber = len(logs[0]['log'])
@@ -225,6 +230,7 @@ class Comparator(object):
                 for l in range(len(logs[k]['log'])):
                     if logs[k]['log'][l]['model'] == logs[minLog]['log'][j]['model']:
                         temp = {'label': logs[k]['label'],
+                                'commit': logs[k]['commit'],
                                 'log': logs[k]['log'][l]['simulation']}
                         simulation.append(temp)
             model['simulation'] = simulation
@@ -290,7 +296,7 @@ class Comparator(object):
                         filNam = os.path.join(htmlTableDir, "branches_compare_%s.html" % tool)
                         # texTab = os.path.join(latexTableDir, "branches_compare_%s.tex" % tool)
                         # generate html table content
-                        htmltext, flagModels = self._generateHtmlTable(data['logs'], 'branches')
+                        htmltext, flagModels = self._generateHtmlTable(data, 'branches')
                         Comparator._writeFile(filNam, htmltext)
                         # self._generateTexTable(texTab, flagModels)
             # generate tools comparison tables
@@ -300,7 +306,7 @@ class Comparator(object):
                         filNam = os.path.join(htmlTableDir, "tools_compare_%s.html" % branch)
                         # texTab = os.path.join(latexTableDir, "tools_compare_%s.tex" % branch)
                         # generate html table content
-                        htmltext, flagModels = self._generateHtmlTable(data['logs'], 'tools')
+                        htmltext, flagModels = self._generateHtmlTable(data, 'tools')
                         Comparator._writeFile(filNam, htmltext)
                         # self._generateTexTable(texTab, flagModels)
 
@@ -483,6 +489,8 @@ class Comparator(object):
 <script src="https://www.kryogenix.org/code/browser/sorttable/sorttable.js"></script>
 '''
 
+        # find the data logs
+        dataLogs = data['logs']
         # calculate column width
         fullLabels = self._tools if tools_or_branches == 'tools' else self._branches
         numberOfDataSet = len(fullLabels)
@@ -516,14 +524,14 @@ class Comparator(object):
         heaGro = heaGro + '''</tr>''' + os.linesep
 
         # find total number of models
-        numberOfModels = len(data)
+        numberOfModels = len(dataLogs)
 
         # write simulation logs of each model
         flagModelList = list()
         models = ''
         failedModels = list()
-        newData = list()
-        for entry in data:
+        newDataLogs = list()
+        for entry in dataLogs:
             entSim = entry['simulation']
             suc = True
             failedIn = list()
@@ -551,13 +559,40 @@ class Comparator(object):
                             failedIn.append(fulLab)
             print(f"*** testing model {entry['model']} {suc}")
             if suc:
-                newData.append(entry)
+                newDataLogs.append(entry)
             if suc is not True:
                 temp = {'model': entry['model']}
                 temp['logs'] = failedIn
                 failedModels.append(temp)
 
-        for entry in newData:
+        # find the branches and the corresponded commit
+        firstEnt = newDataLogs[0]
+        firstEntSim = firstEnt['simulation']
+        toolBranchInfo = ''
+        if tools_or_branches == 'tools':
+            branchCommit = '''branch <b>%s</b> (<code>%s</code>)''' % (data['label'], firstEntSim[0]['commit'])
+            toolsList = list()
+            for simLog in firstEntSim:
+                toolsList.append(simLog['label'])
+            tools = ', '.join(toolsList)
+            toolBranchInfo = '''<br/>
+                                <p><font size="+1.5">
+                                In %s, followings tables comparing tools: <b>%s</b>.</font>
+                                </p>
+                             ''' % (branchCommit, tools)
+        else:
+            branchCommitList = list()
+            for simLog in firstEntSim:
+                temp = '''<b>%s</b> (<code>%s</code>)''' % (simLog['label'], simLog['commit'])
+                branchCommitList.append(temp)
+            branchCommit = ', '.join(branchCommitList)
+            toolBranchInfo = '''<br/>
+                                <p><font size="+1.5">
+                                Run with <b>%s</b>, followings tables comparing branches: %s.</font>
+                                </p>
+                             ''' % (data['label'], branchCommit)
+
+        for entry in newDataLogs:
             modelData = '''<tr>''' + os.linesep
             flag = entry['flag']
             relTim = entry['relTim']
@@ -660,7 +695,7 @@ class Comparator(object):
             '''</table>'''
 
         # assemble html content
-        htmltext = '''<html>''' + os.linesep + style + failedModelsInfo + \
+        htmltext = '''<html>''' + os.linesep + style + toolBranchInfo + failedModelsInfo + \
             flagInfo + flagModels + allModelInfo + allModels + '''</html>'''
         return htmltext, sortedList
 
@@ -701,8 +736,12 @@ class Comparator(object):
 
         logs = list()
         for case in self._get_cases():
+            # find commit number
+            with io.open(case['commit'], mode="r") as f:
+                commit = f.read()
             # filter simulation log
             temp = {'branch': case['branch'],
+                    'commit': commit,
                     'tool': case['tool'],
                     'log': Comparator._sortSimulationData(case)}
             logs.append(temp)
@@ -717,6 +756,7 @@ class Comparator(object):
                 for log in logs:
                     if log['tool'] == tool:
                         branch = {'label': log['branch'],
+                                  'commit': log['commit'],
                                   'log': log['log']}
                         temp.append(branch)
                 data['logs'] = temp
@@ -735,6 +775,7 @@ class Comparator(object):
                 for log in logs:
                     if log['branch'] == branch:
                         toolLog = {'label': log['tool'],
+                                   'commit': log['commit'],
                                    'log': log['log']}
                         temp.append(toolLog)
                 data['logs'] = temp
