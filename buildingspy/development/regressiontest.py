@@ -1201,7 +1201,7 @@ class Tester(object):
 
         if self._modelica_tool == 'dymola':
             for ent in self._data:
-                ent['dymola']['time_out'] = 300
+                ent['dymola']['time_out'] = 10 #fixme 300
         else: # Non-dymola
             def_dic = {}
             def_dic[self._modelica_tool] = {
@@ -1441,7 +1441,7 @@ class Tester(object):
         :param warning: A list to which all warnings will be appended.
         :param errors: A list to which all errors will be appended.
         :return: The translation log from the `*.translation.log` file as
-        a list of dictionaries.
+        a list of dictionaries, or `None` if `*.translation.log` does not exist.
 
         Extracts and returns the translation log from the `*.translation.log` file as
         a list of dictionaries.
@@ -1450,7 +1450,10 @@ class Tester(object):
         # Get the working directory that contains the ".log" file
         fulFilNam = os.path.join(data['ResultDirectory'],
                                  self.getLibraryName(), data['dymola']['TranslationLogFile'])
-        return of.get_model_statistics(fulFilNam, self._modelica_tool)
+        if os.path.exists(fulFilNam):
+            return of.get_model_statistics(fulFilNam, self._modelica_tool)
+        else:
+            return None
 
     def _legacy_comp(self, tOld, yOld, tNew, yNew, tGriOld, tGriNew, varNam, filNam, tol):
         # Interpolate the new variables to the old time stamps
@@ -2898,23 +2901,28 @@ to access a summary of the comparison results.\n""".format(
             else:
                 key = 'FMUExport'
 
+            logFil = None
             if key in ele:
-                logFil = ele[key]["translationLog"]
-                ele[key] = self._performTranslationErrorChecks(logFil, ele[key])
-                for k, v in list(self._error_dict.get_dictionary().items()):
-                    # For OPTIMICA, we neither have simulate nor FMUExport
-                    if ele[key][k] > 0:
-                        self._reporter.writeWarning(v["model_message"].format(ele[key]["command"]))
-                        self._error_dict.increment_counter(k)
+                if "translationLog" in ele[key]:
+                    logFil = ele[key]["translationLog"]
+                    ele[key] = self._performTranslationErrorChecks(logFil, ele[key])
+                    for k, v in list(self._error_dict.get_dictionary().items()):
+                        # For OPTIMICA, we neither have simulate nor FMUExport
+                        if ele[key][k] > 0:
+                            self._reporter.writeWarning(v["model_message"].format(ele[key]["command"]))
+                            self._error_dict.increment_counter(k)
 
-            if hasTranslationError:
-                hasTranslationErrors = True
+            if hasTranslationError and logFil is not None:
                 with open(self._failed_simulator_log_file, "a") as f:
                     f.write("===============================\n")
                     f.write("=====START OF NEW LOG FILE=====\n")
                     f.write("===============================\n")
-                    with open(logFil, "r") as f2:
-                        f.write(f2.read())
+                    if os.path.exists(logFil):
+                        with open(logFil, "r") as f2:
+                            f.write(f2.read())
+                    else:
+                        # Logfile does not exists, which may be because simulation was terminated due to time out
+                        f.write(f"Log file {logFil} does not exist, this can happen if the process was terminated due to time out.")
                     f.write("\n\n\n")
 
         if iChe > 0:
@@ -3717,6 +3725,13 @@ exit();
     def _run_simulation_info(self):
         """ Extract simulation data from statistics.json when run unit test with dymola
         """
+
+        def _get(model, key, data):
+            for ent in data:
+                if ent['model_name'] == model:
+                    return ent[key]
+            return 0
+
         with open(self._statistics_log, 'r') as f:
             staVal = simplejson.loads(f.read())
         data = []
@@ -3731,11 +3746,11 @@ exit();
                 temp = {}
                 temp['model'] = case['model']
                 temp['simulation'] = {}
-                temp['simulation']['elapsed_time'] = case['simulate']['elapsed_time']
-                temp['simulation']['start_time'] = case['simulate']['start_time']
-                temp['simulation']['final_time'] = case['simulate']['final_time']
-                temp['simulation']['jacobians'] = case['simulate']['jacobians']
-                temp['simulation']['state_events'] = case['simulate']['state_events']
+                temp['simulation']['elapsed_time'] = case['simulate']['elapsed_time'] if 'elapsed_time' in case['simulate'] else 0
+                temp['simulation']['start_time'] = case['simulate']['start_time'] if 'start_time' in case['simulate'] else _get(case['model'], 'startTime', self._data)
+                temp['simulation']['final_time'] = case['simulate']['final_time'] if 'final_time' in case['simulate'] else _get(case['model'], 'stopTime', self._data)
+                temp['simulation']['jacobians'] = case['simulate']['jacobians'] if 'jacobians' in case['simulate'] else 0
+                temp['simulation']['state_events'] = case['simulate']['state_events'] if 'state_events' in case['simulate'] else 0
                 temp['simulation']['success'] = case['simulate']['result']
                 data.append(temp)
         dataJson = simplejson.dumps(data)
@@ -3889,9 +3904,50 @@ exit();
                                         # Iterate over all test cases of this output file
                                         for ele in cas:
                                             stat.append(ele)
+                                    except json.decoder.JSONDecodeError as e:
+                                        # If a run timed out, then temLogFilNam is not a valid json file
+                                        # because the file is written on the fly, and dymola did not finish
+                                        # writing all of it, which results in an invalid file.
+                                        # Check if /tmp/tmp-Buildings-1-o_m7nj7p/Buildings_Examples_VAVReheat_ASHRAE2006_buildingspy.json
+                                        # exists
+                                        modelName = os.path.split(temLogFilNam)[1].replace('.statistics.log', '')
+                                        buiLogNam = os.path.join(
+                                           d,
+                                           f"{modelName.replace('.', '_')}_buildingspy.json")
+                                        if os.path.exists(buiLogNam):
+                                            # Read the log file of the python script that invoked dymola
+                                            with open(buiLogNam, mode="r", encoding="utf-8-sig") as buiLog:
+                                                jsonBui = json.load(buiLog)
+                                                # Build up the entry for reporting the case
+                                                if "simulation" in jsonBui and "exception" in jsonBui["simulation"]:
+                                                    exception = ''.join(jsonBui['simulation']['exception'])
+                                                else:
+                                                    exception = f"JSONDecodeError in {temLogFilNam}: {str(e)}"
+                                                ele = {
+                                                    "model": modelName,
+                                                    "simulate": {
+                                                        "command": ''.join(jsonBui['simulation']['cmd']),
+                                                        "result": False,
+                                                        "exception": exception
+                                                    }
+                                                }
+                                                self._reporter.writeError(
+                                                    f"Model '{modelName}' failed: {exception}")
+                                                stat.append(ele)
+                                                # Add the failure also to self._data so that _checkReferencePoints is not trying to read the output.
+                                                for ele in self._data:
+                                                    if ele['model_name'] == modelName:
+                                                        if "simulation" in ele[self._modelica_tool]:
+                                                            ele[self._modelica_tool]['simulation']['success'] = False
+                                                        else:
+                                                            ele[self._modelica_tool]['simulation'] = {'success': False}
+                                        else:
+                                            self._reporter.writeError(
+                                                f"Decoding '{temLogFilNam}' failed and '{buiLogNam}' does not exist: {e}")
+                                            raise
                                     except ValueError as e:
                                         self._reporter.writeError(
-                                            "Decoding '%s' failed: %s" % (temLogFilNam, e))
+                                            "Loading '%s' failed: %s" % (temLogFilNam, e))
                                         raise
                             else:
                                 self._reporter.writeError(
