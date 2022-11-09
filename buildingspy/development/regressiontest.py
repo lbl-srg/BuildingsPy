@@ -1201,7 +1201,7 @@ class Tester(object):
 
         if self._modelica_tool == 'dymola':
             for ent in self._data:
-                ent['dymola']['time_out'] = 10  # fixme 300
+                ent['dymola']['time_out'] = 300
         else:  # Non-dymola
             def_dic = {}
             def_dic[self._modelica_tool] = {
