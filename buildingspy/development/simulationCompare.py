@@ -706,7 +706,6 @@ class Comparator(object):
                     'tool': case['tool'],
                     'log': Comparator._sortSimulationData(case)}
             logs.append(temp)
-
         toolsCompare = list()
         branchesCompare = list()
 
@@ -743,5 +742,4 @@ class Comparator(object):
             # refactor data structure
             toolsData = Comparator._refactorDataStructure(toolsCompare, _tolAbsTime, _tolRelTime)
             # generate html table file
-            # print(toolsData)
             self._generateTable(toolsData)
