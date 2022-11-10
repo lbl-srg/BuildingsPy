@@ -37,6 +37,8 @@ class Comparator(object):
                  Set to ``0`` to use all processors.
     :param tolAbsTim: float (default ``0.1``). Absolute tolerance in time, if exceeded, results will be flagged in summary table.
     :param tolRelTim: float (default ``0.1``). Relative tolerance in time, if exceeded, results will be flagged in summary table.
+    :param postCloneCommand: list. A list of a command and its arguments that is run after cloning the repository. The command is run from
+           the root folder inside the repository, e.g., the folder that contains the ``.git`` folder.
 
     This class can be used to compare translation and simulation statistics across tools and branches.
     Note that only one simulation is done, hence the simulation time can vary from one run to another,
@@ -77,7 +79,8 @@ class Comparator(object):
             nPro=0,
             simulate=True,
             tolAbsTime=0.1,
-            tolRelTime=0.1):
+            tolRelTime=0.1,
+            postCloneCommand = None):
 
         self._cwd = os.getcwd()
         self._tools = tools
@@ -88,6 +91,7 @@ class Comparator(object):
         self._tolAbsTime = tolAbsTime
         self._tolRelTime = tolRelTime
         self._generate_tables = True
+        self._postCloneCommand = postCloneCommand
 
     def _get_cases(self):
         ''' Set up simulation cases.
@@ -115,10 +119,19 @@ class Comparator(object):
         print("Created directory {}".format(worDir))
         return worDir
 
+    def _runPostCloneCommand(self, working_directory):
+        import subprocess
+        if self._postCloneCommand is not None:
+            print(f"*** Running {' '.join(self._postCloneCommand)} in '{working_directory}")
+            retArg = subprocess.run(self._postCloneCommand, cwd=working_directory)
+            if retArg.returncode != 0:
+                print(f"*** Error: Command {' '.join(self._postCloneCommand)} in '{working_directory} returned {retArg.returncode}.")
+
+
     def _clone_repository(self, working_directory):
         '''Clone or copy repository to working directory'''
 #        if from_git_hub:
-        print(f'*** Cloning repository {self._lib_src}')
+        print(f'*** Cloning repository {self._lib_src} in {working_directory}')
         git.Repo.clone_from(self._lib_src, working_directory)
 #        else:
 #            shutil.rmtree(working_directory)
@@ -707,6 +720,7 @@ class Comparator(object):
         '''
         lib_dir = self._create_and_return_working_directory()
         self._clone_repository(lib_dir)
+        self._runPostCloneCommand(lib_dir)
         for case in cases:
             d = self._checkout_branch(lib_dir, case['branch'])
             case['commit'] = d['commit']
