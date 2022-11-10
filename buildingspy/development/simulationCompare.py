@@ -154,7 +154,7 @@ class Comparator(object):
         else:
             num_pro = f"-n {self._nPro}"
 
-        command = f"../bin/runUnitTests.py {single_package} {num_pro} -t {tool} --batch --skip-verification"
+        command = f"../bin/runUnitTests.py {single_package} {num_pro} -t {tool} --batch"
         try:
             os.system(command)
         except OSError:
@@ -569,25 +569,29 @@ class Comparator(object):
         firstEntSim = firstEnt['simulation']
         toolBranchInfo = ''
         if tools_or_branches == 'tools':
-            branchCommit = '''branch <b>%s</b> (<code>%s</code>)''' % (data['label'], firstEntSim[0]['commit'])
+            commitText = f'<a href="{self._lib_src}/tree/{firstEntSim[0]["commit"]}">{firstEntSim[0]["commit"]}</a>' \
+                if self._lib_src[0:5] == "https" else f'<code>{firstEntSim[0]["commit"]}</code>'
+            branchCommit = '''Branch <b>%s</b> (%s)''' % (data['label'], commitText)
             toolsList = list()
             for simLog in firstEntSim:
                 toolsList.append(simLog['label'])
             tools = ', '.join(toolsList)
             toolBranchInfo = '''<br/>
                                 <p><font size="+1.5">
-                                In %s, followings tables comparing tools: <b>%s</b>.</font>
+                                %s,<br/>comparing tools: <b>%s</b>.</font>
                                 </p>
                              ''' % (branchCommit, tools)
         else:
             branchCommitList = list()
             for simLog in firstEntSim:
-                temp = '''<b>%s</b> (<code>%s</code>)''' % (simLog['label'], simLog['commit'])
+                commitText = f'<a href="{self._lib_src}/tree/{simLog["commit"]}">{simLog["commit"]}</a>' \
+                if self._lib_src[0:5] == "https" else f'<code>{simLog["commit"]}</code>'
+                temp = '''<b>%s</b> (%s)''' % (simLog['label'], commitText)
                 branchCommitList.append(temp)
-            branchCommit = ', '.join(branchCommitList)
+            branchCommit = ',<br/>'.join(branchCommitList)
             toolBranchInfo = '''<br/>
                                 <p><font size="+1.5">
-                                Run with <b>%s</b>, followings tables comparing branches: %s.</font>
+                                Run with <b>%s</b>,<br/>comparing branches:<br/>%s.</font>
                                 </p>
                              ''' % (data['label'], branchCommit)
 
