@@ -154,7 +154,7 @@ class Comparator(object):
         else:
             num_pro = f"-n {self._nPro}"
 
-        command = f"../bin/runUnitTests.py {single_package} {num_pro} -t {tool} --batch"
+        command = f"../bin/runUnitTests.py {single_package} {num_pro} -t {tool} --batch --skip-verification"
         try:
             os.system(command)
         except OSError:
