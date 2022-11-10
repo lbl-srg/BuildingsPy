@@ -557,7 +557,6 @@ class Comparator(object):
                     for fulLab in fullLabels:
                         if fulLab not in sucLab:
                             failedIn.append(fulLab)
-            print(f"*** testing model {entry['model']} {suc}")
             if suc:
                 newDataLogs.append(entry)
             if suc is not True:
