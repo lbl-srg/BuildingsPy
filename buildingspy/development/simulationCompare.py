@@ -80,7 +80,7 @@ class Comparator(object):
             simulate=True,
             tolAbsTime=0.1,
             tolRelTime=0.1,
-            postCloneCommand = None):
+            postCloneCommand=None):
 
         self._cwd = os.getcwd()
         self._tools = tools
@@ -125,8 +125,8 @@ class Comparator(object):
             print(f"*** Running {' '.join(self._postCloneCommand)} in '{working_directory}")
             retArg = subprocess.run(self._postCloneCommand, cwd=working_directory)
             if retArg.returncode != 0:
-                print(f"*** Error: Command {' '.join(self._postCloneCommand)} in '{working_directory} returned {retArg.returncode}.")
-
+                print(
+                    f"*** Error: Command {' '.join(self._postCloneCommand)} in '{working_directory} returned {retArg.returncode}.")
 
     def _clone_repository(self, working_directory):
         '''Clone or copy repository to working directory'''
@@ -549,13 +549,15 @@ class Comparator(object):
             suc = True
             failedIn = list()
             if (len(entSim) == numberOfDataSet):
-                # the model has been translated by all tools/in all branches so it has fully set of simulation log, but it may not be simulated successfully.
+                # the model has been translated by all tools/in all branches so it has
+                # fully set of simulation log, but it may not be simulated successfully.
                 for simLog in entSim:
                     suc = suc and simLog['log']['success']
                     if simLog['log']['success'] is not True:
                         failedIn.append(simLog['label'])
             else:
-                # the model is not translated by one/more tools or in one/more branches so it does not have fully set of simulation log.
+                # the model is not translated by one/more tools or in one/more branches so
+                # it does not have fully set of simulation log.
                 suc = False
                 if (len(entSim) == 0):
                     tmp = ' ,'.join(fullLabels)
@@ -598,7 +600,7 @@ class Comparator(object):
             branchCommitList = list()
             for simLog in firstEntSim:
                 commitText = f'<a href="{self._lib_src}/tree/{simLog["commit"]}">{simLog["commit"]}</a>' \
-                if self._lib_src[0:5] == "https" else f'<code>{simLog["commit"]}</code>'
+                    if self._lib_src[0:5] == "https" else f'<code>{simLog["commit"]}</code>'
                 temp = '''<b>%s</b> (%s)''' % (simLog['label'], commitText)
                 branchCommitList.append(temp)
             branchCommit = ',<br/>'.join(branchCommitList)
