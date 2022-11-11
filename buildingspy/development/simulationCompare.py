@@ -47,24 +47,32 @@ class Comparator(object):
     To run the comparison, type
 
        >>> import os
-       >>> import buildingspy.development.simulationCompare as s
+       >>> import buildingspy.development.simulationCompare as sc
        >>> s = sc.Comparator(
-             tools=['dymola', 'openmodelica'],
-             branches=['master'],
-             package='Buildings',
-             repo='https://github.com/lbl-srg/modelica-buildings')
+       ...   tools=['dymola', 'openmodelica'],
+       ...   branches=['master'],
+       ...   package='Buildings',
+       ...   repo='https://github.com/lbl-srg/modelica-buildings',
+       ...   postCloneCommand=[
+       ...      "python",
+       ...      "Buildings/Resources/src/ThermalZones/install.py",
+       ...      "--binaries-for-os-only"])
        >>> s.run()                                           # doctest: +SKIP
 
 
     To change the comparison for different tolerances without running the simulations again, type
 
        >>> import os
-       >>> import buildingspy.development.simulationCompare as s
-       >>> s = sc.Comparison(
-             tools=['dymola', 'openmodelica'],
-             branches=['master'],
-             package='Buildings',
-             repo='https://github.com/lbl-srg/modelica-buildings')
+       >>> import buildingspy.development.simulationCompare as sc
+       >>> s = sc.Comparator(
+       ...   tools=['dymola', 'openmodelica'],
+       ...   branches=['master'],
+       ...   package='Buildings',
+       ...   repo='https://github.com/lbl-srg/modelica-buildings',
+       ...   postCloneCommand=[
+       ...      "python",
+       ...      "Buildings/Resources/src/ThermalZones/install.py",
+       ...      "--binaries-for-os-only"])
        >>> s.post_process(tolAbsTime=0.2, tolRelTime=0.2)     # doctest: +SKIP
 
 
