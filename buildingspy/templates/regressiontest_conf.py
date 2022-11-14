@@ -5,7 +5,8 @@
         "schema": {
             "translate": {"type": "boolean"},
             "simulate": {"type": "boolean"},
-            "comment": {"type": "string"}
+            "comment": {"type": "string"},
+            "time_out": {"type": "number"}
         }
     },
     "optimica": {
@@ -16,7 +17,8 @@
             "comment": {"type": "string"},
             "solver": {"type": "string"},
             "rtol": {"type": "number"},
-            "ncp": {"type": "integer", "min": 500}
+            "ncp": {"type": "integer", "min": 500},
+            "time_out": {"type": "number"}
         }
     },
     "openmodelica": {
@@ -27,7 +29,8 @@
             "comment": {"type": "string"},
             "solver": {"type": "string"},
             "rtol": {"type": "number"},
-            "ncp": {"type": "integer", "min": 500}
+            "ncp": {"type": "integer", "min": 500},
+            "time_out": {"type": "number"}
         }
     }
 }

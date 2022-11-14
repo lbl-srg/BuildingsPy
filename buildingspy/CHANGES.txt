@@ -3,6 +3,11 @@ BuildingsPy Changelog
 
 Version 4.x.x, xxx -- Release 4.0
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- Added class buildingspy.development.simulationCompare that compares
+  the simulation performance across tools or git branches.
+  (https://github.com/lbl-srg/BuildingsPy/issues/492)
+- Refactored regression tests for Dymola to allow specifying a time out for each tests, and set the default time out to 300 seconds.
+  (https://github.com/lbl-srg/BuildingsPy/issues/495)
 - Add option to exclude simulation of models from Dymola CI tests.
   (https://github.com/lbl-srg/BuildingsPy/pull/486)
 
