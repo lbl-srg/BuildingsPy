@@ -34,6 +34,7 @@ clean:
 
 html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
+	@echo "Deleting stray html pull down menu"
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."
 
