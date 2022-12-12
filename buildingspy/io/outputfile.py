@@ -143,7 +143,10 @@ def get_errors_and_warnings(log_file, simulator):
         elif lin.find(ERR) >= 0:
             listErr.append(lines[index + 1].strip())
         elif simulator == "dymola" and lin == " = false\n":
-            listErr.append("Log file contained the line ' = false'")
+            em = "Log file contained the line ' = false'"
+            if index > 0:
+                em = f"{em}. Preceeding line: '{lin[index-1]}'"
+            listErr.append(em)
 
     ret["warnings"] = listWarn
     ret["errors"] = listErr
@@ -165,9 +168,9 @@ class Reader(object):
     def __init__(self, fileName, simulator):
         import os
 
-        if simulator not in ['openmodelica', 'dymola', 'optimica', 'jmodelica']:
+        if simulator not in ['openmodelica', 'dymola', 'optimica']:
             raise ValueError(
-                'Argument "simulator" needs to be set to "openmodelica", "dymola", "optimica" or "jmodelica".')
+                'Argument "simulator" needs to be set to "openmodelica", "dymola" or "optimica".')
 
         if not os.path.isfile(fileName):
             raise FileNotFoundError(f"File {os.path.abspath(fileName)} does not exist.")

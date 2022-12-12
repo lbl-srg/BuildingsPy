@@ -1,5 +1,24 @@
 BuildingsPy Changelog
 ---------------------
+
+Version 4.x.x, xxx -- Release 4.0
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- Added class buildingspy.development.simulationCompare that compares
+  the simulation performance across tools or git branches.
+  (https://github.com/lbl-srg/BuildingsPy/issues/492)
+- Refactored regression tests for Dymola to allow specifying a time out for each tests, and set the default time out to 300 seconds.
+  (https://github.com/lbl-srg/BuildingsPy/issues/495)
+- Add option to exclude simulation of models from Dymola CI tests.
+  (https://github.com/lbl-srg/BuildingsPy/pull/486)
+
+Version 4.0.0, May 12, 2022 -- Release 4.0
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- Removed JModelica support, and added support for new OPTIMICA compile_fmu API.
+  (https://github.com/lbl-srg/BuildingsPy/pull/480)
+- For simulation and unit tests, updated the API for OPTIMICA to the one used in oct-2022-05-09-master-4b0cd2bf71
+  (https://github.com/lbl-srg/BuildingsPy/issues/479)
+- For simulation, corrected a bug that led to an error message when a model from the Modelica Standard Library is simulated
+  (https://github.com/lbl-srg/BuildingsPy/issues/472)
 - For unit tests, enabled option to run tests with OpenModelica.
   This change also allows specifying the test configuration in the more concise
   conf.yml rather than conf.json file.

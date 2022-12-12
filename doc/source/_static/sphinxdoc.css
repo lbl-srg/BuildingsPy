@@ -46,11 +46,8 @@ html {
 
 body {
     font-size: 14px;
-// this looks cramped on Ubuntu  letter-spacing: -0.01em;
     line-height: 150%;
     color: #022e4d;
-//    border: 1px solid #022e4d;
-//    background-color: #BFD1D4;
     text-align: left;
     margin-left: auto;
     margin-right: auto;
@@ -58,6 +55,10 @@ body {
     margin-bottom: 0px;
 
     width: 870px;
+}
+
+.nav-item{
+    font-size: 0;
 }
 
 /* Center images */
@@ -73,6 +74,11 @@ div.headerStyle{
     text-align: left;
     padding: 10px 10px 15px 15px;
     box-shadow: 2px -2px 10px 0px rgba(0,0,0,0.4);
+}
+
+div.headerStyle img{
+   left: 10px;
+   height: 80px;
 }
 
 div.document {
@@ -97,10 +103,10 @@ div.related {
 }
 
 /* Highlight class names in python documentation */
-.class dt  {
+.class dt.sig, dt.sig-object  {
     background-color: #BFD1D4;
 }
-/* Don't highlight method names in python documentation */
+/* Method names in python documentation */
 .class .method dt, .class .staticmethod dt  {
     background-color: white;
 }
@@ -218,7 +224,9 @@ h1 {
 h2 {
     margin: 1.3em 0 0.2em 0;
     font-size: 1.35em;
-    padding: 0;
+    padding: 0.1em;
+    background-color: #022e4d;
+    color: white;
 }
 
 h3 {
@@ -284,7 +292,7 @@ tt.descname, tt.descclassname, tt.xref {
 span.pre{
     border: 0;
     color: #750000;
-    background-color: white;
+    /*background-color: white;*/
 }
 
 hr {

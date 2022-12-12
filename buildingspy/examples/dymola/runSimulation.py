@@ -29,17 +29,19 @@ def main():
     li = []
     # First model, from Modelica Buildings Library, v7.0.0
     model = 'Buildings.Controls.Continuous.Examples.PIDHysteresis'
-    s = Simulator(model, 'case1')
+    s = Simulator(model, outputDirectory='case1')
     s.addParameters({'con.eOn': 0.1})
     li.append(s)
     # second model
-    s = Simulator(model, 'case2')
+    s = Simulator(model, outputDirectory='case2')
     s.addParameters({'con.eOn': 1})
     li.append(s)
 
     # Run all cases in parallel
     po = Pool()
     po.map(simulateCase, li)
+    po.close()
+    po.join()
 
     # Clean up
     shutil.rmtree('case1')

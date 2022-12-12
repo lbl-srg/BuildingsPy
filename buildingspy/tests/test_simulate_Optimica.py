@@ -80,6 +80,23 @@ class Test_simulate_Simulator(unittest.TestCase):
         s = Simulator("MyModelicaLibrary.MyModel", packagePath=self._packagePath)
         s.translate()
 
+    def test_simulate_user_library(self):
+        """
+        Tests simulating a model from the Modelica Standard Library.
+
+        """
+        s = Simulator("MyModelicaLibrary.MyModel", packagePath=self._packagePath)
+        s.simulate()
+
+    def test_simulate_msl(self):
+        """
+        Tests simulating a model from the Modelica Standard Library.
+
+        This test is for https://github.com/lbl-srg/BuildingsPy/issues/472
+        """
+        s = Simulator("Modelica.Blocks.Examples.PID_Controller")
+        s.simulate()
+
     def test_addMethods(self):
         """
         Tests the various add methods.
