@@ -1903,7 +1903,7 @@ class Tester(object):
         import json
 
         with open(refFilNam, mode="w", encoding="utf-8") as f:
-            f.write('last-generated=' + str(date.today()) + '\n')
+#            f.write('last-generated=' + str(date.today()) + '\n')
             for stage in ['initialization', 'simulation', 'fmu-dependencies']:
                 if stage in y_tra:
                     # f.write('statistics-%s=\n%s\n' % (stage, _pretty_print(y_tra[stage])))
@@ -2840,7 +2840,8 @@ class Tester(object):
                                         else:
                                             self._reporter.writeError(
                                                 "Did not write new reference file %s." % oldRefFulFilNam)
-                        if updateReferenceData:    # If the reference data of any variable was updated
+
+                        if updateReferenceData or self._OCT_VERIFICATION:    # If the reference data of any variable was updated
                             # Make dictionary to save the results
                             self._writeReferenceResults(oldRefFulFilNam, y_sim, y_tra)
                             if not self._OCT_VERIFICATION:
