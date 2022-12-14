@@ -2818,9 +2818,9 @@ class Tester(object):
                                 # add all names since we do not have any reference results yet
                                 for pai in y_sim:
                                     t_ref = pai["time"]
-                                noOldResults = noOldResults + list(pai.keys())
+                                    noOldResults = noOldResults + list(pai.keys())
 
-                                if not self._OCT_VERIFICATION and not (self._batch or ans == "Y" or ans == "N"):
+                                if not (self._batch or ans == "Y" or ans == "N" or self._OCT_VERIFICATION):
                                     if t_ref is None:
                                         self._reporter.writeError(
                                             f"Test case {refFilNam} has no simulation output to compare. You need to add at least one variable to compare.")
