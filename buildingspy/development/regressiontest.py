@@ -2841,7 +2841,10 @@ class Tester(object):
                                             self._reporter.writeError(
                                                 "Did not write new reference file %s." % oldRefFulFilNam)
 
-                        if updateReferenceData or self._OCT_VERIFICATION:    # If the reference data of any variable was updated
+                        if updateReferenceData or self._OCT_VERIFICATION and (y_tra is not None):
+                            # If the reference data of any variable was updated.
+                            # If run with self._OCT_VERIFICATION, if a simulation fails, y_tra is None
+                            # but updateReferenceData is always true. Hence the check on y_tra.
                             # Make dictionary to save the results
                             self._writeReferenceResults(oldRefFulFilNam, y_sim, y_tra)
                             if not self._OCT_VERIFICATION:
