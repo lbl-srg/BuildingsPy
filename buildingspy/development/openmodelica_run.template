@@ -53,7 +53,7 @@ setCommandLineOptions("-d=discreteinfo");
 setCommandLineOptions("-d=stateselection");
 setMatchingAlgorithm("PFPlusExt");
 setIndexReductionMethod("dynamicStateSelection");
-loadFile("{{ library_name }}/package.mo");
+loadFile("{{ package_path }}/package.mo");
 translated := translateModel({model}, method="{{ solver }}", tolerance={{ rtol }}, numberOfIntervals={{ ncp }}, variableFilter="{{ filter }}");
 getErrorString();
 

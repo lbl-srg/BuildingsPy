@@ -195,6 +195,8 @@ class Simulator(bs._BaseSimulator):
 
         file_name = "{}.py".format(self.modelName.replace(".", "_"))
 ##        self._time_stamp_old_files = datetime.datetime.now()
+        print(f"**** Writing openmodelica script {file_name}")
+        print(f"*** Working directory is {worDir}")
         with open(os.path.join(worDir, file_name), mode="w", encoding="utf-8") as fil:
             path_to_template = os.path.join(
                 os.path.dirname(__file__), os.path.pardir, "development")
@@ -203,8 +205,10 @@ class Simulator(bs._BaseSimulator):
             template = env.get_template("openmodelica_run.template")
 
             txt = template.render(
-                library_name=self.getLibraryName(),
+                library_name=self.modelName.split(".")[0],
+                package_path=self.getPackagePath(),
                 model=self.modelName,
+                model_modifier=model_modifier,
                 working_directory=worDir,
                 ncp=self._simulator_.get('numberOfIntervals'),
                 rtol=self._simulator_.get('eps'),
@@ -220,11 +224,6 @@ class Simulator(bs._BaseSimulator):
                 #generate_html_diagnostics=self._generate_html_diagnostics,
                 #debug_solver=self._debug_solver,
                 #debug_solver_interactive_mode=self._debug_solver_interactive_mode
-                )
-            print(f"Todo: finish implementation of render.")
-            txt = template.render(
-                model=self.modelName,
-                model_modifier=model_modifier,
                 )
 
             fil.write(txt)

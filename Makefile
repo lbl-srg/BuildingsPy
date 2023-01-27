@@ -68,6 +68,12 @@ unittest_io_postprocess:
 unittest_simulate_Dymola:
 	python3 buildingspy/tests/test_simulate_Dymola.py
 
+unittest_simulate_OpenModelica:
+	python3 buildingspy/tests/test_simulate_OpenModelica.py
+
+singleTest:
+	python3 buildingspy/tests/test_simulate_OpenModelica.py Test_simulate_Simulator.test_translate
+
 unittest_simulate_Optimica:
 	python3 buildingspy/tests/test_simulate_Optimica.py
 

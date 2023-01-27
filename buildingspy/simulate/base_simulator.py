@@ -381,6 +381,7 @@ class _BaseSimulator(object):
             osEnv = self.prependToModelicaPath(osEnv, os.path.abspath("."))
         else:
             osEnv = self.prependToModelicaPath(osEnv, os.path.dirname(self._packagePath))
+            print(f"*** fixme: osEnv is equal to {osEnv}")
 
         # Run command
         try:
