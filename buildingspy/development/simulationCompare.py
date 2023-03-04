@@ -260,22 +260,6 @@ class Comparator(object):
             if suc is not True:
                 refactoredLogs.append(model)
                 continue
-            # find the maximum simulation time
-            t_0 = model['simulation'][0]['log']['elapsed_time']
-            t_max = t_0
-            relTim = 0
-            relTim = 0
-            for m in range(1, len(model['simulation'])):
-                elaTim = model['simulation'][m]['log']['elapsed_time']
-                if t_0 > 1E-10:
-                    relTim = elaTim / t_0
-                if elaTim > t_max:
-                    t_max = elaTim
-            # check if the model should be flagged as the simulation times are
-            # significantly different between different tools or branches
-            if t_max > tolAbsTime and abs(1 - relTim) > tolRelTime:
-                model['flag'] = True
-            model['relTim'] = relTim
             refactoredLogs.append(model)
         return refactoredLogs
 
@@ -304,7 +288,35 @@ class Comparator(object):
 
     def _generateTable(self, dataSet):
         ''' Generate html table and write it to file
+
+            The dataSet has structure as:
+            [
+                {
+                    'label': 'tool_name' (or 'branch_name'),   // 'dymola' (or 'master')
+                    'logs': [
+                        {
+                            'model': 'model1',
+                            'simulation': [
+                                {
+                                    'label': 'branch_name' (or 'tool_name'),   // 'master' (or 'dymola')
+                                    'commit': 'commit #',
+                                    'log': {
+                                        'cpu_time': , 
+                                        'elapsed_time': ,
+                                        'final_time': ,
+                                        'jacobians': ,
+                                        'start_time': ,
+                                        'state_events': ,
+                                        'success': 
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
         '''
+
         htmlTableDir = os.path.join(self._cwd, 'results', 'html')
         mkpath(htmlTableDir)
         # latexTableDir = os.path.join(self._cwd, 'results', 'latex')
@@ -486,6 +498,44 @@ class Comparator(object):
                     style = 'r-8'
         return style
 
+    @staticmethod
+    def _add_flag(sim, log, tolAbsTime, tolRelTime):
+        ''' Add flag to show if one model has significantly different simulation time among different tools or branches
+        '''
+        relTim = 0
+        log['flag'] = False
+        if (len(sim) > 1):
+            if (sim[0]['log']['success'] and sim[1]['log']['success']):
+                t_0 = sim[0]['log']['elapsed_time']
+                t_1 = sim[1]['log']['elapsed_time']
+                t_max = max(t_0, t_1)
+                if (t_0 > 1E-10):
+                    relTim = t_1 / t_0
+                if t_max > tolAbsTime and abs(1 - relTim) > tolRelTime:
+                    log['flag'] = True
+        log['relTim'] = relTim
+
+    @staticmethod
+    def _filter_data_set(fullLabels, tempLogs, tolAbsTime, tolRelTime):
+        ''' Filter data for comparing only two data set, either tools or branches comparison
+        '''
+        dataLogs = list()
+        for tempLog in tempLogs:
+            log = {'model': tempLog['model']}
+            simLogs = tempLog['simulation']
+            if (len(simLogs) > 0):
+                tempSim = list()
+                for simLog in simLogs:
+                    for labEle in fullLabels:
+                        if (simLog['label'] == labEle):
+                            tempSim.append(simLog)
+                log['simulation'] = tempSim
+                if (len(tempSim) > 0):
+                    # add flag to identify if one model has significantly different simulation time among different tools or branches
+                    Comparator._add_flag(tempSim, log, tolAbsTime, tolRelTime)
+            dataLogs.append(log)
+        return dataLogs
+
     def _print_dictionary(msg, dic, exit=False):
         import sys
         import pprint
@@ -495,6 +545,7 @@ class Comparator(object):
         print(f"*****************************************")
         if exit:
             sys.exit(1)
+
     @staticmethod
     def _generateHtmlTable(package, data, tools, branches, tolRelTime, tolAbsTime, lib_src):
         ''' Html table template
@@ -528,14 +579,15 @@ class Comparator(object):
 <script src="https://www.kryogenix.org/code/browser/sorttable/sorttable.js"></script>
 '''
 
-        # find the data logs
-        dataLogs = data['logs']
         # calculate column width
         tools_or_branches = "tools" if len(tools) > 1 else "branches"
-        fullLabels = tools if len(tools) > 1 else branches
         fullLabels = tools if tools_or_branches == 'tools' else branches
         numberOfDataSet = len(fullLabels)
         colWidth = 100 / (3 + numberOfDataSet * 3 + 1)
+
+        # find the data logs
+        tempLogs = data['logs']
+        dataLogs = Comparator._filter_data_set(fullLabels, tempLogs, tolAbsTime, tolRelTime)
 
         # specify column style
         colGro = '''
@@ -797,7 +849,7 @@ class Comparator(object):
 
         # comparison between different branches with same tool
         if len(self._branches) > 1:
-            for tool in self._tools:  # [dymola, jmodelica]
+            for tool in self._tools:  # [dymola, jmodelica, OpenModelica]
                 data = {'label': tool}
                 temp = list()
                 for log in logs:
