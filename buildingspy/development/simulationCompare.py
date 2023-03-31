@@ -301,13 +301,13 @@ class Comparator(object):
                                     'label': 'branch_name' (or 'tool_name'),   // 'master' (or 'dymola')
                                     'commit': 'commit #',
                                     'log': {
-                                        'cpu_time': , 
+                                        'cpu_time': ,
                                         'elapsed_time': ,
                                         'final_time': ,
                                         'jacobians': ,
                                         'start_time': ,
                                         'state_events': ,
-                                        'success': 
+                                        'success':
                                     }
                                 }
                             ]
@@ -328,12 +328,13 @@ class Comparator(object):
                     if data['label'] == tool:
                         # Compare branches against the first branch listed
                         for comBra in self._branches[1:]:
-                            filNam = os.path.join(htmlTableDir, f"compare_{tool}--{self._branches[0]}-{comBra}.html")
+                            filNam = os.path.join(
+                                htmlTableDir, f"compare_{tool}--{self._branches[0]}-{comBra}.html")
                             # texTab = os.path.join(latexTableDir, "branches_compare_%s.tex" % tool)
                             # generate html table content
-                            htmltext, flagModels = self._generateHtmlTable(self._package, data,
-                                                                           [tool], [self._branches[0], comBra],
-                                                                           self._tolRelTime, self._tolAbsTime, self._lib_src)
+                            htmltext, flagModels = self._generateHtmlTable(
+                                self._package, data, [tool], [
+                                    self._branches[0], comBra], self._tolRelTime, self._tolAbsTime, self._lib_src)
                             Comparator._writeFile(filNam, htmltext)
                             # self._generateTexTable(texTab, flagModels)
             # generate tools comparison tables
@@ -341,7 +342,8 @@ class Comparator(object):
                 for branch in self._branches:
                     if data['label'] == branch:
                         for comToo in self._tools[1:]:
-                            filNam = os.path.join(htmlTableDir, f"compare_{branch}--{self._tools[0]}-{comToo}.html")
+                            filNam = os.path.join(
+                                htmlTableDir, f"compare_{branch}--{self._tools[0]}-{comToo}.html")
                             # texTab = os.path.join(latexTableDir, "tools_compare_%s.tex" % branch)
                             # generate html table content
                             htmltext, flagModels = self._generateHtmlTable(self._package, data,
@@ -531,7 +533,8 @@ class Comparator(object):
                             tempSim.append(simLog)
                 log['simulation'] = tempSim
                 if (len(tempSim) > 0):
-                    # add flag to identify if one model has significantly different simulation time among different tools or branches
+                    # add flag to identify if one model has significantly different simulation
+                    # time among different tools or branches
                     Comparator._add_flag(tempSim, log, tolAbsTime, tolRelTime)
             dataLogs.append(log)
         return dataLogs
