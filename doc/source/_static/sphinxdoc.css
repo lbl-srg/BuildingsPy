@@ -103,10 +103,10 @@ div.related {
 }
 
 /* Highlight class names in python documentation */
-.class dt  {
+.class dt.sig, dt.sig-object  {
     background-color: #BFD1D4;
 }
-/* Don't highlight method names in python documentation */
+/* Method names in python documentation */
 .class .method dt, .class .staticmethod dt  {
     background-color: white;
 }
@@ -224,7 +224,9 @@ h1 {
 h2 {
     margin: 1.3em 0 0.2em 0;
     font-size: 1.35em;
-    padding: 0;
+    padding: 0.1em;
+    background-color: #022e4d;
+    color: white;
 }
 
 h3 {
