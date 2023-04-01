@@ -896,6 +896,68 @@ class Tester(object):
                 "Found multiple entries for Tolerance in '{}', but require exactly one entry.".format(file_name))
         return tols[0][0]
 
+    @staticmethod
+    def _set_data_attributes_from_mos(mos_content):
+        """ Sets data attributes in the dictionary dat.
+
+            Parses the multi-line string `mos_content` and returns
+            a dictionary with the content and an error message or `None`.
+
+            :param mos_content: Content of the `.mos` file.
+            :return dat: Data dictionary with parsed content.
+            :return err: String with an error message, or `None` if there was no error.
+        """
+        # Set some attributes in the Data object
+        dat = dict()
+        dat['dymola'] = {
+            'translate': False,
+            'simulate': False
+        }  # May be switched to True below
+
+        regex = r"simulateModel\(\s*\"(?P<value>\S*)\""
+        modNam = re.search(regex, mos_content, re.DOTALL)
+        if modNam is not None:
+            dat['model_name'] = modNam.groupdict()['value']
+            dat['dymola']['exportFMU'] = False
+            dat['dymola']['translate'] = True
+            dat['dymola']['simulate'] = True
+            dat['dymola']['TranslationLogFile'] = f"{dat['model_name']}.translation.log"
+            # Not all .mos files list startTime and stopTime.
+            # Hence, set the default values, which may be overridden just below.
+            dat["startTime"] = 0
+            dat["stopTime"] = 1
+
+            # Set the startTime, if present
+            for key in ["startTime", "stopTime"]:
+                regex = fr"simulateModel\(.*({key})\s*=\s*(?P<value>[-+]?\ *[0-9]+\.?[0-9]*(?:[Ee]\ *-?\ *[0-9]+)?)"
+                val = re.search(regex, mos_content, re.DOTALL)
+                if val:
+                    try:
+                        dat[f"{key}"] = float(val.groupdict()['value'])
+                    except BaseException:
+                        err = f"Failed to parse value of '{key}' to float."
+                        return dat, err
+
+        # Check if this model need to be translated as an FMU.
+        if "translateModelFMU" in mos_content:
+            dat['dymola']['exportFMU'] = True
+            dat['dymola']['translate'] = False
+            dat['dymola']['simulate'] = False
+            for key in ["modelToOpen", "modelName"]:
+                regex = r"translateModelFMU\(.*modelToOpen\s*=\s*\"(?P<value>\S*)\""
+                val = re.search(regex, mos_content, re.DOTALL)
+                if val:
+                    try:
+                        dat['dymola'][f'{key}'] = val.groupdict()['value']
+                    except BaseException:
+                        err = f"Failed to parse regex '{val.string}'"
+                        return dat, err
+                else:
+                    err = f".mos file requested 'translatedModelFMU' but misses key '{key}'."
+                    return dat, err
+
+        return dat, None
+
     def setDataDictionary(self, root_package=None):
         """ Build the data structures that are needed to parse the output files.
 
@@ -903,31 +965,6 @@ class Tester(object):
                                 Separate package names with a period.
 
         """
-        def _set_attribute_value(line, keyword, dat):
-            """ Set the value of an attribute from the `.mos` file.
-
-                This function will remove leading and ending quotes.
-
-                :param line: The line that contains the keyword and the value.
-                :param keyword: The keyword
-                :param dat: The data dictionary to which dat[keyword] = value will be written.
-
-            """
-            line = re.sub(' ', '', line)
-            pos = line.find(keyword)
-            if pos > -1:
-                posEq = line.find('=', pos)
-                posComma = line.find(',', pos)
-                posBracket = line.find(')', pos)
-                posEnd = min(posComma, posBracket)
-                if posEnd < 0:
-                    posEnd = max(posComma, posBracket)
-                # Ensure that keyword is directly located before the next = sign
-                if posEq == pos + len(keyword):
-                    entry = line[posEq + 1:posEnd]
-                    dat[keyword] = re.sub(r'^"|"$', '', entry)
-            return
-
         # Check if the data dictionary has already been set, in
         # which case we return doing nothing.
         # This is needed because methods append to the dictionary, which
@@ -941,62 +978,14 @@ class Tester(object):
                 if mosFil.endswith('.mos') and (
                     not mosFil.startswith(
                         "Convert" + self.getLibraryName())):
-                    dat = {'ScriptFile': os.path.join(
-                        root[len(os.path.join(self._libHome, 'Resources', 'Scripts', 'Dymola')) + 1:], mosFil)}
-                    # ScriptFile is something like Controls/Continuous/Examples/LimPIDWithReset.mos
-                    # JModelica CI testing needs files below 140 characters, which includes Buildings.
-                    # Hence, write warning if a file is equal or longer than 140-9=131 characters.
-                    if len(dat['ScriptFile']) >= 131:
-                        self._reporter.writeError(
-                            """File {} is {}-character long. Reduce it to maximum of 130 characters.""".format(
-                                dat['ScriptFile'], len(
-                                    dat['ScriptFile'])))
-                    # _check_reference_result_file_name(dat['ScriptFile'])
-                    # open the mos file and read its content.
-                    # Path and name of mos file without 'Resources/Scripts/Dymola'
-                    with open(os.path.join(root, mosFil), mode="r", encoding="utf-8-sig") as fMOS:
-                        Lines = fMOS.readlines()
 
-                    # Remove white spaces
-                    for i in range(len(Lines)):
-                        Lines[i] = Lines[i].replace(' ', '')
-
-                    # Set some attributes in the Data object
-                    dat['dymola'] = {
-                        'exportFMU': False,
-                        'translate': False,
-                        'simulate': False
-                    }  # May be switched to True below
-
-                    for lin in Lines:
-                        # Add the model name to the dictionary.
-                        # This is needed to export the model as an FMU.
-                        # Also, set the flag mustSimulate to True.
-                        simCom = re.search(r'simulateModel\(\s*".*"', lin)
-                        if simCom is not None:
-                            dat['dymola']['translate'] = True
-                            dat['dymola']['simulate'] = True
-                            modNam = re.sub(r'simulateModel\(\s*"', '', simCom.string)
-                            modNam = modNam[0:modNam.index('"')]
-                            dat['model_name'] = modNam
-                            dat['dymola']['TranslationLogFile'] = modNam + ".translation.log"
-                            # Not all .mos files list startTime and stopTime.
-                            # Hence, set the default values, which may be overridden just below.
-                            dat["startTime"] = 0
-                            dat["stopTime"] = 1
-                        # parse startTime and stopTime, if any
-                        for attr in ["startTime", "stopTime"]:
-                            _set_attribute_value(lin, attr, dat)
-                        # Check if this model need to be translated as an FMU.
-                        if (not dat['dymola']['exportFMU']) and ("translateModelFMU" in lin):
-                            dat['dymola']['exportFMU'] = True
-                            dat['dymola']['translate'] = False
-                            dat['dymola']['simulate'] = False
-                        if dat['dymola']['exportFMU']:
-                            for attr in ["modelToOpen", "modelName"]:
-                                _set_attribute_value(lin, attr, dat['dymola'])
-
-                    # We are finished iterating over all lines of the .mos
+                    mos_file_name = os.path.join(root, mosFil)
+                    with open(mos_file_name, 'r', encoding="utf-8-sig") as file:
+                        mos_content = file.read()
+                        dat, err = self._set_data_attributes_from_mos(mos_content)
+                        if err:
+                            self._reporter.writeError(err)
+                            raise ValueError(err)
 
                     # Dymola uses in translateModelFMU the syntax
                     # modelName=... but our dictionary uses model_name
@@ -1015,15 +1004,6 @@ class Tester(object):
                     if dat['dymola']['translate'] == False and dat['dymola']['exportFMU'] == False:
                         continue
 
-                    # The .mos script allows modelName="", hence
-                    # we set the model name to be the entry of modelToOpen
-#                    elif "model_name" not in dat['dymola'] and "modelToOpen" in dat['dymola']:
-#                        dat['model_name'] = dat['dymola']['modelToOpen']
-
-#                        # Make sure model_name is set
-#                        if 'model_name' not in dat or dat['model_name'] == '':
-#                            msg = f"Failed to set model_name for {os.path.join(root, mosFil)}"
-#                            raise ValueError(msg)
                     dat['dymola']['TranslationLogFile'] = dat['model_name'] + ".translation.log"
                     # Get tolerance from mo file. This is used to set the tolerance
                     # for OpenModelica and OPTIMICA.
@@ -1058,6 +1038,16 @@ class Tester(object):
                     if not dat['dymola']['exportFMU']:
                         plotVars = []
                         iLin = 0
+
+                        # Read mos file line by line to get plot variables.
+                        Lines = []
+                        with open(mos_file_name, mode="r", encoding="utf-8-sig") as fMOS:
+                            Lines = fMOS.readlines()
+
+                        # Remove white spaces
+                        for i in range(len(Lines)):
+                            Lines[i] = Lines[i].replace(' ', '')
+
                         for lin in Lines:
                             iLin = iLin + 1
                             try:
@@ -1110,6 +1100,19 @@ class Tester(object):
                         if len(matFil) == 0:
                             raise ValueError('Did not find *.mat file in ' + mosFil)
                         dat['ResultFile'] = matFil
+
+                    # Add name of Script
+                    dat['ScriptFile'] = os.path.join(
+                        root[len(os.path.join(self._libHome, 'Resources', 'Scripts', 'Dymola')) + 1:], mosFil)
+                    # ScriptFile is something like Controls/Continuous/Examples/LimPIDWithReset.mos
+                    # JModelica CI testing needs files below 140 characters, which includes Buildings.
+                    # Hence, write warning if a file is equal or longer than 140-9=131 characters.
+                    if len(dat['ScriptFile']) >= 131:
+                        self._reporter.writeError(
+                            """File {} is {}-character long. Reduce it to maximum of 130 characters.""".format(
+                                dat['ScriptFile'], len(
+                                    dat['ScriptFile'])))
+
                     self._data.append(dat)
 
         # Make sure we found at least one unit test.
