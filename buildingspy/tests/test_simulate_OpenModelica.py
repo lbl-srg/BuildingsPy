@@ -310,7 +310,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         with open(os.path.join(outDir, json_log_file)) as fh:
             log = fh.read()
         self.assertTrue('RuntimeError: Process timeout' in log)
-        s.setTimeOut(-1)
+        s.setTimeOut(None)
         s.simulate()
         with open(os.path.join(outDir, json_log_file)) as fh:
             log = fh.read()
@@ -336,6 +336,7 @@ class Test_simulate_Simulator(unittest.TestCase):
 
         p = Pool()
         p.map(_simulate, cases)
+        p.close()
 
         # Check output for success
         for cas in cases:

@@ -267,6 +267,7 @@ class Test_simulate_Simulator(unittest.TestCase):
 
         p = Pool()
         p.map(_simulate, cases)
+        p.close()
 
         # Check output for success
         for cas in cases:

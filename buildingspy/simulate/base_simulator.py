@@ -66,7 +66,7 @@ class _BaseSimulator(object):
         self.setTolerance(1E-6)
         self.setNumberOfIntervals()
 #        self.setSolver("radau")
-        self.setTimeOut(-1)
+        self.setTimeOut(None)
         self._MODELICA_EXE = None
         self._reporter = reporter.Reporter(fileName=logFilNam)
         self._showProgressBar = False
@@ -187,14 +187,19 @@ class _BaseSimulator(object):
         return
 
     def setTimeOut(self, sec):
-        """Sets the time out after which the simulation will be killed.
+        """Sets the time out in seconds after which the simulation will be killed.
 
         :param sec: The time out after which the simulation will be killed.
 
-        The default value is -1, which means that the simulation will
-        never be killed.
+        The default value is `None`, which means that the simulation will
+        never be killed. A value of `None`, `0` or negative will never time out.
         """
+        if (sec is not None) and (sec > 0):
+            to = sec
+        else:
+            to = None
         self._simulator_.update(timeout=sec)
+
         return
 
     def setResultFile(self, resultFile):
@@ -381,7 +386,6 @@ class _BaseSimulator(object):
             osEnv = self.prependToModelicaPath(osEnv, os.path.abspath("."))
         else:
             osEnv = self.prependToModelicaPath(osEnv, os.path.dirname(self._packagePath))
-            print(f"*** fixme: osEnv is equal to {osEnv}")
 
         # Run command
         try:
@@ -397,7 +401,7 @@ class _BaseSimulator(object):
             killedProcess = False
             # Tailored implementation of a timeout mechanism as it is not available
             # through `wait` or `communicate` methods in Python 2.
-            if timeout > 0:
+            if (timeout is not None): # if timeout is not None, it is always bigger than 0
                 while not timeout_exceeded and pro.poll() is None:
                     time.sleep(0.01)
                     elapsedTime = (datetime.datetime.now() - self._simulationStartTime).seconds

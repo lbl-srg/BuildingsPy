@@ -9,7 +9,7 @@ def process_with_timeout(target, timeout):
     p.daemon = True
     start = time.time()
     p.start()
-    if timeout > 0:
+    if (timeout is not None) and (timeout > 0):
         p.join(timeout)
     else:
         p.join()

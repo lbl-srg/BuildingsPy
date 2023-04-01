@@ -195,8 +195,6 @@ class Simulator(bs._BaseSimulator):
 
         file_name = "{}.py".format(self.modelName.replace(".", "_"))
 ##        self._time_stamp_old_files = datetime.datetime.now()
-        print(f"**** Writing openmodelica script {file_name}")
-        print(f"*** Working directory is {worDir}")
         with open(os.path.join(worDir, file_name), mode="w", encoding="utf-8") as fil:
             path_to_template = os.path.join(
                 os.path.dirname(__file__), os.path.pardir, "development")
@@ -323,18 +321,18 @@ class Simulator(bs._BaseSimulator):
             steps = ['translation', 'simulation'] if simulate else ['translation']
             for step in steps:
                 if step not in js:
-                    msg = f"Failed to invoke {step} for model {self.modelName}. Check {logFil}."
+                    msg = f"Failed to invoke {step} for model {self.modelName}. Check {path_to_logfile}."
                     self._reporter.writeError(msg)
                     raise RuntimeError(msg)
                 if js[step]['success'] is not True:
                     # Check if there was a timeout exception
                     if "exception" in js[step]:
                         if js[step]['exception'].find("Process time") > 0:
-                            msg = f"The {step} of {self.modelName} failed due to timeout. Check {logFil}."
+                            msg = f"The {step} of {self.modelName} failed due to timeout. Check {path_to_logfile}."
                             self._reporter.writeError(msg)
                             raise TimeoutError(msg)
                     # Raise a runtime error
-                    msg = f"The {step} of {self.modelName} failed. Check {logFil}."
+                    msg = f"The {step} of {self.modelName} failed. Check {path_to_logfile}."
                     self._reporter.writeError(msg)
                     raise RuntimeError(msg)
         return
