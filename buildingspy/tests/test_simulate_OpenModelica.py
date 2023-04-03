@@ -154,7 +154,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         from buildingspy.io.outputfile import Reader
 
         model = "MyModelicaLibrary.Examples.Constants"
-        resultFile = f"{model.replace('.', '_')}_result.mat"
+        resultFile = f"{model}_res.mat"
 
         # Delete output file
         if os.path.exists(resultFile):
@@ -185,7 +185,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         from buildingspy.io.outputfile import Reader
 
         model = "MyModelicaLibrary.Examples.BooleanParameters"
-        resultFile = f"{model.replace('.', '_')}_result.mat"
+        resultFile = f"{model}_res.mat"
 
         # Delete output file
         if os.path.exists(resultFile):
@@ -222,7 +222,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         from buildingspy.io.outputfile import Reader
 
         model = "MyModelicaLibrary.Examples.MyStep"
-        resultFile = f"{model.replace('.', '_')}_result.mat"
+        resultFile = f"{model}_res.mat"
 
         # Delete output file
         if os.path.exists(resultFile):
@@ -250,7 +250,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         from buildingspy.io.outputfile import Reader
 
         model = "MyModelicaLibrary.Examples.MyStep"
-        resultFile = f"{model.replace('.', '_')}_result.mat"
+        resultFile = f"{model}_res.mat"
 
         # Delete output file
         if os.path.exists(resultFile):
@@ -278,7 +278,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         from buildingspy.io.outputfile import Reader
 
         model = "MyModelicaLibrary.Examples.MyStep"
-        resultFile = os.path.join(f"{model.replace('.', '_')}_html_diagnostics", "index.html")
+        resultFile = os.path.join(f"{model}_html_diagnostics", "index.html")
 
         # Delete output file
         if os.path.exists(resultFile):

@@ -45,7 +45,7 @@ class Simulator(bs._BaseSimulator):
         self._MODELICA_EXE = 'omc.py'
         self.setResultFile(f"{modelName}")
 
-        self._result_filter = []
+        self._result_filter = "[*]"
         self._generate_html_diagnostics = False
         self._debug_solver = False
         self._debug_solver_interactive_mode = False
@@ -191,7 +191,7 @@ class Simulator(bs._BaseSimulator):
         if len(dec) == 0:
             model_modifier = ""
         else:
-            model_modifier = '({dec})'.format(mn=self.modelName, dec=','.join(dec))
+            model_modifier = '{dec}'.format(mn=self.modelName, dec=','.join(dec))
 
         file_name = "{}.py".format(self.modelName.replace(".", "_"))
 ##        self._time_stamp_old_files = datetime.datetime.now()

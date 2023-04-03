@@ -190,7 +190,7 @@ class Simulator(bs._BaseSimulator):
         if len(dec) == 0:
             model_modifier = ""
         else:
-            model_modifier = '({dec})'.format(mn=self.modelName, dec=','.join(dec))
+            model_modifier = '{dec}'.format(mn=self.modelName, dec=','.join(dec))
 
         file_name = "{}.py".format(self.modelName.replace(".", "_"))
 ##        self._time_stamp_old_files = datetime.datetime.now()
