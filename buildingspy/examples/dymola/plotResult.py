@@ -20,32 +20,25 @@ def main():
 
     # Read results
     ofr1 = Reader(os.path.join("buildingspy", "examples", "dymola",
-                               "case1", "PIDHysteresis.mat"), "dymola")
+                               "case1", "FlatPlateWithTank.mat"), "dymola")
     ofr2 = Reader(os.path.join("buildingspy", "examples", "dymola",
-                               "case2", "PIDHysteresis.mat"), "dymola")
-    (time1, T1) = ofr1.values("cap.T")
-    (time1, y1) = ofr1.values("con.y")
-    (time2, T2) = ofr2.values("cap.T")
-    (time2, y2) = ofr2.values("con.y")
+                               "case2", "FlatPlateWithTank.mat"), "dymola")
+    (time1, TIn1) = ofr1.values("TIn.T")
+    (time1, TOut1) = ofr1.values("TOut.T")
+    (time2, TIn2) = ofr2.values("TIn.T")
+    (time2, TOut2) = ofr2.values("TOut.T")
 
     # Plot figure
     fig = plt.figure()
-    ax = fig.add_subplot(211)
+    ax = fig.add_subplot(111)
 
-    ax.plot(time1 / 3600, T1 - 273.15, 'r', label='$T_1$')
-    ax.plot(time2 / 3600, T2 - 273.15, 'b', label='$T_2$')
-    ax.set_xlabel('time [h]')
-    ax.set_ylabel(r'temperature [$^\circ$C]')
-    ax.set_xticks(list(range(25)))
-    ax.set_xlim([0, 24])
-    ax.legend()
-    ax.grid(True)
+    ax.plot(time1 / 3600, TIn1 - 273.15, 'r', label='$T_{in,1}(V=1.5 \mathrm{m^3})$')
+    ax.plot(time1 / 3600, TOut1 - 273.15, 'g', label='$T_{out,1}(V=1.5 \mathrm{m^3})$')
+    ax.plot(time2 / 3600, TIn2 - 273.15, 'b', label='$T_{in,2}(V=2.0 \mathrm{m^3})$')
+    ax.plot(time2 / 3600, TOut2 - 273.15, 'k', label='$T_{out,2}(V=2.0 \mathrm{m^3})$')
 
-    ax = fig.add_subplot(212)
-    ax.plot(time1 / 3600, y1, 'r', label='$y_1$')
-    ax.plot(time2 / 3600, y2, 'b', label='$y_2$')
     ax.set_xlabel('time [h]')
-    ax.set_ylabel('y [-]')
+    ax.set_ylabel(r'Collector inlet and outlet temperature [$^\circ$C]')
     ax.set_xticks(list(range(25)))
     ax.set_xlim([0, 24])
     ax.legend()

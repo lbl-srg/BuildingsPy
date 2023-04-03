@@ -13,7 +13,7 @@ def simulateCase(s):
     :param s: A simulator object.
 
     """
-    s.setStopTime(86400)
+    s.setStopTime(24*3600)
     # Kill the process if it does not finish in 1 minute
     s.setTimeOut(60)
     s.printModelAndTime()
@@ -27,14 +27,14 @@ def main():
 
     # Build list of cases to run
     li = []
-    # First model, from Modelica Buildings Library, v7.0.0
-    model = 'Buildings.Controls.Continuous.Examples.PIDHysteresis'
+    # First model, from Modelica Buildings Library, v9.1.0
+    model = 'Buildings.Fluid.SolarCollectors.Examples.FlatPlateWithTank'
     s = Simulator(model, outputDirectory='case1')
-    s.addParameters({'con.eOn': 0.1})
+    s.addParameters({'tan.VTan': 1.5})
     li.append(s)
     # second model
     s = Simulator(model, outputDirectory='case2')
-    s.addParameters({'con.eOn': 1})
+    s.addParameters({'tan.VTan': 2})
     li.append(s)
 
     # Run all cases in parallel
@@ -44,8 +44,8 @@ def main():
     po.join()
 
     # Clean up
-    shutil.rmtree('case1')
-    shutil.rmtree('case2')
+    #shutil.rmtree('case1')
+    #shutil.rmtree('case2')
 
 
 # Main function
