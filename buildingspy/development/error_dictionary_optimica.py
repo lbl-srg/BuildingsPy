@@ -26,7 +26,7 @@ class ErrorDictionary(ed.ErrorDictionary):
         # Set the error dictionaries.
         # Note that buildingspy_var needs to be a unique variable name.
         self._error_dict["each applied to scalar"] = {
-            'tool_message': "The 'each' keyword should not be applied to a modification of a scalar component",
+            'tool_message': "The 'each' keyword should not be applied",
             'counter': 0,
             #            'buildingspy_var': "iEacSca",
             #            'model_message': "Keyword 'each' applied to scalar in '{}'.",
