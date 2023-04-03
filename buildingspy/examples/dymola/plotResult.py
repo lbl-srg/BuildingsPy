@@ -32,10 +32,10 @@ def main():
     fig = plt.figure()
     ax = fig.add_subplot(111)
 
-    ax.plot(time1 / 3600, TIn1 - 273.15, 'r', label='$T_{in,1}(V=1.5 \mathrm{m^3})$')
-    ax.plot(time1 / 3600, TOut1 - 273.15, 'g', label='$T_{out,1}(V=1.5 \mathrm{m^3})$')
-    ax.plot(time2 / 3600, TIn2 - 273.15, 'b', label='$T_{in,2}(V=2.0 \mathrm{m^3})$')
-    ax.plot(time2 / 3600, TOut2 - 273.15, 'k', label='$T_{out,2}(V=2.0 \mathrm{m^3})$')
+    ax.plot(time1 / 3600, TIn1 - 273.15, 'r', label='$T_{in,1}(V=1.5 \\mathrm{m^3})$')
+    ax.plot(time1 / 3600, TOut1 - 273.15, 'g', label='$T_{out,1}(V=1.5 \\mathrm{m^3})$')
+    ax.plot(time2 / 3600, TIn2 - 273.15, 'b', label='$T_{in,2}(V=2.0 \\mathrm{m^3})$')
+    ax.plot(time2 / 3600, TOut2 - 273.15, 'k', label='$T_{out,2}(V=2.0 \\mathrm{m^3})$')
 
     ax.set_xlabel('time [h]')
     ax.set_ylabel(r'Collector inlet and outlet temperature [$^\circ$C]')

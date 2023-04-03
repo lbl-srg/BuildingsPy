@@ -13,7 +13,7 @@ def simulateCase(s):
     :param s: A simulator object.
 
     """
-    s.setStopTime(24*3600)
+    s.setStopTime(24 * 3600)
     # Kill the process if it does not finish in 1 minute
     s.setTimeOut(60)
     s.printModelAndTime()
@@ -44,8 +44,8 @@ def main():
     po.join()
 
     # Clean up
-    #shutil.rmtree('case1')
-    #shutil.rmtree('case2')
+    shutil.rmtree('case1')
+    shutil.rmtree('case2')
 
 
 # Main function
