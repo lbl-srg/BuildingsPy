@@ -911,7 +911,8 @@ class Tester(object):
         dat = dict()
         dat['dymola'] = {
             'translate': False,
-            'simulate': False
+            'simulate': False,
+            'exportFMU': False
         }  # May be switched to True below
 
         regex = r"simulateModel\(\s*\"(?P<value>\S*)\""
@@ -987,6 +988,12 @@ class Tester(object):
                             self._reporter.writeError(err)
                             raise ValueError(err)
 
+                    # Some files like plotFan.mos has neither a simulateModel
+                    # nor a translateModelFMU command.
+                    # These must not be added to the data array. Hence we skip further processing.
+                    if dat['dymola']['translate'] == False and dat['dymola']['exportFMU'] == False:
+                        continue
+
                     # Dymola uses in translateModelFMU the syntax
                     # modelName=... but our dictionary uses model_name
                     if dat['dymola']['exportFMU']:
@@ -997,12 +1004,6 @@ class Tester(object):
                         if dat['dymola']['modelName'] in dat:
                             # This is not needed anymore
                             del dat['dymola']['modelName']
-
-                    # Some files like plotFan.mos has neither a simulateModel
-                    # nor a translateModelFMU command.
-                    # These must not be added to the data array. Hence we skip further processing.
-                    if dat['dymola']['translate'] == False and dat['dymola']['exportFMU'] == False:
-                        continue
 
                     dat['dymola']['TranslationLogFile'] = dat['model_name'] + ".translation.log"
                     # Get tolerance from mo file. This is used to set the tolerance
