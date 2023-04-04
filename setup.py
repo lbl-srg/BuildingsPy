@@ -33,7 +33,7 @@ setup(
     url="http://simulationresearch.lbl.gov/modelica/",
     python_requires='>=3.8',
     install_requires=[
-        'gitpython>=3.1.29',
+        'gitpython>=3.1.30',
         'jinja2>=2.10',
         'matplotlib>=3.5',
         'numpy>=1.21',

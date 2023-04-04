@@ -3,13 +3,15 @@ BuildingsPy Changelog
 
 Version 4.x.x, xxx -- Release 4.0
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- Corrected bug in buildingspy/development/regressiontest.py in parsing .mos scripts with simulateModel command on multiple lines.
+  (https://github.com/lbl-srg/BuildingsPy/issues/508)
 - Added class buildingspy.development.simulationCompare that compares
   the simulation performance across tools or git branches.
   (https://github.com/lbl-srg/BuildingsPy/issues/492)
 - Refactored regression tests for Dymola to allow specifying a time out for each tests, and set the default time out to 300 seconds.
   (https://github.com/lbl-srg/BuildingsPy/issues/495)
 - Add option to exclude simulation of models from Dymola CI tests.
-  (https://github.com/lbl-srg/BuildingsPy/pull/486)
+  (https://github.com/lbl-srg/BuildingsPy/issues/486)
 
 Version 4.0.0, May 12, 2022 -- Release 4.0
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -27,7 +29,7 @@ Version 4.0.0, May 12, 2022 -- Release 4.0
   Due to this change, the function regressiontest.setExcludeTest has been removed.
   (https://github.com/lbl-srg/BuildingsPy/pull/450)
 - For unit tests, added optional colored output.
-  (https://github.com/lbl-srg/BuildingsPy/pull/451)
+  (https://github.com/lbl-srg/BuildingsPy/issues/451)
 
 Version 3.0.0, December 8, 2021 -- Release 3.0
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
