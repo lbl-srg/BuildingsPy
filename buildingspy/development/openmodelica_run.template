@@ -68,8 +68,7 @@ print("Loading model");
 print("Compiling model");
 retVal := system("make -f {{ model }}.makefile");
 exit(retVal);
-
-""".format(model=model))
+""")
 
     # Translate and compile model
     cmd = ["omc", src_nam]

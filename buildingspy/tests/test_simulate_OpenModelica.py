@@ -270,7 +270,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         # Delete output files
         s.deleteOutputFiles()
 
-    def test_timeout(self, timeout=3):
+    def test_timeout(self):
         model = 'MyModelicaLibrary.MyModelTimeOut'
         json_log_file = '{}_buildingspy.json'.format(model.replace('.', '_'))
         s = Simulator(
@@ -279,17 +279,14 @@ class Test_simulate_Simulator(unittest.TestCase):
         )
         s._deleteTemporaryDirectory = False
         outDir = os.path.abspath(s.getOutputDirectory())
-        s.setTimeOut(timeout)
-        with self.assertRaises(TimeoutError):
-            s.simulate()
-        with open(os.path.join(outDir, json_log_file)) as fh:
-            log = fh.read()
-        self.assertTrue('RuntimeError: Process timeout' in log)
-        s.setTimeOut(None)
-        s.simulate()
-        with open(os.path.join(outDir, json_log_file)) as fh:
-            log = fh.read()
-        self.assertFalse('"success": false' in log)
+        for timeout in [0, None]:
+            s.setTimeOut(timeout)
+            with self.assertRaises(TimeoutError):
+                s.simulate()
+            with open(os.path.join(outDir, json_log_file)) as fh:
+                log = fh.read()
+            self.assertTrue('failed due to timeout' in log)
+            self.assertFalse('"success": false' in log)
 
     def test_multiprocessing(self):
         import os

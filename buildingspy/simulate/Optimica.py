@@ -330,7 +330,7 @@ class Simulator(bs._BaseSimulator):
                 if js[step]['success'] is not True:
                     # Check if there was a timeout exception
                     if "exception" in js[step]:
-                        if js[step]['exception'].find("Process time") > 0:
+                        if "Process time" in js[step]['exception']:
                             msg = f"The {step} of {self.modelName} failed due to timeout. Check {logFil}."
                             self._reporter.writeError(msg)
                             raise TimeoutError(msg)

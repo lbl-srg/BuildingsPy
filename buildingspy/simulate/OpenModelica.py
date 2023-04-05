@@ -215,8 +215,8 @@ class Simulator(bs._BaseSimulator):
                 package_path=self.getPackagePath(),
                 model=self.modelName,
                 modifiedModelName=f"{self.modelName.replace('.', '_')}_Modified",
-                commentStringNonModifiedModel = "//" if len(model_modifier) == 0 else "",
-                commentStringModifiedModel    = "//" if len(model_modifier) > 0 else "",
+                commentStringNonModifiedModel = "//" if len(model_modifier) > 0 else "",
+                commentStringModifiedModel    = "//" if len(model_modifier) == 0 else "",
                 model_modifier=model_modifier,
                 working_directory=worDir,
                 ncp=self._simulator_.get('numberOfIntervals'),
@@ -325,7 +325,7 @@ class Simulator(bs._BaseSimulator):
                 if js[step]['success'] is not True:
                     # Check if there was a timeout exception
                     if "exception" in js[step]:
-                        if js[step]['exception'].find("Process time") > 0:
+                        if "TimeoutExpired" in js[step]['exception']:
                             msg = f"The {step} of {self.modelName} failed due to timeout. Check {path_to_logfile}."
                             self._reporter.writeError(msg)
                             raise TimeoutError(msg)
