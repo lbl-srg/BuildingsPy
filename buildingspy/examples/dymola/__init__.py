@@ -8,9 +8,9 @@ use of the python to run a Modelica simulation.
 The module
 :mod:`buildingspy.simulate` that can be used to automate running simulations.
 For example, to translate and simulate the model
-``Buildings.Controls.Continuous.Examples.PIDHysteresis.mo``
-from the Modelica Buildings Library, release 7.0.0,
-with controller parameters ``con.eOn = 1`` and ``con.eOn = 5``, use
+``Buildings.Fluid.SolarCollectors.Examples.FlatPlateWithTank``
+from the Modelica Buildings Library, release 9.1.0,
+with different sizes for the water tank, use
 the following commands:
 
 .. literalinclude:: ../../buildingspy/examples/dymola/runSimulation.py
