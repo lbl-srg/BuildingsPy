@@ -37,9 +37,17 @@ class Simulator(bs._BaseSimulator):
             modelName=modelName,
             outputDirectory=outputDirectory,
             packagePath=packagePath,
-            outputFileList=[f"{modelNameUnderscore}.fmu",
-                            'BuildingsPy.log',
-                            f"{modelName}.log.txt"])
+            outputFileList=[f"{modelNameUnderscore}.py",
+                            f"{modelNameUnderscore}_buildingspy.json",
+                            f"{modelName}_translate.mos",
+                            f"{modelName}_info.json",
+                            f"{modelName}.makefile",
+                            f"{modelName}.libs",
+                            f"{modelName}_init.xml",
+                            f"{modelName}.log",
+                            f"{modelName}",
+                            f"{modelName}_simulate.mos",
+                            f"{modelName}_res.mat"])
 
         self.setSolver("dassl")
         self._MODELICA_EXE = 'omc.py'
@@ -206,6 +214,9 @@ class Simulator(bs._BaseSimulator):
                 library_name=self.modelName.split(".")[0],
                 package_path=self.getPackagePath(),
                 model=self.modelName,
+                modifiedModelName=f"{self.modelName.replace('.', '_')}_Modified",
+                commentStringNonModifiedModel = "//" if len(model_modifier) == 0 else "",
+                commentStringModifiedModel    = "//" if len(model_modifier) > 0 else "",
                 model_modifier=model_modifier,
                 working_directory=worDir,
                 ncp=self._simulator_.get('numberOfIntervals'),
@@ -283,19 +294,6 @@ class Simulator(bs._BaseSimulator):
             self._reporter.writeWarning(
                 f"Solver {solver} is not supported. Supported are: {', '.join(solvers)}.")
         return
-
-    def generateHtmlDiagnostics(self, generate=True):
-        """ If set to `true`, html diagnostics will be generated.
-
-        The html diagnostics will be generated in
-        a directory whose name is equal to the model name,
-        with ``.`` replaced by ``_``, and the string
-        ``_html_diagnostics`` appended.
-
-        .. note:: For large models, this can generate huge files
-                  and increase translation time.
-        """
-        self._generate_html_diagnostics = generate
 
     def _check_simulation_errors(self, worDir, simulate):
         """ Method that checks if errors occured during simulation.

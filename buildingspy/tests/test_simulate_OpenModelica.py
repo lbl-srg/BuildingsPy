@@ -270,31 +270,6 @@ class Test_simulate_Simulator(unittest.TestCase):
         # Delete output files
         s.deleteOutputFiles()
 
-    def test_generateHtmlDiagnostics(self):
-        """
-        Tests the :mod:`buildingspy.simulate.OpenModelica.generateHtmlDiagnostics`
-        function.
-        """
-        from buildingspy.io.outputfile import Reader
-
-        model = "MyModelicaLibrary.Examples.MyStep"
-        resultFile = os.path.join(f"{model}_html_diagnostics", "index.html")
-
-        # Delete output file
-        if os.path.exists(resultFile):
-            os.remove(resultFile)
-
-        s = Simulator(model, packagePath=self._packagePath)
-        s.generateHtmlDiagnostics()
-        s.translate()
-
-        self.assertTrue(
-            os.path.exists(resultFile),
-            f"Expected file {resultFile} to exist after translation in test_generateHtmlDiagnostics.")
-
-        # Delete output files
-        s.deleteOutputFiles()
-
     def test_timeout(self, timeout=3):
         model = 'MyModelicaLibrary.MyModelTimeOut'
         json_log_file = '{}_buildingspy.json'.format(model.replace('.', '_'))
