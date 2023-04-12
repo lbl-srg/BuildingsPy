@@ -448,4 +448,4 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
 
     def deleteOutputFiles(self):
         super().deleteOutputFiles()
-        super()._deleteFiles([self._simulator_.get('resultFile') + "_result.mat"])
+        super()._deleteFiles([self._simulator_.get('resultFile') + ".mat"])
