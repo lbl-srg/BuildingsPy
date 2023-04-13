@@ -51,9 +51,9 @@ class Simulator(bs._BaseSimulator):
 
         self.setSolver("dassl")
         self._MODELICA_EXE = 'omc.py'
-        self.setResultFile(f"{modelName}")
+        self.setResultFile(f"{modelName}_res")
 
-        self._result_filter = "[*]"
+        self._result_filter = ".*"
         self._generate_html_diagnostics = False
         self._debug_solver = False
         self._debug_solver_interactive_mode = False
@@ -218,14 +218,13 @@ class Simulator(bs._BaseSimulator):
                 commentStringNonModifiedModel = "//" if len(model_modifier) > 0 else "",
                 commentStringModifiedModel    = "//" if len(model_modifier) == 0 else "",
                 model_modifier=model_modifier,
-                working_directory=worDir,
                 ncp=self._simulator_.get('numberOfIntervals'),
                 rtol=self._simulator_.get('eps'),
                 solver=self._simulator_.get('solver'),
                 start_time=self._simulator_.get('t0') if self._simulator_.get(
-                    't0') is not None else 'mod.get_default_experiment_start_time()',
+                    't0') is not None else 0,
                 final_time=self._simulator_.get('t1') if self._simulator_.get(
-                    't1') is not None else 'mod.get_default_experiment_stop_time()',
+                    't1') is not None else 1,
                 result_file_name=f"{self._simulator_.get('resultFile')}.mat",
                 simulate=simulate,
                 time_out=self._simulator_.get('timeout'),
@@ -257,25 +256,9 @@ class Simulator(bs._BaseSimulator):
             self._reporter.writeError(em)
             raise e
 
-    def setResultFilter(self, filter):
-        """ Specifies a list of variables that should be stored in the result file.
-
-        :param filter: A list of variables that should be stored in the result file.
-
-        Usage: To list only the variables of the instance `myStep.source`, type
-
-           >>> from buildingspy.simulate.OpenModelica import Simulator
-           >>> s=Simulator("myPackage.myModel", packagePath="buildingspy/tests/MyModelicaLibrary")
-           >>> s.setResultFilter(["myStep.source.*"])
-
-        To list all variables whose name ends in ``y``, type
-
-           >>> from buildingspy.simulate.OpenModelica import Simulator
-           >>> s=Simulator("myPackage.myModel", packagePath="buildingspy/tests/MyModelicaLibrary")
-           >>> s.setResultFilter(["*y"])
-
-        """
-        self._result_filter = filter
+        # Copy result file name if needed
+        if f"{self._simulator_.get('resultFile')}.mat" != f"{self.modelName}_res.mat":
+            os.rename(f"{self.modelName}_res.mat", f"{self._simulator_.get('resultFile')}.mat")
 
     def setSolver(self, solver):
         """Sets the solver.

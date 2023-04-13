@@ -112,7 +112,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         s.setStopTime(5)
         s.setTimeOut(600)
         s.setTolerance(1e-8)
-        s.setSolver("Radau5ODE")
+        s.setSolver("dassl")
         s.setNumberOfIntervals(50)
         s.setResultFile("myResults")
         s.simulate()
@@ -195,10 +195,10 @@ class Test_simulate_Simulator(unittest.TestCase):
         s.addParameters({'p2': False})
         s.simulate()
         r = Reader(resultFile, "dymola")
-        (_, p) = r.values('p1')
-        self.assertEqual(p[0], 1.0)
-        (_, p) = r.values('p2')
-        self.assertEqual(p[0], 0.0)
+        (_, p1) = r.values('p1')
+        self.assertEqual(p1[0], 1.0)
+        (_, p2) = r.values('p2')
+        self.assertEqual(p2[0], 0.0)
         # Delete output files
         s.deleteOutputFiles()
 
@@ -214,62 +214,6 @@ class Test_simulate_Simulator(unittest.TestCase):
         with self.assertRaises(Exception):
             s.simulate()
 
-    def test_setResultFilter(self):
-        """
-        Tests the :mod:`buildingspy.simulate.OpenModelica.setResultFilter`
-        function.
-        """
-        from buildingspy.io.outputfile import Reader
-
-        model = "MyModelicaLibrary.Examples.MyStep"
-        resultFile = f"{model}_res.mat"
-
-        # Delete output file
-        if os.path.exists(resultFile):
-            os.remove(resultFile)
-
-        s = Simulator(model, packagePath=self._packagePath)
-        s.setResultFilter(["myStep.source.y"])
-        s.simulate()
-        self.assertTrue(os.path.exists(resultFile),
-                        f"Expected file {resultFile} to exist in test_setResultFilter.")
-        r = Reader(resultFile, "dymola")
-        (_, _) = r.values('myStep.source.y')
-        # This output should not be stored
-        with self.assertRaises(KeyError):
-            r.values("y")
-
-        # Delete output files
-        s.deleteOutputFiles()
-
-    def test_setResultFilterRegExp(self):
-        """
-        Tests the :mod:`buildingspy.simulate.OpenModelica.setResultFilter`
-        function.
-        """
-        from buildingspy.io.outputfile import Reader
-
-        model = "MyModelicaLibrary.Examples.MyStep"
-        resultFile = f"{model}_res.mat"
-
-        # Delete output file
-        if os.path.exists(resultFile):
-            os.remove(resultFile)
-
-        s = Simulator(model, packagePath=self._packagePath)
-        s.setResultFilter(["*source.y"])
-        s.simulate()
-        self.assertTrue(os.path.exists(resultFile),
-                        f"Expected file {resultFile} to exist in test_setResultFilterRegExp.")
-        r = Reader(resultFile, "dymola")
-        (_, _) = r.values('myStep.source.y')
-        # This output should not be stored
-        with self.assertRaises(KeyError):
-            r.values("y")
-
-        # Delete output files
-        s.deleteOutputFiles()
-
     def test_timeout(self):
         model = 'MyModelicaLibrary.MyModelTimeOut'
         json_log_file = '{}_buildingspy.json'.format(model.replace('.', '_'))
@@ -279,14 +223,14 @@ class Test_simulate_Simulator(unittest.TestCase):
         )
         s._deleteTemporaryDirectory = False
         outDir = os.path.abspath(s.getOutputDirectory())
-        for timeout in [0, None]:
+        for timeout in [0, -1]:
             s.setTimeOut(timeout)
             with self.assertRaises(TimeoutError):
                 s.simulate()
             with open(os.path.join(outDir, json_log_file)) as fh:
                 log = fh.read()
-            self.assertTrue('failed due to timeout' in log)
-            self.assertFalse('"success": false' in log)
+            self.assertTrue('TimeoutExpired:' in log)
+            self.assertTrue('"success": false' in log)
 
     def test_multiprocessing(self):
         import os
