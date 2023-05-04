@@ -22,9 +22,6 @@ def _add_exception(return_dict, e, cmd):
   if not 'exception' in return_dict:
     # Did not find 'terminated' in message, handle exception as usual
     return_dict['exception'] = '{}: {}'.format(type(e).__name__, e)
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-#
 
 def _run_process(return_dict, cmd, worDir, timeout):
   import subprocess
