@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 def _add_exception(return_dict, e, cmd):
   import subprocess
 
@@ -19,7 +22,9 @@ def _add_exception(return_dict, e, cmd):
   if not 'exception' in return_dict:
     # Did not find 'terminated' in message, handle exception as usual
     return_dict['exception'] = '{}: {}'.format(type(e).__name__, e)
-
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
 
 def _run_process(return_dict, cmd, worDir, timeout):
   import subprocess
@@ -42,7 +47,7 @@ def _simulate(model, timeout):
   import os
   import subprocess
 
-  worDir = "{{ working_directory }}"
+  worDir = r"{{ working_directory }}"
   return_dict = {}
 
   try:
@@ -63,7 +68,7 @@ def run():
   timeout = {{ time_out }}
   model = "{{ model }}"
   result = {"model": model,
-            "working_directory": "{{ working_directory }}",
+            "working_directory": r"{{ working_directory }}",
             "simulation": {"success": False}}
 
   # Log file

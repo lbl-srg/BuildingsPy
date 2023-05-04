@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 def _add_exception(return_dict, e, cmd):
   import subprocess
 
@@ -43,7 +46,6 @@ def _translate(model, timeout):
 
   # Write translation script
   try:
-    worDir = "{{ working_directory }}"
     scr_nam = f"{model}_translate.mos"
     with open(scr_nam, 'w') as f:
         f.write(f"""setCommandLineOptions("-d=nogen");
@@ -87,7 +89,6 @@ def _simulate(model, timeout):
     # /usr/bin/../lib/x86_64-linux-gnu/omc/libsundials_nvecserial.so.5
     # Rather, we invoke an OpenModelica script (thereby invoking the Docker) and then simulate
     # the executable from this script.
-    worDir = "{{ working_directory }}"
     scr_nam = f"{model}_simulate.mos"
     with open(scr_nam, 'w') as f:
         f.write(f"""retVal := system("./{model} -s {{ solver }} -steps -cpu -lv LOG_STATS");
@@ -120,7 +121,7 @@ def run():
   timeout = {{ time_out }}
   model = "{{ model }}"
   result = {"model": model,
-            "working_directory": "{{ working_directory }}",
+            "working_directory": r"{{ working_directory }}",
             "translation": {"success": False},
             "simulation": {"success": False}}
 
