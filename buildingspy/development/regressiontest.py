@@ -3612,10 +3612,13 @@ exit();
                 txt = tem_mod.render(
                     library_name=self.getLibraryName(),
                     model=model,
+                    modifiedModelName=f"{model}_modified".replace('.', '_'),
                     working_directory=directory,
                     ncp=dat[self._modelica_tool]['ncp'],
                     rtol=dat[self._modelica_tool]['rtol'],
                     solver=dat[self._modelica_tool]['solver'],
+                    start_time=dat['startTime'],
+                    final_time=dat['stopTime'],
                     simulate=dat[self._modelica_tool]['simulate'],
                     time_out=dat[self._modelica_tool]['time_out'],
                     filter=filter
