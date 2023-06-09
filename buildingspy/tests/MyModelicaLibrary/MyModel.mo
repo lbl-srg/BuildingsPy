@@ -4,4 +4,3 @@ model MyModel
     Modelica.Blocks.Interfaces.SO
     annotation (Placement(transformation(extent={{-10,-10},{10,10}})));
 end MyModel;
-

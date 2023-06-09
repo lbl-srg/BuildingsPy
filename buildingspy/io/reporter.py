@@ -1,18 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# import from future to make Python2 behave like Python3
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future import standard_library
-standard_library.install_aliases()
-from builtins import *
-from io import open
-# end of from future import
-
-
 class Reporter(object):
     """ Class that is used to report errors.
     """
@@ -40,7 +28,12 @@ class Reporter(object):
         """
         import os
         if os.path.isfile(self._logFil):
-            os.remove(self._logFil)
+            # The try-except below guards against a race condition if multiple
+            # processes start and they try to delete the file at the same time.
+            try:
+                os.remove(self._logFil)
+            except FileNotFoundError:
+                print(f"Failed to remove {self._logFil} as it no longer exists.")
 
     def logToFile(self, log=True):
         """ Function to log the standard output and standard error stream to a file.

@@ -1,17 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# import from future to make Python2 behave like Python3
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future import standard_library
-standard_library.install_aliases()
-from builtins import *
-from io import open
-# end of from future import
-
 from jinja2 import Template
 import random
 import string
@@ -108,12 +97,12 @@ class Test_development_Validator(unittest.TestCase):
         ###########################################
         # Checking missing tolerance in mos file
         self.run_case(val, myMoLib, "Test2", "experiment(Tolerance=1e-6, StopTime=1.0),",
-                      "", "A minimum tolerance of 1e-6 is required for OPTIMICA and JModelica.")
+                      "", "A minimum tolerance of 1e-6 is required for OPTIMICA.")
 
         ###########################################
         # Checking missing tolerance in mo file
         self.run_case(val, myMoLib, "Test3", "experiment(StopTime=1.0),", "stopTime=1.0,",
-                      "A minimum tolerance of 1e-6 is required for OPTIMICA and JModelica.")
+                      "A minimum tolerance of 1e-6 is required for OPTIMICA.")
 
         ###########################################
         # Checking tolerances mismatch
@@ -179,7 +168,7 @@ class Test_development_Validator(unittest.TestCase):
 
         ###########################################
         # Checking wrong data type that can cause an overflow
-        # In JModelica's CI testing, the maximum integer is 2147483647
+        # In OPTIMICA's CI testing, the maximum integer is 2147483647
         self.run_case(
             val,
             myMoLib,

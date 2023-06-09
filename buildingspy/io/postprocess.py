@@ -1,18 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# import from future to make Python2 behave like Python3
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future import standard_library
-standard_library.install_aliases()
-from builtins import *
-from io import open
-# end of from future import
-
-
 class Plotter(object):
     """
        This class contains static methods that can be used to create plots.
@@ -155,11 +143,11 @@ class Plotter(object):
         :param increment: The time increment that is used in the plot
         :param nIncrement: The number of increments before the data are wrapped.
         :return: This method returns a
-                 `matplotlib.pyplot <https://matplotlib.org/api/pyplot_api.html>`_ object that can be further
+                 `matplotlib.pyplot <https://matplotlib.org/stable/api/pyplot_summary.html>`_ object that can be further
                  processed, such as to label its axis.
 
         All other arguments are as explained at `matplotlib's boxplot documentation
-        <https://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.boxplot>`_.
+        <https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.boxplot.html>`_.
 
         The parameter ``increment`` is used to set the support points in time
         at which the statistics is made.

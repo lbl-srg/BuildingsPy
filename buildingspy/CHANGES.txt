@@ -1,9 +1,73 @@
 BuildingsPy Changelog
 ---------------------
 
-Version 2.0.1, July 17, 2019 -- Release 2.0
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-- Update dependency to pyfunnel, add 'requirements.txt'.
+Version 4.x.x, xxx -- Release 4.0
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- Corrected bug in buildingspy/development/regressiontest.py in parsing .mos scripts with simulateModel command on multiple lines.
+  (https://github.com/lbl-srg/BuildingsPy/issues/508)
+- Added class buildingspy.development.simulationCompare that compares
+  the simulation performance across tools or git branches.
+  (https://github.com/lbl-srg/BuildingsPy/issues/492)
+- Refactored regression tests for Dymola to allow specifying a time out for each tests, and set the default time out to 300 seconds.
+  (https://github.com/lbl-srg/BuildingsPy/issues/495)
+- Add option to exclude simulation of models from Dymola CI tests.
+  (https://github.com/lbl-srg/BuildingsPy/issues/486)
+
+Version 4.0.0, May 12, 2022 -- Release 4.0
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- Removed JModelica support, and added support for new OPTIMICA compile_fmu API.
+  (https://github.com/lbl-srg/BuildingsPy/pull/480)
+- For simulation and unit tests, updated the API for OPTIMICA to the one used in oct-2022-05-09-master-4b0cd2bf71
+  (https://github.com/lbl-srg/BuildingsPy/issues/479)
+- For simulation, corrected a bug that led to an error message when a model from the Modelica Standard Library is simulated
+  (https://github.com/lbl-srg/BuildingsPy/issues/472)
+- For unit tests, enabled option to run tests with OpenModelica.
+  This change also allows specifying the test configuration in the more concise
+  conf.yml rather than conf.json file.
+  (https://github.com/lbl-srg/BuildingsPy/issues/453)
+- For unit tests, added option to exclude files for dymola in library configuration script.
+  Due to this change, the function regressiontest.setExcludeTest has been removed.
+  (https://github.com/lbl-srg/BuildingsPy/pull/450)
+- For unit tests, added optional colored output.
+  (https://github.com/lbl-srg/BuildingsPy/issues/451)
+
+Version 3.0.0, December 8, 2021 -- Release 3.0
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- For unit tests, changed code to generate names of Dymola output file to ensure that they are unique.
+  Previously, an error was issued if they are not unique.
+  (https://github.com/lbl-srg/BuildingsPy/issues/446)
+- For merge script, renamed set_excluded_packages to set_excluded_directories
+  (https://github.com/lbl-srg/BuildingsPy/issues/439)
+- For Dymola simulations, corrected call to openModel in buildingspy/simulate/Dymola.py
+- For unit tests, avoided copying .log and .mat files to temporary directory
+  (https://github.com/lbl-srg/BuildingsPy/issues/428)
+- For unit tests with Optimica, added check for access to component that are not present in constraining type of declaration
+  (https://github.com/lbl-srg/BuildingsPy/issues/424)
+- For library merger, corrected erroneous replacement of IBPSA in name of issue number
+  (https://github.com/lbl-srg/BuildingsPy/issues/412)
+- For unit tests, set Advanced.GenerateVariableDependencies = false as this can change the set of nonlinear equations
+  (https://github.com/lbl-srg/BuildingsPy/issues/410)
+- Added local relative tolerance along y axis by default
+  (https://github.com/lbl-srg/BuildingsPy/pull/396)
+- Fix rounding error issue on start and stop time values
+  (https://github.com/lbl-srg/BuildingsPy/issues/363)
+- For unit tests, ignore zero-size linear and nonlinear equations when comparing statistics
+  (https://github.com/lbl-srg/BuildingsPy/issues/406)
+- For unit tests, changed warning to an error if start or end times differ from reference results
+  (https://github.com/lbl-srg/BuildingsPy/issues/404)
+- Corrected timeout handling in buildingspy.simulate.base_simulator.py
+  (https://github.com/lbl-srg/BuildingsPy/issues/385)
+- Corrected class name lookup mechanism in buildingspy.development.refactor.move_class()
+  (https://github.com/lbl-srg/BuildingsPy/issues/382)
+- For unit tests, added optional comment that is printed if a model is excluded from
+  the tests (https://github.com/lbl-srg/BuildingsPy/issues/389)
+- Corrected generation of package.order for constant arrays (https://github.com/lbl-srg/BuildingsPy/issues/387)
+- Refactored class buildingspy.simulate.Dymola, and added buildingspy.simulate.Optimica
+- Added check for wrong derivative implementation that is reported by Dymola 2021x (https://github.com/lbl-srg/BuildingsPy/issues/376).
+
+Version 2.1.0, May 28, 2020 -- Release 2.1
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- Updated dependency to pyfunnel, and added requirements.txt file.
 - For unit tests, display plots before asking to add new reference results. (Issue 344)
 - When writing package.order, preserved the ordering of constants from the .mo file.
 - Changed doctest to Python 3.6.
@@ -177,7 +241,7 @@ Version 1.3.0, October 24, 2013 -- Release 1.3
   - removed argument dir from method printNumberOfClasses(self)
     as this argument is not used.
 
-- Updated to latest version of DyMat as on https://bitbucket.org/jraedler/dymat/,
+- Updated to latest version of DyMat as on https://github.com/jraedler/DyMat,
   commit 4e819cb
 - In development.Tester, method __getSimulationResults(),
   corrected error that caused results only to be stored if there is

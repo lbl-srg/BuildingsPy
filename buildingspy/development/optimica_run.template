@@ -1,93 +1,3 @@
-###############################################################
-# Script to test the model {{ model }}
-# with OPTIMICA.
-# This script will create a json file that contains translation
-# and simulation information.
-###############################################################
-
-##############################################################
-# Capture stdout of a Python function.
-# From https://stackoverflow.com/questions/24277488/in-python-how-to-capture-the-stdout-from-a-c-shared-library-to-a-variable/29834357
-
-class OutputGrabber(object):
-    """
-    Class used to grab standard output or another stream.
-    """
-    escape_char = "\b"
-
-    def __init__(self, stream=None, threaded=False):
-        import sys
-        import os
-        self.origstream = stream
-        self.threaded = threaded
-        if self.origstream is None:
-            self.origstream = sys.stdout
-        self.origstreamfd = self.origstream.fileno()
-        self.capturedtext = ""
-        # Create a pipe so the stream can be captured:
-        self.pipe_out, self.pipe_in = os.pipe()
-
-    def __enter__(self):
-        self.start()
-        return self
-
-    def __exit__(self, type, value, traceback):
-        self.stop()
-
-    def start(self):
-        """
-        Start capturing the stream data.
-        """
-        import os
-        self.capturedtext = ""
-        # Save a copy of the stream:
-        self.streamfd = os.dup(self.origstreamfd)
-        # Replace the original stream with our write pipe:
-        os.dup2(self.pipe_in, self.origstreamfd)
-        if self.threaded:
-            # Start thread that will read the stream:
-            self.workerThread = threading.Thread(target=self.readOutput)
-            self.workerThread.start()
-            # Make sure that the thread is running and os.read() has executed:
-            time.sleep(0.01)
-
-    def stop(self):
-        """
-        Stop capturing the stream data and save the text in `capturedtext`.
-        """
-        import os
-        # Print the escape character to make the readOutput method stop:
-        self.origstream.write(self.escape_char)
-        # Flush the stream to make sure all our data goes in before
-        # the escape character:
-        self.origstream.flush()
-        if self.threaded:
-            # wait until the thread finishes so we are sure that
-            # we have until the last character:
-            self.workerThread.join()
-        else:
-            self.readOutput()
-        # Close the pipe:
-        os.close(self.pipe_in)
-        os.close(self.pipe_out)
-        # Restore the original stream:
-        os.dup2(self.streamfd, self.origstreamfd)
-        # Close the duplicate stream:
-        os.close(self.streamfd)
-
-    def readOutput(self):
-        """
-        Read the stream data (one byte at a time)
-        and save the text in `capturedtext`.
-        """
-        import os
-        while True:
-            char = os.read(self.pipe_out, 1)
-            if not char or self.escape_char.encode('utf-8') in char:
-                break
-            self.capturedtext += char.decode('utf-8', 'ignore')
-##############################################################
-
 def process_with_timeout(target, timeout):
     import multiprocessing
     import time
@@ -96,37 +6,91 @@ def process_with_timeout(target, timeout):
     manager = multiprocessing.Manager()
     return_dict = manager.dict()
     p = multiprocessing.Process(target=target, args=(0, return_dict))
+    p.daemon = True
     start = time.time()
     p.start()
-    while time.time() - start <= timeout:
-        if p.is_alive():
-            time.sleep(0.01)
-        else:
-            cpu_time = time.time()-start
-            ret = copy.copy(return_dict[0])
-            ret.update({'cpu_time': cpu_time})
-            return ret
+    if timeout > 0:
+        p.join(timeout)
     else:
-        # Entered if there was a timeout
-        p.terminate()
         p.join()
-        raise RuntimeError("Process timeout")
+
+    cpu_time = time.time() - start
+
+    error_msg = None
+    if p.is_alive():
+        error_msg = "Process timeout"
+        p.terminate()
+    elif p.exitcode != 0:
+        error_msg = "Process terminated by signal {}".format(-p.exitcode)
+    if error_msg is not None:
+        raise RuntimeError(error_msg)
+
+    ret = copy.copy(return_dict[0])
+    ret.update({'cpu_time': cpu_time})
+    return ret
 
 def _translate(proc_num, return_dict):
+  import os
   from pymodelica import compile_fmu
+  from inspect import signature
+
+  generate_html_diagnostics={{ generate_html_diagnostics }}
 
   try:
-    # Grab the stdoutput
-    out = OutputGrabber()
-    out.start()
-    fmu_name = compile_fmu("{{ model }}",
-                           version="2.0",
-                           compiler_log_level='warning',
-                           compiler_options = {"generate_html_diagnostics" : False,
-                                               "nle_solver_tol_factor": 1e-2})
-    out.stop()
+    # OCT r28242 ignores MODELICAPATH and instead needs to have it set through a function argument.
+    compilation_log = "{{ model }}".replace('.', '_') + "_compile.log"
+    version="2.0"
+    compiler_log_level=f"warning:{compilation_log}"
+    compiler_options = {"generate_html_diagnostics" : generate_html_diagnostics,
+                        "nle_solver_tol_factor": 1e-2} # 1e-2 is the default
+
+    sig = signature(compile_fmu)
+    if "modelicapath" in str(sig):
+      # This is the new API that uses modelicapath as a function argument.
+
+      removed_modelica_path = False
+      if 'MODELICAPATH' in os.environ:
+        modelicapath=os.environ['MODELICAPATH']
+        del os.environ['MODELICAPATH']
+        removed_modelica_path = True
+      else:
+        modelicapath=os.path.abspath('.')
+
+      fmu_name = compile_fmu("{{ model }}{{ model_modifier }}",
+                             modelicapath=modelicapath,
+                             version=version,
+                             compiler_log_level=compiler_log_level,
+                             compiler_options=compiler_options)
+    else:
+      fmu_name = compile_fmu("{{ model }}{{ model_modifier }}",
+                             version=version,
+                             compiler_log_level=compiler_log_level,
+                             compiler_options=compiler_options)
+
+    if removed_modelica_path:
+      os.environ['MODELICAPATH'] = modelicapath
+
+    # Copy style sheets.
+    # This is a hack to get the css and js files to render the html diagnostics.
+    htm_dir = os.path.splitext(os.path.basename(fmu_name))[0] + "_html_diagnostics"
+    if generate_html_diagnostics and os.path.exists(htm_dir):
+        for fil in ["scripts.js", "style.css", "html-diagnostics.css", "zepto.min.js"]:
+            src = os.path.join(".jmodelica_html", fil)
+            if os.path.exists(src):
+                des = os.path.join(htm_dir, fil)
+                shutil.copyfile(src, des)
+
+    # Read log file
+    out = None
+    if os.path.isfile(compilation_log):
+      with open(compilation_log, 'r') as f:
+        out = f.readlines()
+    else:
+      out = f"Error: Log file {compilation_log} does not exist."
+
+
     # The standard output is returned as a list, with each line being an element
-    return_dict[proc_num] = {'success': True, 'fmu_name': str(fmu_name), 'stdout': out.capturedtext.split('\n')}
+    return_dict[proc_num] = {'success': True, 'fmu_name': str(fmu_name), 'stdout': out}
 
   except Exception as e:
     return_dict[proc_num] = {'success': False,
@@ -136,13 +100,18 @@ def _translate(proc_num, return_dict):
 def _simulate(proc_num, return_dict):
   from pyfmi import load_fmu
 
+  # Import the class that grabs stdout
+  import OutputGrabber as og
+
   if not {{ simulate }}:
     return_dict[proc_num] = {'success': False,
                              'message': 'No simulation requested.'}
     return return_dict
 
   # Simulate the model
-#
+
+  debug_solver = {{ debug_solver }}
+  debug_solver_interactive_mode = {{ debug_solver_interactive_mode }}
 
   try:
     fmu_name = "{{ model }}".replace(".", "_") + ".fmu"
@@ -161,24 +130,65 @@ def _simulate(proc_num, return_dict):
     else:
       atol = rtol
 
-    if opts['solver'].lower() == 'cvode':
+    if opts['solver'] == 'CVode':
       # Set user-specified tolerance if it is smaller than the tolerance in the .mo file
-      opts['CVode_options'] = {
-        'external_event_detection': False,
-        'maxh': (mod.get_default_experiment_stop_time()-mod.get_default_experiment_stop_time())/float(opts['ncp']),
-        'iter': 'Newton',
-        'discr': 'BDF',
-        'rtol': rtol,
-        'atol': atol,
-        'store_event_points': True
-    }
+      opts['CVode_options']['external_event_detection'] = False
+      opts['CVode_options']['maxh'] = (mod.get_default_experiment_stop_time()-mod.get_default_experiment_start_time())/float(opts['ncp'])
+      opts['CVode_options']['iter'] = 'Newton'
+      opts['CVode_options']['discr'] = 'BDF'
+      opts['CVode_options']['store_event_points'] = True # True is default, set to false if many events
 
+    if debug_solver:
+      opts["logging"] = True #<- Turn on solver debug logging
+      mod.set("_log_level", 4)
+
+
+    opts['{{ solver }}_options']['rtol'] = rtol
+    opts['{{ solver }}_options']['atol'] = atol
     opts['filter'] = {{ filter }}
-    # Grab the stdoutput
-    out = OutputGrabber()
+    opts['result_file_name'] = "{{ result_file_name }}"
+
+
+    # Grab the std output
+    out = og.OutputGrabber()
     out.start()
-    res = mod.simulate(options=opts)
+    res = mod.simulate(
+        options=opts,
+        start_time={{ start_time }},
+        final_time={{ final_time }})
     out.stop()
+
+    ######################################################################
+    # Get debugging information
+    if debug_solver and debug_solver_interactive_mode:
+      #Load the debug information
+      from pyfmi.debug import CVodeDebugInformation
+      debug = CVodeDebugInformation("{{ model }}".replace(".", "_")+"_debug.txt")
+
+      ### Below are options to plot the order, error and step-size evolution.
+      ### The error methods also take a threshold and a region if you want to
+      ### limit the plot to a certain interval.
+
+
+      if opts['solver'].lower() == 'cvode':
+        #Plot wall-clock time versus model time
+        debug.plot_cumulative_time_elapsed()
+        #Plot only the region 0.8 - 1.0 seconds and only state variables with an error greater than 0.01 (for any point in that region)
+        debug.plot_error(region=[0.8,1.0], threshold=0.01)
+
+
+      #Plot order evolution
+      debug.plot_order()
+
+      #Plot error evolution
+      debug.plot_error() #Note see also the arguments to the method
+
+      #Plot the used step-size
+      debug.plot_step_size()
+
+      #See also debug?
+
+
     start_time = res['time'][0]
     final_time = res['time'][-1]
     return_dict[proc_num] = {'success': True, 'start_time': start_time, 'final_time': final_time, 'stdout': out.capturedtext.split('\n')}
@@ -190,7 +200,6 @@ def _simulate(proc_num, return_dict):
 
 def run():
     import os
-    import timeit
     import json
     import traceback
     import sys
@@ -206,7 +215,7 @@ def run():
               "simulation": {"success": False}}
 
     # Compile model
-    log_file = "{}_run.json".format(model.replace(".", "_"))
+    log_file = "{}_buildingspy.json".format(model.replace(".", "_"))
     try:
         os.remove(log_file)
     except OSError:
@@ -217,7 +226,10 @@ def run():
         result["translation"] = ret_dic
 
     except Exception as e:
-        result["translation"]["exception"] = "{}: {}".format(type(e).__name__, e)
+        msg = "{}: {}".format(type(e).__name__, str(e))
+        if msg == "RuntimeError: Process timeout":
+            msg = msg + " after {} seconds".format(time_out)
+        result["translation"]["exception"] = msg
         result["translation"]["traceback"] = traceback.format_exc()
 
     # Load model if translation was successful
@@ -227,7 +239,10 @@ def run():
             result["simulation"] = ret_dic
 
         except Exception as e:
-            result["simulation"]["exception"] = "{}: {}".format(type(e).__name__, e)
+            msg = "{}: {}".format(type(e).__name__, str(e))
+            if msg == "RuntimeError: Process timeout":
+                msg = msg + " after {} seconds".format(time_out)
+            result["simulation"]["exception"] = msg
             result["simulation"]["traceback"] = traceback.format_exc()
 
     with open(log_file, "w") as log:

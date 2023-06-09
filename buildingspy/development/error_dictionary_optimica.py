@@ -26,7 +26,7 @@ class ErrorDictionary(ed.ErrorDictionary):
         # Set the error dictionaries.
         # Note that buildingspy_var needs to be a unique variable name.
         self._error_dict["each applied to scalar"] = {
-            'tool_message': "The 'each' keyword should not be applied to a modification of a scalar component",
+            'tool_message': "The 'each' keyword should not be applied",
             'counter': 0,
             #            'buildingspy_var': "iEacSca",
             #            'model_message': "Keyword 'each' applied to scalar in '{}'.",
@@ -61,3 +61,12 @@ class ErrorDictionary(ed.ErrorDictionary):
             #            'buildingspy_var': "iIteMis",
             #            'model_message': "Keyword 'each' applied to scalar in '{}'.",
             'summary_message': "Number of models with redeclare of no longer replaceable class  : {}\n"}
+
+        # Search for strings such as
+        # Access to component cor not recommended, it is not present in
+        # constraining type of declaration
+        # 'replaceable Buildings.Examples.VAVReheat.BaseClasses.Floor flo
+        self._error_dict["non-recommended access to component not in constraining type"] = {
+            'tool_message': "it is not present in constraining type of declaration",
+            'counter': 0,
+            'summary_message': "Number of models with access not in constraining type           : {}\n"}
