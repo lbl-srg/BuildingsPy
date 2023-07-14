@@ -63,7 +63,6 @@ setCommandLineOptions("-d=stateselection");
 setMatchingAlgorithm("PFPlusExt");
 setIndexReductionMethod("dynamicStateSelection");
 setModelicaPath("{MODELICAPATH}");
-loadFile("Modelica/package.mo");
 loadFile("{{ library_name }}/package.mo");
 translated := translateModel({model}, method="{{ solver }}", tolerance={{ rtol }}, numberOfIntervals={{ ncp }}, variableFilter="{{ filter }}");
 getErrorString();
