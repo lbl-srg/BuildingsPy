@@ -2598,8 +2598,12 @@ class Tester(object):
 
                         all_res.append(res)
                         if not res['translation']['success']:
-                            MODELICAPATH = os.environ['MODELICAPATH']
-                            em = f"Translation of {res['model']} failed: '{res['translation']['exception']}'. Directory is '{res['working_directory']}'." + f" MODELICAPATH is: {MODELICAPATH}"
+                            if 'MODELICAPATH' in os.environ:
+                                MODELICAPATH = os.environ['MODELICAPATH']
+                                em = f"Translation of {res['model']} failed: '{res['translation']['exception']}'. Directory is '{res['working_directory']}'." + f" MODELICAPATH is: {MODELICAPATH}"
+                            else:
+                                em = f"Translation of {res['model']} failed: '{res['translation']['exception']}'. Directory is '{res['working_directory']}'." + f" MODELICAPATH has not been set"
+                            # em = f"Translation of {res['model']} failed: '{res['translation']['exception']}'. Directory is '{res['working_directory']}'."
                             self._reporter.writeError(em)
                             iTra = iTra + 1
                         elif not res['simulation']['success']:
