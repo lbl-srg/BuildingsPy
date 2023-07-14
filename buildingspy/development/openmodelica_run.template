@@ -44,8 +44,12 @@ def _run_process(return_dict, cmd, worDir, timeout):
 
 
 def _translate(model, timeout):
+    import os
     import subprocess
     return_dict = {}
+
+    worDir = r"{{ working_directory }}"
+    MODELICAPATH = os.environ['MODELICAPATH']
 
     # Write translation script
     try:
@@ -58,6 +62,8 @@ setCommandLineOptions("-d=discreteinfo");
 setCommandLineOptions("-d=stateselection");
 setMatchingAlgorithm("PFPlusExt");
 setIndexReductionMethod("dynamicStateSelection");
+setModelicaPath("{MODELICAPATH}");
+loadFile("Modelica/package.mo");
 loadFile("{{ library_name }}/package.mo");
 translated := translateModel({model}, method="{{ solver }}", tolerance={{ rtol }}, numberOfIntervals={{ ncp }}, variableFilter="{{ filter }}");
 getErrorString();
@@ -85,6 +91,7 @@ def _simulate(model, timeout):
     import os
     import subprocess
 
+    worDir = r"{{ working_directory }}"
     return_dict = {}
 
     try:
