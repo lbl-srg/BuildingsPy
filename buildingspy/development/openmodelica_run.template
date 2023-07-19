@@ -50,6 +50,10 @@ def _translate(model, timeout):
 
     worDir = r"{{ working_directory }}"
     MODELICAPATH = os.environ['MODELICAPATH']
+    if not 'MODELICAPATH' in os.environ:
+        print("MODELICAPATH has not been set.")
+    else:
+        print(MODELICAPATH)
 
     # Write translation script
     try:
