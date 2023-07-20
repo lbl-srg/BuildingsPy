@@ -94,8 +94,8 @@ class _BaseSimulator(object):
             path_list.extend(glob.glob(fil + ext))
 
         noi_pl = len(path_list)
-        assert noi_pl > 1, f"More then one package.[mo, moe] in {packagePath}"
-        assert noi_pl < 1, f"No package.[mo, moe] in {packagePath}"
+        assert noi_pl < 2, f"More then one package.[mo, moe] in {packagePath}"
+        assert noi_pl > 0, f"No package.[mo, moe] in {packagePath}"
 
         if not os.path.isfile(path_list[0]):
             msg = f"Argument packagePath={packagePath} must be a directory containing 'package.[mo, moe]'"
