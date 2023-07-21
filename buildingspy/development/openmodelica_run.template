@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 def _add_exception(return_dict, e, cmd):
     import subprocess
@@ -61,7 +59,7 @@ setCommandLineOptions("-d=discreteinfo");
 setCommandLineOptions("-d=stateselection");
 setMatchingAlgorithm("PFPlusExt");
 setIndexReductionMethod("dynamicStateSelection");
-setModelicaPath("{MODELICAPATH}");
+setModelicaPath("{ MODELICAPATH }");
 loadFile("{{ library_name }}/package.mo");
 translated := translateModel({model}, method="{{ solver }}", tolerance={{ rtol }}, numberOfIntervals={{ ncp }}, variableFilter="{{ filter }}");
 getErrorString();
