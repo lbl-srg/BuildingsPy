@@ -48,11 +48,10 @@ def _translate(model, timeout):
     import subprocess
     return_dict = {}
 
-    worDir = r"{{ working_directory }}"
-    MODELICAPATH = os.environ['MODELICAPATH']
-
     # Write translation script
     try:
+        worDir = r"{{ working_directory }}"
+        MODELICAPATH = os.environ['MODELICAPATH']
         scr_nam = f"{model}_translate.mos"
         with open(scr_nam, 'w') as f:
             f.write(f"""setCommandLineOptions("-d=nogen");
@@ -90,7 +89,6 @@ def _simulate(model, timeout):
     import os
     import subprocess
 
-    worDir = r"{{ working_directory }}"
     return_dict = {}
 
     try:
@@ -99,6 +97,7 @@ def _simulate(model, timeout):
         # /usr/bin/../lib/x86_64-linux-gnu/omc/libsundials_nvecserial.so.5
         # Rather, we invoke an OpenModelica script (thereby invoking the Docker) and then simulate
         # the executable from this script.
+        worDir = r"{{ working_directory }}"
         scr_nam = f"{model}_simulate.mos"
         with open(scr_nam, 'w') as f:
             f.write(f"""retVal := system("./{model} -s {{ solver }} -steps -cpu -lv LOG_STATS");
