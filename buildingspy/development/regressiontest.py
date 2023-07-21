@@ -2596,7 +2596,6 @@ class Tester(object):
                         # reporting
                         res['working_directory'] = d
 
-
                         if 'MODELICAPATH' in os.environ:
                             MODELICAPATH = os.environ['MODELICAPATH']
                             debMes = f"MODELICAPATH is: {MODELICAPATH}."
