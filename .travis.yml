@@ -8,9 +8,11 @@ python:
 
 cache: pip
 
+# - OMC_VERSION=ubuntu-2204-omc:1.22.0_dev-41-g8a5b18f-1
+
 env:
   global:
-    - OMC_VERSION=ubuntu-2204-omc:1.22.0_dev-41-g8a5b18f-1
+    - OMC_VERSION=ubuntu-2204-omc:1.20.0_dev-314-g3033f43-1
     - OPTIMICA_VERSION=travis-ubuntu-2204-optimica:1.43.4
     - DYMOLA_VERSION=travis_ubuntu-2004_dymola:2023x-x86_64_rev-1
     - MPLBACKEND=agg
