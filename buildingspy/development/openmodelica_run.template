@@ -51,7 +51,6 @@ def _translate(model, timeout):
     # Write translation script
     try:
         worDir = r"{{ working_directory }}"
-        MODELICAPATH = os.environ['MODELICAPATH']
         scr_nam = f"{model}_translate.mos"
         with open(scr_nam, 'w') as f:
             f.write(f"""setCommandLineOptions("-d=nogen");
@@ -61,7 +60,6 @@ setCommandLineOptions("-d=discreteinfo");
 setCommandLineOptions("-d=stateselection");
 setMatchingAlgorithm("PFPlusExt");
 setIndexReductionMethod("dynamicStateSelection");
-setModelicaPath("{ MODELICAPATH }");
 loadFile("{{ library_name }}/package.mo");
 translated := translateModel({model}, method="{{ solver }}", tolerance={{ rtol }}, numberOfIntervals={{ ncp }}, variableFilter="{{ filter }}");
 getErrorString();
@@ -88,6 +86,7 @@ exit(retVal);
 def _simulate(model, timeout):
     import os
     import subprocess
+    import platform
 
     return_dict = {}
 
@@ -100,7 +99,12 @@ def _simulate(model, timeout):
         worDir = r"{{ working_directory }}"
         scr_nam = f"{model}_simulate.mos"
         with open(scr_nam, 'w') as f:
-            f.write(f"""retVal := system("./{model} -s {{ solver }} -steps -cpu -lv LOG_STATS");
+            if platform.system() == "Windows":
+                f.write(f"""retVal := system("{model} -s {{ solver }} -steps -cpu -lv LOG_STATS");
+exit(retVal);
+""")
+            else:
+                f.write(f"""retVal := system("./{model} -s {{ solver }} -steps -cpu -lv LOG_STATS");
 exit(retVal);
 """)
         cmd = ["omc", scr_nam]
