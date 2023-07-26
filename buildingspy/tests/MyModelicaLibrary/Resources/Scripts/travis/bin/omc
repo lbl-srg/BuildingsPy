@@ -52,11 +52,15 @@ else
     MODELICAPATH=`pwd`:${MODELICAPATH}
 fi
 
+# Export the OPENMODELICALIBRARY
+OPENMODELICALIBRARY=".openmodelica/libraries"
+
 # Create the command to mount all directories in read-only mode
 MOD_MOUNT=`create_mount_command ${MODELICAPATH}`
 
 # Prepend /mnt/ in front of each entry, which will then be used as the MODELICAPATH
 DOCKER_MODELICAPATH=`update_path_variable ${MODELICAPATH}`
+DOCKER_OPENMODELICALIBRARY=`update_path_variable ${OPENMODELICALIBRARY}`
 
 # If the current directory is part of the argument list,
 # replace it with . as the docker may have a different file structure
@@ -102,6 +106,7 @@ docker run \
   --workdir="/mnt/shared/${bas_nam}" \
   ${DOCKER_USERNAME}/${IMG_NAME} /bin/bash -c \
   "export MODELICAPATH=${DOCKER_MODELICAPATH} && \
+  export OPENMODELICALIBRARY=${DOCKER_OPENMODELICALIBRARY} && \
   omc ${arg_lis} && \
   rm -rf spawn-*"
 exit $?
