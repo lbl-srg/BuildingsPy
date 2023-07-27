@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 def process_with_timeout(target, timeout):
     import multiprocessing
     import time
@@ -30,173 +33,177 @@ def process_with_timeout(target, timeout):
     return ret
 
 def _translate(proc_num, return_dict):
-  import os
-  from pymodelica import compile_fmu
-  from inspect import signature
+    import os
+    from pymodelica import compile_fmu
+    from inspect import signature
 
-  generate_html_diagnostics={{ generate_html_diagnostics }}
+    generate_html_diagnostics = {{generate_html_diagnostics}}
 
-  try:
-    # OCT r28242 ignores MODELICAPATH and instead needs to have it set through a function argument.
-    compilation_log = "{{ model }}".replace('.', '_') + "_compile.log"
-    version="2.0"
-    compiler_log_level=f"warning:{compilation_log}"
-    compiler_options = {"generate_html_diagnostics" : generate_html_diagnostics,
-                        "nle_solver_tol_factor": 1e-2} # 1e-2 is the default
+    try:
+        # OCT r28242 ignores MODELICAPATH and instead needs to have it set through
+        # a function argument.
+        compilation_log = "{{ model }}".replace('.', '_') + "_compile.log"
+        version = "2.0"
+        compiler_log_level = f"warning:{compilation_log}"
+        compiler_options = {"generate_html_diagnostics": generate_html_diagnostics,
+                            "nle_solver_tol_factor": 1e-2}  # 1e-2 is the default
 
-    sig = signature(compile_fmu)
-    if "modelicapath" in str(sig):
-      # This is the new API that uses modelicapath as a function argument.
+        sig = signature(compile_fmu)
+        if "modelicapath" in str(sig):
+            # This is the new API that uses modelicapath as a function argument.
 
-      removed_modelica_path = False
-      if 'MODELICAPATH' in os.environ:
-        modelicapath=os.environ['MODELICAPATH']
-        del os.environ['MODELICAPATH']
-        removed_modelica_path = True
-      else:
-        modelicapath=os.path.abspath('.')
+            removed_modelica_path = False
+            if 'MODELICAPATH' in os.environ:
+                modelicapath = os.environ['MODELICAPATH']
+                del os.environ['MODELICAPATH']
+                removed_modelica_path = True
+            else:
+                modelicapath = os.path.abspath('.')
 
-      fmu_name = compile_fmu("{{ model }}({{ model_modifier }})",
-                             modelicapath=modelicapath,
-                             version=version,
-                             compiler_log_level=compiler_log_level,
-                             compiler_options=compiler_options)
-    else:
-      fmu_name = compile_fmu("{{ model }}({{ model_modifier }})",
-                             version=version,
-                             compiler_log_level=compiler_log_level,
-                             compiler_options=compiler_options)
+            fmu_name = compile_fmu("{{ model }}{{ model_modifier }}",
+                                   modelicapath=modelicapath,
+                                   version=version,
+                                   compiler_log_level=compiler_log_level,
+                                   compiler_options=compiler_options)
+        else:
+            fmu_name = compile_fmu("{{ model }}{{ model_modifier }}",
+                                   version=version,
+                                   compiler_log_level=compiler_log_level,
+                                   compiler_options=compiler_options)
 
-    if removed_modelica_path:
-      os.environ['MODELICAPATH'] = modelicapath
+        if removed_modelica_path:
+            os.environ['MODELICAPATH'] = modelicapath
 
-    # Copy style sheets.
-    # This is a hack to get the css and js files to render the html diagnostics.
-    htm_dir = os.path.splitext(os.path.basename(fmu_name))[0] + "_html_diagnostics"
-    if generate_html_diagnostics and os.path.exists(htm_dir):
-        for fil in ["scripts.js", "style.css", "html-diagnostics.css", "zepto.min.js"]:
-            src = os.path.join(".jmodelica_html", fil)
-            if os.path.exists(src):
-                des = os.path.join(htm_dir, fil)
-                shutil.copyfile(src, des)
+        # Copy style sheets.
+        # This is a hack to get the css and js files to render the html diagnostics.
+        htm_dir = os.path.splitext(os.path.basename(fmu_name))[0] + "_html_diagnostics"
+        if generate_html_diagnostics and os.path.exists(htm_dir):
+            for fil in ["scripts.js", "style.css", "html-diagnostics.css", "zepto.min.js"]:
+                src = os.path.join(".jmodelica_html", fil)
+                if os.path.exists(src):
+                    des = os.path.join(htm_dir, fil)
+                    shutil.copyfile(src, des)
 
-    # Read log file
-    out = None
-    if os.path.isfile(compilation_log):
-      with open(compilation_log, 'r') as f:
-        out = f.readlines()
-    else:
-      out = f"Error: Log file {compilation_log} does not exist."
+        # Read log file
+        out = None
+        if os.path.isfile(compilation_log):
+            with open(compilation_log, 'r') as f:
+                out = f.readlines()
+        else:
+            out = f"Error: Log file {compilation_log} does not exist."
 
+        # The standard output is returned as a list, with each line being an element
+        return_dict[proc_num] = {'success': True, 'fmu_name': str(fmu_name), 'stdout': out}
 
-    # The standard output is returned as a list, with each line being an element
-    return_dict[proc_num] = {'success': True, 'fmu_name': str(fmu_name), 'stdout': out}
+    except Exception as e:
+        return_dict[proc_num] = {'success': False,
+                                 'exception': '{}: {}'.format(type(e).__name__, e)}
+    return
 
-  except Exception as e:
-    return_dict[proc_num] = {'success': False,
-                             'exception': '{}: {}'.format(type(e).__name__, e)}
-  return
 
 def _simulate(proc_num, return_dict):
-  from pyfmi import load_fmu
+    from pyfmi import load_fmu
 
-  # Import the class that grabs stdout
-  import OutputGrabber as og
+    # Import the class that grabs stdout
+    import OutputGrabber as og
 
-  if not {{ simulate }}:
-    return_dict[proc_num] = {'success': False,
-                             'message': 'No simulation requested.'}
+    if not {{simulate}}:
+        return_dict[proc_num] = {'success': False,
+                                 'message': 'No simulation requested.'}
+        return return_dict
+
+    # Simulate the model
+
+    debug_solver = {{debug_solver}}
+    debug_solver_interactive_mode = {{debug_solver_interactive_mode}}
+
+    try:
+        fmu_name = "{{ model }}".replace(".", "_") + ".fmu"
+        mod = load_fmu(fmu_name)
+        x_nominal = mod.nominal_continuous_states
+
+        opts = mod.simulate_options()  # Retrieve the default options
+        opts['logging'] = False
+        opts['solver'] = '{{ solver }}'
+        opts['ncp'] = {{ncp}}
+
+        rtol = {{rtol}}
+
+        if len(x_nominal) > 0:
+            atol = rtol * x_nominal
+        else:
+            atol = rtol
+
+        if opts['solver'] == 'CVode':
+            # Set user-specified tolerance if it is smaller than the tolerance in the .mo file
+            opts['CVode_options']['external_event_detection'] = False
+            opts['CVode_options']['maxh'] = (mod.get_default_experiment_stop_time(
+            ) - mod.get_default_experiment_start_time()) / float(opts['ncp'])
+            opts['CVode_options']['iter'] = 'Newton'
+            opts['CVode_options']['discr'] = 'BDF'
+            # True is default, set to false if many events
+            opts['CVode_options']['store_event_points'] = True
+
+        if debug_solver:
+            opts["logging"] = True  # <- Turn on solver debug logging
+            mod.set("_log_level", 4)
+
+        opts['{{ solver }}_options']['rtol'] = rtol
+        opts['{{ solver }}_options']['atol'] = atol
+        opts['filter'] = {{filter}}
+        opts['result_file_name'] = "{{ result_file_name }}"
+
+        # Grab the std output
+        out = og.OutputGrabber()
+        out.start()
+        res = mod.simulate(
+            options=opts,
+            start_time={{start_time}},
+            final_time={{final_time}})
+        out.stop()
+
+        ######################################################################
+        # Get debugging information
+        if debug_solver and debug_solver_interactive_mode:
+            # Load the debug information
+            from pyfmi.debug import CVodeDebugInformation
+            debug = CVodeDebugInformation("{{ model }}".replace(".", "_") + "_debug.txt")
+
+            # Below are options to plot the order, error and step-size evolution.
+            # The error methods also take a threshold and a region if you want to
+            # limit the plot to a certain interval.
+
+            if opts['solver'].lower() == 'cvode':
+                # Plot wall-clock time versus model time
+                debug.plot_cumulative_time_elapsed()
+                # Plot only the region 0.8 - 1.0 seconds and only state variables with an
+                # error greater than 0.01 (for any point in that region)
+                debug.plot_error(region=[0.8, 1.0], threshold=0.01)
+
+            # Plot order evolution
+            debug.plot_order()
+
+            # Plot error evolution
+            debug.plot_error()  # Note see also the arguments to the method
+
+            # Plot the used step-size
+            debug.plot_step_size()
+
+            # See also debug?
+
+        start_time = res['time'][0]
+        final_time = res['time'][-1]
+        return_dict[proc_num] = {
+            'success': True,
+            'start_time': start_time,
+            'final_time': final_time,
+            'stdout': out.capturedtext.split('\n')}
+
+    except Exception as e:
+        return_dict[proc_num] = {'success': False,
+                                 'exception': '{}: {}'.format(type(e).__name__, e)}
     return return_dict
 
-  # Simulate the model
-
-  debug_solver = {{ debug_solver }}
-  debug_solver_interactive_mode = {{ debug_solver_interactive_mode }}
-
-  try:
-    fmu_name = "{{ model }}".replace(".", "_") + ".fmu"
-    mod = load_fmu(fmu_name)
-    x_nominal = mod.nominal_continuous_states
-
-    opts = mod.simulate_options() #Retrieve the default options
-    opts['logging'] = False
-    opts['solver'] = '{{ solver }}'
-    opts['ncp'] = {{ ncp }}
-
-    rtol = {{ rtol }}
-
-    if len(x_nominal) > 0:
-      atol = rtol*x_nominal
-    else:
-      atol = rtol
-
-    if opts['solver'] == 'CVode':
-      # Set user-specified tolerance if it is smaller than the tolerance in the .mo file
-      opts['CVode_options']['external_event_detection'] = False
-      opts['CVode_options']['maxh'] = (mod.get_default_experiment_stop_time()-mod.get_default_experiment_start_time())/float(opts['ncp'])
-      opts['CVode_options']['iter'] = 'Newton'
-      opts['CVode_options']['discr'] = 'BDF'
-      opts['CVode_options']['store_event_points'] = True # True is default, set to false if many events
-
-    if debug_solver:
-      opts["logging"] = True #<- Turn on solver debug logging
-      mod.set("_log_level", 4)
-
-
-    opts['{{ solver }}_options']['rtol'] = rtol
-    opts['{{ solver }}_options']['atol'] = atol
-    opts['filter'] = {{ filter }}
-    opts['result_file_name'] = "{{ result_file_name }}"
-
-
-    # Grab the std output
-    out = og.OutputGrabber()
-    out.start()
-    res = mod.simulate(
-        options=opts,
-        start_time={{ start_time }},
-        final_time={{ final_time }})
-    out.stop()
-
-    ######################################################################
-    # Get debugging information
-    if debug_solver and debug_solver_interactive_mode:
-      #Load the debug information
-      from pyfmi.debug import CVodeDebugInformation
-      debug = CVodeDebugInformation("{{ model }}".replace(".", "_")+"_debug.txt")
-
-      ### Below are options to plot the order, error and step-size evolution.
-      ### The error methods also take a threshold and a region if you want to
-      ### limit the plot to a certain interval.
-
-
-      if opts['solver'].lower() == 'cvode':
-        #Plot wall-clock time versus model time
-        debug.plot_cumulative_time_elapsed()
-        #Plot only the region 0.8 - 1.0 seconds and only state variables with an error greater than 0.01 (for any point in that region)
-        debug.plot_error(region=[0.8,1.0], threshold=0.01)
-
-
-      #Plot order evolution
-      debug.plot_order()
-
-      #Plot error evolution
-      debug.plot_error() #Note see also the arguments to the method
-
-      #Plot the used step-size
-      debug.plot_step_size()
-
-      #See also debug?
-
-
-    start_time = res['time'][0]
-    final_time = res['time'][-1]
-    return_dict[proc_num] = {'success': True, 'start_time': start_time, 'final_time': final_time, 'stdout': out.capturedtext.split('\n')}
-
-  except Exception as e:
-    return_dict[proc_num] = {'success': False,
-                             'exception': '{}: {}'.format(type(e).__name__, e)}
-  return return_dict
 
 def run():
     import os
@@ -208,7 +215,7 @@ def run():
     # Increase memory
     pymodelica.environ['JVM_ARGS'] = '-Xmx4096m'
 
-    time_out = {{ time_out }}
+    time_out = {{time_out}}
     model = "{{ model }}"
     result = {"model": model,
               "translation": {"success": False},
@@ -246,7 +253,8 @@ def run():
             result["simulation"]["traceback"] = traceback.format_exc()
 
     with open(log_file, "w") as log:
-            log.write("{}\n".format(json.dumps(result, indent=4, sort_keys=False)) )
+        log.write("{}\n".format(json.dumps(result, indent=4, sort_keys=False)))
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     run()

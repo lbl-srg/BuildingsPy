@@ -1,7 +1,10 @@
-def _add_exception(return_dict, e, cmd):
-  import subprocess
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
-  return_dict['success'] = False
+def _add_exception(return_dict, e, cmd):
+    import subprocess
+
+    return_dict['success'] = False
 
 #  if isinstance(e, subprocess.CalledProcessError):
 #    # Check if simulation terminated, and if so, get the error
@@ -16,68 +19,71 @@ def _add_exception(return_dict, e, cmd):
 #        return_dict['exception'] = f"'{' '.join(cmd)}' caused '{msg}'."
 #        pass
 
-  if not 'exception' in return_dict:
-    # Did not find 'terminated' in message, handle exception as usual
-    return_dict['exception'] = '{}: {}'.format(type(e).__name__, e)
+    if 'exception' not in return_dict:
+        # Did not find 'terminated' in message, handle exception as usual
+        return_dict['exception'] = '{}: {}'.format(type(e).__name__, e)
 
 
 def _run_process(return_dict, cmd, worDir, timeout):
-  import subprocess
+    import subprocess
 
-  output = subprocess.check_output(
-    cmd,
-    cwd = worDir,
-    timeout=timeout,
-    stderr=subprocess.STDOUT,
-    shell=False)
+    output = subprocess.check_output(
+        cmd,
+        cwd=worDir,
+        timeout=timeout,
+        stderr=subprocess.STDOUT,
+        shell=False)
 
-  return_dict['success'] = True
-  if 'stdout' in return_dict:
-     return_dict['stdout'] += output.decode("utf-8")
-  else:
-     return_dict['stdout'] = output.decode("utf-8")
-  return
+    return_dict['success'] = True
+    if 'stdout' in return_dict:
+        return_dict['stdout'] += output.decode("utf-8")
+    else:
+        return_dict['stdout'] = output.decode("utf-8")
+    return
+
 
 def _simulate(model, timeout):
-  import os
-  import subprocess
+    import os
+    import subprocess
 
-  worDir = "{{ working_directory }}"
-  return_dict = {}
+    worDir = r"{{ working_directory }}"
+    return_dict = {}
 
-  try:
-    cmd = {{ cmd }}
-    return_dict['cmd'] = ' '.join(cmd)
-    output = _run_process(return_dict, cmd, worDir, timeout)
+    try:
+        cmd = {{cmd}}
+        return_dict['cmd'] = ' '.join(cmd)
+        output = _run_process(return_dict, cmd, worDir, timeout)
 
-  except Exception as e:
-    _add_exception(return_dict, e, cmd)
-  return return_dict
+    except Exception as e:
+        _add_exception(return_dict, e, cmd)
+    return return_dict
+
 
 def run():
-  import os
-  import json
-  import traceback
-  import sys
+    import os
+    import json
+    import traceback
+    import sys
 
-  timeout = {{ time_out }}
-  model = "{{ model }}"
-  result = {"model": model,
-            "working_directory": "{{ working_directory }}",
-            "simulation": {"success": False}}
+    timeout = {{time_out}}
+    model = "{{ model }}"
+    result = {"model": model,
+              "working_directory": r"{{ working_directory }}",
+              "simulation": {"success": False}}
 
-  # Log file
-  log_file = "{}_buildingspy.json".format(model.replace(".", "_"))
-  try:
-    os.remove(log_file)
-  except OSError:
-    pass
+    # Log file
+    log_file = "{}_buildingspy.json".format(model.replace(".", "_"))
+    try:
+        os.remove(log_file)
+    except OSError:
+        pass
 
-  # Simulate model
-  result["simulation"] = _simulate(model, timeout)
+    # Simulate model
+    result["simulation"] = _simulate(model, timeout)
 
-  with open(log_file, "w") as log:
-    log.write("{}\n".format(json.dumps(result, indent=4, sort_keys=False)) )
+    with open(log_file, "w") as log:
+        log.write("{}\n".format(json.dumps(result, indent=4, sort_keys=False)))
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     run()

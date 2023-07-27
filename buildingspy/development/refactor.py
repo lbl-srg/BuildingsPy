@@ -342,8 +342,8 @@ def _move_mos_file(source, target):
     else:
         sourceFile = get_modelica_file_name(source)
         targetFile = get_modelica_file_name(target)
-        targetMosFile = sourceMosFile.replace(os.path.join(*sourceFile.split("/")[1:]),
-                                              os.path.join(*targetFile.split("/")[1:]))
+        targetMosFile = sourceMosFile.replace(os.path.join(*sourceFile.split(os.path.sep)[1:]),
+                                              os.path.join(*targetFile.split(os.path.sep)[1:]))
 
     if os.path.isfile(sourceMosFile):
         # Remove the top-level package name from source and target, then

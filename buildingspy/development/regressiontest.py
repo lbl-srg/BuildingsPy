@@ -556,13 +556,16 @@ class Tester(object):
         """
         import platform
 
+        env = os.environ.copy()  # will be passed to the subprocess.Popen call
+
         if self._modelica_tool == 'openmodelica':
             # get the executable for omc, depending on platform
             if platform.system() == "Windows":
                 try:
                     omc = os.path.join(env['OPENMODELICAHOME'], 'bin', 'omc')
                 except KeyError:
-                    raise OSError("Environment flag 'OPENMODELICAHOME' must be set")
+                    raise OSError(
+                        "Environment flag 'OPENMODELICAHOME' must be set. The path to 'omc' executable must be added to PATH.")
             else:
                 # we suppose the omc executable is known
                 omc = 'omc'
