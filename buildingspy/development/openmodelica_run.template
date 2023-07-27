@@ -58,6 +58,7 @@ setCommandLineOptions("-d=initialization");
 setCommandLineOptions("-d=backenddaeinfo");
 setCommandLineOptions("-d=discreteinfo");
 setCommandLineOptions("-d=stateselection");
+installPackage(Modelica, "");
 setMatchingAlgorithm("PFPlusExt");
 setIndexReductionMethod("dynamicStateSelection");
 loadFile("{{ library_name }}/package.mo");
