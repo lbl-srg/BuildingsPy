@@ -564,7 +564,8 @@ class Tester(object):
                 try:
                     omc = os.path.join(env['OPENMODELICAHOME'], 'bin', 'omc')
                 except KeyError:
-                    raise OSError("Environment flag 'OPENMODELICAHOME' must be set. The path to 'omc' executable must be added to PATH.")
+                    raise OSError(
+                        "Environment flag 'OPENMODELICAHOME' must be set. The path to 'omc' executable must be added to PATH.")
             else:
                 # we suppose the omc executable is known
                 omc = 'omc'
