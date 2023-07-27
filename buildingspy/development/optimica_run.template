@@ -60,13 +60,13 @@ def _translate(proc_num, return_dict):
             else:
                 modelicapath = os.path.abspath('.')
 
-            fmu_name = compile_fmu("{{ model }}{{ model_modifier }}",
+            fmu_name = compile_fmu("{{ model }}({{ model_modifier }})",
                                    modelicapath=modelicapath,
                                    version=version,
                                    compiler_log_level=compiler_log_level,
                                    compiler_options=compiler_options)
         else:
-            fmu_name = compile_fmu("{{ model }}{{ model_modifier }}",
+            fmu_name = compile_fmu("{{ model }}({{ model_modifier }})",
                                    version=version,
                                    compiler_log_level=compiler_log_level,
                                    compiler_options=compiler_options)
