@@ -562,10 +562,9 @@ class Tester(object):
             # get the executable for omc, depending on platform
             if platform.system() == "Windows":
                 try:
-                    # omc = os.path.join(env['OPENMODELICAHOME'], 'bin', 'omc')
-                    omc = r'{}'.format(os.path.join(env['OPENMODELICAHOME'], 'bin', 'omc'))
+                    omc = os.path.join(env['OPENMODELICAHOME'], 'bin', 'omc')
                 except KeyError:
-                    raise OSError("Environment flag 'OPENMODELICAHOME' must be set.")
+                    raise OSError("Environment flag 'OPENMODELICAHOME' must be set. The path to 'omc' executable must be added to PATH.")
             else:
                 # we suppose the omc executable is known
                 omc = 'omc'
