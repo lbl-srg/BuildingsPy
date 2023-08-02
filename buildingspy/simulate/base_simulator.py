@@ -542,7 +542,12 @@ class _BaseSimulator(object):
             return env
         else:
             if 'MODELICAPATH' in env:
-                env['MODELICAPATH'] = ":".join([path, env['MODELICAPATH']])
+                import platform
+
+                if platform.system() == 'Windows':
+                    env['MODELICAPATH'] = ";".join([path, env['MODELICAPATH']])
+                else:
+                    env['MODELICAPATH'] = ":".join([path, env['MODELICAPATH']])
             else:
                 env['MODELICAPATH'] = path
             return env
