@@ -538,11 +538,15 @@ class _BaseSimulator(object):
             >>> env = s.prependToModelicaPath(env, os.getcwd())
 
          '''
+        import platform
         if path is None:
             return env
         else:
             if 'MODELICAPATH' in env:
-                env['MODELICAPATH'] = ":".join([path, env['MODELICAPATH']])
+                if platform.system() == 'Windows':
+                    env['MODELICAPATH'] = ";".join([path, env['MODELICAPATH']])
+                else:
+                    env['MODELICAPATH'] = ":".join([path, env['MODELICAPATH']])
             else:
                 env['MODELICAPATH'] = path
             return env
