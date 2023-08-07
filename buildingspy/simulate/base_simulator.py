@@ -88,17 +88,14 @@ class _BaseSimulator(object):
 
         # Check whether the package Path parameter is correct
         fil = os.path.join(packagePath, "package")
-        extensions = [".mo", ".moe"]
-        path_list = []
-        for ext in extensions:
-            path_list.extend(glob.glob(fil + ext))
+        packages = [".mo", ".moe"]
+        found = False
+        for pac in packages:
+            if os.path.isfile(os.path.join(packagePath, pac)):
+                found = True
 
-        noi_pl = len(path_list)
-        assert noi_pl < 2, f"More then one package.[mo, moe] in {packagePath}"
-        assert noi_pl > 0, f"No package.[mo, moe] in {packagePath}"
-
-        if not os.path.isfile(path_list[0]):
-            msg = f"Argument packagePath={packagePath} must be a directory containing 'package.[mo, moe]'"
+        if not found:
+            msg = f"Argument packagePath={packagePath} must be a directory containing either package.mo or package.moe."
             raise ValueError(msg)
 
         # All the checks have been successfully passed
