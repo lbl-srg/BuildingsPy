@@ -3,6 +3,7 @@ BuildingsPy Changelog
 
 Version 4.x.x, xxx -- Release 4.0
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- In buildingspy/simulate/base_simulator.py, updated separator for MODELICAPATH on Windows.
 - In buildingspy/simulate/base_simulator.py, added support for libraries with encrypted top-level package.moe file.
 - Corrected bug in buildingspy/development/refactor.py that causes renames to fail on Windows.
 - Corrected bug in buildingspy/development/regressiontest.py in parsing .mos scripts with simulateModel command on multiple lines.
