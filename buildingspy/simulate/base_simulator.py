@@ -87,8 +87,7 @@ class _BaseSimulator(object):
         import glob
 
         # Check whether the package Path parameter is correct
-        fil = os.path.join(packagePath, "package")
-        packages = [".mo", ".moe"]
+        packages = ["package.mo", "package.moe"]
         found = False
         for pac in packages:
             if os.path.isfile(os.path.join(packagePath, pac)):
