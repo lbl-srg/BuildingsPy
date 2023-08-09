@@ -84,11 +84,17 @@ class _BaseSimulator(object):
         Otherwise, a ``ValueError`` is raised.
         """
         import os
+        import glob
 
         # Check whether the package Path parameter is correct
-        fil = os.path.join(packagePath, "package.mo")
-        if not os.path.isfile(fil):
-            msg = f"Argument packagePath={packagePath} must be a directory containing 'package.mo'. Did not find '{fil}'"
+        packages = ["package.mo", "package.moe"]
+        found = False
+        for pac in packages:
+            if os.path.isfile(os.path.join(packagePath, pac)):
+                found = True
+
+        if not found:
+            msg = f"Argument packagePath={packagePath} must be a directory containing either package.mo or package.moe."
             raise ValueError(msg)
 
         # All the checks have been successfully passed
@@ -547,7 +553,12 @@ class _BaseSimulator(object):
             return env
         else:
             if 'MODELICAPATH' in env:
-                env['MODELICAPATH'] = ":".join([path, env['MODELICAPATH']])
+                import platform
+
+                if platform.system() == 'Windows':
+                    env['MODELICAPATH'] = ";".join([path, env['MODELICAPATH']])
+                else:
+                    env['MODELICAPATH'] = ":".join([path, env['MODELICAPATH']])
             else:
                 env['MODELICAPATH'] = path
             return env
