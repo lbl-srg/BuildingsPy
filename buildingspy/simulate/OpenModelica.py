@@ -211,6 +211,7 @@ class Simulator(bs._BaseSimulator):
             template = env.get_template("openmodelica_run.template")
 
             txt = template.render(
+                working_directory=self._outputDir_,
                 library_name=self.modelName.split(".")[0],
                 package_path=self.getPackagePath(),
                 model=self.modelName,
