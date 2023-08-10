@@ -3612,6 +3612,25 @@ exit();
                 filter = '(' + '|'.join([re.sub(r'\[|\]',
                                                 lambda m: '[{}]'.format(m.group()),
                                                 re.sub(' ', '', x)) for x in result_variables]) + ')'
+
+                def _getStartStopTime(key, dat):
+                    # Get the startTime or StopTime. If not set, return a default, unless the model must be simulated,
+                    # in which case the method raises a ValueError
+                    retVal = -9999
+                    if key in dat:
+                        retVal=dat[key]
+                    elif not dat[self._modelica_tool]['simulate']:
+                        # We don't have a start time and need not to simulate, such as for testing FMU export.
+                        # Set a default value for the startTime
+                        retVal=0
+                    else:
+                        raise ValueError(
+                            "Missing entry for 'startTime' for model '{dat[model_name]}'.")
+                    return
+
+                startTime = _getStartStopTime('startTime', dat)
+                stopTime = _getStartStopTime('stopTime', dat)
+
                 txt = tem_mod.render(
                     library_name=self.getLibraryName(),
                     model=model,
@@ -3620,8 +3639,8 @@ exit();
                     ncp=dat[self._modelica_tool]['ncp'],
                     rtol=dat[self._modelica_tool]['rtol'],
                     solver=dat[self._modelica_tool]['solver'],
-                    start_time=dat['startTime'],
-                    final_time=dat['stopTime'],
+                    start_time=startTime,
+                    final_time=stopTime,
                     simulate=dat[self._modelica_tool]['simulate'],
                     time_out=dat[self._modelica_tool]['time_out'],
                     filter=filter
