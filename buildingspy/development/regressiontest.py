@@ -3609,9 +3609,9 @@ exit();
             # filter argument must respect glob syntax ([ is escaped with []]) + OPTIMICA mat file
             # stores matrix variables with no space e.g. [1,1].
             if self._modelica_tool == 'openmodelica':
-                filter = '(' + '|'.join([re.sub(r'\[|\]',
+                filter = '\\(' + '|'.join([re.sub(r'\[|\]',
                                                 lambda m: '[{}]'.format(m.group()),
-                                                re.sub(' ', '', x)) for x in result_variables]) + ')'
+                                                re.sub(' ', '', x)) for x in result_variables]) + '\\)'
 
                 def _getStartStopTime(key, dat):
                     # Get the startTime or StopTime. If not set, return a default, unless the model must be simulated,
@@ -3632,6 +3632,7 @@ exit();
                 stopTime = _getStartStopTime('stopTime', dat)
 
                 txt = tem_mod.render(
+                    package_path=self.getLibraryName(),
                     library_name=self.getLibraryName(),
                     model=model,
                     modifiedModelName=f"{model}_modified".replace('.', '_'),
@@ -3642,8 +3643,8 @@ exit();
                     start_time=startTime,
                     final_time=stopTime,
                     simulate=dat[self._modelica_tool]['simulate'],
-                    time_out=dat[self._modelica_tool]['time_out'],
-                    filter=filter
+                    time_out=dat[self._modelica_tool]['time_out']#,
+                    #filter=filter Currently not supported, needs correction of escape character
                 )
             elif self._modelica_tool == 'optimica':
                 txt = tem_mod.render(

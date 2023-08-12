@@ -229,10 +229,7 @@ class Simulator(bs._BaseSimulator):
                 result_file_name=f"{self._simulator_.get('resultFile')}.mat",
                 simulate=simulate,
                 time_out=self._simulator_.get('timeout'),
-                filter=self._result_filter #,
-                #generate_html_diagnostics=self._generate_html_diagnostics,
-                #debug_solver=self._debug_solver,
-                #debug_solver_interactive_mode=self._debug_solver_interactive_mode
+                filter=self._result_filter
                 )
 
             fil.write(txt)
