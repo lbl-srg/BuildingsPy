@@ -223,7 +223,13 @@ class Test_simulate_Simulator(unittest.TestCase):
         )
         s._deleteTemporaryDirectory = False
         outDir = os.path.abspath(s.getOutputDirectory())
-        for timeout in [0, -1, None]:
+        # Simulations that do not time out
+        for timeout in [-1, None, 60]:
+            s.setTimeOut(timeout)
+            s.simulate()
+
+        # Case that times out
+        for timeout in [0.0001]:
             s.setTimeOut(timeout)
             with self.assertRaises(TimeoutError):
                 s.simulate()
@@ -231,6 +237,7 @@ class Test_simulate_Simulator(unittest.TestCase):
                 log = fh.read()
             self.assertTrue('TimeoutExpired:' in log)
             self.assertTrue('"success": false' in log)
+
 
     def test_multiprocessing(self):
         import os
