@@ -30,7 +30,7 @@ class Test_development_Comparator(unittest.TestCase):
             package="IBPSA.Utilities.Psychrometrics.Examples",
             repo=repo)
 
-        # s.run()
+        s.run()
         s.post_process()
         # Make sure output file exists
         self.assertIsFile(os.path.join("results", "html", "tools_compare_master.html"))
