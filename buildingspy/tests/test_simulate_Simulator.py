@@ -30,6 +30,7 @@ class Test_simulate_Simulator(unittest.TestCase):
             outputDirectory="notSupported",
             outputFileList=None,
             packagePath=self._packagePath)
+        os.rmdir("notSupported")
 
 
 if __name__ == '__main__':

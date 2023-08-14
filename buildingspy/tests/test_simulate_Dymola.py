@@ -49,6 +49,7 @@ class Test_simulate_Simulator(unittest.TestCase):
                 modelName="MyModelicaLibrary.myModel",
                 outputDirectory="notSupported",
                 packagePath="ThisIsAWrongPath")
+        os.rmdir("notSupported")
 
     def test_setPackagePath(self):
         """
@@ -79,6 +80,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         """
         s = Simulator("MyModelicaLibrary.MyModel", packagePath=self._packagePath)
         s.translate()
+        s.deleteOutputFiles()
 
     def test_simulate_user_library(self):
         """
@@ -87,6 +89,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         """
         s = Simulator("MyModelicaLibrary.MyModel", packagePath=self._packagePath)
         s.simulate()
+        s.deleteOutputFiles()
 
     def test_simulate_msl(self):
         """
@@ -96,6 +99,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         """
         s = Simulator("Modelica.Blocks.Examples.PID_Controller")
         s.simulate()
+        s.deleteOutputFiles()
 
     def test_addMethods(self):
         """
@@ -226,6 +230,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         s.addParameters({'p1': 123})  # p1 is a boolean parameter. This will fail the model.
         with self.assertRaises(Exception):
             s.simulate()
+        s.deleteOutputFiles()
 
     def test_timeout(self, timeout=0.0001):
         model = 'MyModelicaLibrary.MyModelTimeOut'
@@ -247,6 +252,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         with open(os.path.join(outDir, 'dslog.txt')) as fh:
             log = fh.read()
         self.assertTrue('Integration terminated successfully' in log)
+        s.deleteOutputFiles()
 
     def test_multiprocessing(self):
         import os

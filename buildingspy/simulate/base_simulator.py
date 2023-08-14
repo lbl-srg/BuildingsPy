@@ -247,11 +247,10 @@ class _BaseSimulator(object):
         import glob
 
         for ent in fileList:
-            #            print(f"*** checking whether to delete {ent}")
+#            for fil in glob.glob(os.path.join(self._outputDir_, ent)):
             for fil in glob.glob(ent):
                 try:
                     if os.path.exists(fil):
-                     #                       print(f"    Deleting file: {fil}")
                         os.remove(fil)
                 except OSError as e:
                     self._reporter.writeError("Failed to delete '" + fil + "' : " + e.strerror)

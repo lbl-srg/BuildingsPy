@@ -37,7 +37,11 @@ class Simulator(bs._BaseSimulator):
             modelName=modelName,
             outputDirectory=outputDirectory,
             packagePath=packagePath,
-            outputFileList=[f"{modelNameUnderscore}.fmu",
+            outputFileList=[f"{modelNameUnderscore}.py",
+                            f"{modelNameUnderscore}_compile.log",
+#                            f"{modelNameUnderscore}_buildingspy.log",
+                            f"{modelNameUnderscore}_buildingspy.json",
+                            f"{modelNameUnderscore}.fmu",
                             'BuildingsPy.log',
                             f"{modelNameUnderscore}_log.txt"])
 
@@ -243,6 +247,7 @@ class Simulator(bs._BaseSimulator):
             em = f"Simulation failed in '{worDir}'\n   Exception: {e}.\n   You need to delete the directory manually.\n"
             self._reporter.writeError(em)
             raise e
+        os.remove(os.path.join(worDir, "OutputGrabber.py"))
 
     def setResultFilter(self, filter):
         """ Specifies a list of variables that should be stored in the result file.
