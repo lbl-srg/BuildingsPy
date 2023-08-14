@@ -386,5 +386,13 @@ class Simulator(bs._BaseSimulator):
         return
 
     def deleteOutputFiles(self):
+        import os
+        import shutil
+
         super().deleteOutputFiles()
         self._deleteFiles([self._simulator_.get('resultFile') + ".mat"])
+
+        # Delete output file
+        html_out_dir = f"{self.modelName.replace('.', '_')}_html_diagnostics"
+        if os.path.isdir(html_out_dir):
+            shutil.rmtree(html_out_dir)
