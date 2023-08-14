@@ -204,7 +204,7 @@ class _BaseSimulator(object):
             to = sec
         else:
             to = None
-        self._simulator_.update(timeout=sec)
+        self._simulator_.update(timeout=to)
 
         return
 

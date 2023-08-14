@@ -295,7 +295,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         # Delete output files
         s.deleteOutputFiles()
 
-    def test_timeout(self, timeout=3):
+    def test_timeout(self, timeout=0.0001):
         model = 'MyModelicaLibrary.MyModelTimeOut'
         json_log_file = '{}_buildingspy.json'.format(model.replace('.', '_'))
         s = Simulator(

@@ -227,7 +227,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         with self.assertRaises(Exception):
             s.simulate()
 
-    def test_timeout(self, timeout=3):
+    def test_timeout(self, timeout=0.0001):
         model = 'MyModelicaLibrary.MyModelTimeOut'
         s = Simulator(
             model,
@@ -241,6 +241,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         with open(os.path.join(outDir, s._reporter._logFil)) as fh:
             log = fh.read()
         self.assertTrue('Terminating simulation' in log and 'Process timeout' in log)
+        # A value of -1 will never time out
         s.setTimeOut(-1)
         s.simulate()
         with open(os.path.join(outDir, 'dslog.txt')) as fh:

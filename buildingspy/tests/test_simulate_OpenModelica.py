@@ -223,7 +223,7 @@ class Test_simulate_Simulator(unittest.TestCase):
         )
         s._deleteTemporaryDirectory = False
         outDir = os.path.abspath(s.getOutputDirectory())
-        for timeout in [0, -1]:
+        for timeout in [0, -1, None]:
             s.setTimeOut(timeout)
             with self.assertRaises(TimeoutError):
                 s.simulate()
