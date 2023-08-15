@@ -64,12 +64,14 @@ class Test_regressiontest_Tester(unittest.TestCase):
         # Check return value to see if test succeeded
         self.assertEqual(0, ret_val, "Test failed with return value {}".format(ret_val))
         # Delete temporary files
-        os.remove(rt.get_unit_test_log_file())
+        for f in rt.get_unit_test_log_files():
+            if os.path.exists(f):
+                os.remove(f)
 
     def test_unit_test_log_file(self):
         import buildingspy.development.regressiontest as r
         rt = r.Tester(check_html=False, tool="dymola")
-        self.assertEqual('unitTests-dymola.log', rt.get_unit_test_log_file())
+        self.assertEqual(['comparison-dymola.log', 'simulator-dymola.log', 'unitTests-dymola.log'], rt.get_unit_test_log_files())
 
     def test_regressiontest_invalid_package(self):
         import buildingspy.development.regressiontest as r

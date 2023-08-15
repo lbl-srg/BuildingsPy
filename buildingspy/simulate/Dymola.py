@@ -456,4 +456,5 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
             f"{model_name}_buildingspy.json",
             f"{model_name}_compile.log"
             f"{model_name}_log.txt",
+            f"{self.modelName}_JacA.bin",
             f"{model_name}.py"])

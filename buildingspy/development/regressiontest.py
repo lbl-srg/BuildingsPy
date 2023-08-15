@@ -411,11 +411,12 @@ class Tester(object):
 
         server.browse(browser=browser, timeout=timeout)
 
-    def get_unit_test_log_file(self):
-        """ Return the name of the log file of the unit tests,
-            such as ``unitTests-openmodelica.log``, ``unitTests-optimica.log`` or ``unitTests-dymola.log``.
+    def get_unit_test_log_files(self):
+        """ Return the name of the logs files of the unit tests,
+            such as ``unitTests-openmodelica.log``, ``unitTests-optimica.log`` or ``unitTests-dymola.log`` and
+            ``simulator-openmodelica.log`` etc.
         """
-        return "unitTests-{}.log".format(self._modelica_tool)
+        return ["comparison-{}.log".format(self._modelica_tool), "simulator-{}.log".format(self._modelica_tool), "unitTests-{}.log".format(self._modelica_tool)]
 
     def _initialize_error_dict(self):
         """ Initialize the error dictionary.
@@ -2885,13 +2886,12 @@ to access a summary of the comparison results.\n""".format(
         # Check for errors
         hasTranslationErrors = False
         for ele in stat:
-            hasTranslationError = False
             if 'check' in ele and ele['check']['result'] is False:
-                hasTranslationError = True
+                hasTranslationErrors = True
                 iChe = iChe + 1
                 self._reporter.writeError("Model check failed for '%s'." % ele["model"])
             if 'simulate' in ele and ele['simulate']['result'] is False:
-                hasTranslationError = True
+                hasTranslationErrors = True
                 iSim = iSim + 1
                 self._reporter.writeError("Simulation failed for '%s'." %
                                           ele["simulate"]["command"])
@@ -2919,7 +2919,7 @@ to access a summary of the comparison results.\n""".format(
                                 v["model_message"].format(ele[key]["command"]))
                             self._error_dict.increment_counter(k)
 
-            if hasTranslationError and logFil is not None:
+            if hasTranslationErrors and logFil is not None:
                 with open(self._failed_simulator_log_file, "a") as f:
                     f.write("===============================\n")
                     f.write("=====START OF NEW LOG FILE=====\n")
@@ -2944,6 +2944,9 @@ to access a summary of the comparison results.\n""".format(
             print(
                 "Check or simulation failed, see {} for more details about the failed models.".format(
                     self._failed_simulator_log_file))
+        else:
+            os.remove(self._failed_simulator_log_file)
+
         return self._writeSummaryMessages()
 
     def _writeSummaryMessages(self, silent=True):

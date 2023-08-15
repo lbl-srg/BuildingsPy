@@ -34,9 +34,9 @@ class Test_development_Comparator(unittest.TestCase):
         s.post_process()
         # Make sure output file exists
         self.assertIsFile(os.path.join("results", "html", "tools_compare_master.html"))
-        # shutil.rmtree("results")
-        # for tool in tools:
-        #   shutil.rmtree(tool)
+        shutil.rmtree("results")
+        for tool in tools:
+            shutil.rmtree(tool)
 
 
 if __name__ == '__main__':

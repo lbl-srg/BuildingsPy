@@ -17,7 +17,7 @@ class Test_regressiontest_openmodelica_Tester(unittest.TestCase):
     def test_unit_test_log_file(self):
         import buildingspy.development.regressiontest as r
         rt = r.Tester(check_html=False, tool="openmodelica")
-        self.assertEqual('unitTests-openmodelica.log', rt.get_unit_test_log_file())
+        self.assertEqual(['comparison-openmodelica.log', 'simulator-openmodelica.log', 'unitTests-openmodelica.log'], rt.get_unit_test_log_files())
 
     @staticmethod
     def _write_test(content):
@@ -132,7 +132,9 @@ createPlot(id=1, y={"Test.x"});
                 f"Test for '{des}' failed, return value {ret_val}, expected {test['ret_val']}")
             # Get parent dir of dir_name, because dir_name contains the Modelica library name
             par = os.path.split(dir_name)[0]
-            os.remove(rt.get_unit_test_log_file())
+            for f in rt.get_unit_test_log_files():
+                if os.path.exists(f):
+                    os.remove(f)
             shutil.rmtree(par)
 
     def test_regressiontest(self):
@@ -145,7 +147,9 @@ createPlot(id=1, y={"Test.x"});
         # Check return value to see if test suceeded
         self.assertEqual(0, ret_val, "Test failed with return value {}".format(ret_val))
         # Delete temporary files
-        os.remove(rt.get_unit_test_log_file())
+        for f in rt.get_unit_test_log_files():
+            if os.path.exists(f):
+                os.remove(f)
 
 
 if __name__ == '__main__':
