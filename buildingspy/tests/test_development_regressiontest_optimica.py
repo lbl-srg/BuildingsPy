@@ -17,7 +17,8 @@ class Test_regressiontest_optimica_Tester(unittest.TestCase):
     def test_unit_test_log_file(self):
         import buildingspy.development.regressiontest as r
         rt = r.Tester(check_html=False, tool="optimica")
-        self.assertEqual(['comparison-optimica.log', 'simulator-optimica.log', 'unitTests-optimica.log'], rt.get_unit_test_log_files())
+        self.assertEqual(['comparison-optimica.log', 'simulator-optimica.log',
+                         'unitTests-optimica.log'], rt.get_unit_test_log_files())
 
     @staticmethod
     def _write_test(content):
@@ -147,7 +148,6 @@ createPlot(id=1, y={"Test.x"});
         for f in rt.get_unit_test_log_files():
             if os.path.exists(f):
                 os.remove(f)
-
 
 
 if __name__ == '__main__':

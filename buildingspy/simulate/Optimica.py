@@ -39,7 +39,7 @@ class Simulator(bs._BaseSimulator):
             packagePath=packagePath,
             outputFileList=[f"{modelNameUnderscore}.py",
                             f"{modelNameUnderscore}_compile.log",
-#                            f"{modelNameUnderscore}_buildingspy.log",
+                            #                            f"{modelNameUnderscore}_buildingspy.log",
                             f"{modelNameUnderscore}_buildingspy.json",
                             f"{modelNameUnderscore}.fmu",
                             'BuildingsPy.log',

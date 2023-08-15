@@ -32,6 +32,7 @@ def process_with_timeout(target, timeout):
     ret.update({'cpu_time': cpu_time})
     return ret
 
+
 def _translate(proc_num, return_dict):
     import os
     from pymodelica import compile_fmu

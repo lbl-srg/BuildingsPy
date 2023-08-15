@@ -245,7 +245,6 @@ class Test_simulate_Simulator(unittest.TestCase):
             self.assertTrue('"success": false' in log)
             s.deleteOutputFiles()
 
-
     def test_multiprocessing(self):
         import os
         import shutil

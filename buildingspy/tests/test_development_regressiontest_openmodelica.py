@@ -17,7 +17,8 @@ class Test_regressiontest_openmodelica_Tester(unittest.TestCase):
     def test_unit_test_log_file(self):
         import buildingspy.development.regressiontest as r
         rt = r.Tester(check_html=False, tool="openmodelica")
-        self.assertEqual(['comparison-openmodelica.log', 'simulator-openmodelica.log', 'unitTests-openmodelica.log'], rt.get_unit_test_log_files())
+        self.assertEqual(['comparison-openmodelica.log', 'simulator-openmodelica.log',
+                         'unitTests-openmodelica.log'], rt.get_unit_test_log_files())
 
     @staticmethod
     def _write_test(content):

@@ -71,7 +71,8 @@ class Test_regressiontest_Tester(unittest.TestCase):
     def test_unit_test_log_file(self):
         import buildingspy.development.regressiontest as r
         rt = r.Tester(check_html=False, tool="dymola")
-        self.assertEqual(['comparison-dymola.log', 'simulator-dymola.log', 'unitTests-dymola.log'], rt.get_unit_test_log_files())
+        self.assertEqual(['comparison-dymola.log', 'simulator-dymola.log',
+                         'unitTests-dymola.log'], rt.get_unit_test_log_files())
 
     def test_regressiontest_invalid_package(self):
         import buildingspy.development.regressiontest as r

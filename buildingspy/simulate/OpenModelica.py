@@ -216,8 +216,8 @@ class Simulator(bs._BaseSimulator):
                 package_path=self.getPackagePath(),
                 model=self.modelName,
                 modifiedModelName=f"{self.modelName.replace('.', '_')}_Modified",
-                commentStringNonModifiedModel = "//" if len(model_modifier) > 0 else "",
-                commentStringModifiedModel    = "//" if len(model_modifier) == 0 else "",
+                commentStringNonModifiedModel="//" if len(model_modifier) > 0 else "",
+                commentStringModifiedModel="//" if len(model_modifier) == 0 else "",
                 model_modifier=model_modifier,
                 ncp=self._simulator_.get('numberOfIntervals'),
                 rtol=self._simulator_.get('eps'),
@@ -230,7 +230,7 @@ class Simulator(bs._BaseSimulator):
                 simulate=simulate,
                 time_out=self._simulator_.get('timeout'),
                 filter=self._result_filter
-                )
+            )
 
             fil.write(txt)
 

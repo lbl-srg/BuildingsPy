@@ -51,7 +51,6 @@ class Test_simulate_Simulator(unittest.TestCase):
                 packagePath="ThisIsAWrongPath")
         os.rmdir("notSupported")
 
-
     def test_setPackagePath(self):
         """
         Tests the ``setPackagePath'' method.

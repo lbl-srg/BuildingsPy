@@ -247,7 +247,7 @@ class _BaseSimulator(object):
         import glob
 
         for ent in fileList:
-#            for fil in glob.glob(os.path.join(self._outputDir_, ent)):
+            #            for fil in glob.glob(os.path.join(self._outputDir_, ent)):
             for fil in glob.glob(ent):
                 try:
                     if os.path.exists(fil):
@@ -406,7 +406,7 @@ class _BaseSimulator(object):
             killedProcess = False
             # Tailored implementation of a timeout mechanism as it is not available
             # through `wait` or `communicate` methods in Python 2.
-            if (timeout is not None): # if timeout is not None, it is always bigger than 0
+            if (timeout is not None):  # if timeout is not None, it is always bigger than 0
                 while not timeout_exceeded and pro.poll() is None:
                     time.sleep(0.01)
                     elapsedTime = (datetime.datetime.now() - self._simulationStartTime).seconds

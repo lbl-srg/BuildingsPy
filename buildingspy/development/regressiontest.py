@@ -416,7 +416,9 @@ class Tester(object):
             such as ``unitTests-openmodelica.log``, ``unitTests-optimica.log`` or ``unitTests-dymola.log`` and
             ``simulator-openmodelica.log`` etc.
         """
-        return ["comparison-{}.log".format(self._modelica_tool), "simulator-{}.log".format(self._modelica_tool), "unitTests-{}.log".format(self._modelica_tool)]
+        return ["comparison-{}.log".format(self._modelica_tool),
+                "simulator-{}.log".format(self._modelica_tool),
+                "unitTests-{}.log".format(self._modelica_tool)]
 
     def _initialize_error_dict(self):
         """ Initialize the error dictionary.
@@ -3613,19 +3615,19 @@ exit();
             # stores matrix variables with no space e.g. [1,1].
             if self._modelica_tool == 'openmodelica':
                 filter = '\\(' + '|'.join([re.sub(r'\[|\]',
-                                                lambda m: '[{}]'.format(m.group()),
-                                                re.sub(' ', '', x)) for x in result_variables]) + '\\)'
+                                                  lambda m: '[{}]'.format(m.group()),
+                                                  re.sub(' ', '', x)) for x in result_variables]) + '\\)'
 
                 def _getStartStopTime(key, dat):
                     # Get the startTime or StopTime. If not set, return a default, unless the model must be simulated,
                     # in which case the method raises a ValueError
                     retVal = -9999
                     if key in dat:
-                        retVal=dat[key]
+                        retVal = dat[key]
                     elif not dat[self._modelica_tool]['simulate']:
                         # We don't have a start time and need not to simulate, such as for testing FMU export.
                         # Set a default value for the startTime
-                        retVal=0
+                        retVal = 0
                     else:
                         raise ValueError(
                             "Missing entry for 'startTime' for model '{dat[model_name]}'.")
@@ -3646,8 +3648,8 @@ exit();
                     start_time=startTime,
                     final_time=stopTime,
                     simulate=dat[self._modelica_tool]['simulate'],
-                    time_out=dat[self._modelica_tool]['time_out']#,
-                    #filter=filter Currently not supported, needs correction of escape character
+                    time_out=dat[self._modelica_tool]['time_out']  # ,
+                    # filter=filter Currently not supported, needs correction of escape character
                 )
             elif self._modelica_tool == 'optimica':
                 txt = tem_mod.render(
