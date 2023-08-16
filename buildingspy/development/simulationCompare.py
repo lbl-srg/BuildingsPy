@@ -260,22 +260,6 @@ class Comparator(object):
             if suc is not True:
                 refactoredLogs.append(model)
                 continue
-            # find the maximum simulation time
-            t_0 = model['simulation'][0]['log']['elapsed_time']
-            t_max = t_0
-            relTim = 0
-            relTim = 0
-            for m in range(1, len(model['simulation'])):
-                elaTim = model['simulation'][m]['log']['elapsed_time']
-                if t_0 > 1E-10:
-                    relTim = elaTim / t_0
-                if elaTim > t_max:
-                    t_max = elaTim
-            # check if the model should be flagged as the simulation times are
-            # significantly different between different tools or branches
-            if t_max > tolAbsTime and abs(1 - relTim) > tolRelTime:
-                model['flag'] = True
-            model['relTim'] = relTim
             refactoredLogs.append(model)
         return refactoredLogs
 
@@ -304,7 +288,35 @@ class Comparator(object):
 
     def _generateTable(self, dataSet):
         ''' Generate html table and write it to file
+
+            The dataSet has structure as:
+            [
+                {
+                    'label': 'tool_name' (or 'branch_name'),   // 'dymola' (or 'master')
+                    'logs': [
+                        {
+                            'model': 'model1',
+                            'simulation': [
+                                {
+                                    'label': 'branch_name' (or 'tool_name'),   // 'master' (or 'dymola')
+                                    'commit': 'commit #',
+                                    'log': {
+                                        'cpu_time': ,
+                                        'elapsed_time': ,
+                                        'final_time': ,
+                                        'jacobians': ,
+                                        'start_time': ,
+                                        'state_events': ,
+                                        'success':
+                                    }
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
         '''
+
         htmlTableDir = os.path.join(self._cwd, 'results', 'html')
         mkpath(htmlTableDir)
         # latexTableDir = os.path.join(self._cwd, 'results', 'latex')
@@ -314,22 +326,31 @@ class Comparator(object):
             if len(self._branches) > 1:
                 for tool in self._tools:
                     if data['label'] == tool:
-                        filNam = os.path.join(htmlTableDir, "branches_compare_%s.html" % tool)
-                        # texTab = os.path.join(latexTableDir, "branches_compare_%s.tex" % tool)
-                        # generate html table content
-                        htmltext, flagModels = self._generateHtmlTable(data, 'branches')
-                        Comparator._writeFile(filNam, htmltext)
-                        # self._generateTexTable(texTab, flagModels)
+                        # Compare branches against the first branch listed
+                        for comBra in self._branches[1:]:
+                            filNam = os.path.join(
+                                htmlTableDir, f"compare_{tool}--{self._branches[0]}-{comBra}.html")
+                            # texTab = os.path.join(latexTableDir, "branches_compare_%s.tex" % tool)
+                            # generate html table content
+                            htmltext, flagModels = self._generateHtmlTable(
+                                self._package, data, [tool], [
+                                    self._branches[0], comBra], self._tolRelTime, self._tolAbsTime, self._lib_src)
+                            Comparator._writeFile(filNam, htmltext)
+                            # self._generateTexTable(texTab, flagModels)
             # generate tools comparison tables
             if len(self._tools) > 1:
                 for branch in self._branches:
                     if data['label'] == branch:
-                        filNam = os.path.join(htmlTableDir, "tools_compare_%s.html" % branch)
-                        # texTab = os.path.join(latexTableDir, "tools_compare_%s.tex" % branch)
-                        # generate html table content
-                        htmltext, flagModels = self._generateHtmlTable(data, 'tools')
-                        Comparator._writeFile(filNam, htmltext)
-                        # self._generateTexTable(texTab, flagModels)
+                        for comToo in self._tools[1:]:
+                            filNam = os.path.join(
+                                htmlTableDir, f"compare_{branch}--{self._tools[0]}-{comToo}.html")
+                            # texTab = os.path.join(latexTableDir, "tools_compare_%s.tex" % branch)
+                            # generate html table content
+                            htmltext, flagModels = self._generateHtmlTable(self._package, data,
+                                                                           [self._tools[0], comToo], [branch],
+                                                                           self._tolRelTime, self._tolAbsTime, self._lib_src)
+                            Comparator._writeFile(filNam, htmltext)
+                            # self._generateTexTable(texTab, flagModels)
 
     def _generateTexTable(self, filNam, models):
         try:
@@ -435,9 +456,10 @@ class Comparator(object):
         with open(filNam, 'w+') as f:
             f.write(content)
 
-    def _chooseStyle(self, relTim, flag):
+    @staticmethod
+    def _chooseStyle(relTim, tolRelTime, flag):
         # relTim is  (elaTim-t_0) / t_0
-        dif = relTim - 1 - self._tolRelTime if relTim > 1 else (1 - relTim) - self._tolRelTime
+        dif = relTim - 1 - tolRelTime if relTim > 1 else (1 - relTim) - tolRelTime
         dR = 0.5
         dG = 0.1
         style = 'normal'
@@ -478,7 +500,57 @@ class Comparator(object):
                     style = 'r-8'
         return style
 
-    def _generateHtmlTable(self, data, tools_or_branches):
+    @staticmethod
+    def _add_flag(sim, log, tolAbsTime, tolRelTime):
+        ''' Add flag to show if one model has significantly different simulation time among different tools or branches
+        '''
+        relTim = 0
+        log['flag'] = False
+        if (len(sim) > 1):
+            if (sim[0]['log']['success'] and sim[1]['log']['success']):
+                t_0 = sim[0]['log']['elapsed_time']
+                t_1 = sim[1]['log']['elapsed_time']
+                t_max = max(t_0, t_1)
+                if (t_0 > 1E-10):
+                    relTim = t_1 / t_0
+                if t_max > tolAbsTime and abs(1 - relTim) > tolRelTime:
+                    log['flag'] = True
+        log['relTim'] = relTim
+
+    @staticmethod
+    def _filter_data_set(fullLabels, tempLogs, tolAbsTime, tolRelTime):
+        ''' Filter data for comparing only two data set, either tools or branches comparison
+        '''
+        dataLogs = list()
+        for tempLog in tempLogs:
+            log = {'model': tempLog['model']}
+            simLogs = tempLog['simulation']
+            if (len(simLogs) > 0):
+                tempSim = list()
+                for simLog in simLogs:
+                    for labEle in fullLabels:
+                        if (simLog['label'] == labEle):
+                            tempSim.append(simLog)
+                log['simulation'] = tempSim
+                if (len(tempSim) > 0):
+                    # add flag to identify if one model has significantly different simulation
+                    # time among different tools or branches
+                    Comparator._add_flag(tempSim, log, tolAbsTime, tolRelTime)
+            dataLogs.append(log)
+        return dataLogs
+
+    def _print_dictionary(msg, dic, exit=False):
+        import sys
+        import pprint
+        pp = pprint.PrettyPrinter(indent=4)
+        print(f"*************** {msg} **************************")
+        pp.pprint(dic)
+        print(f"*****************************************")
+        if exit:
+            sys.exit(1)
+
+    @staticmethod
+    def _generateHtmlTable(package, data, tools, branches, tolRelTime, tolAbsTime, lib_src):
         ''' Html table template
         '''
         # style section
@@ -510,12 +582,15 @@ class Comparator(object):
 <script src="https://www.kryogenix.org/code/browser/sorttable/sorttable.js"></script>
 '''
 
-        # find the data logs
-        dataLogs = data['logs']
         # calculate column width
-        fullLabels = self._tools if tools_or_branches == 'tools' else self._branches
+        tools_or_branches = "tools" if len(tools) > 1 else "branches"
+        fullLabels = tools if tools_or_branches == 'tools' else branches
         numberOfDataSet = len(fullLabels)
         colWidth = 100 / (3 + numberOfDataSet * 3 + 1)
+
+        # find the data logs
+        tempLogs = data['logs']
+        dataLogs = Comparator._filter_data_set(fullLabels, tempLogs, tolAbsTime, tolRelTime)
 
         # specify column style
         colGro = '''
@@ -592,8 +667,8 @@ class Comparator(object):
         firstEntSim = firstEnt['simulation']
         toolBranchInfo = ''
         if tools_or_branches == 'tools':
-            commitText = f'<a href="{self._lib_src}/tree/{firstEntSim[0]["commit"]}">{firstEntSim[0]["commit"]}</a>' \
-                if self._lib_src[0:5] == "https" else f'<code>{firstEntSim[0]["commit"]}</code>'
+            commitText = f'<a href="{lib_src}/tree/{firstEntSim[0]["commit"]}">{firstEntSim[0]["commit"]}</a>' \
+                if lib_src[0:5] == "https" else f'<code>{firstEntSim[0]["commit"]}</code>'
             branchCommit = '''Branch <b>%s</b> (%s)''' % (data['label'], commitText)
             toolsList = list()
             for simLog in firstEntSim:
@@ -607,8 +682,8 @@ class Comparator(object):
         else:
             branchCommitList = list()
             for simLog in firstEntSim:
-                commitText = f'<a href="{self._lib_src}/tree/{simLog["commit"]}">{simLog["commit"]}</a>' \
-                    if self._lib_src[0:5] == "https" else f'<code>{simLog["commit"]}</code>'
+                commitText = f'<a href="{lib_src}/tree/{simLog["commit"]}">{simLog["commit"]}</a>' \
+                    if lib_src[0:5] == "https" else f'<code>{simLog["commit"]}</code>'
                 temp = '''<b>%s</b> (%s)''' % (simLog['label'], commitText)
                 branchCommitList.append(temp)
             branchCommit = ',<br/>'.join(branchCommitList)
@@ -622,7 +697,7 @@ class Comparator(object):
             modelData = '''<tr>''' + os.linesep
             flag = entry['flag']
             relTim = entry['relTim']
-            tgStyle = 'tg-' + self._chooseStyle(relTim, flag)
+            tgStyle = 'tg-' + Comparator._chooseStyle(relTim, tolRelTime, flag)
             if flag:
                 flagModelListTemp = {'model': entry['model']}
                 flagModelListTemp['relTim'] = relTim
@@ -662,7 +737,7 @@ class Comparator(object):
         for model in sortedList:
             modelData = '''<tr>''' + os.linesep
             relTim = model['relTim']
-            tgStyle = 'tg-' + self._chooseStyle(relTim, True)
+            tgStyle = 'tg-' + Comparator._chooseStyle(relTim, tolRelTime, True)
             modelName = model['model']
             temp1 = '''<td class="%s">%s</td>''' % (tgStyle, modelName)
             modelData = modelData + temp1 + os.linesep
@@ -690,7 +765,7 @@ class Comparator(object):
         if len(failedModels) > 0:
             failedModelsInfo = '''<br/>
                                 <p><font size="+1.5">
-                                Following models were flagged for %s.</font>
+                                Following models were flagged as %s.</font>
                                 </p>
                                 ''' % failedFlagText
             failedModelsInfo += os.linesep
@@ -704,19 +779,19 @@ class Comparator(object):
 
         flagInfo = '''<br/>
                      <p><font size="+1.5">
-                     Following models were flagged for which the maximum simulation time is greater than %.2f seconds
+                     Following models were flagged because the maximum simulation time is greater than %.2f seconds
                      and the relative difference between maximum and minimum simulation time
                      (i.e. <code>(t<sub>max</sub> - t<sub>min</sub>)/t<sub>max</sub></code>)
                      is greater than %.2f.</font>
                      </p>
-                    ''' % (self._tolAbsTime, self._tolRelTime)
+                    ''' % (tolAbsTime, tolRelTime)
         flagModels = colGro + heaGro + flaggedModels + os.linesep + \
             '''</table>'''
         allModelInfo = '''<br/><br/>
                         <p><font size="+1.5">
                         Following models are in package <code>%s</code>:
                         </font></p>
-                        ''' % self._package
+                        ''' % package
         allModels = colGro + heaGro + models + os.linesep + \
             '''</table>'''
 
@@ -777,7 +852,7 @@ class Comparator(object):
 
         # comparison between different branches with same tool
         if len(self._branches) > 1:
-            for tool in self._tools:  # [dymola, jmodelica]
+            for tool in self._tools:  # [dymola, jmodelica, OpenModelica]
                 data = {'label': tool}
                 temp = list()
                 for log in logs:
