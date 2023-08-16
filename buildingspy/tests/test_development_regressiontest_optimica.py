@@ -135,12 +135,13 @@ createPlot(id=1, y={"Test.x"});
                     os.remove(f)
             shutil.rmtree(par)
 
-    def test_regressiontest(self):
+    def _run_regression_test(self, skip_verification):
         import buildingspy.development.regressiontest as r
-        rt = r.Tester(skip_verification=True, check_html=False, tool="optimica")
+        rt = r.Tester(skip_verification=skip_verification, check_html=False, tool="optimica")
         myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
         rt.deleteTemporaryDirectories(True)
         rt.setLibraryRoot(myMoLib)
+        rt.batchMode(True)
         ret_val = rt.run()
         # Check return value to see if test suceeded
         self.assertEqual(0, ret_val, "Test failed with return value {}".format(ret_val))
@@ -148,6 +149,12 @@ createPlot(id=1, y={"Test.x"});
         for f in rt.get_unit_test_log_files():
             if os.path.exists(f):
                 os.remove(f)
+
+    def test_regressiontest(self):
+        self._run_regression_test(skip_verification=True)
+
+    def test_regressiontest_with_verification(self):
+        self._run_regression_test(skip_verification=False)
 
 
 if __name__ == '__main__':

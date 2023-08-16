@@ -52,21 +52,26 @@ class Test_regressiontest_Tester(unittest.TestCase):
                           """y = {"a", "b",
                           "c"}""")
 
-    def test_regressiontest(self):
+    def _run_regression_test(self, skip_verification):
         import buildingspy.development.regressiontest as r
-        rt = r.Tester(check_html=False)
+        rt = r.Tester(skip_verification=skip_verification, check_html=False, tool="dymola")
         myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
+        rt.deleteTemporaryDirectories(True)
         rt.setLibraryRoot(myMoLib)
-        rt.include_fmu_tests(True)
-        rt.writeOpenModelicaResultDictionary()
+        rt.batchMode(True)
         ret_val = rt.run()
-
-        # Check return value to see if test succeeded
+        # Check return value to see if test suceeded
         self.assertEqual(0, ret_val, "Test failed with return value {}".format(ret_val))
         # Delete temporary files
         for f in rt.get_unit_test_log_files():
             if os.path.exists(f):
                 os.remove(f)
+
+    def test_regressiontest(self):
+        self._run_regression_test(skip_verification=True)
+
+    def test_regressiontest_with_verification(self):
+        self._run_regression_test(skip_verification=False)
 
     def test_unit_test_log_file(self):
         import buildingspy.development.regressiontest as r

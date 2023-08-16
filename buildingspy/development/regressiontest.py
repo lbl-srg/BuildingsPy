@@ -3648,7 +3648,9 @@ exit();
                     start_time=startTime,
                     final_time=stopTime,
                     simulate=dat[self._modelica_tool]['simulate'],
-                    time_out=dat[self._modelica_tool]['time_out']  # ,
+                    time_out=dat[self._modelica_tool]['time_out'],
+                    filter=".*"
+
                     # filter=filter Currently not supported, needs correction of escape character
                 )
             elif self._modelica_tool == 'optimica':
