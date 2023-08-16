@@ -3631,7 +3631,7 @@ exit();
                     else:
                         raise ValueError(
                             "Missing entry for 'startTime' for model '{dat[model_name]}'.")
-                    return
+                    return retVal
 
                 startTime = _getStartStopTime('startTime', dat)
                 stopTime = _getStartStopTime('stopTime', dat)
