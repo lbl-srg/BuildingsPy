@@ -936,7 +936,7 @@ class Tester(object):
 
             # Set the startTime, if present
             for key in ["startTime", "stopTime"]:
-                regex = fr"simulateModel\(.*({key})\s*=\s*(?P<value>[-+]?\ *[0-9]+\.?[0-9]*(?:[Ee]\ *-?\ *[0-9]+)?)"
+                regex = fr"simulateModel\(.*({key})\s*=\s*(?P<value>[-+]?\ *[0-9]+\.?[0-9]*(?:[Ee]\ *-?\ *[-+]?[0-9]+)?)"
                 val = re.search(regex, mos_content, re.DOTALL)
                 if val:
                     try:
