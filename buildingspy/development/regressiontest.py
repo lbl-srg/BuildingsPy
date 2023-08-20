@@ -3540,7 +3540,7 @@ exit();
             self._write_run_all_script(iPro, tra_data_pro)
 
         if nUniTes == 0:
-            raise RuntimeError(f"Wrong invocation, generated {nUniTes} unit tests.")
+            raise RuntimeError(f"Wrong invocation, generated {nUniTes} unit tests. There seem to be no model to translate.")
 
         print("Generated {} regression tests.\n".format(nUniTes))
 
