@@ -3635,12 +3635,16 @@ exit();
 
                 startTime = _getStartStopTime('startTime', dat)
                 stopTime = _getStartStopTime('stopTime', dat)
+                model_modifier = ""
 
                 txt = tem_mod.render(
                     package_path=self.getLibraryName(),
                     library_name=self.getLibraryName(),
                     model=model,
                     modifiedModelName=f"{model}_modified".replace('.', '_'),
+                    commentStringNonModifiedModel="//" if len(model_modifier) > 0 else "",
+                    commentStringModifiedModel="//" if len(model_modifier) == 0 else "",
+                    model_modifier=model_modifier,
                     working_directory=directory,
                     ncp=dat[self._modelica_tool]['ncp'],
                     rtol=dat[self._modelica_tool]['rtol'],
