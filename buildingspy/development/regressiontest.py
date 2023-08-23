@@ -3652,11 +3652,11 @@ exit();
                     simulate=dat[self._modelica_tool]['simulate'],
                     time_out=dat[self._modelica_tool]['time_out'],
                     filter_escape='|'.join([re.sub(r'\[|\]',
-                                                  lambda m: '[{}]'.format(m.group()),
-                                                  re.sub(' ', '', x)) for x in result_variables]),
+                                                   lambda m: '[{}]'.format(m.group()),
+                                                   re.sub(' ', '', x)) for x in result_variables]),
                     filter_no_escape='|'.join([re.sub(r'\[|\]',
-                                                  lambda m: '{}'.format(m.group()),
-                                                  re.sub(' ', '', x)) for x in result_variables])
+                                                      lambda m: '{}'.format(m.group()),
+                                                      re.sub(' ', '', x)) for x in result_variables])
 
                 )
             elif self._modelica_tool == 'optimica':
