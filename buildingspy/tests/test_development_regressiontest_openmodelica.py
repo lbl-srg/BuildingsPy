@@ -118,7 +118,7 @@ createPlot(id=1, y={"Test.x"});
             dir_name = self._write_test(mo_content)
             rt = r.Tester(skip_verification=True, check_html=False, tool="openmodelica")
             rt.setLibraryRoot(dir_name)
-            rt.deleteTemporaryDirectories(False)
+            rt.deleteTemporaryDirectories(True)
 
 #                # This test must raise an exception
 #                self.assertRaises(ValueError,
