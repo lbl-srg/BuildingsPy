@@ -229,8 +229,8 @@ class Simulator(bs._BaseSimulator):
                 result_file_name=f"{self._simulator_.get('resultFile')}.mat",
                 simulate=simulate,
                 time_out=self._simulator_.get('timeout'),
-                filter_escape=self._result_filter,
-                filter_no_escape=self._result_filter
+                filter_translate=self._result_filter,
+                filter_simulate=self._result_filter
             )
 
             fil.write(txt)

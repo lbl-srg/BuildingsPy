@@ -49,7 +49,7 @@ def _translate(model, timeout):
 
     # Write translation script
     try:
-        filter = "{{ filter_escape }}"
+        filter = "{{ filter_translate }}"
         worDir = r"{{ working_directory }}"
         src_nam = model + "_translate.mos"
         with open(src_nam, 'w') as f:
@@ -103,7 +103,7 @@ def _simulate(model, timeout):
     # /usr/bin/../lib/x86_64-linux-gnu/omc/libsundials_nvecserial.so.5
     # Rather, we invoke an OpenModelica script (thereby invoking the Docker) and then simulate
     # the executable from this script.
-    filter = "{{ filter_no_escape }}"
+    filter = "{{ filter_simulate }}"
     worDir = r"{{ working_directory }}"
     src_nam = f"{model}_simulate.mos"
     cmd = ["omc", src_nam]
