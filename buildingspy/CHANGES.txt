@@ -3,6 +3,9 @@ BuildingsPy Changelog
 
 Version 4.x.x, xxx -- Release 4.0
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- Added buildingspy.simulate.OpenModelica to support simulation with OpenModelica, and refactored
+  modules for simulation with Dymola and Optimica.
+  (https://github.com/lbl-srg/BuildingsPy/issues/500)
 - In buildingspy/simulate/base_simulator.py, updated separator for MODELICAPATH on Windows.
 - In buildingspy/simulate/base_simulator.py, added support for libraries with encrypted top-level package.moe file.
 - Corrected bug in buildingspy/development/refactor.py that causes renames to fail on Windows.
