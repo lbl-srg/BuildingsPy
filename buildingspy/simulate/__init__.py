@@ -1,9 +1,10 @@
 """
 This module contains the class
+:class:`buildingspy.simulate.OpenModelica`,
 :class:`buildingspy.simulate.Optimica`
 and
 :class:`buildingspy.simulate.Dymola`
-that can be used to automate simulations using Optimica and Dymola,
+that can be used to automate simulations using OpenModelica, Optimica and Dymola,
 respectively.
 
 Their API is identical where possible, but each

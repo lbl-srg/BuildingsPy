@@ -5,7 +5,6 @@ def _add_exception(return_dict, e, cmd):
     import subprocess
 
     return_dict['success'] = False
-
     if isinstance(e, subprocess.CalledProcessError):
         # Check if simulation terminated, and if so, get the error
         return_dict['stdout'] = e.output.decode("utf-8")
@@ -50,9 +49,13 @@ def _translate(model, timeout):
 
     # Write translation script
     try:
+        filter = "{{ filter_translate }}"
         worDir = r"{{ working_directory }}"
-        scr_nam = f"{model}_translate.mos"
-        with open(scr_nam, 'w') as f:
+        src_nam = model + "_translate.mos"
+        with open(src_nam, 'w') as f:
+            # Replace { xxx } with {{ xxx }} which is needed because of the write(f"xxxx") statement
+            model_modifier_patched = "{{ model_modifier }}".replace(
+                '\\{', '\\{\\{').replace('\\}', '\\}\\}')
             f.write(f"""setCommandLineOptions("-d=nogen");
 setCommandLineOptions("-d=initialization");
 setCommandLineOptions("-d=backenddaeinfo");
@@ -61,21 +64,25 @@ setCommandLineOptions("-d=stateselection");
 installPackage(Modelica, "");
 setMatchingAlgorithm("PFPlusExt");
 setIndexReductionMethod("dynamicStateSelection");
-loadFile("{{ library_name }}/package.mo");
-translated := translateModel({model}, method="{{ solver }}", tolerance={{ rtol }}, numberOfIntervals={{ ncp }}, variableFilter="{{ filter }}");
-getErrorString();
 
-if translated then
-  retVal := system("make -f {model}.makefile");
-else
-  print("Translation failed.");
-  retVal := 10;
-end if;
+print("Loading library");
+loadFile("{{ package_path }}/package.mo");
+print("Loading model");
+{{ commentStringNonModifiedModel }}print("Translating model");
+{{ commentStringNonModifiedModel }}translateModel({{ model }}, method="{{ solver }}", tolerance={{ rtol }}, numberOfIntervals={{ ncp }}, variableFilter=\"({filter})\");
+{{ commentStringNonModifiedModel }}getErrorString();
+{{ commentStringModifiedModel }}loadString("model {{ modifiedModelName }} extends {{ model }}({model_modifier_patched}); end {{ modifiedModelName }};");
+{{ commentStringModifiedModel }}getErrorString();
+{{ commentStringModifiedModel }}print("Translating model");
+{{ commentStringModifiedModel }}buildModel({{ modifiedModelName }}, fileNamePrefix=\"{{ model }}\", method="{{ solver }}", tolerance={{ rtol }}, numberOfIntervals={{ ncp }}, variableFilter=\"({filter})\");
+{{ commentStringModifiedModel }}getErrorString();
+print("Compiling model");
+retVal := system("make -f {{ model }}.makefile");
 exit(retVal);
 """)
 
         # Translate and compile model
-        cmd = ["omc", scr_nam]
+        cmd = ["omc", src_nam]
         return_dict['cmd'] = ' '.join(cmd)
         _run_process(return_dict, cmd, worDir, timeout)
 
@@ -91,25 +98,27 @@ def _simulate(model, timeout):
 
     return_dict = {}
 
+    # Simulate the model. The CI tests use DOCKER. Hence, we don't invoke directly the executable,
+    # as the executable links for example to
+    # /usr/bin/../lib/x86_64-linux-gnu/omc/libsundials_nvecserial.so.5
+    # Rather, we invoke an OpenModelica script (thereby invoking the Docker) and then simulate
+    # the executable from this script.
+    filter = "{{ filter_simulate }}"
+    worDir = r"{{ working_directory }}"
+    src_nam = f"{model}_simulate.mos"
+    cmd = ["omc", src_nam]
+    return_dict['cmd'] = ' '.join(cmd)
+
     try:
-        # Simulate the model. The CI tests use DOCKER. Hence, we don't invoke directly the executable,
-        # as the executable links for example to
-        # /usr/bin/../lib/x86_64-linux-gnu/omc/libsundials_nvecserial.so.5
-        # Rather, we invoke an OpenModelica script (thereby invoking the Docker) and then simulate
-        # the executable from this script.
-        worDir = r"{{ working_directory }}"
-        scr_nam = f"{model}_simulate.mos"
-        with open(scr_nam, 'w') as f:
+        with open(src_nam, 'w') as f:
             if platform.system() == "Windows":
-                f.write(f"""retVal := system("{model} -s {{ solver }} -steps -cpu -lv LOG_STATS");
-exit(retVal);
-""")
+                esc = ""
             else:
-                f.write(f"""retVal := system("./{model} -s {{ solver }} -steps -cpu -lv LOG_STATS");
+                esc = "./"
+            f.write(
+                f"""retVal := system("{esc}{model} -override=startTime={{ start_time }},stopTime={{ final_time }},tolerance={{ rtol }},solver={{ solver }},outputFormat=mat,variableFilter=\\\"({filter})\\\" -steps -cpu -lv LOG_STATS");
 exit(retVal);
 """)
-        cmd = ["omc", scr_nam]
-        return_dict['cmd'] = ' '.join(cmd)
         output = _run_process(return_dict, cmd, worDir, timeout)
 
     except Exception as e:

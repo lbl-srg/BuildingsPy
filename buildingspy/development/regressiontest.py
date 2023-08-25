@@ -411,11 +411,14 @@ class Tester(object):
 
         server.browse(browser=browser, timeout=timeout)
 
-    def get_unit_test_log_file(self):
-        """ Return the name of the log file of the unit tests,
-            such as ``unitTests-openmodelica.log``, ``unitTests-optimica.log`` or ``unitTests-dymola.log``.
+    def get_unit_test_log_files(self):
+        """ Return the name of the logs files of the unit tests,
+            such as ``unitTests-openmodelica.log``, ``unitTests-optimica.log`` or ``unitTests-dymola.log`` and
+            ``simulator-openmodelica.log`` etc.
         """
-        return "unitTests-{}.log".format(self._modelica_tool)
+        return ["comparison-{}.log".format(self._modelica_tool),
+                "simulator-{}.log".format(self._modelica_tool),
+                "unitTests-{}.log".format(self._modelica_tool)]
 
     def _initialize_error_dict(self):
         """ Initialize the error dictionary.
@@ -933,7 +936,7 @@ class Tester(object):
 
             # Set the startTime, if present
             for key in ["startTime", "stopTime"]:
-                regex = fr"simulateModel\(.*({key})\s*=\s*(?P<value>[-+]?\ *[0-9]+\.?[0-9]*(?:[Ee]\ *-?\ *[0-9]+)?)"
+                regex = fr"simulateModel\(.*({key})\s*=\s*(?P<value>[-+]?\ *[0-9]+\.?[0-9]*(?:[Ee]\ *-?\ *[-+]?[0-9]+)?)"
                 val = re.search(regex, mos_content, re.DOTALL)
                 if val:
                     try:
@@ -2885,13 +2888,12 @@ to access a summary of the comparison results.\n""".format(
         # Check for errors
         hasTranslationErrors = False
         for ele in stat:
-            hasTranslationError = False
             if 'check' in ele and ele['check']['result'] is False:
-                hasTranslationError = True
+                hasTranslationErrors = True
                 iChe = iChe + 1
                 self._reporter.writeError("Model check failed for '%s'." % ele["model"])
             if 'simulate' in ele and ele['simulate']['result'] is False:
-                hasTranslationError = True
+                hasTranslationErrors = True
                 iSim = iSim + 1
                 self._reporter.writeError("Simulation failed for '%s'." %
                                           ele["simulate"]["command"])
@@ -2919,7 +2921,7 @@ to access a summary of the comparison results.\n""".format(
                                 v["model_message"].format(ele[key]["command"]))
                             self._error_dict.increment_counter(k)
 
-            if hasTranslationError and logFil is not None:
+            if hasTranslationErrors and logFil is not None:
                 with open(self._failed_simulator_log_file, "a") as f:
                     f.write("===============================\n")
                     f.write("=====START OF NEW LOG FILE=====\n")
@@ -2944,6 +2946,9 @@ to access a summary of the comparison results.\n""".format(
             print(
                 "Check or simulation failed, see {} for more details about the failed models.".format(
                     self._failed_simulator_log_file))
+        else:
+            os.remove(self._failed_simulator_log_file)
+
         return self._writeSummaryMessages()
 
     def _writeSummaryMessages(self, silent=True):
@@ -3535,7 +3540,8 @@ exit();
             self._write_run_all_script(iPro, tra_data_pro)
 
         if nUniTes == 0:
-            raise RuntimeError(f"Wrong invocation, generated {nUniTes} unit tests.")
+            raise RuntimeError(
+                f"Wrong invocation, generated {nUniTes} unit tests. There seem to be no model to translate.")
 
         print("Generated {} regression tests.\n".format(nUniTes))
 
@@ -3609,19 +3615,48 @@ exit();
             # filter argument must respect glob syntax ([ is escaped with []]) + OPTIMICA mat file
             # stores matrix variables with no space e.g. [1,1].
             if self._modelica_tool == 'openmodelica':
-                filter = '(' + '|'.join([re.sub(r'\[|\]',
-                                                lambda m: '[{}]'.format(m.group()),
-                                                re.sub(' ', '', x)) for x in result_variables]) + ')'
+
+                def _getStartStopTime(key, dat):
+                    # Get the startTime or StopTime. If not set, return a default, unless the model must be simulated,
+                    # in which case the method raises a ValueError
+                    retVal = -9999
+                    if key in dat:
+                        retVal = dat[key]
+                    elif not dat[self._modelica_tool]['simulate']:
+                        # We don't have a start time and need not to simulate, such as for testing FMU export.
+                        # Set a default value for the startTime
+                        retVal = 0
+                    else:
+                        raise ValueError(
+                            "Missing entry for 'startTime' for model '{dat[model_name]}'.")
+                    return retVal
+
+                startTime = _getStartStopTime('startTime', dat)
+                stopTime = _getStartStopTime('stopTime', dat)
+                model_modifier = ""
+
                 txt = tem_mod.render(
+                    package_path=self.getLibraryName(),
                     library_name=self.getLibraryName(),
                     model=model,
+                    modifiedModelName=f"{model}_modified".replace('.', '_'),
+                    commentStringNonModifiedModel="//" if len(model_modifier) > 0 else "",
+                    commentStringModifiedModel="//" if len(model_modifier) == 0 else "",
+                    model_modifier=model_modifier,
                     working_directory=directory,
                     ncp=dat[self._modelica_tool]['ncp'],
                     rtol=dat[self._modelica_tool]['rtol'],
                     solver=dat[self._modelica_tool]['solver'],
+                    start_time=startTime,
+                    final_time=stopTime,
                     simulate=dat[self._modelica_tool]['simulate'],
                     time_out=dat[self._modelica_tool]['time_out'],
-                    filter=filter
+                    filter_translate='|'.join([re.sub(r'\[|\]',
+                                                      lambda m: '[{}]'.format(m.group()),
+                                                      re.sub(' ', '', x)) for x in result_variables]),
+                    filter_simulate='|'.join([re.sub(r'\[|\]',
+                                                     lambda m: '\\{}'.format(m.group()),
+                                                     re.sub(' ', '', x)) for x in result_variables])
                 )
             elif self._modelica_tool == 'optimica':
                 txt = tem_mod.render(

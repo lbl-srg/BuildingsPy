@@ -17,7 +17,8 @@ class Test_regressiontest_openmodelica_Tester(unittest.TestCase):
     def test_unit_test_log_file(self):
         import buildingspy.development.regressiontest as r
         rt = r.Tester(check_html=False, tool="openmodelica")
-        self.assertEqual('unitTests-openmodelica.log', rt.get_unit_test_log_file())
+        self.assertEqual(['comparison-openmodelica.log', 'simulator-openmodelica.log',
+                         'unitTests-openmodelica.log'], rt.get_unit_test_log_files())
 
     @staticmethod
     def _write_test(content):
@@ -117,7 +118,7 @@ createPlot(id=1, y={"Test.x"});
             dir_name = self._write_test(mo_content)
             rt = r.Tester(skip_verification=True, check_html=False, tool="openmodelica")
             rt.setLibraryRoot(dir_name)
-            rt.deleteTemporaryDirectories(False)
+            rt.deleteTemporaryDirectories(True)
 
 #                # This test must raise an exception
 #                self.assertRaises(ValueError,
@@ -132,20 +133,31 @@ createPlot(id=1, y={"Test.x"});
                 f"Test for '{des}' failed, return value {ret_val}, expected {test['ret_val']}")
             # Get parent dir of dir_name, because dir_name contains the Modelica library name
             par = os.path.split(dir_name)[0]
-            os.remove(rt.get_unit_test_log_file())
+            for f in rt.get_unit_test_log_files():
+                if os.path.exists(f):
+                    os.remove(f)
             shutil.rmtree(par)
 
-    def test_regressiontest(self):
+    def _run_regression_test(self, skip_verification):
         import buildingspy.development.regressiontest as r
-        rt = r.Tester(skip_verification=True, check_html=False, tool="openmodelica")
+        rt = r.Tester(skip_verification=skip_verification, check_html=False, tool="openmodelica")
         myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
         rt.deleteTemporaryDirectories(True)
         rt.setLibraryRoot(myMoLib)
+        rt.batchMode(True)
         ret_val = rt.run()
         # Check return value to see if test suceeded
         self.assertEqual(0, ret_val, "Test failed with return value {}".format(ret_val))
         # Delete temporary files
-        os.remove(rt.get_unit_test_log_file())
+        for f in rt.get_unit_test_log_files():
+            if os.path.exists(f):
+                os.remove(f)
+
+    def test_regressiontest(self):
+        self._run_regression_test(skip_verification=True)
+
+    def test_regressiontest_with_verification(self):
+        self._run_regression_test(skip_verification=False)
 
 
 if __name__ == '__main__':

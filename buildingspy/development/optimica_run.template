@@ -12,7 +12,7 @@ def process_with_timeout(target, timeout):
     p.daemon = True
     start = time.time()
     p.start()
-    if timeout > 0:
+    if (timeout is not None) and (timeout > 0):
         p.join(timeout)
     else:
         p.join()
@@ -49,6 +49,11 @@ def _translate(proc_num, return_dict):
         compiler_options = {"generate_html_diagnostics": generate_html_diagnostics,
                             "nle_solver_tol_factor": 1e-2}  # 1e-2 is the default
 
+        # If an FMU name ends with (), then it overides the start and stop time declared
+        # in the .mo file. Hence we make sure not to add brackets if there is no
+        # model modifier.
+        model_name_modifier = "{{ model }}({{ model_modifier }})".replace("()", "")
+
         sig = signature(compile_fmu)
         if "modelicapath" in str(sig):
             # This is the new API that uses modelicapath as a function argument.
@@ -61,13 +66,13 @@ def _translate(proc_num, return_dict):
             else:
                 modelicapath = os.path.abspath('.')
 
-            fmu_name = compile_fmu("{{ model }}{{ model_modifier }}",
+            fmu_name = compile_fmu(model_name_modifier,
                                    modelicapath=modelicapath,
                                    version=version,
                                    compiler_log_level=compiler_log_level,
                                    compiler_options=compiler_options)
         else:
-            fmu_name = compile_fmu("{{ model }}{{ model_modifier }}",
+            fmu_name = compile_fmu(model_name_modifier,
                                    version=version,
                                    compiler_log_level=compiler_log_level,
                                    compiler_options=compiler_options)
