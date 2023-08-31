@@ -37,6 +37,8 @@ class Simulator(bs._BaseSimulator):
             packagePath=packagePath,
             outputFileList=['run_simulate.mos', 'run_translate.mos', 'run.mos',
                             'dsfinal.txt', 'dsin.txt',
+                            "buildlog.txt",
+                            "request", "status", "success",
                             'dsmodel*', 'dymosim', 'dymosim.exe',
                             'BuildingsPy.log', 'run.mos', 'run_simulate.mos',
                             'run_translate.mos', 'simulator.log', 'translator.log', 'dslog.txt'])
@@ -448,4 +450,11 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
 
     def deleteOutputFiles(self):
         super().deleteOutputFiles()
-        super()._deleteFiles([self._simulator_.get('resultFile') + "_result.mat"])
+        model_name = self.modelName.replace('.', '_')
+        super()._deleteFiles([
+            self._simulator_.get('resultFile') + ".mat",
+            f"{model_name}_buildingspy.json",
+            f"{model_name}_compile.log"
+            f"{model_name}_log.txt",
+            f"{self.modelName}_JacA.bin",
+            f"{model_name}.py"])

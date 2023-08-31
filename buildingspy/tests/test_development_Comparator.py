@@ -30,13 +30,17 @@ class Test_development_Comparator(unittest.TestCase):
             package="IBPSA.Utilities.Psychrometrics.Examples",
             repo=repo)
 
-        # s.run()
+        s.run()
         s.post_process()
         # Make sure output file exists
-        self.assertIsFile(os.path.join("results", "html", "tools_compare_master.html"))
-        # shutil.rmtree("results")
-        # for tool in tools:
-        #   shutil.rmtree(tool)
+        self.assertIsFile(
+            os.path.join(
+                "results",
+                "html",
+                "compare_master--dymola-openmodelica.html"))
+        shutil.rmtree("results")
+        for tool in tools:
+            shutil.rmtree(tool)
 
 
 if __name__ == '__main__':
