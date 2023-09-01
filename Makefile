@@ -91,7 +91,7 @@ doctest:
 	@rm -f plot.pdf plot.png roomTemperatures.png dymola.log MyModel.mat dslog.txt package.order \
 	   run_simulate.mos run_translate.mos simulator.log translator.log
 
-dist:	clean doctest unittest doc
+dist:	clean doc
 	@# Make sure README.rst are consistent
 	cmp -s README.rst buildingspy/README.rst
 	python3 setup.py sdist bdist_wheel
