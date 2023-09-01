@@ -1,7 +1,7 @@
 BuildingsPy Changelog
 ---------------------
 
-Version 5.0.0, September 5, 2023 -- Release 5.0
+Version 5.0.0, September 1, 2023 -- Release 5.0
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 - Added buildingspy.simulate.OpenModelica to support simulation with OpenModelica, and refactored
   modules for simulation with Dymola and Optimica.
