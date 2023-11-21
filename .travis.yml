@@ -10,6 +10,7 @@ cache: pip
 
 env:
   global:
+    - DOCKER_REPONAME=lbnlblum
     - OMC_VERSION=ubuntu-2204-omc:1.22.0_dev-41-g8a5b18f-1
     - OPTIMICA_VERSION=travis-ubuntu-2204-optimica:1.43.4
     - DYMOLA_VERSION=travis_ubuntu-2004_dymola:2023x-x86_64_rev-1
@@ -38,9 +39,9 @@ before_install:
   - chmod +x buildingspy/tests/MyModelicaLibrary/Resources/Scripts/travis/bin/jm_ipython.sh
   - sudo cp buildingspy/tests/MyModelicaLibrary/Resources/Scripts/travis/bin/jm_ipython.sh /usr/local/bin/
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-  - docker pull "$DOCKER_USERNAME"/${OMC_VERSION}
-  - docker pull "$DOCKER_USERNAME"/${DYMOLA_VERSION}
-  - docker pull "$DOCKER_USERNAME"/${OPTIMICA_VERSION}
+  - docker pull "$DOCKER_REPONAME"/${OMC_VERSION}
+  - docker pull "$DOCKER_REPONAME"/${DYMOLA_VERSION}
+  - docker pull "$DOCKER_REPONAME"/${OPTIMICA_VERSION}
   - python -m pip install --upgrade pip
 
 install:
