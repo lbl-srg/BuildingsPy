@@ -65,7 +65,7 @@ docker run \
   --rm \
   ${MOD_MOUNT} \
   -v ${sha_dir}:/mnt/shared \
-  ${DOCKER_USERNAME}/${DYMOLA_VERSION} /bin/bash -c \
+  ${DOCKER_REPONAME}/${DYMOLA_VERSION} /bin/bash -c \
   "export MODELICAPATH=${DOCKER_MODELICAPATH} && \
   cd /mnt/shared/${bas_nam} && \
   dymola ${arg_lis}"
