@@ -4085,7 +4085,13 @@ exit();
 
         # Rewrite configuration file.
         if self._rewrite_configuration_file:
-            dat = self.return_new_configuration_data_using_CI_results(self._conf_data, self._comp_info, self._modelica_tool)
+            # Build a list of models that need only be exported as an FMU
+            fmu_exports = []
+            for ele in self._data:
+                if 'dymola' in ele and 'exportFMU' in ele['dymola'] and ele['dymola']['exportFMU']:
+                    fmu_exports.append(ele['model_name'])
+
+            dat = self.return_new_configuration_data_using_CI_results(self._conf_data, self._comp_info, self._modelica_tool, fmu_exports)
             self.writeConfigurationFile(self._conf_yml, dat)
 
         # Update exit code after comparing with reference points
@@ -4115,11 +4121,14 @@ exit();
     def return_new_configuration_data_using_CI_results(self,
                                      configuration_data,
                                      simulator_log_file_json,
-                                     tool):
+                                     tool,
+                                     list_of_fmu_exports = None):
         """ Compares the entry from the `simulator_log_file_json` with the `configuration_data`,
             and returns a new copy of `configuration_data` with changes to `translate` or `simulate` entries based
             on the CI tests.
             This method also removes comments if the translation or simulation was successful.
+
+            For models in the list `list_of_fmu_exports`, no entry about `simulation` will be added.
 
         """
         import copy
@@ -4136,10 +4145,6 @@ exit();
                     # Found the record.
                     foundModel = True
                     ent = conEnt[tool]
-
-
-#        configuration_data = [ {'model_name': 'model1',  'openmodelica':  { 'comment': 'Some comment', 'translate': False}  }]
-#        simulator_log_file_json = [ {'model': 'model1', 'translation': {'success': False}, 'simulation':  {'success': False} } ]
                     # First, check if the entry needs to be changed. If not, do nothing, which preserves the comment
                     # entries. If both conditions are true, then do nothing.
                     condition1 = ('translate' in ent and ent['translate'] == eleLog['translation']['success']) or \
@@ -4183,7 +4188,9 @@ exit();
                 if eleLog['translation']['success'] == False:
                     ent = {'model_name': model, tool: { 'comment': 'Added when auto-updating conf.yml', 'translate': False} }
                     con_data.append(ent)
-                elif eleLog['simulation']['success'] == False:
+                elif eleLog['simulation']['success'] == False and not (list_of_fmu_exports is not None and model in list_of_fmu_exports):
+                    # The above test 'ent['simulate'] == True' is False for FMU exports, which are not requested
+                    # to be simulated
                     ent = {'model_name': model, tool: { 'comment': 'Added when auto-updating conf.yml', 'simulate': False} }
                     con_data.append(ent)
 

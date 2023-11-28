@@ -258,4 +258,4 @@ createPlot(id=1, y={"Test.x"});
 if __name__ == '__main__':
     unittest.main()
     #t = Test_regressiontest_openmodelica_Tester()
-    #t.test_unit_test_return_new_configuration_data_using_CI_results()
+    #t.test_unit_test_update_configuration_file()
