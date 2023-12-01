@@ -1,10 +1,4 @@
 - model_name: MyModelicaLibrary.Examples.NoSolution
-  dymola:
-    comment: Model excluded from simulation as it has no solution.
-    simulate: false
   openmodelica:
-    comment: Model excluded from simulation as it has no solution.
-    simulate: false
-  optimica:
-    comment: Model excluded from simulation as it has no solution.
+    comment: '''omc MyModelicaLibrary.Examples.NoSolution_simulate.mos'' caused ''Simulation terminated by an assert at time: 0.501''.'
     simulate: false

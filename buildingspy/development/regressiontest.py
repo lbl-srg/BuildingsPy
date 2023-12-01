@@ -379,12 +379,15 @@ class Tester(object):
             self._color_ERROR = ''
             self._color_ENDC = ''
 
-        # Name of configuration file
-        self._conf_yml = None
         # Configuration data, after sorting but without any edits
-        self._conf_data = {}
+        self._conf_data = []
         # If true, the configuration file will be rewritten
         self._rewrite_configuration_file = False
+
+    def get_configuration_file_name(self):
+        """ Returns the full name of the `conf.yml` file.
+        """
+        return os.path.join(self._libHome, 'Resources', 'Scripts', 'BuildingsPy', 'conf.yml')
 
     def report(self, timeout=600, browser=None, autoraise=True, comp_file=None):
         """Builds and displays HTML report.
@@ -1203,6 +1206,17 @@ class Tester(object):
         if found_error:
             raise ValueError(f"Failed to validate configuration file {conf_file_name}.")
 
+    def get_configuration_data_from_disk(self):
+        """ Read the configuration data `conf.yml` from disk
+            and return it as an arry whose elements are json dictionaries.
+            """
+        import yaml
+
+        with open(self.get_configuration_file_name(), 'r') as f:
+            conf_data = yaml.safe_load(f)
+
+        return conf_data
+
     def _add_experiment_specifications(self):
         """ Add the experiment specification to the data structure.
 
@@ -1245,19 +1259,18 @@ class Tester(object):
                         def_dic[self._modelica_tool][key])
 
         # Get configuration data from file, if present
-        conf_dir = os.path.join(self._libHome, 'Resources', 'Scripts', 'BuildingsPy')
-        conf_json = os.path.join(conf_dir, 'conf.json')
-        self._conf_yml = os.path.join(conf_dir, 'conf.yml')
+        conf_yml = self.get_configuration_file_name()
+        conf_json = f"{conf_yml[:-4]}.json"
 
-        if os.path.exists(conf_json) and os.path.exists(self._conf_yml):
+        if os.path.exists(conf_json) and os.path.exists(conf_yml):
             raise ValueError(
-                f"Found {self._conf_yml} and {conf_json}. Only one must exist. Future versions will only support the .yml file.")
+                f"Found {conf_yml} and {conf_json}. Only one must exist. Future versions will only support the .yml file.")
 
-        if os.path.exists(conf_json) or os.path.exists(self._conf_yml):
-            if os.path.exists(self._conf_yml):
-                conf_file_name = self._conf_yml
-                with open(self._conf_yml, 'r') as f:
-                    conf_data = yaml.safe_load(f)
+        if os.path.exists(conf_json) or os.path.exists(conf_yml):
+            if os.path.exists(conf_yml):
+                conf_file_name = conf_yml
+                conf_data = self.get_configuration_data_from_disk()
+                # Sort the yml file and write to a new file
                 self._sort_yml_file(conf_data, conf_file_name)
             else:
                 conf_file_name = conf_json
@@ -4091,8 +4104,9 @@ exit();
                 if 'dymola' in ele and 'exportFMU' in ele['dymola'] and ele['dymola']['exportFMU']:
                     fmu_exports.append(ele['model_name'])
 
-            dat = self.return_new_configuration_data_using_CI_results(self._conf_data, self._comp_info, self._modelica_tool, fmu_exports)
-            self.writeConfigurationFile(self._conf_yml, dat)
+            dat = self.return_new_configuration_data_using_CI_results(
+                self._conf_data, self._comp_info, self._modelica_tool, fmu_exports)
+            self.writeConfigurationFile(self.get_configuration_file_name(), dat)
 
         # Update exit code after comparing with reference points
         # and print summary messages.
@@ -4119,10 +4133,10 @@ exit();
         return retVal
 
     def return_new_configuration_data_using_CI_results(self,
-                                     configuration_data,
-                                     simulator_log_file_json,
-                                     tool,
-                                     list_of_fmu_exports = None):
+                                                       configuration_data,
+                                                       simulator_log_file_json,
+                                                       tool,
+                                                       list_of_fmu_exports=None):
         """ Compares the entry from the `simulator_log_file_json` with the `configuration_data`,
             and returns a new copy of `configuration_data` with changes to `translate` or `simulate` entries based
             on the CI tests.
@@ -4133,7 +4147,14 @@ exit();
         """
         import copy
         if tool != "openmodelica":
-            raise ValueError("Method _override_configuration_tool is only implemented for OpenModelica.")
+            raise ValueError(
+                "Method _override_configuration_tool is only implemented for OpenModelica.")
+
+        def get_exception(dic):
+            if 'exception' in dic:
+                return dic['exception']
+            else:
+                return 'Added when auto-updating conf.yml'
 
         con_data = copy.deepcopy(configuration_data)
         for eleLog in simulator_log_file_json:
@@ -4147,31 +4168,33 @@ exit();
                     ent = conEnt[tool]
                     # First, check if the entry needs to be changed. If not, do nothing, which preserves the comment
                     # entries. If both conditions are true, then do nothing.
-                    condition1 = ('translate' in ent and ent['translate'] == eleLog['translation']['success']) or \
-                            ('translate' not in ent and eleLog['translation']['success'] == True)
+                    condition1 = (
+                        'translate' in ent and ent['translate'] == eleLog['translation']['success']) or (
+                        'translate' not in ent and eleLog['translation']['success'])
                     condition2 = ('simulate' in ent and ent['simulate'] == eleLog['simulation']['success']) or \
-                            ( 'simulate' not in ent and # either sim must be successful or the model failed translation in the past already
-                                                          (eleLog['simulation']['success'] == True or \
-                            ('translate' in ent and ent['translate'] == False)))
+                        ('simulate' not in ent and  # either sim must be successful or the model failed translation in the past already
+                         (eleLog['simulation']['success'] or \
+                          ('translate' in ent and ent['translate'] == False)))
                     if not (condition1 and condition2):
-                        # Something changed compared to configuration data.       
-                        # Set the translation entry if it failed, or reset it to true if it was false and translation worked.
+                        # Something changed compared to configuration data.
+                        # Set the translation entry if it failed, or reset it to true if it was
+                        # false and translation worked.
                         try:
-                            if eleLog['translation']['success'] == False:
+                            if not eleLog['translation']['success']:
                                 ent['translate'] = False
-                            else: # Translation succeeded
-                                if ent['translate'] == False:
+                            else:  # Translation succeeded
+                                if not ent['translate']:
                                     ent['translate'] = True
                                 # Remove comment
                                 del ent['comment']
                         except KeyError as e:
                             pass
                         try:
-                            if eleLog['simulation']['success'] == True:
+                            if eleLog['simulation']['success']:
                                 ent['simulate'] = True
-                                if eleLog['translation']['success'] == True and eleLog['simulation']['success'] == True:
+                                if eleLog['translation']['success'] and eleLog['simulation']['success']:
                                     del ent['comment']
-                            else: # Simulation failed
+                            else:  # Simulation failed
                                 ent['simulate'] = False
                                 # If there is a ent['translate'] = True entry, remove it,
                                 # because we set an entry ent['simulate'] = False
@@ -4185,13 +4208,23 @@ exit();
                 # We did not find the model in the configuration data.
                 # If either the translation or simulation failed, then it needs to be added to
                 # the configuration data
-                if eleLog['translation']['success'] == False:
-                    ent = {'model_name': model, tool: { 'comment': 'Added when auto-updating conf.yml', 'translate': False} }
+                if not eleLog['translation']['success']:
+                    ent = {
+                        'model_name': model,
+                        tool: {
+                            'comment': get_exception(
+                                eleLog['translation']),
+                            'translate': False}}
                     con_data.append(ent)
                 elif eleLog['simulation']['success'] == False and not (list_of_fmu_exports is not None and model in list_of_fmu_exports):
                     # The above test 'ent['simulate'] == True' is False for FMU exports, which are not requested
                     # to be simulated
-                    ent = {'model_name': model, tool: { 'comment': 'Added when auto-updating conf.yml', 'simulate': False} }
+                    ent = {
+                        'model_name': model,
+                        tool: {
+                            'comment': get_exception(
+                                eleLog['simulation']),
+                            'simulate': False}}
                     con_data.append(ent)
 
         return con_data
@@ -4202,7 +4235,7 @@ exit();
         import yaml as y
 
         with open(filename, 'w') as f:
-                y.safe_dump(json_content, f, sort_keys=False, width=4096)
+            y.safe_dump(json_content, f, sort_keys=False, width=4096)
 
     def _model_from_mo(self, mo_file):
         """Return the model name from a .mo file"""

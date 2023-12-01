@@ -19,95 +19,160 @@ class Test_regressiontest_openmodelica_Tester(unittest.TestCase):
         rt = r.Tester(skip_verification=True, check_html=False, tool="openmodelica")
 
         # Simulation failed in the past, and still fails
-        configuration_data = [ {'model_name': 'model1',  'openmodelica':
-		    {'comment': 'Model excluded from simulation as it has no solution.', 
-             'simulate': False}  }]
-        simulator_log_file_json = [ {'model': 'model1', 'translation': {'success': True}, 'simulation':  {'success': False} } ]
-        dat = rt.return_new_configuration_data_using_CI_results(configuration_data, simulator_log_file_json, 'openmodelica')
+        configuration_data = [{'model_name': 'model1', 'openmodelica':
+                               {'comment': 'Model excluded from simulation as it has no solution.',
+                                'simulate': False}}]
+        simulator_log_file_json = [{'model': 'model1', 'translation': {
+            'success': True}, 'simulation': {'success': False}}]
+        dat = rt.return_new_configuration_data_using_CI_results(
+            configuration_data, simulator_log_file_json, 'openmodelica')
         self.assertEqual(configuration_data, dat,
                          "Test for failed simulation.")
 
         # Simulation failed in the past, but now works
-        configuration_data = [ {'model_name': 'model1',  'openmodelica':  { 'comment': 'To be removed', 'simulate': False}  }]
-        simulator_log_file_json = [ {'model': 'model1', 'translation': {'success': True}, 'simulation':  {'success': True} } ]
-        dat = rt.return_new_configuration_data_using_CI_results(configuration_data, simulator_log_file_json, 'openmodelica')
+        configuration_data = [{'model_name': 'model1', 'openmodelica': {
+            'comment': 'To be removed', 'simulate': False}}]
+        simulator_log_file_json = [{'model': 'model1', 'translation': {
+            'success': True}, 'simulation': {'success': True}}]
+        dat = rt.return_new_configuration_data_using_CI_results(
+            configuration_data, simulator_log_file_json, 'openmodelica')
         self.assertEqual(dat,
-                          [ {'model_name': 'model1',  'openmodelica':  { 'simulate': True}  }],
+                         [{'model_name': 'model1', 'openmodelica': {'simulate': True}}],
                          "Test for successful simulation.")
-        
+
         # Translation failed in the past, and still fails
-        configuration_data = [ {'model_name': 'model1',  'openmodelica':  { 'comment': 'Some comment', 'translate': False}  }]
-        simulator_log_file_json = [ {'model': 'model1', 'translation': {'success': False}, 'simulation':  {'success': False} } ]
-        dat = rt.return_new_configuration_data_using_CI_results(configuration_data, simulator_log_file_json, 'openmodelica')
+        configuration_data = [{'model_name': 'model1', 'openmodelica': {
+            'comment': 'Some comment', 'translate': False}}]
+        simulator_log_file_json = [{'model': 'model1', 'translation': {
+            'success': False}, 'simulation': {'success': False}}]
+        dat = rt.return_new_configuration_data_using_CI_results(
+            configuration_data, simulator_log_file_json, 'openmodelica')
         self.assertEqual(dat,
                          configuration_data,
                          "Test for failed translation.")
 
         # Translation failed in the past, but now works, but simulation fails
-        configuration_data = [ {'model_name': 'model1',  'openmodelica':  { 'comment': 'Some comment', 'translate': False}  }]
-        simulator_log_file_json = [ {'model': 'model1', 'translation': {'success': True}, 'simulation':  {'success': False} } ]
-        dat = rt.return_new_configuration_data_using_CI_results(configuration_data, simulator_log_file_json, 'openmodelica')
+        configuration_data = [{'model_name': 'model1', 'openmodelica': {
+            'comment': 'Some comment', 'translate': False}}]
+        simulator_log_file_json = [{'model': 'model1', 'translation': {
+            'success': True}, 'simulation': {'success': False}}]
+        dat = rt.return_new_configuration_data_using_CI_results(
+            configuration_data, simulator_log_file_json, 'openmodelica')
         self.assertEqual(dat,
-                          [ {'model_name': 'model1',  'openmodelica':  { 'simulate': False}  }],
+                         [{'model_name': 'model1', 'openmodelica': {'simulate': False}}],
                          "Test for successful translation, but still failure in simulation.")
-        
+
         # Translation failed in the past, but now works, and simulation works too
-        configuration_data = [ {'model_name': 'model1',  'openmodelica':  { 'comment': 'Some comment', 'translate': False}  }]
-        simulator_log_file_json = [ {'model': 'model1', 'translation': {'success': True}, 'simulation':  {'success': True} } ]
-        dat = rt.return_new_configuration_data_using_CI_results(configuration_data, simulator_log_file_json, 'openmodelica')
+        configuration_data = [{'model_name': 'model1', 'openmodelica': {
+            'comment': 'Some comment', 'translate': False}}]
+        simulator_log_file_json = [{'model': 'model1', 'translation': {
+            'success': True}, 'simulation': {'success': True}}]
+        dat = rt.return_new_configuration_data_using_CI_results(
+            configuration_data, simulator_log_file_json, 'openmodelica')
         self.assertEqual(dat,
-                          [ {'model_name': 'model1',  'openmodelica':  { 'translate': True, 'simulate': True}  }],
+                         [{'model_name': 'model1', 'openmodelica': {'translate': True, 'simulate': True}}],
                          "Test for successful translation and simulation.")
-        
+
         # Model has no entry in configuration data, but now fails to translate
-        configuration_data = [ {'model_name': 'AAA',  'openmodelica':  { 'comment': 'Some comment', 'translate': False}  }]
-        simulator_log_file_json = [ {'model': 'model1', 'translation': {'success': False}, 'simulation':  {'success': False} } ]
-        dat = rt.return_new_configuration_data_using_CI_results(configuration_data, simulator_log_file_json, 'openmodelica')
+        configuration_data = [{'model_name': 'AAA', 'openmodelica': {
+            'comment': 'Some comment', 'translate': False}}]
+        simulator_log_file_json = [{'model': 'model1', 'translation': {
+            'success': False}, 'simulation': {'success': False}}]
+        dat = rt.return_new_configuration_data_using_CI_results(
+            configuration_data, simulator_log_file_json, 'openmodelica')
         self.assertEqual(dat,
-                          [ configuration_data[0], {'model_name': 'model1',  'openmodelica':  {'comment': 'Added when auto-updating conf.yml', 'translate': False } }],
+                         [configuration_data[0],
+                          {'model_name': 'model1',
+                           'openmodelica': {'comment': 'Added when auto-updating conf.yml',
+                                            'translate': False}}],
                          "Test for model that has no entry but fails to translate.")
-        
+
         # Model has no entry in configuration data, but now fails to simulate
-        configuration_data = [ {'model_name': 'AAA',  'openmodelica':  { 'comment': 'Some comment', 'translate': False}  }]
-        simulator_log_file_json = [ {'model': 'model1', 'translation': {'success': True}, 'simulation':  {'success': False} } ]
-        dat = rt.return_new_configuration_data_using_CI_results(configuration_data, simulator_log_file_json, 'openmodelica')
+        configuration_data = [{'model_name': 'AAA', 'openmodelica': {
+            'comment': 'Some comment', 'translate': False}}]
+        simulator_log_file_json = [{'model': 'model1', 'translation': {
+            'success': True}, 'simulation': {'success': False}}]
+        dat = rt.return_new_configuration_data_using_CI_results(
+            configuration_data, simulator_log_file_json, 'openmodelica')
         self.assertEqual(dat,
-                          [ configuration_data[0], {'model_name': 'model1',  'openmodelica':  {'comment': 'Added when auto-updating conf.yml', 'simulate': False } }],
+                         [configuration_data[0],
+                          {'model_name': 'model1',
+                           'openmodelica': {'comment': 'Added when auto-updating conf.yml',
+                                            'simulate': False}}],
                          "Test for model that has no entry but fails to simulate.")
-        ## Same as above, but now there are no previous entries
+        # Same as above, but now there are no previous entries
         # Model has no entry in configuration data, but now fails to translate
         configuration_data = []
-        simulator_log_file_json = [ {'model': 'model1', 'translation': {'success': False}, 'simulation':  {'success': False} } ]
-        dat = rt.return_new_configuration_data_using_CI_results(configuration_data, simulator_log_file_json, 'openmodelica')
+        simulator_log_file_json = [{'model': 'model1', 'translation': {
+            'success': False}, 'simulation': {'success': False}}]
+        dat = rt.return_new_configuration_data_using_CI_results(
+            configuration_data, simulator_log_file_json, 'openmodelica')
         self.assertEqual(dat,
-                          [{'model_name': 'model1',  'openmodelica':  {'comment': 'Added when auto-updating conf.yml', 'translate': False } }],
+                         [{'model_name': 'model1',
+                           'openmodelica': {'comment': 'Added when auto-updating conf.yml',
+                                            'translate': False}}],
                          "Test for model that has no entry but fails to translate.")
-        
+
         # Model has no entry in configuration data, but now fails to simulate
         configuration_data = []
-        simulator_log_file_json = [ {'model': 'model1', 'translation': {'success': True}, 'simulation':  {'success': False} } ]
-        dat = rt.return_new_configuration_data_using_CI_results(configuration_data, simulator_log_file_json, 'openmodelica')
+        simulator_log_file_json = [{'model': 'model1', 'translation': {
+            'success': True}, 'simulation': {'success': False}}]
+        dat = rt.return_new_configuration_data_using_CI_results(
+            configuration_data, simulator_log_file_json, 'openmodelica')
         self.assertEqual(dat,
-                          [{'model_name': 'model1',  'openmodelica':  {'comment': 'Added when auto-updating conf.yml', 'simulate': False } }],
+                         [{'model_name': 'model1',
+                           'openmodelica': {'comment': 'Added when auto-updating conf.yml',
+                                            'simulate': False}}],
                          "Test for model that has no entry but fails to simulate.")
 
-
-    def test_unit_test_update_configuration_file(self):
+    def test_unit_test_update_configuration_file_existing(self):
         import buildingspy.development.regressiontest as r
         rt = r.Tester(skip_verification=True, check_html=False, tool="openmodelica")
         myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
         rt.deleteTemporaryDirectories(True)
         rt.setLibraryRoot(myMoLib)
         rt.batchMode(True)
+        conf_data = rt.get_configuration_data_from_disk()
         rt.rewriteConfigurationFile(True)
         ret_val = rt.run()
+
+        # Assert that the configuration data are still the same
+        self.assertEqual(conf_data,
+                         rt.get_configuration_data_from_disk(),
+                         "Configuration data changed but expected no change.")
 
         # Delete temporary files
         for f in rt.get_unit_test_log_files():
             if os.path.exists(f):
                 os.remove(f)
 
+    def test_unit_test_update_configuration_file_non_existing(self):
+        import shutil
+        import buildingspy.development.regressiontest as r
+        rt = r.Tester(skip_verification=True, check_html=False, tool="openmodelica")
+        myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
+        rt.deleteTemporaryDirectories(True)
+        rt.setLibraryRoot(myMoLib)
+        rt.batchMode(True)
+        conf_data = rt.get_configuration_data_from_disk()
+        rt.rewriteConfigurationFile(True)
 
+        # Move the configuration data, and recreate it, and make sure it is the same
+        conf_yml_name = rt.get_configuration_file_name()
+        conf_backup = "conf.yml.backup"
+        shutil.move(conf_yml_name, conf_backup)
+        ret_val = rt.run()
+        self.assertEqual(
+            conf_data,
+            rt.get_configuration_data_from_disk(),
+            "Newly generated configuration data differ from the one that were on disk. Backup in '{conf_backup}'.")
+        # Move file back to preserve its time stamp
+        shutil.move(conf_backup, conf_yml_name)
+
+        # Delete temporary files
+        for f in rt.get_unit_test_log_files():
+            if os.path.exists(f):
+                os.remove(f)
 
     def test_unit_test_log_file(self):
         import buildingspy.development.regressiontest as r
@@ -258,4 +323,4 @@ createPlot(id=1, y={"Test.x"});
 if __name__ == '__main__':
     unittest.main()
     #t = Test_regressiontest_openmodelica_Tester()
-    #t.test_unit_test_update_configuration_file()
+    # t.test_unit_test_update_configuration_file_non_existing()
