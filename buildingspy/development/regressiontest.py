@@ -137,6 +137,8 @@ class Tester(object):
             If ``True``, unit test results are not verified against reference points.
     :param color: Boolean (default ``False``).
             If ``True``, command line output will be in color (ignored on Windows).
+    :param rewriteConfigurationFile: Boolean (default ``False``).
+            If ``True``, rewrite `conf.yml` file. (Currently only supported for OpenModelica.)
 
     This class can be used to run all regression tests.
 
@@ -246,7 +248,8 @@ class Tester(object):
         comp_tool='funnel',
         tol=1E-3,
         skip_verification=False,
-        color=False
+        color=False,
+        rewriteConfigurationFile=False
     ):
         import platform
 
@@ -382,7 +385,7 @@ class Tester(object):
         # Configuration data, after sorting but without any edits
         self._conf_data = []
         # If true, the configuration file will be rewritten
-        self._rewrite_configuration_file = False
+        self._rewrite_configuration_file = rewriteConfigurationFile
 
     def get_configuration_file_name(self):
         """ Returns the full name of the `conf.yml` file.
@@ -506,15 +509,6 @@ class Tester(object):
         """
         self._showGUI = show
         return
-
-    def rewriteConfigurationFile(self, rewrite=False):
-        """ Rewrite the configuration file `conf.yml`, with the `translate` and `simulate` keys updated
-            to reflect the success or failure of the regression tests.
-
-            This is useful if a new version of tool is released that changes which models now succeeded
-            in the tests.
-        """
-        self._rewrite_configuration_file = rewrite
 
     def batchMode(self, batchMode):
         """ Set the batch mode flag.
@@ -4165,7 +4159,10 @@ exit();
                 if conEnt['model_name'] == model:
                     # Found the record.
                     foundModel = True
-                    ent = conEnt[tool]
+                    if tool in conEnt:
+                        ent = conEnt[tool]
+                    else:
+                        ent = {} # Don't use None, use an empty dictionary so condition1 can be evaluated.
                     # First, check if the entry needs to be changed. If not, do nothing, which preserves the comment
                     # entries. If both conditions are true, then do nothing.
                     condition1 = (
@@ -4182,50 +4179,58 @@ exit();
                         try:
                             if not eleLog['translation']['success']:
                                 ent['translate'] = False
+                                # Set new comment if present
+                                if 'exception' in eleLog['translation']:
+                                    ent['comment'] = get_exception(eleLog['translation'])
                             else:  # Translation succeeded
                                 if not ent['translate']:
                                     ent['translate'] = True
                                 # Remove comment
-                                del ent['comment']
-                        except KeyError as e:
-                            pass
-                        try:
-                            if eleLog['simulation']['success']:
-                                ent['simulate'] = True
-                                if eleLog['translation']['success'] and eleLog['simulation']['success']:
+                                if 'comment' in ent:
                                     del ent['comment']
-                            else:  # Simulation failed
-                                ent['simulate'] = False
-                                # If there is a ent['translate'] = True entry, remove it,
-                                # because we set an entry ent['simulate'] = False
-                                if 'translate' in ent:
-                                    del ent['translate']
-                                # Remove comment
-                                del ent['comment']
-                        except KeyError as e:
+                        except KeyError:
                             pass
+                        if eleLog['simulation']['success']:
+                            ent['simulate'] = True
+                            if eleLog['translation']['success'] and eleLog['simulation']['success'] and 'comment' in ent:
+                                del ent['comment']
+                        else:  # Simulation failed
+                            ent['simulate'] = False
+                            # If there is a ent['translate'] = True entry, remove it,
+                            # because we set an entry ent['simulate'] = False
+                            if 'translate' in ent:
+                                del ent['translate']
+                            # Set new comment if present, first check and use translation if present.
+                            if 'exception' in eleLog['translation']:
+                                ent['comment'] = get_exception(eleLog['translation'])
+                            elif 'exception' in eleLog['simulation']:
+                                ent['comment'] = get_exception(eleLog['simulation'])
+                            # Remove old comment if present
+                            else:
+                                if 'comment' in ent:
+                                    del ent['comment']
             if not foundModel:
                 # We did not find the model in the configuration data.
                 # If either the translation or simulation failed, then it needs to be added to
                 # the configuration data
                 if not eleLog['translation']['success']:
-                    ent = {
+                    full_entry = {
                         'model_name': model,
                         tool: {
                             'comment': get_exception(
                                 eleLog['translation']),
                             'translate': False}}
-                    con_data.append(ent)
+                    con_data.append(full_entry)
                 elif eleLog['simulation']['success'] == False and not (list_of_fmu_exports is not None and model in list_of_fmu_exports):
                     # The above test 'ent['simulate'] == True' is False for FMU exports, which are not requested
                     # to be simulated
-                    ent = {
+                    full_entry = {
                         'model_name': model,
                         tool: {
                             'comment': get_exception(
                                 eleLog['simulation']),
                             'simulate': False}}
-                    con_data.append(ent)
+                    con_data.append(full_entry)
 
         return con_data
 
