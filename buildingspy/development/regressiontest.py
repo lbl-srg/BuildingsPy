@@ -4139,16 +4139,58 @@ exit();
             For models in the list `list_of_fmu_exports`, no entry about `simulation` will be added.
 
         """
+        def get_exception(dic, tool):
+            if 'exception' in dic:
+                if tool == 'openmodelica':
+                    # For tool=openmodelica, extract only the message from
+                    # ''omc model_simulate.mos'' caused ''simulation terminated by an assertion at initialization''.
+                    exc = dic['exception']
+                    s = exc.split("'")
+                    # If there are 5 elements, then the message has the above format.
+                    if len(s) == 5:
+                        mes = s[3]
+                        # Add punctuation
+                        mes = mes + "."
+                    else:
+                        mes = exc
+                    return mes
+                else:
+                    return dic['exception']
+            else:
+                return 'Added when auto-updating conf.yml.'
+
+        def _remove_true_entries(con_data, tool):
+            for conEnt in con_data:
+                if tool in conEnt:
+                    ent = conEnt[tool]
+                    for key in ['simulate', 'translate']:
+                        if key in ent and ent[key]:
+                            del ent[key]
+
+        def _remove_double_false_entries(con_data, tool):
+            for conEnt in con_data:
+                if tool in conEnt:
+                    ent = conEnt[tool]
+                    if 'translate' in ent and 'simulate' in ent and not ent['translate']:
+                        del ent['simulate']
+
+
+        def _remove_empty_tool_entries(con_data):
+            ret = []
+            for conEnt in con_data:
+                ret.append({key:val for key, val in conEnt.items() if val != {}})
+            return ret
+
+        def _remove_empty_model_entries(con_data):
+            # If an entry has only one element, then it is of the form 'model': 'model_name'
+            # and can be removed
+            ret = [item for item in con_data if len(item) > 1]
+            return ret
+
         import copy
         if tool != "openmodelica":
             raise ValueError(
                 "Method _override_configuration_tool is only implemented for OpenModelica.")
-
-        def get_exception(dic):
-            if 'exception' in dic:
-                return dic['exception']
-            else:
-                return 'Added when auto-updating conf.yml'
 
         con_data = copy.deepcopy(configuration_data)
         for eleLog in simulator_log_file_json:
@@ -4163,52 +4205,36 @@ exit();
                         ent = conEnt[tool]
                     else:
                         ent = {} # Don't use None, use an empty dictionary so condition1 can be evaluated.
-                    # First, check if the entry needs to be changed. If not, do nothing, which preserves the comment
-                    # entries. If both conditions are true, then do nothing.
-                    condition1 = (
-                        'translate' in ent and ent['translate'] == eleLog['translation']['success']) or (
-                        'translate' not in ent and eleLog['translation']['success'])
-                    condition2 = ('simulate' in ent and ent['simulate'] == eleLog['simulation']['success']) or \
-                        ('simulate' not in ent and  # either sim must be successful or the model failed translation in the past already
-                         (eleLog['simulation']['success'] or \
-                          ('translate' in ent and ent['translate'] == False)))
-                    if not (condition1 and condition2):
-                        # Something changed compared to configuration data.
-                        # Set the translation entry if it failed, or reset it to true if it was
-                        # false and translation worked.
-                        try:
-                            if not eleLog['translation']['success']:
-                                ent['translate'] = False
-                                # Set new comment if present
-                                if 'exception' in eleLog['translation']:
-                                    ent['comment'] = get_exception(eleLog['translation'])
-                            else:  # Translation succeeded
-                                if not ent['translate']:
-                                    ent['translate'] = True
-                                # Remove comment
-                                if 'comment' in ent:
-                                    del ent['comment']
-                        except KeyError:
-                            pass
-                        if eleLog['simulation']['success']:
-                            ent['simulate'] = True
-                            if eleLog['translation']['success'] and eleLog['simulation']['success'] and 'comment' in ent:
+
+                    # Make sure ent has simulate and translate entries (these may be removed later on again,
+                    # but it makes processing easier)
+                    for key in ['simulate', 'translate']:
+                        if key not in ent:
+                            ent[key] = True
+                    # Same for eleLog
+                    for key in ['simulation', 'translation']:
+                        if key not in eleLog:
+                            eleLog[key]['success'] = True
+
+                    # Compare for this model the record ent which is the specification,
+                    # and eleLog which is the result of the simulation.
+                    equal = lambda ent, eleLog : ent['simulate'] == eleLog['simulation']['success'] \
+                        and ent['translate'] == eleLog['translation']['success'] or \
+                        (not eleLog['translation']['success'] and not ent['translate'])
+                    if not equal(ent, eleLog):
+                        # The result of the simulation differs from the specification.
+                        # Set the new comment if there was a failure.
+                        if not eleLog['translation']['success']:
+                            ent['comment'] = get_exception(eleLog['translation'], tool)
+                        elif not eleLog['simulation']['success']:
+                            ent['comment'] = get_exception(eleLog['simulation'], tool)
+                        else:
+                            if 'comment' in ent:
                                 del ent['comment']
-                        else:  # Simulation failed
-                            ent['simulate'] = False
-                            # If there is a ent['translate'] = True entry, remove it,
-                            # because we set an entry ent['simulate'] = False
-                            if 'translate' in ent:
-                                del ent['translate']
-                            # Set new comment if present, first check and use translation if present.
-                            if 'exception' in eleLog['translation']:
-                                ent['comment'] = get_exception(eleLog['translation'])
-                            elif 'exception' in eleLog['simulation']:
-                                ent['comment'] = get_exception(eleLog['simulation'])
-                            # Remove old comment if present
-                            else:
-                                if 'comment' in ent:
-                                    del ent['comment']
+                    # Update the translate and simulate entries based on the log
+                    ent['translate'] = eleLog['translation']['success']
+                    ent['simulate'] = eleLog['simulation']['success']
+
             if not foundModel:
                 # We did not find the model in the configuration data.
                 # If either the translation or simulation failed, then it needs to be added to
@@ -4218,7 +4244,7 @@ exit();
                         'model_name': model,
                         tool: {
                             'comment': get_exception(
-                                eleLog['translation']),
+                                eleLog['translation'], tool),
                             'translate': False}}
                     con_data.append(full_entry)
                 elif eleLog['simulation']['success'] == False and not (list_of_fmu_exports is not None and model in list_of_fmu_exports):
@@ -4228,9 +4254,14 @@ exit();
                         'model_name': model,
                         tool: {
                             'comment': get_exception(
-                                eleLog['simulation']),
+                                eleLog['simulation'], tool),
                             'simulate': False}}
                     con_data.append(full_entry)
+
+        _remove_true_entries(con_data, tool)
+        _remove_double_false_entries(con_data, tool)
+        con_data = _remove_empty_tool_entries(con_data)
+        con_data = _remove_empty_model_entries(con_data)
 
         return con_data
 
@@ -4240,7 +4271,8 @@ exit();
         import yaml as y
 
         with open(filename, 'w') as f:
-            y.safe_dump(json_content, f, sort_keys=False, width=4096)
+            sor = sorted(json_content, key=lambda i: i['model_name'])
+            y.safe_dump(sor, f, sort_keys=False, width=4096)
 
     def _model_from_mo(self, mo_file):
         """Return the model name from a .mo file"""

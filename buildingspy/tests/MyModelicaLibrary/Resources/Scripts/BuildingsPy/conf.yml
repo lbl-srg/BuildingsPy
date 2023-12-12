@@ -1,4 +1,4 @@
 - model_name: MyModelicaLibrary.Examples.NoSolution
   openmodelica:
-    comment: '''omc MyModelicaLibrary.Examples.NoSolution_simulate.mos'' caused ''Simulation terminated by an assert at time: 0.501''.'
+    comment: 'Simulation terminated by an assert at time: 0.501.'
     simulate: false
