@@ -41,7 +41,6 @@ class Test_regressiontest_openmodelica_Tester(unittest.TestCase):
                          [],
                          "Test for successful simulation.")
 
-
         # Simulation failed in the past, but now works (as above), but now there is another tool
         configuration_data = [{'model_name': 'model1', tool: {
             'comment': 'To be removed', 'simulate': False},
@@ -51,12 +50,12 @@ class Test_regressiontest_openmodelica_Tester(unittest.TestCase):
             'success': True}, 'simulation': {'success': True}}]
         dat = rt.return_new_configuration_data_using_CI_results(
             [{'model_name': 'model1',
-            'other_tool': {
-            'comment': 'Simulation failed for some reason.', 'simulate': False}}], simulator_log_file_json, tool)
+              'other_tool': {
+                  'comment': 'Simulation failed for some reason.', 'simulate': False}}], simulator_log_file_json, tool)
         self.assertEqual(dat,
                          [{'model_name': 'model1',
-            'other_tool': {
-            'comment': 'Simulation failed for some reason.', 'simulate': False}}],
+                           'other_tool': {
+                               'comment': 'Simulation failed for some reason.', 'simulate': False}}],
                          "Test for successful simulation.")
 
         # Translation failed in the past, and still fails
@@ -78,16 +77,21 @@ class Test_regressiontest_openmodelica_Tester(unittest.TestCase):
         dat = rt.return_new_configuration_data_using_CI_results(
             configuration_data, simulator_log_file_json, tool)
         self.assertEqual(dat,
-                         [{'model_name': 'model1', tool: {'simulate': False, 'comment': "Added when auto-updating conf.yml."}}],
+                         [{'model_name': 'model1',
+                           tool: {'simulate': False,
+                                  'comment': "Added when auto-updating conf.yml."}}],
                          "Test for successful translation, but still failure in simulation.")
 
-        # Translation failed in the past, but now works, but simulation fails, and reports an exception
-        simulator_log_file_json = [{'model': 'model1', 'translation': {
-            'success': True}, 'simulation': {'success': False, 'exception': "Exception from simulator."}}]
+        # Translation failed in the past, but now works, but simulation fails, and
+        # reports an exception
+        simulator_log_file_json = [{'model': 'model1', 'translation': {'success': True}, 'simulation': {
+            'success': False, 'exception': "Exception from simulator."}}]
         dat = rt.return_new_configuration_data_using_CI_results(
             configuration_data, simulator_log_file_json, tool)
         self.assertEqual(dat,
-                         [{'model_name': 'model1', tool: {'simulate': False, 'comment': "Exception from simulator."}}],
+                         [{'model_name': 'model1',
+                           tool: {'simulate': False,
+                                  'comment': "Exception from simulator."}}],
                          "Test for successful translation, but still failure in simulation.")
 
         # Translation failed in the past, but now works, and simulation works too
@@ -112,7 +116,7 @@ class Test_regressiontest_openmodelica_Tester(unittest.TestCase):
                          [configuration_data[0],
                           {'model_name': 'model1',
                            tool: {'comment': 'Added when auto-updating conf.yml.',
-                                            'translate': False}}],
+                                  'translate': False}}],
                          "Test for model that has no entry but fails to translate.")
 
         # Model has no entry in configuration data, but now fails to simulate
@@ -126,7 +130,7 @@ class Test_regressiontest_openmodelica_Tester(unittest.TestCase):
                          [configuration_data[0],
                           {'model_name': 'model1',
                            tool: {'comment': 'Added when auto-updating conf.yml.',
-                                            'simulate': False}}],
+                                  'simulate': False}}],
                          "Test for model that has no entry but fails to simulate.")
         # Same as above, but now there are no previous entries
         # Model has no entry in configuration data, but now fails to translate
@@ -138,7 +142,7 @@ class Test_regressiontest_openmodelica_Tester(unittest.TestCase):
         self.assertEqual(dat,
                          [{'model_name': 'model1',
                            tool: {'comment': 'Added when auto-updating conf.yml.',
-                                            'translate': False}}],
+                                  'translate': False}}],
                          "Test for model that has no entry but fails to translate.")
 
         # Model has no entry in configuration data, but now fails to simulate
@@ -150,27 +154,29 @@ class Test_regressiontest_openmodelica_Tester(unittest.TestCase):
         self.assertEqual(dat,
                          [{'model_name': 'model1',
                            tool: {'comment': 'Added when auto-updating conf.yml.',
-                                            'simulate': False}}],
+                                  'simulate': False}}],
                          "Test for model that has no entry but fails to simulate.")
 
         # Model has no entry in configuration data, but now fails to simulate (as above),
         # and now, test whether OpenModelica exception is correctly parsed.
         configuration_data = []
-        simulator_log_file_json = [{'model': 'model1', 'translation': {
-            'success': True}, 'simulation': {'success': False,
-                                             'exception':
-                                             "'omc model_simulate.mos' caused 'simulation terminated'."}}]
+        simulator_log_file_json = [{'model': 'model1', 'translation': {'success': True}, 'simulation': {
+            'success': False, 'exception': "'omc model_simulate.mos' caused 'simulation terminated'."}}]
         dat = rt.return_new_configuration_data_using_CI_results(
             configuration_data, simulator_log_file_json, tool)
         self.assertEqual(dat,
                          [{'model_name': 'model1',
                            tool: {'comment': 'simulation terminated.',
-                                            'simulate': False}}],
+                                  'simulate': False}}],
                          "Test for model that has no entry but fails to simulate and reports an exception.")
 
     def test_unit_test_update_configuration_file_existing(self):
         import buildingspy.development.regressiontest as r
-        rt = r.Tester(skip_verification=True, check_html=False, tool="openmodelica", rewriteConfigurationFile=True)
+        rt = r.Tester(
+            skip_verification=True,
+            check_html=False,
+            tool="openmodelica",
+            rewriteConfigurationFile=True)
         myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
         rt.deleteTemporaryDirectories(True)
         rt.setLibraryRoot(myMoLib)
@@ -191,7 +197,11 @@ class Test_regressiontest_openmodelica_Tester(unittest.TestCase):
     def test_unit_test_update_configuration_file_non_existing(self):
         import shutil
         import buildingspy.development.regressiontest as r
-        rt = r.Tester(skip_verification=True, check_html=False, tool="openmodelica", rewriteConfigurationFile=True)
+        rt = r.Tester(
+            skip_verification=True,
+            check_html=False,
+            tool="openmodelica",
+            rewriteConfigurationFile=True)
         myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
         rt.deleteTemporaryDirectories(True)
         rt.setLibraryRoot(myMoLib)
@@ -364,7 +374,6 @@ createPlot(id=1, y={"Test.x"});
 if __name__ == '__main__':
     unittest.main()
     #t = Test_regressiontest_openmodelica_Tester()
-    #t.test_unit_test_return_new_configuration_data_using_CI_results()
-    #t.test_unit_test_update_configuration_file_existing()
-    #t.test_unit_test_update_configuration_file_non_existing()
-
+    # t.test_unit_test_return_new_configuration_data_using_CI_results()
+    # t.test_unit_test_update_configuration_file_existing()
+    # t.test_unit_test_update_configuration_file_non_existing()

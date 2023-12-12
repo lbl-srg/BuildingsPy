@@ -4174,11 +4174,10 @@ exit();
                     if 'translate' in ent and 'simulate' in ent and not ent['translate']:
                         del ent['simulate']
 
-
         def _remove_empty_tool_entries(con_data):
             ret = []
             for conEnt in con_data:
-                ret.append({key:val for key, val in conEnt.items() if val != {}})
+                ret.append({key: val for key, val in conEnt.items() if val != {}})
             return ret
 
         def _remove_empty_model_entries(con_data):
@@ -4204,7 +4203,8 @@ exit();
                     if tool in conEnt:
                         ent = conEnt[tool]
                     else:
-                        ent = {} # Don't use None, use an empty dictionary so condition1 can be evaluated.
+                        # Don't use None, use an empty dictionary so condition1 can be evaluated.
+                        ent = {}
 
                     # Make sure ent has simulate and translate entries (these may be removed later on again,
                     # but it makes processing easier)
@@ -4218,7 +4218,7 @@ exit();
 
                     # Compare for this model the record ent which is the specification,
                     # and eleLog which is the result of the simulation.
-                    equal = lambda ent, eleLog : ent['simulate'] == eleLog['simulation']['success'] \
+                    def equal(ent, eleLog): return ent['simulate'] == eleLog['simulation']['success'] \
                         and ent['translate'] == eleLog['translation']['success'] or \
                         (not eleLog['translation']['success'] and not ent['translate'])
                     if not equal(ent, eleLog):
