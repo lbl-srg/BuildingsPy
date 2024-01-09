@@ -1,6 +1,11 @@
 BuildingsPy Changelog
 ---------------------
 
+Version 5.0.x, xxxx
+^^^^^^^^^^^^^^^^^^^
+- In buildingspy/development/regressiontest.py, corrected bug that caused CI tests to not fail if run in batch
+  mode and a reference file was missing.
+
 Version 5.0.0, September 1, 2023 -- Release 5.0
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 - Added buildingspy.simulate.OpenModelica to support simulation with OpenModelica, and refactored
