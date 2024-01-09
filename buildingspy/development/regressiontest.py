@@ -2784,7 +2784,8 @@ class Tester(object):
                                     noOldResults = noOldResults + list(pai.keys())
 
                                 if self._batch:
-                                    self._reporter.writeError(f"Reference file {refFilNam} does not yet exist. You need to generate it by running tests in non-batch mode.")
+                                    self._reporter.writeError(
+                                        f"Reference file {refFilNam} does not yet exist. You need to generate it by running tests in non-batch mode.")
 
                                 if not (self._batch or ans == "Y" or ans == "N"):
                                     if t_ref is None:
