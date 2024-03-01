@@ -2813,6 +2813,10 @@ class Tester(object):
                                     t_ref = pai["time"]
                                     noOldResults = noOldResults + list(pai.keys())
 
+                                if self._batch:
+                                    self._reporter.writeError(
+                                        f"Reference file {refFilNam} does not yet exist. You need to generate it by running tests in non-batch mode.")
+
                                 if not (self._batch or ans == "Y" or ans == "N"):
                                     if t_ref is None:
                                         self._reporter.writeError(
@@ -2822,7 +2826,7 @@ class Tester(object):
                                                           "New results: " + data['ScriptFile'])
                                         # Reference file does not exist
                                         print(
-                                            "*** Warning: Reference file {} does not yet exist.".format(refFilNam))
+                                            "*** Warning: AAAAAAReference file {} does not yet exist.".format(refFilNam))
                                         while not (
                                                 ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
                                             print("             Create new file?")
