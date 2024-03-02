@@ -34,7 +34,7 @@ setup(
     python_requires='>=3.8',
     install_requires=[
         'gitpython>=3.1.33',
-        'jinja2>=2.10',
+        'jinja2>=3.1.3',
         'matplotlib>=3.5',
         'numpy>=1.21',
         'scipy>=1.7',
