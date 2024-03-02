@@ -4191,9 +4191,9 @@ exit();
             return ret
 
         import copy
-        if tool != "openmodelica":
+        if not (tool == "openmodelica" or tool == "optimica"):
             raise ValueError(
-                "Method _override_configuration_tool is only implemented for OpenModelica.")
+                "Method _override_configuration_tool is only implemented for OpenModelica and Optimica.")
 
         con_data = copy.deepcopy(configuration_data)
         for eleLog in simulator_log_file_json:

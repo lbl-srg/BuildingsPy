@@ -7,7 +7,7 @@ Version 5.1.0, xxx, 2023 -- Release 5.0
 - In buildingspy/development/regressiontest.py, corrected bug that caused CI tests to not fail if run in batch
   mode and a reference file was missing.
 - Added support to generate unit test configuration file conf.yml
-  for OpenModelica tests.
+  for OpenModelica and Optimica tests.
   (https://github.com/lbl-srg/BuildingsPy/issues/530)
 
 Version 5.0.0, September 1, 2023 -- Release 5.0
