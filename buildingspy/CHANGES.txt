@@ -5,6 +5,8 @@ Version 5.0.x, xxxx
 ^^^^^^^^^^^^^^^^^^^
 - In buildingspy/development/regressiontest.py, corrected bug that caused CI tests to not fail if run in batch
   mode and a reference file was missing.
+- In buildingspy/io/outputfile.py, corrected error reporting for Dymola that caused a string index out of range.
+  (https://github.com/lbl-srg/BuildingsPy/issues/536)
 
 Version 5.0.0, September 1, 2023 -- Release 5.0
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
