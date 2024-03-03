@@ -52,7 +52,7 @@ install:
       sphinxcontrib-bibtex==2.4.1 \
       sphinxcontrib-plantuml==0.22 \
       alabaster==0.7.12 \
-      MarkupSafe==1.1.1 \
+      MarkupSafe==2.1.5 \
       Pygments==2.4.2 \
       snowballstemmer==1.9.0 \
       docutils==0.17.1 \
