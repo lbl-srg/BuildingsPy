@@ -2796,7 +2796,7 @@ class Tester(object):
                                                           "New results: " + data['ScriptFile'])
                                         # Reference file does not exist
                                         print(
-                                            "*** Warning: AAAAAAReference file {} does not yet exist.".format(refFilNam))
+                                            "*** Warning: Reference file {} does not yet exist.".format(refFilNam))
                                         while not (
                                                 ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
                                             print("             Create new file?")
