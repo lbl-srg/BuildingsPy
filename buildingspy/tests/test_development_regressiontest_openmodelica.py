@@ -211,7 +211,7 @@ class Test_regressiontest_openmodelica_Tester(unittest.TestCase):
         # Move the configuration data, and recreate it, and make sure it is the same
         conf_yml_name = rt.get_configuration_file_name()
         conf_backup = "conf.yml.backup"
-        shutil.move(conf_yml_name, conf_backup)
+        shutil.copy2(conf_yml_name, conf_backup)
         ret_val = rt.run()
         self.assertEqual(
             conf_data,
