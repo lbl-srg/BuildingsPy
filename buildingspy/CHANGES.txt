@@ -1,8 +1,8 @@
 BuildingsPy Changelog
 ---------------------
 
-Version 5.1.0, xxx, 2023 -- Release 5.1
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Version 5.1.0, April 9, 2024 -- Release 5.1
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - In buildingspy/development/regressiontest.py, corrected bug that caused CI tests to not fail if run in batch
   mode and a reference file was missing.
