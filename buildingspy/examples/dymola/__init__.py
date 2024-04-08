@@ -6,35 +6,19 @@ This module provides an example that illustrates the
 use of the python to run a Modelica simulation.
 
 The module
-:mod:`buildingspy.simulate.Simulator` that can be used to automate running simulations.
+:mod:`buildingspy.simulate` that can be used to automate running simulations.
 For example, to translate and simulate the model
-``Buildings.Controls.Continuous.Examples.PIDHysteresis.mo``
-with controller parameters ``con.eOn = 1`` and ``con.eOn = 5``, use
+``Buildings.Fluid.SolarCollectors.Examples.FlatPlateWithTank``
+from the Modelica Buildings Library, release 9.1.0,
+with different sizes for the water tank, use
 the following commands:
 
 .. literalinclude:: ../../buildingspy/examples/dymola/runSimulation.py
 
 This will run the two test cases and store the results in the directories
-``case1`` and ``case2``.
+``case1`` and ``case2``. To use Optimica instead of Dymola, replace in the
+above script ``Dymola`` with ``Optimica``.
 
-Simulating a model with two different parameter values but without recompilation
-================================================================================
-
-In the above example, the value of the parameter ``con.eOn`` can be
-changed after the model has been translated.
-To avoid unrequired translations, the functions
-:func:`buildingspy.simulate.Simulator.translate` and
-:func:`buildingspy.simulate.Simulator.simulate_translated` can
-be used to translate a model, and then simulate it with different
-parameter values.
-The following commands accomplish this:
-
-.. literalinclude:: ../../buildingspy/examples/dymola/runSimulationTranslated.py
-
-.. note:: If a parameter cannot be changed after
-          model translation, then
-          :func:`buildingspy.simulate.Simulator.simulate_translated`
-          will throw an exception.
 
 Plotting of Time Series
 =======================

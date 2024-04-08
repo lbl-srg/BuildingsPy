@@ -15,19 +15,8 @@
   * rewrite the `package.order` file.
 
 """
-#
-# import from future to make Python2 behave like Python3
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future import standard_library
-standard_library.install_aliases()
-from builtins import *
-from io import open
-# end of from future import
-
 import os
+import re
 
 __all__ = ["create_modelica_package", "move_class", "write_package_order"]
 
@@ -63,7 +52,23 @@ def _sort_package_order(package_order):
         return lis
 
     # Sort models alphabetically
-    s = sorted(package_order, key=itemgetter(1))
+
+    # Per the Modelica standard,
+    # "Classes and constants that are stored in package.mo are also present in package.order
+    # but their relative order should be identical to the one in package.mo
+    # (this ensures that the relative order between classes and constants stored in different ways is preserved).
+    # Therefore, we put in the constants in the original order in which they were.
+    # See also https://github.com/lbl-srg/modelica-buildings/pull/1874
+    s_con = []
+    s_oth = []
+    for ele in package_order:
+        if ele[0] == __CON:
+            # We found a constant
+            s_con.append(ele)
+        else:
+            s_oth.append(ele)
+
+    s = sorted(s_oth, key=itemgetter(1))
     s = sorted(s, key=itemgetter(0))
 
     # Some items can be files or they can be in an own directory
@@ -72,6 +77,7 @@ def _sort_package_order(package_order):
     s = moveItemToFront([__PAC, "Tutorial"], s)
     s = moveItemToFront([__MOD, "UsersGuide"], s)
     s = moveItemToFront([__PAC, "UsersGuide"], s)
+    s.extend(s_con)
     s = moveItemToEnd([__PAC, "Data"], s)
     s = moveItemToEnd([__MOD, "Data"], s)
     s = moveItemToEnd([__PAC, "Types"], s)
@@ -188,6 +194,13 @@ end %s;
             # Create the package.order file
             write_package_order(directory=directory, recursive=False)
 
+            # Add the created package.mo file and package.order file to git.
+            # This is also needed if a package is created, and then the parent package
+            # moved as otherwise, "git mv" will fail as it operates on a file that is not in git
+            _sh(cmd=['git', 'add', "package.mo"], directory=fd)
+            _sh(cmd=['touch', "package.order"], directory=fd)
+            _sh(cmd=['git', 'add', "package.order"], directory=fd)
+
 
 def _git_move(source, target):
     """ Moves `source` to `target` using `git mv`.
@@ -228,7 +241,7 @@ def _git_move(source, target):
         # Directory does not exist.
         if ext == ".mo":
             # It is a Modelica package.
-            # Recursively create an populate it.
+            # Recursively create and populate it.
             create_modelica_package(targetDir)
         else:
             # Directory does not exist.
@@ -255,20 +268,22 @@ def replace_text_in_file(file_name, old, new, isRegExp=False):
         If `isRegExp==True`, then old must be a regular expression, and
         `re.sub(old, new, ...)` is called where `...` is each line of the file.
     """
-    import re
     # Read source file, store the lines and update the content of the lines
+    modified = False
     with open(file_name, mode="r", encoding="utf-8-sig") as f_sou:
         lines = list()
-        for _, lin in enumerate(f_sou):
+        for lin in f_sou:
             if isRegExp:
-                lin = re.sub(old, new, lin)
+                lin1 = re.sub(old, new, lin)
             else:
-                lin = lin.replace(old, new)
-            lines.append(lin)
-
+                lin1 = lin.replace(old, new)
+            lines.append(lin1)
+            if lin1 != lin:
+                modified = True
     # Write the lines to the new file
-    with open(file_name, mode="w", encoding="utf-8") as f_des:
-        f_des.writelines(lines)
+    if modified:
+        with open(file_name, mode="w", encoding="utf-8") as f_des:
+            f_des.writelines(lines)
 
 
 def _move_mo_file(source, target):
@@ -327,8 +342,8 @@ def _move_mos_file(source, target):
     else:
         sourceFile = get_modelica_file_name(source)
         targetFile = get_modelica_file_name(target)
-        targetMosFile = sourceMosFile.replace(os.path.join(*sourceFile.split("/")[1:]),
-                                              os.path.join(*targetFile.split("/")[1:]))
+        targetMosFile = sourceMosFile.replace(os.path.join(*sourceFile.split(os.path.sep)[1:]),
+                                              os.path.join(*targetFile.split(os.path.sep)[1:]))
 
     if os.path.isfile(sourceMosFile):
         # Remove the top-level package name from source and target, then
@@ -477,10 +492,28 @@ def write_package_order(directory=".", recursive=False):
                 filPac.write(p[1] + "\n")
 
 
+def _get_constants(lines):
+    """ Get a list with all constants.
+
+    :param: lines All lines of the Modelica file.
+    """
+    import re
+    # Constants can be "constant Real n = ..." or "constant someClass n(..."
+    # or "constant Real n[:] = ..." or or "constant Real n[4] = ..."
+    # See also https://regex101.com/r/cD5nE0/2 for testing
+    f = re.findall(
+        r"\s*constant\s+[\w+\.]+\s+(\w+)(\[\w+\]|\[\s*[\w:]\s*(,\s*[\w:]\s*)*\])?\s*[=\(]",
+        lines,
+        re.MULTILINE)
+    r = []
+    for ele in f:
+        r.append(ele[0])
+    return r
+
+
 def _get_package_list_for_file(directory, file_name):
     """ Gets the package list for the file `directory/file_name`
     """
-    import re
 
     pacLis = list()
 
@@ -496,10 +529,7 @@ def _get_package_list_for_file(directory, file_name):
         # They need to be added to the package.order as well.
         with open(os.path.join(directory, file_name), mode="r", encoding="utf-8-sig") as fil:
             lines = fil.read()
-            # Constants can be 'constant Real n = ..." or "constant someClass n(..."
-            con = re.findall(
-                r"\s*constant\s+[a-zA-Z0-9_\.]+\s+(\w+)\s*[=\(]", lines, re.MULTILINE)
-#                        con=re.search(r"constant\s+\w+\s+(\w+)\s*=", lines, re.MULTILINE);
+            con = _get_constants(lines)
             for ele in con:
                 # Found a constant whose name is in con.group(1)
                 pacLis.append([__CON, ele])
@@ -606,12 +636,13 @@ def _move_class_directory(source, target):
         # Rename references to this package
         _update_all_references(source, target)
 
-    # Delete the package.order file, as it will be recreated
+    # Move the package.order file, as it will be recreated
     if os.path.exists(os.path.join(source_dir, "package.order")):
-        os.remove(os.path.join(source_dir, "package.order"))
+        _git_move(os.path.join(source_dir, "package.order"),
+                  os.path.join(target_dir, "package.order"))
 
     # In Buildings, all classes are in their own .mo file. Hence,
-    # we iterate through these files, and also delete the package.order file
+    # we iterate through these files.
     # Iterate through files
     mo_files = [f for f in glob.glob(os.path.join(source_dir, "*.mo"))
                 if not f.endswith("package.mo")]
@@ -644,8 +675,9 @@ def move_class(source, target):
     Usage: Type
 
         >>> import buildingspy.development.refactor as r
-        >>> r.move_class("Buildings.Fluid.Movers.FlowControlled_dp", \
-        >>>              "Buildings.Fluid.Movers.Flow_dp") #doctest: +SKIP
+        >>> old = "Buildings.Fluid.Movers.FlowControlled_dp"
+        >>> new = "Buildings.Fluid.Movers.Flow_dp"
+        >>> r.move_class(old, new) #doctest: +SKIP
 
     """
     ##############################################################
@@ -726,38 +758,54 @@ def _update_all_references(source, target):
         _updateFile(ele)
 
 
-def _updateFile(arg):
-    """ Update all `.mo`, `package.order` and reference result file
+def _getShortName(filePath, classPath):
+    """Returns the shortest reference to a class within a file.
 
-        The argument `arg` is a list where the first item is
-        the relative file name (e.g., `./Buildings/package.mo`),
-        the second element is the class name of the source and
-        the third element is the class name of the target.
+    Args:
+        filePath: file path relative to the library root path (e.g., `Buildings/package.mo`).
+        classPath: full library path of the class to be shortened (e.g., `Buildings.Class`).
+    """
+
+    pos = re.search(r'\w', filePath).start()
+    splFil = filePath[pos:].split(os.path.sep)
+    splCla = classPath.split(".")
+    shortSource = None
+    for i in range(min(len(splFil), len(splCla))):
+        if splFil[i] != splCla[i]:
+            # See https://github.com/lbl-srg/BuildingsPy/issues/382 for the rationale
+            # behind the code below.
+            idx_start = i
+            if i > 0:
+                for k in range(i + 1, len(splFil)):
+                    lookup_path = os.path.sep.join(splFil[:k])
+                    if splCla[i] in [re.sub(r'\.mo', '', el) for el in os.listdir(lookup_path)]:
+                        idx_start = i - 1
+                        break
+            shortSource = '.'.join(splCla[idx_start:len(splCla)])
+            # shortSource starts with a space as instance names are
+            # preceded with a space.
+            shortSource = ' ' + shortSource
+            break
+    return shortSource
+
+
+def _updateFile(arg):
+    """ Update all `.mo`, `package.order` and reference result file, and the `conf.yml` file.
+
+        The argument `arg` is a list providing
+        [
+            the path of the package directory where the file is located, relative
+                to the current working directory (e.g., `./Buildings` when working from `~/modelica-buildings/.`),
+            the file name (e.g., `package.mo`),
+            the full library path of the source class (e.g., `Buildings.SourceClass`),
+            the full library path of the target class (e.g., `Buildings.TargetClass`),
+        ]
 
         This function has been implemented as doing the text replace is time
         consuming and hence this is done in parallel.
 
         :param arg: A list with the arguments.
     """
-
-    def _getShortName(fileName, className):
-        import re
-
-        pos = re.search(r'\w', fileName).start()
-        splFil = fileName[pos:].split(os.path.sep)
-        splCla = className.split(".")
-        shortSource = None
-        for i in range(min(len(splFil), len(splCla))):
-            if splFil[i] != splCla[i]:
-                # shortSource starts with a space as instance names are
-                # preceeded with a space
-                shortSource = " "
-                for j in range(i, len(splCla)):
-                    shortSource += splCla[j] + "."
-                # Remove last dot
-                shortSource = shortSource[:-1]
-                break
-        return shortSource
 
     root = arg[0]
     fil = arg[1]
@@ -769,6 +817,7 @@ def _updateFile(arg):
     # - .mo
     # - package.order
     # - ReferenceResults
+    # - conf.yml file
     if srcFil.endswith(".mo"):
         # Replace the Modelica class name that may be used in hyperlinks
         # or when instantiating the class.
@@ -790,6 +839,7 @@ def _updateFile(arg):
         # with the new name.
         # The same is done with the target name so that short instance names
         # remain short instance names.
+
         shortSource = _getShortName(srcFil, source)
         shortTarget = _getShortName(srcFil, target)
         if shortSource is None or shortTarget is None:
@@ -797,18 +847,25 @@ def _updateFile(arg):
 
         # If shortSource is only one class (e.g., "xx" and not "xx.yy",
         # then this is also used in constructs such as "model xx" and "end xx;"
-        # Hence, we only replace it if it is proceeded only by empty characters, and nothing else.
+        # Hence, we only replace it if it is
+        #   . preceded by empty characters, and
+        #   . followed by some optional empty characters and \s or [ or , or ;.
+        # (We use a "negative lookbehind assertion" to do so.)
         if "." in shortSource:
             replace_text_in_file(srcFil, shortSource, shortTarget, isRegExp=False)
         else:
-            regExp = "(?!\w)" + shortTarget
-            replace_text_in_file(srcFil, regExp, shortTarget, isRegExp=True)
-
+            regExpSource = r'(?<!\w)' + shortSource + r'(\s*(\s|\[|,|;))'
+            regExpTarget = shortTarget + r'\1'
+            replace_text_in_file(srcFil, regExpSource, regExpTarget, isRegExp=True)
         # Replace the hyperlinks, without the top-level library name.
         # This updates for example the RunScript command that points to
         # "....Dymola/Fluid/..."
         def sd(s): return "Resources/Scripts/Dymola/" + s[s.find('.') + 1:].replace(".", "/")
         replace_text_in_file(srcFil, sd(source), sd(target))
+    elif srcFil.endswith("conf.yml"):
+        # Update configuration file of the unit tests, such as
+        # Resources/Scripts/BuildingsPy/conf.yml
+        replace_text_in_file(srcFil, source, target)
     elif srcFil.endswith("package.order"):
         # Update package.order
         write_package_order(os.path.dirname(srcFil))

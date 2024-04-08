@@ -1,17 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# import from future to make Python2 behave like Python3
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future import standard_library
-standard_library.install_aliases()
-from builtins import *
-from io import open
-# end of from future import
-
 import unittest
 
 
@@ -22,7 +11,7 @@ class Test_development_error_dictionary(unittest.TestCase):
     """
 
     def test_keys(self):
-        import buildingspy.development.error_dictionary as e
+        import buildingspy.development.error_dictionary_dymola as e
         err_dic = e.ErrorDictionary()
         k = sorted(err_dic.keys())
 
@@ -40,7 +29,9 @@ class Test_development_error_dictionary(unittest.TestCase):
                              'unspecified initial conditions',
                              'unused connector',
                              'stateGraphRoot missing',
-                             'mismatched displayUnits'])
+                             'mismatched displayUnits',
+                             'suspicious attributes',
+                             'wrong derivative specification'])
 
         self.assertEqual(len(k), len(k_expected), "Wrong number of keys.")
         for i in range(len(k)):
@@ -48,14 +39,14 @@ class Test_development_error_dictionary(unittest.TestCase):
                              "Wrong key, expected \"{}\".".format(k_expected[i]))
 
     def test_tool_messages(self):
-        import buildingspy.development.error_dictionary as e
+        import buildingspy.development.error_dictionary_dymola as e
         err_dic = e.ErrorDictionary()
         k = sorted(err_dic.tool_messages())
         k_expected = sorted(['Differentiating (if',
                              'Warning: Failed to interpret experiment annotation',
                              'which was not found',
                              'The model contained invalid connect statements.',
-                             'Number of numerical Jacobians:',
+                             r'Number of numerical Jacobians: (\d*)',
                              "Warning: The following parameters don't have any value, only a start value",
                              "Redundant consistent initial conditions:",
                              "Redundant connection",
@@ -65,7 +56,9 @@ class Test_development_error_dictionary(unittest.TestCase):
                              'Dymola has selected default initial condition',
                              'Warning: The following connector variables are not used in the model',
                              "A \\\"stateGraphRoot\\\" component was automatically introduced.",
-                             "Mismatched displayUnit"])
+                             "Mismatched displayUnit",
+                             "which is suspicious",
+                             "did not match argument"])
 
         self.assertEqual(len(k), len(k_expected), "Wrong number of tool messages.")
         for i in range(len(k)):

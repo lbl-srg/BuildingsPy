@@ -1,8 +1,26 @@
 Running simulations
 ===================
 
-.. automodule:: buildingspy.simulate 
-.. automodule:: buildingspy.simulate.Simulator
-.. autoclass:: buildingspy.simulate.Simulator.Simulator
+.. automodule:: buildingspy.simulate
+
+Dymola
+------
+
+.. automodule:: buildingspy.simulate.Dymola
    :members:
+   :show-inheritance:
+
+OpenModelica
+------------
+
+.. automodule:: buildingspy.simulate.OpenModelica
+   :members:
+   :show-inheritance:
+
+Optimica
+--------
+
+.. automodule:: buildingspy.simulate.Optimica
+   :members:
+   :show-inheritance:
 

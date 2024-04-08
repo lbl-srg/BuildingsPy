@@ -1,0 +1,186 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+def _add_exception(return_dict, e, cmd):
+    import subprocess
+
+    return_dict['success'] = False
+    if isinstance(e, subprocess.CalledProcessError):
+        # Check if simulation terminated, and if so, get the error
+        return_dict['stdout'] = e.output.decode("utf-8")
+        output = return_dict['stdout']
+        for line in output.split('\n'):
+            if 'terminated' in line:
+                # Found terminated string. Cut everything after the '|' character that
+                # OpenModelica writes.
+                idx = line.rfind('|')
+                msg = line[idx + 1:].strip()
+                # The solver terminated. Add this information to a custom exception message.
+                return_dict['exception'] = f"'{' '.join(cmd)}' caused '{msg}'."
+                pass
+
+    if 'exception' not in return_dict:
+        # Did not find 'terminated' in message, handle exception as usual
+        return_dict['exception'] = '{}: {}'.format(type(e).__name__, e)
+
+
+def _run_process(return_dict, cmd, worDir, timeout):
+    import subprocess
+
+    output = subprocess.check_output(
+        cmd,
+        cwd=worDir,
+        timeout=timeout,
+        stderr=subprocess.STDOUT,
+        shell=False)
+
+    return_dict['success'] = True
+    if 'stdout' in return_dict:
+        return_dict['stdout'] += output.decode("utf-8")
+    else:
+        return_dict['stdout'] = output.decode("utf-8")
+    return
+
+
+def _translate(model, timeout):
+    import os
+    import subprocess
+    return_dict = {}
+
+    # Write translation script
+    try:
+        filter = "{{ filter_translate }}"
+        worDir = r"{{ working_directory }}"
+        src_nam = model + "_translate.mos"
+        with open(src_nam, 'w') as f:
+            # Replace { xxx } with {{ xxx }} which is needed because of the write(f"xxxx") statement
+            model_modifier_patched = "{{ model_modifier }}".replace(
+                '\\{', '\\{\\{').replace('\\}', '\\}\\}')
+            f.write(f"""setCommandLineOptions("-d=nogen");
+setCommandLineOptions("-d=initialization");
+setCommandLineOptions("-d=backenddaeinfo");
+setCommandLineOptions("-d=discreteinfo");
+setCommandLineOptions("-d=stateselection");
+installPackage(Modelica, "");
+setMatchingAlgorithm("PFPlusExt");
+setIndexReductionMethod("dynamicStateSelection");
+
+print("Loading library");
+loadFile("{{ package_path }}/package.mo");
+print("Loading model");
+{{ commentStringNonModifiedModel }}print("Translating model");
+{{ commentStringNonModifiedModel }}translateModel({{ model }}, method="{{ solver }}", tolerance={{ rtol }}, numberOfIntervals={{ ncp }}, variableFilter=\"({filter})\");
+{{ commentStringNonModifiedModel }}getErrorString();
+{{ commentStringModifiedModel }}loadString("model {{ modifiedModelName }} extends {{ model }}({model_modifier_patched}); end {{ modifiedModelName }};");
+{{ commentStringModifiedModel }}getErrorString();
+{{ commentStringModifiedModel }}print("Translating model");
+{{ commentStringModifiedModel }}buildModel({{ modifiedModelName }}, fileNamePrefix=\"{{ model }}\", method="{{ solver }}", tolerance={{ rtol }}, numberOfIntervals={{ ncp }}, variableFilter=\"({filter})\");
+{{ commentStringModifiedModel }}getErrorString();
+print("Compiling model");
+retVal := system("make -f {{ model }}.makefile");
+exit(retVal);
+""")
+
+        # Translate and compile model
+        cmd = ["omc", src_nam]
+        return_dict['cmd'] = ' '.join(cmd)
+        _run_process(return_dict, cmd, worDir, timeout)
+
+    except Exception as e:
+        _add_exception(return_dict, e, cmd)
+    return return_dict
+
+
+def _simulate(model, timeout):
+    import os
+    import subprocess
+    import platform
+
+    return_dict = {}
+
+    # Simulate the model. The CI tests use DOCKER. Hence, we don't invoke directly the executable,
+    # as the executable links for example to
+    # /usr/bin/../lib/x86_64-linux-gnu/omc/libsundials_nvecserial.so.5
+    # Rather, we invoke an OpenModelica script (thereby invoking the Docker) and then simulate
+    # the executable from this script.
+    filter = "{{ filter_simulate }}"
+    worDir = r"{{ working_directory }}"
+    src_nam = f"{model}_simulate.mos"
+    cmd = ["omc", src_nam]
+    return_dict['cmd'] = ' '.join(cmd)
+
+    try:
+        with open(src_nam, 'w') as f:
+            if platform.system() == "Windows":
+                esc = ""
+            else:
+                esc = "./"
+            f.write(
+                f"""retVal := system("{esc}{model} -override=startTime={{ start_time }},stopTime={{ final_time }},tolerance={{ rtol }},solver={{ solver }},outputFormat=mat,variableFilter=\\\"({filter})\\\" -steps -cpu -lv LOG_STATS");
+exit(retVal);
+""")
+        output = _run_process(return_dict, cmd, worDir, timeout)
+
+    except Exception as e:
+        _add_exception(return_dict, e, cmd)
+    return return_dict
+
+
+def _delete_files():
+    import os
+    import glob
+    model = "{{ model }}"
+    for filename in glob.glob('*.[cho]'):
+        os.remove(filename)
+    for filename in [f"{model}_prof.intdata", f"{model}_prof.realdata"]:
+        if os.path.exists(filename):
+            os.remove(filename)
+
+
+def run():
+    import os
+    import json
+    import traceback
+    import sys
+
+    timeout = {{time_out}}
+    model = "{{ model }}"
+    result = {"model": model,
+              "working_directory": r"{{ working_directory }}",
+              "translation": {"success": False},
+              "simulation": {"success": False}}
+
+    # Log file
+    log_file = "{}_buildingspy.json".format(model.replace(".", "_"))
+    try:
+        os.remove(log_file)
+    except OSError:
+        pass
+
+    try:
+        result["translation"] = _translate(model, timeout)
+
+    except Exception as e:
+        msg = "{}: {}".format(type(e).__name__, str(e))
+        if msg == "RuntimeError: Process timeout":
+            msg = msg + " after {} seconds".format(timeout)
+        result["translation"]["exception"] = msg
+        result["translation"]["traceback"] = traceback.format_exc()
+
+    if {{simulate}}:
+        if result["translation"]["success"]:
+            # Simulate model
+            result["simulation"] = _simulate(model, timeout)
+        else:
+            result["simulation"]["message"] = "Simulation skipped because translation failed."
+    else:
+        result["simulation"]["message"] = "No simulation requested."
+
+    with open(log_file, "w") as log:
+        log.write("{}\n".format(json.dumps(result, indent=4, sort_keys=False)))
+
+    _delete_files()
+
+
+if __name__ == "__main__":
+    run()

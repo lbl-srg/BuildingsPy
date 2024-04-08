@@ -1,17 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# import from future to make Python2 behave like Python3
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future import standard_library
-standard_library.install_aliases()
-from builtins import *
-from io import open
-# end of from future import
-
 from buildingspy.thirdParty.dymat.DyMat import DyMatFile
 
 
@@ -62,7 +51,7 @@ def get_model_statistics(log_file, simulator):
         dicIni = {}
         dicSim = {}
 
-        reg = re.compile('\{(.*?)\}')
+        reg = re.compile(r'\{(.*?)\}')
 
         CONSTA = "Continuous time states:"
         NONLIN = "Sizes after manipulation of the nonlinear systems:"
@@ -153,6 +142,11 @@ def get_errors_and_warnings(log_file, simulator):
             listWarn.append(temp)
         elif lin.find(ERR) >= 0:
             listErr.append(lines[index + 1].strip())
+        elif simulator == "dymola" and lin == " = false\n":
+            em = "Log file contained the line ' = false'"
+            if index > 0:
+                em = f"{em}. Preceeding line: '{lines[index-1]}'"
+            listErr.append(em)
 
     ret["warnings"] = listWarn
     ret["errors"] = listErr
@@ -172,8 +166,14 @@ class Reader(object):
     """
 
     def __init__(self, fileName, simulator):
-        if simulator != "dymola":
-            raise ValueError('Argument "simulator" needs to be set to "dymola".')
+        import os
+
+        if simulator not in ['openmodelica', 'dymola', 'optimica']:
+            raise ValueError(
+                'Argument "simulator" needs to be set to "openmodelica", "dymola" or "optimica".')
+
+        if not os.path.isfile(fileName):
+            raise FileNotFoundError(f"File {os.path.abspath(fileName)} does not exist.")
 
         self.fileName = fileName
         self._data_ = DyMatFile(fileName)
@@ -199,20 +199,20 @@ class Reader(object):
               >>> r=Reader(resultFile, "dymola")
               >>> # Return a list with all variable names
               >>> r.varNames() #doctest: +ELLIPSIS
-              [u'PID.I.y_start', u'PID.Td', u'PID.I.der(y)', ...]
+              ['PID.Dzero.k', 'PID.Dzero.y', 'PID.I.der(y)', 'PID.I.initType', ...]
               >>> # Return ['const.k', 'const.y']
               >>> r.varNames('const')
-              [u'const.k', u'const.y']
+              ['const.k', 'const.y']
               >>> # Returns all variables whose last character is u
               >>> r.varNames('u$')
-              [u'PID.gainPID.u', u'PID.limiter.u', u'PID.gainTrack.u', u'PID.P.u', u'PID.I.u', u'gain.u']
+              ['PID.P.u', 'PID.gainPID.u', 'PID.limiter.u', 'gain.u', 'PID.I.u', 'PID.gainTrack.u']
 
         """
         import re
 
         AllNames = self._data_.names()
         if pattern is None:
-            return AllNames
+            return sorted(AllNames)
         else:
             AllNamesFilt = []    # Filtered variable names
             for item in AllNames:
@@ -234,12 +234,15 @@ class Reader(object):
            >>> r=Reader(resultFile, "dymola")
            >>> (time, heatFlow) = r.values('preHea.port.Q_flow')
         """
-        d = self._data_.data(varName)
-        a = self._data_.abscissa(blockOrName=varName, valuesOnly=True)
-        return a, d
+        try:
+            d = self._data_.data(varName)
+            a = self._data_.abscissa(blockOrName=varName, valuesOnly=True)
+            return a, d
+        except KeyError:
+            raise KeyError(f"Did not find variable '{varName}' in '{self.fileName}'")
 
     def integral(self, varName):
-        """Get the integral of the data series.
+        r"""Get the integral of the data series.
 
         :param varName: The name of the variable.
         :return: The integral of ``varName``.
@@ -264,7 +267,7 @@ class Reader(object):
         return val
 
     def mean(self, varName):
-        """Get the mean of the data series.
+        r"""Get the mean of the data series.
 
         :param varName: The name of the variable.
         :return: The mean value of ``varName``.
@@ -273,7 +276,7 @@ class Reader(object):
 
         .. math::
 
-           \\frac{1}{t_1-t_0} \, \int_{t_0}^{t_1} x(s) \, ds,
+           \frac{1}{t_1-t_0} \, \int_{t_0}^{t_1} x(s) \, ds,
 
         where :math:`t_0` is the start time and :math:`t_1` the final time of the data
         series :math:`x(\cdot)`, and :math:`x(\cdot)` are the data values
@@ -292,7 +295,7 @@ class Reader(object):
         return r
 
     def min(self, varName):
-        """Get the minimum of the data series.
+        r"""Get the minimum of the data series.
 
         :param varName: The name of the variable.
         :return: The minimum value of ``varName``.
@@ -312,7 +315,7 @@ class Reader(object):
         return min(v)
 
     def max(self, varName):
-        """Get the maximum of the data series.
+        r"""Get the maximum of the data series.
 
         :param varName: The name of the variable.
         :return: The maximum value of ``varName``.

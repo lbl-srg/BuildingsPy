@@ -1,17 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# import from future to make Python2 behave like Python3
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future import standard_library
-standard_library.install_aliases()
-from builtins import *
-from io import open
-# end of from future import
-
 import unittest
 import os
 
@@ -63,28 +52,34 @@ class Test_regressiontest_Tester(unittest.TestCase):
                           """y = {"a", "b",
                           "c"}""")
 
-    def test_regressiontest_dymola(self):
+    def _run_regression_test(self, skip_verification):
         import buildingspy.development.regressiontest as r
-        rt = r.Tester(check_html=False)
-        myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
-        rt.setLibraryRoot(myMoLib)
-        rt.include_fmu_tests(True)
-        rt.writeOpenModelicaResultDictionary()
-        rt.run()
-        # Delete temporary files
-        os.remove('unitTests.log')
-
-    def test_regressiontest_jmodelica(self):
-        import buildingspy.development.regressiontest as r
-        rt = r.Tester(check_html=False, tool="jmodelica")
+        rt = r.Tester(skip_verification=skip_verification, check_html=False, tool="dymola")
         myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
         rt.deleteTemporaryDirectories(True)
         rt.setLibraryRoot(myMoLib)
-        rt.run()
+        rt.batchMode(True)
+        ret_val = rt.run()
+        # Check return value to see if test succeeded
+        self.assertEqual(0, ret_val, "Test failed with return value {}".format(ret_val))
         # Delete temporary files
-        os.remove('unitTests.log')
+        for f in rt.get_unit_test_log_files():
+            if os.path.exists(f):
+                os.remove(f)
 
     def test_regressiontest(self):
+        self._run_regression_test(skip_verification=True)
+
+    def test_regressiontest_with_verification(self):
+        self._run_regression_test(skip_verification=False)
+
+    def test_unit_test_log_file(self):
+        import buildingspy.development.regressiontest as r
+        rt = r.Tester(check_html=False, tool="dymola")
+        self.assertEqual(['comparison-dymola.log', 'simulator-dymola.log',
+                         'unitTests-dymola.log'], rt.get_unit_test_log_files())
+
+    def test_regressiontest_invalid_package(self):
         import buildingspy.development.regressiontest as r
         rt = r.Tester(check_html=False)
         myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
@@ -116,7 +111,7 @@ class Test_regressiontest_Tester(unittest.TestCase):
         rt.setLibraryRoot(myMoLib)
         rt.include_fmu_tests(True)
         rt.setSinglePackage("MyModelicaLibrary.Examples")
-        self.assertEqual(6, rt.get_number_of_tests())
+        self.assertEqual(7, rt.get_number_of_tests())
 
     def test_setSinglePackage_3(self):
         import buildingspy.development.regressiontest as r
@@ -125,7 +120,7 @@ class Test_regressiontest_Tester(unittest.TestCase):
         rt.setLibraryRoot(myMoLib)
         rt.include_fmu_tests(True)
         rt.setSinglePackage("MyModelicaLibrary.Examples.FMUs,MyModelicaLibrary.Examples")
-        self.assertEqual(6, rt.get_number_of_tests())
+        self.assertEqual(7, rt.get_number_of_tests())
 
     def test_setSinglePackage_4(self):
         import buildingspy.development.regressiontest as r
@@ -133,30 +128,13 @@ class Test_regressiontest_Tester(unittest.TestCase):
         myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
         rt.setLibraryRoot(myMoLib)
         rt.include_fmu_tests(True)
-        # No new tests should be found as FMUs is a subdirectory of Examples.
-        self.assertRaises(ValueError, rt.setSinglePackage,
-                          "MyModelicaLibrary.Examples,MyModelicaLibrary.Examples.FMUs")
-
-    def test_setExcludeTest(self):
-        import buildingspy.development.regressiontest as r
-        print("*** Running test_setExcludeTest that excludes files from unit test.\n")
-        rt = r.Tester(check_html=False)
-        myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
-        skpFil = os.path.join(myMoLib, "Resources", "Scripts", "skipUnitTestList.txt")
-        rt.setLibraryRoot(myMoLib)
-        rt.setExcludeTest(skpFil)
-        rt.run()
-        self.assertEqual(1, rt.get_number_of_tests())
-        print("*** Finished test_setExcludeTest.\n")
-
-    def test_runSimulation(self):
-        import buildingspy.development.regressiontest as r
-        self.assertRaises(OSError,
-                          r.runSimulation, ".", "this_command_does_not_exist")
+        rt.setSinglePackage("MyModelicaLibrary.Examples,MyModelicaLibrary.Examples.FMUs")
+        self.assertEqual(7, rt.get_number_of_tests())
 
     def test_areResultsEqual(self):
+        """Test legacy comparison tool."""
         import buildingspy.development.regressiontest as r
-        rt = r.Tester()
+        rt = r.Tester(comp_tool='legacy')
         tMin = 10
         tMax = 50
         nPoi = 101
@@ -204,7 +182,9 @@ class Test_regressiontest_Tester(unittest.TestCase):
         # 1, 2 is equal to 2, 1
         self.assertTrue(rt.are_statistics_equal("1, 2", "2, 1"))
         self.assertTrue(rt.are_statistics_equal("1, 40, 2", "2, 1, 40"))
-        self.assertFalse(rt.are_statistics_equal("1, 40", "1, 40, 0"))
+        # Zeros are ignored
+        self.assertTrue(rt.are_statistics_equal("1, 40", "1, 40, 0"))
+        self.assertTrue(rt.are_statistics_equal("1, 0, 0, 40", "1, 40, 0"))
 
     def test_format_float(self):
         import buildingspy.development.regressiontest as r
@@ -232,14 +212,83 @@ class Test_regressiontest_Tester(unittest.TestCase):
         self.assertRaises(ValueError,
                           rt.setLibraryRoot, "this_is_not_the_root_dir_of_a_library")
 
-    def test_test_OpenModelica(self):
+    def test_set_data_attributes_from_mos(self):
         import buildingspy.development.regressiontest as r
-        rt = r.Tester(check_html=False)
-        rt._deleteTemporaryDirectories = False
 
-        myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
-        rt.setLibraryRoot(myMoLib)
-        rt.test_OpenModelica(simulate=True)
+        content = """
+        simulateModel("MyModel.Name");
+        """
+        data, err = r.Tester._set_data_attributes_from_mos(mos_content=content)
+        expected_result = {'dymola':
+                           {'exportFMU': False,
+                            'translate': True,
+                            'simulate': True,
+                            'TranslationLogFile': 'MyModel.Name.translation.log'},
+                           'model_name': 'MyModel.Name',
+                           'startTime': 0,
+                           'stopTime': 1}
+        self.assertIsNone(err, f"Received unexpected error: {err}")
+        self.assertDictEqual(data, expected_result, "Failed to parse model name.")
+
+        # Test parsing with line breaks and spaces
+        for content in [
+            """simulateModel("MyModel.Name")
+        """,
+            """
+        simulateModel(
+            "MyModel.Name");
+        """,
+            """
+        simulateModel( "MyModel.Name" );
+        """
+        ]:
+            data, err = r.Tester._set_data_attributes_from_mos(mos_content=content)
+            self.assertEqual(data, {**data, **{"model_name": "MyModel.Name"}},
+                             f"Failed to parse line ending in content='{content}'.")
+
+        # Test parsing of time
+        for content in [
+            """simulateModel("MyModel.Name",
+          startTime=1)""",
+            """simulateModel("MyModel.Name", startTime=1)""",
+            """simulateModel("MyModel.Name",startTime=1)""",
+            """simulateModel("MyModel.Name", startTime = 1)""",
+            """simulateModel("MyModel.Name", startTime = 1 )""",
+            """simulateModel("MyModel.Name", startTime=+1)""",
+            """simulateModel("MyModel.Name", startTime=1e0)""",
+            """simulateModel("MyModel.Name", startTime=1e+0)""",
+            """simulateModel("MyModel.Name", startTime=1.00e+00)""",
+            """simulateModel("MyModel.Name", startTime=1.00e-00)""",
+            """simulateModel("MyModel.Name",
+          startTime=1e+0)"""
+        ]:
+            data, err = r.Tester._set_data_attributes_from_mos(mos_content=content)
+            self.assertEqual(data, {**data, **{"startTime": 1}},
+                             f"Failed to parse startTime in content='{content}'.")
+
+        content = """
+            translateModelFMU(
+                modelToOpen="MyModelicaLibrary.Examples.MyModel",
+                storeResult=false,
+                modelName="",
+                fmiVersion="2",
+                fmiType="me",
+                includeSource=false);
+                 """
+        data, err = r.Tester._set_data_attributes_from_mos(mos_content=content)
+
+        expected_result = {
+            'dymola': {
+                'translate': False,
+                'simulate': False,
+                'exportFMU': True,
+                'modelToOpen': 'MyModelicaLibrary.Examples.MyModel',
+                'modelName': 'MyModelicaLibrary.Examples.MyModel'
+            }
+        }
+
+        self.assertIsNone(err, f"Received unexpected error: {err}")
+        self.assertDictEqual(data, expected_result, "Failed to parse model name.")
 
     def test_setDataDictionary(self):
         import buildingspy.development.regressiontest as r
@@ -280,6 +329,3 @@ class Test_regressiontest_Tester(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-    #selection = unittest.TestSuite()
-    # selection.addTest(Test_regressiontest_Tester('test_test_OpenModelica'))
-    # unittest.TextTestRunner().run(selection)

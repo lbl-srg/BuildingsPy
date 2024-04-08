@@ -1,23 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# import from future to make Python2 behave like Python3
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future import standard_library
-standard_library.install_aliases()
-from builtins import *
-from io import open
-# end of from future import
-
 import unittest
-
-try:
-    from test.test_support import EnvironmentVarGuard
-except ImportError:
-    from test.support import EnvironmentVarGuard
 
 
 class Test_example_dymola_runSimulation(unittest.TestCase):
@@ -33,33 +17,34 @@ class Test_example_dymola_runSimulation(unittest.TestCase):
         super(Test_example_dymola_runSimulation, self).__init__(*args, **kwargs)
 
         self._temDir = None
+        self._buiDir = None
 
     def setUp(self):
         """ Ensure that environment variables that are needed to run
             the tests are set
         """
-        # Set MODELICALIBRARY which is required to run
-        # runSimulationTranslated.py
-        from git import Repo
         import tempfile
         import os
         import shutil
-
-        self.env = EnvironmentVarGuard()
+        import requests
+        import zipfile
+        from io import BytesIO
 
         self._temDir = tempfile.mkdtemp(prefix='tmp-BuildingsPy-Modelica-Lib-')
+        self._buiDir = os.path.join(os.getcwd(), "Buildings")
 
-        if not os.path.exists(os.path.join(os.getcwd(), "tmp")):
-            clo_dir = os.path.join(os.getcwd(), "tmp")
-            if os.path.exists(clo_dir):
-                shutil.rmtree(clo_dir)
-            Repo.clone_from("https://github.com/lbl-srg/modelica-buildings.git",
-                            clo_dir, depth=1)
+        zip_file_url = "https://github.com/lbl-srg/modelica-buildings/archive/refs/tags/v9.1.0.zip"
 
-            if os.path.exists(os.path.join(os.getcwd(), "Buildings")):
-                shutil.rmtree(os.path.join(os.getcwd(), "Buildings"))
-            shutil.move(os.path.join(os.getcwd(), "tmp", "Buildings"),
-                        os.path.join(os.getcwd()))
+        r = requests.get(zip_file_url)
+        # Split URL to get the file name
+        zip_file = zip_file_url.split('/')[-1]
+        # Writing the file to the local file system
+        with open(zip_file, 'wb') as output_file:
+            output_file.write(r.content)
+        z = zipfile.ZipFile(BytesIO(r.content))
+        z.extractall()
+        shutil.move(os.path.join("modelica-buildings-9.1.0", "Buildings"), "Buildings")
+        shutil.rmtree("modelica-buildings-9.1.0")
 
     def tearDown(self):
         """ Method called after all the tests.
@@ -67,8 +52,10 @@ class Test_example_dymola_runSimulation(unittest.TestCase):
         # Delete temporary directory
         import shutil
         import os
-        shutil.rmtree(os.path.join(os.getcwd(), "Buildings"))
-        shutil.rmtree(os.path.join(os.getcwd(), "tmp"))
+        shutil.rmtree(self._buiDir)
+        zipFil = "v9.1.0.zip"
+        if os.path.exists(zipFil):
+            os.remove(zipFil)
 
     def test_runSimulation(self):
         """
@@ -77,22 +64,7 @@ class Test_example_dymola_runSimulation(unittest.TestCase):
         """
         import os
         import buildingspy.examples.dymola.runSimulation as s
-
-        os.chdir("Buildings")
         s.main()
-        os.chdir("..")
-
-    def test_runSimulationTranslated(self):
-        """
-        Tests the :mod:`buildingspy/examples/dymola/runSimulationTranslated`
-        function.
-        """
-        import os
-        import buildingspy.examples.dymola.runSimulationTranslated as s
-
-        os.chdir("Buildings")
-        s.main()
-        os.chdir("..")
 
     def test_plotResult(self):
         """

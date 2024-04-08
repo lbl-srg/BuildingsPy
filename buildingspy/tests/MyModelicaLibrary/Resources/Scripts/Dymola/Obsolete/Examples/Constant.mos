@@ -1,0 +1,2 @@
+simulateModel("MyModelicaLibrary.Obsolete.Examples.Constant", method="Cvode", tolerance=1e-06, resultFile="Constant");
+createPlot(id=1, position={15, 10, 592, 427}, y={"const.const.y"}, range={0.0, 1.0, 0.85, 1.15}, grid=true, colors={{28,108,200}});

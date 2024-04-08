@@ -5,21 +5,7 @@
 # html syntax and checks the consistency of
 # experiment annotation in .mo with the .mos files.
 #
-# MWetter@lbl.gov                            2013-05-31
-# TSNouidui@lbl.gov                          2017-04-25
 #######################################################
-#
-# import from future to make Python2 behave like Python3
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future import standard_library
-standard_library.install_aliases()
-from builtins import *
-from io import open
-# end of from future import
-
 import os
 import re
 
@@ -220,7 +206,7 @@ Modelica package. Expected file '%s'."
                 ".\n" +
                 self._capitalize_first(name) +
                 " contains invalid expressions such as x * y. Only literal expressions are allowed " +
-                "by JModelica and OpenModelica unit tests.\n")
+                "by OPTIMICA and OpenModelica unit tests.\n")
             raise ValueError(s)
 
         delta = abs(eval(val) - eval(value))
@@ -350,8 +336,9 @@ Modelica package. Expected file '%s'."
             f.close()
 
             if (found_sim and not found_tol):
-                s = ("Found mos file={!s} without tolerance defined.\n" +
-                     "A minimum tolerance of 1e-6 is required for JModelica.\n").format(itr)
+                s = (
+                    "Found mos file={!s} without tolerance defined.\n" +
+                    "A minimum tolerance of 1e-6 is required for OPTIMICA.\n").format(itr)
                 raise ValueError(s)
 
         return n_tols, mos_non_fmus, mos_fmus
@@ -384,13 +371,13 @@ Modelica package. Expected file '%s'."
             if value is None:
                 s = (
                     "Found mos file={!s} without tolerance specified.\n" +
-                    "A minimum tolerance of 1e-6 is required for JModelica for unit tests.\n").format(mos_file)
+                    "A minimum tolerance of 1e-6 is required for OPTIMICA for unit tests.\n").format(mos_file)
                 raise ValueError(s)
             else:
                 if(float(value) > 1e-6):
                     s = ("Found mos file={!s} with tolerance={!s}.\n"
                          "The tolerance found is bigger than 1e-6, the maximum required by "
-                         "JModelica for unit tests.\n").format(mos_file, value)
+                         "OPTIMICA for unit tests.\n").format(mos_file, value)
                     raise ValueError(s)
 
         if (name + "=" == "stopTime="):
@@ -416,10 +403,33 @@ Modelica package. Expected file '%s'."
         # Split the value with potential character
         value3 = value2[0].split(')')
         try:
-            eval(value3[0])
+            ev = eval(value3[0])
         except Exception as err:
-            err = "{!s}. Invalid literal found in file {!s}.\n".format(err, fil_nam)
+            err = "{!s}. Invalid literal found in file {!s}.".format(err, fil_nam)
             raise ValueError(err)
+
+        if name == "StartTime":
+            # If it is smaller than -2147483648 and bigger than 2147483647, which are
+            # the minimum and maximum 32 bit integers. These are used in
+            # the CI testing of OPTIMICA. Exceeding them will cause an integer overflow
+            if isinstance(ev, int):
+                if ev < -2147483648:
+                    err = (
+                        "Integer overflow: Integers can be -2147483648 to 2147483647, received {}.\n".format(ev) +
+                        "Use floating point represenation in {!s}.".format(fil_nam))
+                    raise ValueError(err)
+
+        if name == "StopTime":
+            # If it is smaller than -2147483648 and bigger than 2147483647, which are
+            # the minimum and maximum 32 bit integers. These are used in
+            # the CI testing of OPTIMICA. Exceeding them will cause an integer overflow
+            if isinstance(ev, int):
+                if ev > 2147483647:
+                    err = (
+                        "Integer overflow: Integers can be -2147483648 to 2147483647, received {}.\n".format(ev) +
+                        "Use floating point represenation in {!s}.".format(fil_nam))
+                    raise ValueError(err)
+
         # Return the value found
         return value3[0]
 
@@ -434,7 +444,7 @@ Modelica package. Expected file '%s'."
 
         s = (
             "Found mos file={!s} with invalid expression={!s}.\n" +
-            "This is not allowed for cross validation with JModelica.\n").format(
+            "This is not allowed for cross validation with OPTIMICA.\n").format(
             mos_file,
             name +
             '=' +

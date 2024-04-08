@@ -1,17 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# import from future to make Python2 behave like Python3
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
-from future import standard_library
-standard_library.install_aliases()
-from builtins import *
-from io import open
-# end of from future import
-
 import unittest
 from buildingspy.io.postprocess import Plotter
 import numpy.testing
@@ -82,7 +71,7 @@ class Test_io_Plotter(unittest.TestCase):
         # Create plot
         Plotter.boxplot(t, y, increment=0.5, nIncrement=2 * 24,
                         notch=0, sym='b+', vert=1, whis=1.5,
-                        positions=None, widths=None, patch_artist=False, bootstrap=None, hold=None)
+                        positions=None, widths=None, patch_artist=False, bootstrap=None)
 
 
 if __name__ == '__main__':
