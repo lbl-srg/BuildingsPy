@@ -19,9 +19,6 @@ env:
 notifications:
   email: false
 
-git:
-  depth: 3
-
 services:
   - docker
   - xvfb
@@ -35,7 +32,7 @@ before_install:
   - chmod +x buildingspy/tests/MyModelicaLibrary/Resources/Scripts/travis/bin/omc
   - sudo cp buildingspy/tests/MyModelicaLibrary/Resources/Scripts/travis/bin/omc /usr/local/bin/
   - chmod +x buildingspy/tests/MyModelicaLibrary/Resources/Scripts/travis/bin/dymola
-  - sudo cp buildingspy/tests/MyModelicaLibrary/Resources/Scripts/travis/bin/dymola /usr/local/bin/
+  - cp buildingspy/tests/MyModelicaLibrary/Resources/Scripts/travis/bin/dymola $HOME/bin/
   - chmod +x buildingspy/tests/MyModelicaLibrary/Resources/Scripts/travis/bin/jm_ipython.sh
   - sudo cp buildingspy/tests/MyModelicaLibrary/Resources/Scripts/travis/bin/jm_ipython.sh /usr/local/bin/
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
