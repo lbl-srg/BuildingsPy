@@ -14,6 +14,39 @@ class Test_regressiontest_optimica_Tester(unittest.TestCase):
        :mod:`buildingspy.regressiontest.Tester` for optimica.
     """
 
+    def test_unit_test_update_configuration_file_existing(self):
+        import shutil
+        import buildingspy.development.regressiontest as r
+
+        rt = r.Tester(
+            skip_verification=True,
+            check_html=False,
+            tool="optimica",
+            rewriteConfigurationFile=True)
+        myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
+        rt.deleteTemporaryDirectories(True)
+        rt.setLibraryRoot(myMoLib)
+        rt.batchMode(True)
+        conf_data = rt.get_configuration_data_from_disk()
+
+        # Move the configuration data, and recreate it, and make sure it is the same
+        conf_yml_name = rt.get_configuration_file_name()
+        conf_backup = "conf.yml.backup"
+        shutil.copy2(conf_yml_name, conf_backup)
+        ret_val = rt.run()
+
+        # Assert that the configuration data are still the same
+        self.assertEqual(conf_data,
+                         rt.get_configuration_data_from_disk(),
+                         "Configuration data changed but expected no change.")
+
+        # Move file back to preserve its time stamp
+        shutil.move(conf_backup, conf_yml_name)
+        # Delete temporary files
+        for f in rt.get_unit_test_log_files():
+            if os.path.exists(f):
+                os.remove(f)
+
     def test_unit_test_log_file(self):
         import buildingspy.development.regressiontest as r
         rt = r.Tester(check_html=False, tool="optimica")

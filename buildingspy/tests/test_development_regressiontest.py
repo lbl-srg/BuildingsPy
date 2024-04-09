@@ -60,7 +60,7 @@ class Test_regressiontest_Tester(unittest.TestCase):
         rt.setLibraryRoot(myMoLib)
         rt.batchMode(True)
         ret_val = rt.run()
-        # Check return value to see if test suceeded
+        # Check return value to see if test succeeded
         self.assertEqual(0, ret_val, "Test failed with return value {}".format(ret_val))
         # Delete temporary files
         for f in rt.get_unit_test_log_files():
