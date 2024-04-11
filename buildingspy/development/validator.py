@@ -599,3 +599,57 @@ Modelica package. Expected file '%s'."
             s = ("The number of tolerances in the mos files={!s} does no match " +
                  "the number of mo files={!s}.\n").format(n_tols, n_mo_files)
             raise ValueError(s)
+
+    def verifyHyperLinks(self, root_dir):
+        """
+        This function recursively searches in all ``.mo`` files
+        in a package for broken Modelica hyperlinks.
+
+        It searches for strings of the form
+        ``\"modelica://some/file/name.png\"``
+        and then checks whether `some/file/name.png` exits.
+
+        If it does not exist, it returns an entry in the
+        string of error messages `str`.
+
+        :param rootDir: The root directory of the package.
+        :return: str[] Error messages.
+
+        Usage: Type
+            >>> import os
+            >>> import buildingspy.development.validator as v
+            >>> val = v.Validator()
+            >>> myMoLib = os.path.join(\
+                    "buildingspy", "tests", "MyModelicaLibrary")
+            >>> # Check the library for broken links
+            >>> errStr = val.verifyHyperLinks(myMoLib)
+
+        """
+
+        def _verifyHyperLinks(root_dir, extension):
+            import re
+            import os
+
+            # Get all mo files
+            files = self._recursive_glob(root_dir, '.mo')
+
+            errMsg = list()
+            for ff in files:
+                with open(ff, 'r') as file:
+                    lines = file.readlines()
+
+                    line_no = 0
+
+                    for line in lines:
+                        line_no += 1
+                        match = re.search(fr'\\"modelica:\/\/(?P<image>.*{extension})\\"', line)
+                        if match is not None:
+                            fn = (match.group('image'))
+                            if not os.path.isfile(os.path.join("..", fn)):
+                                msg = f"{ff}:{line_no}: Referenced file does not exist: {fn}"
+                                errMsg.append(msg)
+
+            return errMsg
+
+        errMsg = _verifyHyperLinks(root_dir, ".png")
+        return errMsg
