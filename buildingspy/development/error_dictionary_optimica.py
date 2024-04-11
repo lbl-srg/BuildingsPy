@@ -70,3 +70,11 @@ class ErrorDictionary(ed.ErrorDictionary):
             'tool_message': "it is not present in constraining type of declaration",
             'counter': 0,
             'summary_message': "Number of models with access not in constraining type           : {}\n"}
+
+        # Check for connectors that connect to itself
+        self._error_dict["connector to itself"] = {
+            'tool_message': "connection from connector to itself",
+            'counter': 0,
+            #            'buildingspy_var': "iIteMis",
+            #            'model_message': "Keyword 'each' applied to scalar in '{}'.",
+            'summary_message': "Number of models with connectors that connect to itself         : {}\n"}

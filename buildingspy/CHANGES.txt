@@ -3,7 +3,8 @@ BuildingsPy Changelog
 
 Version 5.1.1, xxxx
 ^^^^^^^^^^^^^^^^^^^
-
+- For Optimica regression tests, added check for connector to itself
+  (https://github.com/lbl-srg/BuildingsPy/issues/504)
 - In buildingspy/development/refactor.py, updated writing the Modelica
   package.order file to avoid changing the UsersGuide order.
   (https://github.com/lbl-srg/BuildingsPy/issues/541)
