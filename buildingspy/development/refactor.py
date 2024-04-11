@@ -458,8 +458,9 @@ def write_package_order(directory=".", recursive=False):
         for root, _, files in os.walk(directory):
             for fil in files:
                 if fil.endswith(".mo"):
-                    # Include the directory
-                    s.add(root)
+                    # Include the directory, unless it is a UsersGuide, which are to be sorted manually.
+                    if "UsersGuide" not in root:
+                        s.add(root)
     #            srcFil=os.path.join(root, fil)
         if not s:
             s.add(directory)
