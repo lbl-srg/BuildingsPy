@@ -76,7 +76,6 @@ class Test_development_refactor(unittest.TestCase):
         package_path = os.path.abspath(os.path.join("buildingspy", "tests", "MyModelicaLibrary"))
         r.write_package_order(package_path, recursive=True)
 
-
     def test_get_constants_non_empty(self):
         import buildingspy.development.refactor as r
 
