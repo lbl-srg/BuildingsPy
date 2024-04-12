@@ -1,6 +1,14 @@
 BuildingsPy Changelog
 ---------------------
 
+Version 5.1.1, xxxx
+^^^^^^^^^^^^^^^^^^^
+
+- In buildingspy/development/refactor.py, updated writing the Modelica
+  package.order file to avoid changing the UsersGuide order.
+  (https://github.com/lbl-srg/BuildingsPy/issues/541)
+
+
 Version 5.1.0, April 9, 2024 -- Release 5.1
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
