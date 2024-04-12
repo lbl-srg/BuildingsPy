@@ -184,6 +184,44 @@ class Test_development_Validator(unittest.TestCase):
             "tolerance=1e-6, startTime=-2147483649, stopTime=0,",
             "Integer overflow: Integers can be -2147483648 to 2147483647, received")
 
+    def test_validateHyperLinks_lib(self):
+        """
+        Test whether the `.mo` files point only have valid hyperlinks
+        """
+        # Test My ModelicaLibrary
+        import buildingspy.development.validator as v
+        val = v.Validator()
+        myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
+        # Get a list whose elements are the error strings
+        errStr = val.validateHyperLinks(myMoLib)
+        self.assertEqual(len(errStr), 0)
+
+    def test_validateHyperLinks_new_file(self):
+        """
+        Test whether the `.mo` files point only have valid hyperlinks
+        """
+        import tempfile
+        # Test My ModelicaLibrary
+        import buildingspy.development.validator as v
+
+        # Create a file with broken hyperlink
+        with tempfile.TemporaryDirectory(prefix="tmp-buildingspy-") as tmpdirname:
+
+            test_file = os.path.join(tmpdirname, "tmp_validate_hyperlinks.mo")
+            with open(test_file, 'w') as f:
+                f.write("""
+                        some text
+                        some other text
+                        <img href=\\"modelica://link/to/nonexisting/image.png\\"/>
+                        some other text
+                        """)
+
+            val = v.Validator()
+            myMoLib = tmpdirname
+            # Get a list whose elements are the error strings
+            errStr = val.validateHyperLinks(myMoLib)
+            self.assertEqual(len(errStr), 1)
+
 
 if __name__ == '__main__':
     unittest.main()

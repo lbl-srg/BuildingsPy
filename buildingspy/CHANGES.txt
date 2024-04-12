@@ -4,7 +4,7 @@ BuildingsPy Changelog
 Version 5.1.1, xxxx
 ^^^^^^^^^^^^^^^^^^^
 
-- In buildingspy/development/validator.py, added method verifyHyperLinks()
+- In buildingspy/development/validator.py, added method validateHyperLinks()
   that searches for broken hyperlinks.
   (https://github.com/lbl-srg/BuildingsPy/issues/544)
 - For Optimica regression tests, added check for connector to itself

@@ -600,7 +600,7 @@ Modelica package. Expected file '%s'."
                  "the number of mo files={!s}.\n").format(n_tols, n_mo_files)
             raise ValueError(s)
 
-    def verifyHyperLinks(self, root_dir):
+    def validateHyperLinks(self, root_dir):
         """
         This function recursively searches in all ``.mo`` files
         in a package for broken Modelica hyperlinks.
@@ -622,11 +622,11 @@ Modelica package. Expected file '%s'."
             >>> myMoLib = os.path.join(\
                     "buildingspy", "tests", "MyModelicaLibrary")
             >>> # Check the library for broken links
-            >>> errStr = val.verifyHyperLinks(myMoLib)
+            >>> errStr = val.validateHyperLinks(myMoLib)
 
         """
 
-        def _verifyHyperLinks(root_dir, extension):
+        def _validateHyperLinks(root_dir, extension):
             import re
             import os
 
@@ -651,5 +651,5 @@ Modelica package. Expected file '%s'."
 
             return errMsg
 
-        errMsg = _verifyHyperLinks(root_dir, ".png")
+        errMsg = _validateHyperLinks(root_dir, ".png")
         return errMsg
