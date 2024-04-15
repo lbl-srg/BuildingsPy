@@ -600,7 +600,7 @@ Modelica package. Expected file '%s'."
                  "the number of mo files={!s}.\n").format(n_tols, n_mo_files)
             raise ValueError(s)
 
-    def validateHyperLinks(self, root_dir):
+    def validateHyperlinks(self, root_dir):
         """
         This function recursively searches in all ``.mo`` files
         in a package for broken Modelica hyperlinks.
@@ -622,11 +622,11 @@ Modelica package. Expected file '%s'."
             >>> myMoLib = os.path.join(\
                     "buildingspy", "tests", "MyModelicaLibrary")
             >>> # Check the library for broken links
-            >>> errStr = val.validateHyperLinks(myMoLib)
+            >>> errStr = val.validateHyperlinks(myMoLib)
 
         """
 
-        def _validateHyperLinks(root_dir, extension):
+        def _validateHyperlinks(root_dir, extensions):
             import re
             import os
 
@@ -634,22 +634,23 @@ Modelica package. Expected file '%s'."
             files = self._recursive_glob(root_dir, '.mo')
 
             errMsg = list()
-            for ff in files:
-                with open(ff, 'r') as file:
-                    lines = file.readlines()
+            for extension in extensions:
+                for ff in files:
+                    with open(ff, 'r') as file:
+                        lines = file.readlines()
 
-                    line_no = 0
+                        line_no = 0
 
-                    for line in lines:
-                        line_no += 1
-                        match = re.search(fr'\\"modelica:\/\/(?P<image>.*{extension})\\"', line)
-                        if match is not None:
-                            fn = (match.group('image'))
-                            if not os.path.isfile(os.path.join("..", fn)):
-                                msg = f"{ff}:{line_no}: Referenced file does not exist: {fn}"
-                                errMsg.append(msg)
+                        for line in lines:
+                            line_no += 1
+                            match = re.search(fr'\\"modelica:\/\/(?P<image>.*{extension})\\"', line)
+                            if match is not None:
+                                fn = (match.group('image'))
+                                if not os.path.isfile(os.path.join("..", fn)):
+                                    msg = f"{ff}:{line_no}: Referenced file does not exist: {fn}"
+                                    errMsg.append(msg)
 
             return errMsg
 
-        errMsg = _validateHyperLinks(root_dir, ".png")
+        errMsg = _validateHyperlinks(root_dir, [".png", ".pdf"])
         return errMsg

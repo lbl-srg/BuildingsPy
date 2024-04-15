@@ -184,7 +184,7 @@ class Test_development_Validator(unittest.TestCase):
             "tolerance=1e-6, startTime=-2147483649, stopTime=0,",
             "Integer overflow: Integers can be -2147483648 to 2147483647, received")
 
-    def test_validateHyperLinks_lib(self):
+    def test_validateHyperlinks_lib(self):
         """
         Test whether the `.mo` files point only have valid hyperlinks
         """
@@ -193,10 +193,10 @@ class Test_development_Validator(unittest.TestCase):
         val = v.Validator()
         myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
         # Get a list whose elements are the error strings
-        errStr = val.validateHyperLinks(myMoLib)
+        errStr = val.validateHyperlinks(myMoLib)
         self.assertEqual(len(errStr), 0)
 
-    def test_validateHyperLinks_new_file(self):
+    def test_validateHyperlinks_new_file(self):
         """
         Test whether the `.mo` files point only have valid hyperlinks
         """
@@ -219,7 +219,7 @@ class Test_development_Validator(unittest.TestCase):
             val = v.Validator()
             myMoLib = tmpdirname
             # Get a list whose elements are the error strings
-            errStr = val.validateHyperLinks(myMoLib)
+            errStr = val.validateHyperlinks(myMoLib)
             self.assertEqual(len(errStr), 1)
 
 
