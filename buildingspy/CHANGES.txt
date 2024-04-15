@@ -1,7 +1,7 @@
 BuildingsPy Changelog
 ---------------------
 
-Version 5.1.1, xxxx
+Version 5.2.0, xxxx
 ^^^^^^^^^^^^^^^^^^^
 
 - In buildingspy/development/validator.py, added method validateHyperlinks()
