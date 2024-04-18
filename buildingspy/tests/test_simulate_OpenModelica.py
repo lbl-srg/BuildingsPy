@@ -219,7 +219,7 @@ class Test_simulate_Simulator(unittest.TestCase):
             s.simulate()
         s.deleteOutputFiles()
 
-    def test_timeout(self):
+    def test_without_timeout(self):
         model = 'MyModelicaLibrary.MyModelTimeOut'
         json_log_file = '{}_buildingspy.json'.format(model.replace('.', '_'))
         s = Simulator(
@@ -230,15 +230,30 @@ class Test_simulate_Simulator(unittest.TestCase):
         outDir = os.path.abspath(s.getOutputDirectory())
         # Simulations that do not time out
         for timeout in [-1, None, 60]:
+            print(f"\nTesting timeout = {timeout}")
             s.setTimeOut(timeout)
             s.simulate()
+            print("Done.")
             s.deleteOutputFiles()
 
+    def test_with_timeout(self):
+        model = 'MyModelicaLibrary.MyModelTimeOut'
+        json_log_file = '{}_buildingspy.json'.format(model.replace('.', '_'))
+        s = Simulator(
+            model,
+            packagePath=self._packagePath
+        )
+        s._deleteTemporaryDirectory = False
+        s.addParameters({"sec": 60})
+        outDir = os.path.abspath(s.getOutputDirectory())
+
         # Case that times out
-        for timeout in [0.0001]:
+        for timeout in [0.0001, 10]:
+            print(f"Testing timeout {timeout}")
             s.setTimeOut(timeout)
             with self.assertRaises(TimeoutError):
                 s.simulate()
+                print("Done.")
             with open(os.path.join(outDir, json_log_file)) as fh:
                 log = fh.read()
             self.assertTrue('TimeoutExpired:' in log)
