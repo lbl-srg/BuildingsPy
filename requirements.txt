@@ -8,7 +8,7 @@ pytidylib==0.3.2
 simplejson==3.16.0
 six==1.14.0
 pyfunnel==0.3.0
-PyYAML==5.4
+PyYAML==6.0.1
 cerberus==1.3.4
 
 # For documentation and testing.
