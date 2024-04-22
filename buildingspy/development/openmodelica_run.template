@@ -115,13 +115,21 @@ def _simulate(model, timeout):
                 esc = ""
             else:
                 esc = "./"
-            mo_timeout = 0 if timeout is None else timeout
-            mo_timeout = 0 if mo_timeout < 0 else mo_timeout
+#            mo_timeout = 0 if timeout is None else timeout
+#            mo_timeout = 0 if mo_timeout < 0 else mo_timeout
+            args = ' '.join(
+                [f"-override=startTime={{ start_time }},stopTime={{ final_time }},tolerance={{ rtol }},solver={{ solver }},outputFormat=mat,variableFilter=\\\"({filter})\\\"",
+#                 f"-alarm {mo_timeout}",
+                 "-steps",
+                 "-cpu",
+                 "-lv",
+                 "LOG_STATS"])
             f.write(
-                f"""retVal := system("{esc}{model} -override=startTime={{ start_time }},stopTime={{ final_time }},tolerance={{ rtol }},solver={{ solver }},outputFormat=mat,variableFilter=\\\"({filter})\\\" -alarm {mo_timeout} -steps -cpu -lv LOG_STATS");
+f"""retVal := system("{esc}{model} {args}");
 exit(retVal);
 """)
-        output = _run_process(return_dict, cmd, worDir, timeout)
+        # Set timeout=None as timeout is controlled through -alarm flag
+        output = _run_process(return_dict, cmd, worDir, timeout=timeout)
 
     except Exception as e:
         _add_exception(return_dict, e, cmd)
