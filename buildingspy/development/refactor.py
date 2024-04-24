@@ -17,6 +17,7 @@
 """
 import os
 import re
+import shutil
 
 __all__ = ["create_modelica_package", "move_class", "write_package_order"]
 
@@ -202,7 +203,7 @@ end %s;
             _sh(cmd=['git', 'add', "package.order"], directory=fd)
 
 
-def _git_move(source, target):
+def _git_move(source, target, _shutil = False):
     """ Moves `source` to `target` using `git mv`.
 
     This method calls `git mv source target` in the current directory.
@@ -247,7 +248,14 @@ def _git_move(source, target):
             # Directory does not exist.
             os.makedirs(targetDir)
 
-    _sh(cmd=['git', 'mv', source, target], directory=os.path.curdir)
+    if _shutil == False:
+        _sh(cmd=['git', 'mv', source, target], directory=os.path.curdir)
+    else:
+        if os.path.isdir(source):
+            shutil.copytree(os.path.join(os.path.curdir,source), os.path.join(os.path.curdir,target), dirs_exist_ok=True)
+        else:
+            shutil.copy2(os.path.join(os.path.curdir,source), os.path.join(os.path.curdir,target))
+        shutil.rmtree(source)
 
 
 def get_modelica_file_name(source):
@@ -590,7 +598,7 @@ def _move_images_directory(source, target):
 
     if os.path.isdir(source_dir):
         target_dir = target.replace(".", os.path.sep).replace(os.path.sep, insertion, 1)
-        _git_move(source_dir, target_dir)
+        _git_move(source_dir, target_dir, _shutil=True)
 
 
 def _move_class_directory(source, target):
