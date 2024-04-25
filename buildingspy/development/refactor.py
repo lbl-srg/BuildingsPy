@@ -246,8 +246,17 @@ def _git_move(source, target):
         else:
             # Directory does not exist.
             os.makedirs(targetDir)
-
-    _sh(cmd=['git', 'mv', source, target], directory=os.path.curdir)
+    
+    if os.path.isdir(target):
+        # If Linux is used, the following lines can be used intead:
+        # _sh(cmd=['git', 'mv', os.path.join(source, '*'), target], directory=os.path.curdir)
+        # os.rmdir(source)
+        list_files = os.listdir(source)
+        for k in list_files:
+            _sh(cmd=['git', 'mv', os.path.join(source, k), target], directory=os.path.curdir)
+        os.rmdir(source)
+    else:
+        _sh(cmd=['git', 'mv', source, target], directory=os.path.curdir)
 
 
 def get_modelica_file_name(source):
