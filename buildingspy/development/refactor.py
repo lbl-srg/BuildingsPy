@@ -246,7 +246,7 @@ def _git_move(source, target):
         else:
             # Directory does not exist.
             os.makedirs(targetDir)
-    
+
     if os.path.isdir(target):
         # Target exists, move files individually.
         # See https://github.com/lbl-srg/BuildingsPy/pull/548
@@ -256,6 +256,7 @@ def _git_move(source, target):
         os.rmdir(source)
     else:
         _sh(cmd=['git', 'mv', source, target], directory=os.path.curdir)
+
 
 def get_modelica_file_name(source):
     """ Return for the Modelica class `source` its file name.
