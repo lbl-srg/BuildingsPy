@@ -68,6 +68,7 @@ class IBPSA(object):
                                 os.path.join(ibpsa_dir, "*.mat"),
                                 os.path.join(ibpsa_dir, "*.fmu"),
                                 os.path.join(ibpsa_dir, "*.mos"),
+                                os.path.join(ibpsa_dir, "*.bak-mo"),
                                 os.path.join(ibpsa_dir, "*.mof"),
                                 os.path.join(ibpsa_dir, "*.pyc"),
                                 os.path.join(ibpsa_dir, "*.pdf"),
