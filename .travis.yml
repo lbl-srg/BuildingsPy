@@ -55,7 +55,7 @@ install:
       docutils==0.17.1 \
       Babel==2.7.0 \
       requests==2.27.0 \
-      Jinja2==3.1.3 \
+      Jinja2==3.1.4 \
       latexcodec==1.0.7 \
       pybtex==0.24.0
       pybtex-docutils==1.0.1 \
