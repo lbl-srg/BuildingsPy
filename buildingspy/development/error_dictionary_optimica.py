@@ -35,15 +35,11 @@ class ErrorDictionary(ed.ErrorDictionary):
         self._error_dict["errorneous each"] = {
             'tool_message': "Ignoring erroneous 'each' for the modification",
             'counter': 0,
-            #            'buildingspy_var': "iEacIgn",
-            #            'model_message': "Keyword 'each' applied to scalar in '{}'.",
             'summary_message': "Number of models with erroneous 'each'                          : {}\n"}
 
         self._error_dict["assuming each"] = {
             'tool_message': "Assuming 'each' for the modification",
             'counter': 0,
-            #            'buildingspy_var': "iEacAss",
-            #            'model_message': "Keyword 'each' applied to scalar in '{}'.",
             'summary_message': "Number of models with assuming 'each'                           : {}\n"}
 
         # Search for strings such as Iteration variable "chi_y.QCon_flow" is missing start value!
@@ -58,8 +54,6 @@ class ErrorDictionary(ed.ErrorDictionary):
         self._error_dict["redeclare of non-replaceable"] = {
             'tool_message': "can't be redeclared since it has already been redeclared without 'replaceable'",
             'counter': 0,
-            #            'buildingspy_var': "iIteMis",
-            #            'model_message': "Keyword 'each' applied to scalar in '{}'.",
             'summary_message': "Number of models with redeclare of no longer replaceable class  : {}\n"}
 
         # Search for strings such as
@@ -75,6 +69,12 @@ class ErrorDictionary(ed.ErrorDictionary):
         self._error_dict["connector to itself"] = {
             'tool_message': "connection from connector to itself",
             'counter': 0,
-            #            'buildingspy_var': "iIteMis",
-            #            'model_message': "Keyword 'each' applied to scalar in '{}'.",
             'summary_message': "Number of models with connectors that connect to itself         : {}\n"}
+
+        # Check for too large integers, which causes warnings of the form
+        # Integer literal "7347600000" is too large to represent as 32-bit
+        # Integer, using Real instead.
+        self._error_dict["too large Integer"] = {
+            'tool_message': "Integer, using Real instead",
+            'counter': 0,
+            'summary_message': "Number of models with too large Integers                        : {}\n"}

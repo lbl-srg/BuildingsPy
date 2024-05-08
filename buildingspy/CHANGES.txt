@@ -4,6 +4,7 @@ BuildingsPy Changelog
 Version 5.2.0, xxxx
 ^^^^^^^^^^^^^^^^^^^
 
+- For Optimica regression tests, added check for Integers that are too large to be represented
 - In buildingspy/development/refactor.py, corrected moving images to avoid creating
   a directory if the target directory already exists.
   (https://github.com/lbl-srg/BuildingsPy/pull/548)
