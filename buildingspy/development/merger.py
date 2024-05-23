@@ -343,8 +343,7 @@ class IBPSA(object):
 
         # Iterate over the list of files to be copied.
         copiedFiles = list()
-        for fil in filesToCopy:
-            srcFil = os.path.join(root, fil)
+        for srcFil in filesToCopy:
             # Loop over all
             # - .mo files except for top-level .mo file
             # - .mos files
