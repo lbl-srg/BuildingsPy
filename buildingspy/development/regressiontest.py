@@ -366,6 +366,10 @@ class Tester(object):
         # By default, do not show the GUI of the simulator
         self._showGUI = False
 
+        # Possible additional startup.mos or library package
+        self._startup_mos_path = None
+        self._addLibPackage = None
+
         # Enable or disable colored output on non-windows
         if color and (platform.system() != "Windows"):
             self._color_BOLD = '\033[1m'
@@ -3216,6 +3220,16 @@ SetDymolaCompiler(comp, sett);
         runFil.write('cd(\"{}/{}\");\n'.format(
             (self._temDir[iPro]).replace("\\", "/"),
             self.getLibraryName()))
+
+        # Possible additional mos-script:
+        if self._startup_mos_path is not None:
+            runFil.write(f"""
+// Possible execution of additional .mos script to load other libraries
+runScript("{self._startup_mos_path}");
+""")
+        if self._addLibPackage is not None:
+            runFil.write(('openModel(\"{}\");\n').format(self._addLibPackage))
+
         runFil.write(f"""
 openModel("package.mo")
 // Add a flag so that translation info appears in console output.
@@ -4288,3 +4302,37 @@ exit();
         model = '.'.join(splt[root:])
         # remove the '.mo' at the end
         return model[:-3]
+
+    def setStartupMOS(self, path: str):
+        """
+        Set an additional startup.mos script to e.g. load additional libraries
+
+        :param str path:
+            Absolute path to the mos file.
+            As the working directory during testing is a temporary directory, relative paths won't work.
+
+        Usage: Type
+           >>> import os
+           >>> import buildingspy.development.regressiontest as r
+           >>> rt = r.Tester()
+           >>> startupMOS = os.path.join("path_to", "startup.mos")
+           >>> rt.setStartupMOS(startupMOS)
+        """
+        self._startup_mos_path = path
+
+    def setAdditionalLibResource(self, addLibPackage):
+        """ Set an additional library directory that should be loaded.
+        :param addLibPackage: The top-most directory of the add library as
+        absolute path.
+        The addLibPackage directory is the directory that contains
+        the top-level ``package.mo`` file of the additional library that is
+        needed to run the tests.
+
+        Usage: Type
+           >>> import os
+           >>> import buildingspy.development.regressiontest as r
+           >>> rt = r.Tester()
+           >>> myAddLib = os.path.join("myFolder", "myPackage", "package.mo")
+           >>> rt.setAdditionalLibResource(myAddLib)
+        """
+        self._addLibPackage = os.path.join(addLibPackage)
