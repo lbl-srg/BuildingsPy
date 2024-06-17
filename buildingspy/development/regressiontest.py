@@ -3521,6 +3521,8 @@ Advanced.GenerateVariableDependencies = orig_Advanced_GenerateVariableDependenci
 exit();
 """)
         runFil.close()
+        with open(os.path.join(self._temDir[iPro], self.getLibraryName(), f"run_{tra_data['model_name']}.mos"), mode="r", encoding="utf-8") as file:
+            print(file.read())
         return
 
     def _write_runscripts(self):
