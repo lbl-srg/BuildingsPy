@@ -3225,7 +3225,7 @@ SetDymolaCompiler(comp, sett);
         if self._startup_mos_path is not None:
             runFil.write(f"""
 // Possible execution of additional .mos script to load other libraries
-runScript("{self._startup_mos_path}");
+RunScript("{self._startup_mos_path}");
 """)
         if self._addLibPackage is not None:
             runFil.write(('openModel(\"{}\");\n').format(self._addLibPackage))
@@ -3521,8 +3521,6 @@ Advanced.GenerateVariableDependencies = orig_Advanced_GenerateVariableDependenci
 exit();
 """)
         runFil.close()
-        with open(os.path.join(self._temDir[iPro], self.getLibraryName(), f"run_{tra_data['model_name']}.mos"), mode="r", encoding="utf-8") as file:
-            print(file.read())
         return
 
     def _write_runscripts(self):
