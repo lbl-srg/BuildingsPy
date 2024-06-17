@@ -4307,6 +4307,15 @@ exit();
             - The total number of examples as int
             - The list of models not tested as List[str]
             - The list of packages included in the analysis as List[str]
+
+        Example:
+            >>> from buildingspy.development.regressiontest import Tester
+            >>> import os
+            >>> ut = Tester(tool='dymola')
+            >>> myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
+            >>> ut.setLibraryRoot(myMoLib)
+            >>> ut.setSinglePackage('Examples')
+            >>> coverage_result = ut.getCoverage()
         """
         # first lines copy and paste from run function
         if self.get_number_of_tests() == 0:
@@ -4315,13 +4324,6 @@ exit();
         # Remove all data that do not require a simulation or an FMU export.
         # Otherwise, some processes may have no simulation to run and then
         # the json output file would have an invalid syntax
-
-        # to not interact with other code here, we use the temp_data list
-
-        temp_data = [
-            element for element in self._data[:]
-            if element['mustSimulate'] or element['mustExportFMU']
-        ]
 
         # now we got clean _data to compare
         # next step get all examples in the package (whether whole library or
@@ -4338,17 +4340,16 @@ exit();
             package_path = os.path.join(self._libHome, package)
             for dirpath, dirnames, filenames in os.walk(package_path):
                 for filename in filenames:
+                    filepath = os.path.abspath(os.path.join(dirpath, filename))
                     if any(
-                            xs in filename for xs in ['Examples', 'Validation']
-                    ) and not filename.endswith(('package.mo', '.order')):
-                        all_examples.append(os.path.abspath(
-                            os.path.join(dirpath, filename))
-                        )
+                            xs in filepath for xs in ['Examples', 'Validation']
+                    ) and not filepath.endswith(('package.mo', '.order')):
+                        all_examples.append(filepath)
 
-        coverage = round(len(temp_data) / len(all_examples), 2) * 100
+        coverage = round(len(self._data) / len(all_examples), 2) * 100
 
         tested_model_names = [
-            nam['ScriptFile'].split(os.sep)[-1][:-1] for nam in temp_data
+            nam['ScriptFile'].split(os.sep)[-1][:-1] for nam in self._data
         ]
 
         missing_examples = [
@@ -4356,7 +4357,7 @@ exit();
                 xs in i for xs in tested_model_names)
         ]
 
-        n_tested_examples = len(temp_data)
+        n_tested_examples = len(self._data)
         n_examples = len(all_examples)
         return coverage, n_tested_examples, n_examples, missing_examples, packages
 
@@ -4375,22 +4376,28 @@ exit();
         The default printer is the ``reporter.writeOutput``.
         If another printing method is required, e.g. ``print`` or
         ``logging.info``, it may be passed via the ``printer`` argument.
+
+        Example:
+            >>> from buildingspy.development.regressiontest import Tester
+            >>> import os
+            >>> ut = Tester(tool='dymola')
+            >>> myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
+            >>> ut.setLibraryRoot(myMoLib)
+            >>> ut.setSinglePackage('Examples')
+            >>> coverage_result = ut.getCoverage()
+            >>> ut.printCoverage(*coverage_result, printer=print)
         """
         if printer is None:
             printer = self._reporter.writeOutput
-        printer('***\n\nModel Coverage: ', str(int(coverage)) + '%')
+        printer(f'***\nModel Coverage: {int(coverage)} %')
         printer(
-            '***\n\nYou are testing : ',
-            n_tested_examples,
-            ' out of ',
-            n_examples,
-            'total examples in '
+            f'***\nYou are testing: {n_tested_examples} '
+            f'out of {n_examples} examples in package{"s" if len(packages) > 1 else ""}:',
         )
         for package in packages:
             printer(package)
-        printer('\n')
 
         if missing_examples:
-            print('***\n\nThe following examples are not tested\n')
+            print('***\nThe following examples are not tested\n')
             for i in missing_examples:
                 print(i.split(self._libHome)[1])
