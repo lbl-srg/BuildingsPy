@@ -351,6 +351,9 @@ class Tester(object):
         self._data = []
         self._reporter = rep.Reporter(os.path.join(os.getcwd(), "unitTests-{}.log".format(tool)))
 
+        # List to store tested packages, used for coverage report
+        self._packages = []
+
         # By default, include export of FMUs.
         self._include_fmu_test = True
 
@@ -589,6 +592,7 @@ class Tester(object):
         elif self._modelica_tool != 'dymola':
             return 'jm_ipython.sh'
         else:
+            return "C://Program Files//Dymola 2023x//bin64//Dymola"
             return self._modelica_tool
 
     def isExecutable(self, program):
@@ -771,11 +775,12 @@ class Tester(object):
 
         # Set data dictionary as it may have been generated earlier for the whole library.
         self._data = []
-
+        self._packages = []
         for pac in packages:
             pacSep = pac.find('.')
             pacPat = pac[pacSep + 1:]
             pacPat = pacPat.replace('.', os.sep)
+            self._packages.append(pacPat)
             rooPat = os.path.join(self._libHome, 'Resources', 'Scripts', 'Dymola', pacPat)
             # Verify that the directory indeed exists
             if not os.path.isdir(rooPat):
@@ -4288,3 +4293,104 @@ exit();
         model = '.'.join(splt[root:])
         # remove the '.mo' at the end
         return model[:-3]
+
+    def getCoverage(self):
+        """
+        Analyse how many examples are tested.
+        If ``setSinglePackage`` is called before this function,
+        only packages set will be included. Else, the whole library
+        will be checked.
+
+        Returns:
+            - The coverage rate in percent as float
+            - The number of examples tested as int
+            - The total number of examples as int
+            - The list of models not tested as List[str]
+            - The list of packages included in the analysis as List[str]
+        """
+        # first lines copy and paste from run function
+        if self.get_number_of_tests() == 0:
+            self.setDataDictionary(self._rootPackage)
+
+        # Remove all data that do not require a simulation or an FMU export.
+        # Otherwise, some processes may have no simulation to run and then
+        # the json output file would have an invalid syntax
+
+        # to not interact with other code here, we use the temp_data list
+
+        temp_data = [
+            element for element in self._data[:]
+            if element['mustSimulate'] or element['mustExportFMU']
+        ]
+
+        # now we got clean _data to compare
+        # next step get all examples in the package (whether whole library or
+        # single package)
+        if self._packages:
+            packages = self._packages
+        else:
+            packages = list(dict.fromkeys(
+                [pac['ScriptFile'].split(os.sep)[0] for pac in self._data])
+            )
+
+        all_examples = []
+        for package in packages:
+            package_path = os.path.join(self._libHome, package)
+            for dirpath, dirnames, filenames in os.walk(package_path):
+                for filename in filenames:
+                    if any(
+                            xs in filename for xs in ['Examples', 'Validation']
+                    ) and not filename.endswith(('package.mo', '.order')):
+                        all_examples.append(os.path.abspath(
+                            os.path.join(dirpath, filename))
+                        )
+
+        coverage = round(len(temp_data) / len(all_examples), 2) * 100
+
+        tested_model_names = [
+            nam['ScriptFile'].split(os.sep)[-1][:-1] for nam in temp_data
+        ]
+
+        missing_examples = [
+            i for i in all_examples if not any(
+                xs in i for xs in tested_model_names)
+        ]
+
+        n_tested_examples = len(temp_data)
+        n_examples = len(all_examples)
+        return coverage, n_tested_examples, n_examples, missing_examples, packages
+
+    def printCoverage(
+            self,
+            coverage: float,
+            n_tested_examples: int,
+            n_examples: int,
+            missing_examples: list,
+            packages: list,
+            printer: callable = None
+    ) -> None:
+        """
+        Print the output of getCoverage to inform about
+        coverage rate and missing models.
+        The default printer is the ``reporter.writeOutput``.
+        If another printing method is required, e.g. ``print`` or
+        ``logging.info``, it may be passed via the ``printer`` argument.
+        """
+        if printer is None:
+            printer = self._reporter.writeOutput
+        printer('***\n\nModel Coverage: ', str(int(coverage)) + '%')
+        printer(
+            '***\n\nYou are testing : ',
+            n_tested_examples,
+            ' out of ',
+            n_examples,
+            'total examples in '
+        )
+        for package in packages:
+            printer(package)
+        printer('\n')
+
+        if missing_examples:
+            print('***\n\nThe following examples are not tested\n')
+            for i in missing_examples:
+                print(i.split(self._libHome)[1])
