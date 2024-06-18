@@ -364,7 +364,7 @@ class Tester(object):
         self._error_dict = e.ErrorDictionary()
 
         # By default, do not show the GUI of the simulator
-        self._showGUI = False
+        self._showGUI = True
 
         # Possible additional startup.mos or library package
         self._startup_mos_path = None
@@ -593,6 +593,7 @@ class Tester(object):
         elif self._modelica_tool != 'dymola':
             return 'jm_ipython.sh'
         else:
+            return r"C:\Program Files\Dymola 2023x\bin64\Dymola"
             return self._modelica_tool
 
     def isExecutable(self, program):
@@ -3217,18 +3218,18 @@ DDE_orig = sett[{posDDE}];
 sett[{posDDE}] = \"DDE=0\"; // Disable DDE
 SetDymolaCompiler(comp, sett);
 """)
-        runFil.write('cd(\"{}/{}\");\n'.format(
-            (self._temDir[iPro]).replace("\\", "/"),
-            self.getLibraryName()))
-
         # Possible additional mos-script:
         if self._startup_mos_path is not None:
             runFil.write(f"""
-// Possible execution of additional .mos script to load other libraries
-RunScript("{self._startup_mos_path}");
-""")
+    // Possible execution of additional .mos script to load other libraries
+    RunScript("{self._startup_mos_path}");
+    """)
         if self._addLibPackage is not None:
-            runFil.write(('openModel(\"{}\");\n').format(self._addLibPackage))
+            runFil.write(('openModel(\"{}\", changeDirectory=false);\n').format(self._addLibPackage))
+
+        runFil.write('cd(\"{}/{}\");\n'.format(
+            (self._temDir[iPro]).replace("\\", "/"),
+            self.getLibraryName()))
 
         runFil.write(f"""
 openModel("package.mo")
