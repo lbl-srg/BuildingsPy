@@ -287,6 +287,7 @@ class Tester(object):
         self._statistics_log = "statistics.json"
         self._nPro = multiprocessing.cpu_count()
         self._batch = False
+        self._createNewReferenceResultsInBatchMode = False
         self._pedanticModelica = False
 
         # Number of data points that are used
@@ -514,15 +515,18 @@ class Tester(object):
         self._showGUI = show
         return
 
-    def batchMode(self, batchMode):
+    def batchMode(self, batchMode, createNewReferenceResultsInBatchMode: bool = False):
         """ Set the batch mode flag.
 
         :param batchMode: Set to ``True`` to run without interactive prompts
                           and without plot windows.
+        :param createNewReferenceResultsInBatchMode: Set to ``True`` to create
+                                                     new results in batch mode. Default is False.
 
         By default, the regression tests require the user to respond if results differ from previous simulations.
         This method can be used to run the script in batch mode, suppressing all prompts that require
-        the user to enter a response. If run in batch mode, no new results will be stored.
+        the user to enter a response.
+        By default, if run in batch mode, no new results will be stored.
         To run the regression tests in batch mode, enter
 
         >>> import os
@@ -533,6 +537,8 @@ class Tester(object):
 
         """
         self._batch = batchMode
+        self._createNewReferenceResultsInBatchMode = createNewReferenceResultsInBatchMode
+
 
     def pedanticModelica(self, pedanticModelica):
         """ Set the pedantic Modelica mode flag.
@@ -2836,7 +2842,7 @@ class Tester(object):
                                             print("             Create new file?")
                                             ans = input(
                                                 "             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
-                                        if ans == "y" or ans == "Y":
+                                        if ans == "y" or ans == "Y" or self._createNewReferenceResultsInBatchMode:
                                             updateReferenceData = True
                                         else:
                                             self._reporter.writeError(
