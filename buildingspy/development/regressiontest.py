@@ -364,7 +364,7 @@ class Tester(object):
         self._error_dict = e.ErrorDictionary()
 
         # By default, do not show the GUI of the simulator
-        self._showGUI = True
+        self._showGUI = False
 
         # Possible additional startup.mos or library package
         self._startup_mos_path = None
