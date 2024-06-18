@@ -2824,8 +2824,11 @@ class Tester(object):
                                     noOldResults = noOldResults + list(pai.keys())
 
                                 if self._batch:
-                                    self._reporter.writeError(
-                                        f"Reference file {refFilNam} does not yet exist. You need to generate it by running tests in non-batch mode.")
+                                    if self._createNewReferenceResultsInBatchMode:
+                                        updateReferenceData = True
+                                    else:
+                                        self._reporter.writeError(
+                                            f"Reference file {refFilNam} does not yet exist. You need to generate it by running tests in non-batch mode.")
 
                                 if not (self._batch or ans == "Y" or ans == "N"):
                                     if t_ref is None:
@@ -2842,7 +2845,7 @@ class Tester(object):
                                             print("             Create new file?")
                                             ans = input(
                                                 "             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
-                                        if ans == "y" or ans == "Y" or self._createNewReferenceResultsInBatchMode:
+                                        if ans == "y" or ans == "Y":
                                             updateReferenceData = True
                                         else:
                                             self._reporter.writeError(
