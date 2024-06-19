@@ -535,7 +535,6 @@ class Tester(object):
         self._batch = batchMode
         self._createNewReferenceResultsInBatchMode = createNewReferenceResultsInBatchMode
 
-
     def pedanticModelica(self, pedanticModelica):
         """ Set the pedantic Modelica mode flag.
 
@@ -2824,7 +2823,9 @@ class Tester(object):
                                         updateReferenceData = True
                                     else:
                                         self._reporter.writeError(
-                                            f"Reference file {refFilNam} does not yet exist. You need to generate it by running tests in non-batch mode.")
+                                            f"Reference file {refFilNam} does not yet exist. "
+                                            f"You need to generate it by running tests in non-batch mode."
+                                        )
 
                                 if not (self._batch or ans == "Y" or ans == "N"):
                                     if t_ref is None:
@@ -3222,11 +3223,9 @@ DDE_orig = sett[{posDDE}];
 sett[{posDDE}] = \"DDE=0\"; // Disable DDE
 SetDymolaCompiler(comp, sett);
 """)
-
         runFil.write('cd(\"{}/{}\");\n'.format(
             (self._temDir[iPro]).replace("\\", "/"),
             self.getLibraryName()))
-
         runFil.write(f"""
 openModel("package.mo")
 // Add a flag so that translation info appears in console output.
