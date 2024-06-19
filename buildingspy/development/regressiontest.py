@@ -4346,7 +4346,12 @@ exit();
                     ) and not filepath.endswith(('package.mo', '.order')):
                         all_examples.append(filepath)
 
-        coverage = round(len(self._data) / len(all_examples), 2) * 100
+        n_tested_examples = len(temp_data)
+        n_examples = len(all_examples)
+        if n_examples > 0:
+            coverage = round(n_tested_examples / n_examples, 2) * 100
+        else:
+            coverage = 100
 
         tested_model_names = [
             nam['ScriptFile'].split(os.sep)[-1][:-1] for nam in self._data
@@ -4357,8 +4362,6 @@ exit();
                 xs in i for xs in tested_model_names)
         ]
 
-        n_tested_examples = len(self._data)
-        n_examples = len(all_examples)
         return coverage, n_tested_examples, n_examples, missing_examples, packages
 
     def printCoverage(
