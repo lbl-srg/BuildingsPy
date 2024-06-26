@@ -2824,8 +2824,7 @@ class Tester(object):
                                     else:
                                         self._reporter.writeError(
                                             f"Reference file {refFilNam} does not yet exist. "
-                                            f"You need to generate it by running tests in non-batch mode."
-                                        )
+                                            f"You need to generate it by running tests in non-batch mode.")
 
                                 if not (self._batch or ans == "Y" or ans == "N"):
                                     if t_ref is None:
