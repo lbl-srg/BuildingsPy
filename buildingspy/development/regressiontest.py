@@ -597,7 +597,6 @@ class Tester(object):
         elif self._modelica_tool != 'dymola':
             return 'jm_ipython.sh'
         else:
-            return "C://Program Files//Dymola 2023x//bin64//Dymola"
             return self._modelica_tool
 
     def isExecutable(self, program):
