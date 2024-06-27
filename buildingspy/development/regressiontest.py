@@ -4355,7 +4355,7 @@ exit();
                     ) and not filepath.endswith(('package.mo', '.order')):
                         all_examples.append(filepath)
 
-        n_tested_examples = len(temp_data)
+        n_tested_examples = len(self._data)
         n_examples = len(all_examples)
         if n_examples > 0:
             coverage = round(n_tested_examples / n_examples, 2) * 100
