@@ -597,7 +597,6 @@ class Tester(object):
         elif self._modelica_tool != 'dymola':
             return 'jm_ipython.sh'
         else:
-            return "C://Program Files//Dymola 2023x//bin64//Dymola"
             return self._modelica_tool
 
     def isExecutable(self, program):
@@ -4355,7 +4354,7 @@ exit();
                     ) and not filepath.endswith(('package.mo', '.order')):
                         all_examples.append(filepath)
 
-        n_tested_examples = len(temp_data)
+        n_tested_examples = len(self._data)
         n_examples = len(all_examples)
         if n_examples > 0:
             coverage = round(n_tested_examples / n_examples, 2) * 100
