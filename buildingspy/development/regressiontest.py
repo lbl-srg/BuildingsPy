@@ -4323,6 +4323,9 @@ exit();
             >>> myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
             >>> ut.setLibraryRoot(myMoLib)
             >>> ut.setSinglePackage('Examples')
+            Regression tests are only run for the following package:
+              Examples
+            MyModelicaLibrary.Examples.NoSolution: Excluded from simulation. Model excluded from simulation as it has no solution.
             >>> coverage_result = ut.getCoverage()
         """
         # first lines copy and paste from run function
@@ -4395,8 +4398,21 @@ exit();
             >>> myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
             >>> ut.setLibraryRoot(myMoLib)
             >>> ut.setSinglePackage('Examples')
+            Regression tests are only run for the following package:
+              Examples
+            MyModelicaLibrary.Examples.NoSolution: Excluded from simulation. Model excluded from simulation as it has no solution.
             >>> coverage_result = ut.getCoverage()
             >>> ut.printCoverage(*coverage_result, printer=print)
+            ***
+            Model Coverage: 88 %
+            ***
+            You are testing: 7 out of 8 examples in package:
+            Examples
+            ***
+            The following examples are not tested
+            <BLANKLINE>
+            /Examples/ParameterEvaluation.mo
+        
         """
         if printer is None:
             printer = self._reporter.writeOutput
