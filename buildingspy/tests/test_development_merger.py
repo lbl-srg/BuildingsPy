@@ -88,6 +88,35 @@ class Test_development_merger_IBPSA(unittest.TestCase):
                          "Test without removing")
         return
 
+    def test_remove_library_specific_modelica_code(self):
+        import buildingspy.development.merger as m
+
+        lines = [
+            "aaa",
+            "bbb",
+            "//@modelica_select_start @remove_Buildings",
+            "ccc",
+            "//@modelica_select_end",
+            "ddd",
+            "//@modelica_select_start @remove_SomeOtherLib",
+            "eee",
+            "//@modelica_select_end",
+            "fff"]
+        result = [
+            "aaa",
+            "bbb",
+            "//@modelica_select_start @remove_Buildings",
+            "// removed: ccc",
+            "//@modelica_select_end",
+            "ddd",
+            "//@modelica_select_start @remove_SomeOtherLib",
+            "eee",
+            "//@modelica_select_end",
+            "fff"]
+        self.assertEqual(result,
+                         m.IBPSA.remove_library_specific_modelica_code(lines, "Buildings"),
+                         "Test one library")
+
     def test_merge(self):
         """Test merging the libraries
         """
