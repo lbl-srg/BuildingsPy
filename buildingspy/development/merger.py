@@ -160,13 +160,15 @@ class IBPSA(object):
             raise e
         # Remove library specific documentation.
         lines = self.remove_library_specific_documentation(lines, self._new_library_name)
+        # Remove library specific source code.
+        lines = self.remove_library_specific_modelica_code(lines, self._new_library_name)
         # Write the lines to the new file
         with open(des, mode="w", encoding="utf-8") as f_des:
             f_des.writelines(lines)
 
     @staticmethod
     def remove_library_specific_documentation(file_lines, library_name):
-        """ Remove library specific content.
+        """ Remove library specific documentation.
 
             For example, for the `Buildings` and `IDEAS` libraries, include the
             section in the commented block below, but keep the comment as an html-comment
@@ -199,6 +201,50 @@ class IBPSA(object):
                 search_start = True
             else:
                 lines.append(lin)
+
+        return lines
+
+    @staticmethod
+    def remove_library_specific_modelica_code(file_lines, library_name):
+        """ Remove library specific Modelica code.
+
+            For example, for the `Buildings` and `IDEAS` libraries, include the
+            section in the commented block below, but remove the Modelica code
+            for other libraries.
+
+            .. code-block:: html
+
+               //@modelica_select @remove_Buildings @remove_IDEAS
+               some code to be removed for
+               Buildings and IDEAS libraries.
+               //@modelica_select
+
+        :param file_lines: The lines of the file to be merged.
+        :return: The lines of the files, with code commented removed as indicated by the tag(s) in the comment line.
+        """
+
+        lines = list()
+        pattern_start = "//@modelica_select_start"
+        pattern_end = "//@modelica_select_end"
+        library_token = "@remove_{}".format(library_name)
+        regular = True
+        for lin in file_lines:
+            if pattern_start in lin and library_token in lin:
+                # Found the start of the commented section for this library.
+                # Set flag
+                regular = False
+                # Keep line as is
+                lines.append(lin)
+            elif pattern_end in lin:
+                # Found the end of the line
+                regular = True
+                # Keep line as is
+                lines.append(lin)
+            else:
+                if regular:
+                    lines.append(lin)
+                else:
+                    lines.append(f"// removed: {lin}")
 
         return lines
 
