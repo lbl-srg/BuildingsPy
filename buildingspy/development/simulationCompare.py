@@ -180,7 +180,7 @@ class Comparator(object):
         else:
             num_pro = f"-n {self._nPro}"
 
-        ski_ver = f"--skip-verification = {self._skip_verification}"
+        ski_ver = f"--skip-verification" if {self._skip_verification} else ""
 
         command = f"../bin/runUnitTests.py {single_package} {ski_ver} {num_pro} -t {tool} --batch"
         try:
