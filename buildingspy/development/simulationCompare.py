@@ -196,8 +196,7 @@ class Comparator(object):
         # run unit test
         self._runUnitTest(case['package'], case['tool'])
         # copy the log files to current working directory
-        logFil = "comparison-%s.log" % case['tool']
-        if os.path.exists(logFil):
+        if os.path.exists(bdg_dir):
             # write commit number to the commit.log file
             with io.open(os.path.join(bdg_dir, "commit.log"), mode="w") as f:
                 f.write(case['commit'])
@@ -206,6 +205,8 @@ class Comparator(object):
             mkpath(desDir)
             for file in logFiles:
                 shutil.copy2(file, desDir)
+        else:
+            sys.stderr.write(f"Error: For {case['tool']} {case['branch']}, did not find {bdg_dir}.")
         os.chdir(self._cwd)
 
     @staticmethod
