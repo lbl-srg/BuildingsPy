@@ -33,7 +33,7 @@ class Test_example_dymola_runSimulation(unittest.TestCase):
         self._temDir = tempfile.mkdtemp(prefix='tmp-BuildingsPy-Modelica-Lib-')
         self._buiDir = os.path.join(os.getcwd(), "Buildings")
 
-        zip_file_url = "https://github.com/lbl-srg/modelica-buildings/archive/refs/tags/v9.1.0.zip"
+        zip_file_url = "https://github.com/lbl-srg/modelica-buildings/archive/refs/tags/v11.0.0.zip"
 
         r = requests.get(zip_file_url)
         # Split URL to get the file name
@@ -43,8 +43,8 @@ class Test_example_dymola_runSimulation(unittest.TestCase):
             output_file.write(r.content)
         z = zipfile.ZipFile(BytesIO(r.content))
         z.extractall()
-        shutil.move(os.path.join("modelica-buildings-9.1.0", "Buildings"), "Buildings")
-        shutil.rmtree("modelica-buildings-9.1.0")
+        shutil.move(os.path.join("modelica-buildings-11.0.0", "Buildings"), "Buildings")
+        shutil.rmtree("modelica-buildings-11.0.0")
 
     def tearDown(self):
         """ Method called after all the tests.
@@ -53,7 +53,7 @@ class Test_example_dymola_runSimulation(unittest.TestCase):
         import shutil
         import os
         shutil.rmtree(self._buiDir)
-        zipFil = "v9.1.0.zip"
+        zipFil = "v11.0.0.zip"
         if os.path.exists(zipFil):
             os.remove(zipFil)
 
