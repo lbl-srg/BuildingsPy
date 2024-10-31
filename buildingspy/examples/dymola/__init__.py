@@ -9,7 +9,7 @@ The module
 :mod:`buildingspy.simulate` that can be used to automate running simulations.
 For example, to translate and simulate the model
 ``Buildings.Fluid.SolarCollectors.Examples.FlatPlateWithTank``
-from the Modelica Buildings Library, release 9.1.0,
+from the Modelica Buildings Library, release 11.0.0,
 with different sizes for the water tank, use
 the following commands:
 

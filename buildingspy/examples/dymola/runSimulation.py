@@ -27,7 +27,7 @@ def main():
 
     # Build list of cases to run
     li = []
-    # First model, from Modelica Buildings Library, v9.1.0
+    # First model, from Modelica Buildings Library, v11.0.0
     model = 'Buildings.Fluid.SolarCollectors.Examples.FlatPlateWithTank'
     s = Simulator(model, outputDirectory='case1')
     s.addParameters({'tan.VTan': 1.5})
