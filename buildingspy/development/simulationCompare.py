@@ -33,6 +33,8 @@ class Comparator(object):
     :param branches: A list of branches to compare, such as ``['master', 'issueXXX']``.
     :param package: Name of top-level package to compare, such as ``Buildings`` or ``Buildings.Examples``.
     :param repo: Name of repository, such as ``https://github.com/lbl-srg/modelica-buildings``.
+    :param skipVerification: Boolean (default ``False``).
+            If ``True``, unit test results are not verified against reference points.
     :param nPro: Number of threads that are used to run the translations and simulations.
                  Set to ``0`` to use all processors.
     :param tolAbsTim: float (default ``0.1``). Absolute tolerance in time, if exceeded, results will be flagged in summary table.
@@ -53,6 +55,7 @@ class Comparator(object):
        ...   branches=['master'],
        ...   package='Buildings',
        ...   repo='https://github.com/lbl-srg/modelica-buildings',
+       ...   skipVerification = True,
        ...   postCloneCommand=[
        ...      "python",
        ...      "Buildings/Resources/src/ThermalZones/install.py",
@@ -84,6 +87,7 @@ class Comparator(object):
             branches,
             package,
             repo,
+            skipVerification=False,
             nPro=0,
             simulate=True,
             tolAbsTime=0.1,
@@ -95,6 +99,7 @@ class Comparator(object):
         self._branches = branches
         self._package = package
         self._lib_src = repo
+        self._skip_verification = skipVerification
         self._nPro = nPro
         self._tolAbsTime = tolAbsTime
         self._tolRelTime = tolRelTime
@@ -175,7 +180,9 @@ class Comparator(object):
         else:
             num_pro = f"-n {self._nPro}"
 
-        command = f"../bin/runUnitTests.py {single_package} {num_pro} -t {tool} --batch"
+        ski_ver = f"--skip-verification" if {self._skip_verification} else ""
+
+        command = f"../bin/runUnitTests.py {single_package} {ski_ver} {num_pro} -t {tool} --batch"
         try:
             os.system(command)
         except OSError:
@@ -189,8 +196,7 @@ class Comparator(object):
         # run unit test
         self._runUnitTest(case['package'], case['tool'])
         # copy the log files to current working directory
-        logFil = "comparison-%s.log" % case['tool']
-        if os.path.exists(logFil):
+        if os.path.exists(bdg_dir):
             # write commit number to the commit.log file
             with io.open(os.path.join(bdg_dir, "commit.log"), mode="w") as f:
                 f.write(case['commit'])
@@ -199,6 +205,8 @@ class Comparator(object):
             mkpath(desDir)
             for file in logFiles:
                 shutil.copy2(file, desDir)
+        else:
+            sys.stderr.write(f"Error: For {case['tool']} {case['branch']}, did not find {bdg_dir}.")
         os.chdir(self._cwd)
 
     @staticmethod

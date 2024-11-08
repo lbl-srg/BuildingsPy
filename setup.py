@@ -33,8 +33,8 @@ setup(
     url="http://simulationresearch.lbl.gov/modelica/",
     python_requires='>=3.8',
     install_requires=[
-        'gitpython>=3.1.30',
-        'jinja2>=2.10',
+        'gitpython>=3.1.33',
+        'jinja2>=3.1.4',
         'matplotlib>=3.5',
         'numpy>=1.21',
         'scipy>=1.7',
@@ -42,7 +42,7 @@ setup(
         'simplejson>=3.16',
         'six>=1.14',
         'pyfunnel>=0.3.0',
-        'PyYAML>=5.4',
+        'PyYAML>=6.0.1',
         'cerberus>=1.3.4',
     ],
     packages=[

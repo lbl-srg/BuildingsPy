@@ -247,7 +247,15 @@ def _git_move(source, target):
             # Directory does not exist.
             os.makedirs(targetDir)
 
-    _sh(cmd=['git', 'mv', source, target], directory=os.path.curdir)
+    if os.path.isdir(target):
+        # Target exists, move files individually.
+        # See https://github.com/lbl-srg/BuildingsPy/pull/548
+        list_files = os.listdir(source)
+        for k in list_files:
+            _sh(cmd=['git', 'mv', os.path.join(source, k), target], directory=os.path.curdir)
+        os.rmdir(source)
+    else:
+        _sh(cmd=['git', 'mv', source, target], directory=os.path.curdir)
 
 
 def get_modelica_file_name(source):
@@ -458,8 +466,10 @@ def write_package_order(directory=".", recursive=False):
         for root, _, files in os.walk(directory):
             for fil in files:
                 if fil.endswith(".mo"):
-                    # Include the directory
-                    s.add(root)
+                    # Include the directory, unless it is a UsersGuide, which are to be sorted
+                    # manually.
+                    if "UsersGuide" not in root:
+                        s.add(root)
     #            srcFil=os.path.join(root, fil)
         if not s:
             s.add(directory)

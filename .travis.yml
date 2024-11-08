@@ -10,16 +10,14 @@ cache: pip
 
 env:
   global:
-    - OMC_VERSION=ubuntu-2204-omc:1.22.0_dev-41-g8a5b18f-1
-    - OPTIMICA_VERSION=travis-ubuntu-2204-optimica:1.43.4
-    - DYMOLA_VERSION=travis_ubuntu-2004_dymola:2023x-x86_64_rev-1
+    - DOCKER_REPONAME=lbnlblum
+    - OMC_VERSION=ubuntu-2204-omc:1.24.0-1
+    - OPTIMICA_VERSION=travis-ubuntu-2204-optimica:1.51.6
+    - DYMOLA_VERSION=travis_ubuntu-2004_dymola:2024xRefresh1-x86_64
     - MPLBACKEND=agg
 
 notifications:
   email: false
-
-git:
-  depth: 3
 
 services:
   - docker
@@ -34,13 +32,13 @@ before_install:
   - chmod +x buildingspy/tests/MyModelicaLibrary/Resources/Scripts/travis/bin/omc
   - sudo cp buildingspy/tests/MyModelicaLibrary/Resources/Scripts/travis/bin/omc /usr/local/bin/
   - chmod +x buildingspy/tests/MyModelicaLibrary/Resources/Scripts/travis/bin/dymola
-  - sudo cp buildingspy/tests/MyModelicaLibrary/Resources/Scripts/travis/bin/dymola /usr/local/bin/
+  - cp buildingspy/tests/MyModelicaLibrary/Resources/Scripts/travis/bin/dymola $HOME/bin/
   - chmod +x buildingspy/tests/MyModelicaLibrary/Resources/Scripts/travis/bin/jm_ipython.sh
   - sudo cp buildingspy/tests/MyModelicaLibrary/Resources/Scripts/travis/bin/jm_ipython.sh /usr/local/bin/
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-  - docker pull "$DOCKER_USERNAME"/${OMC_VERSION}
-  - docker pull "$DOCKER_USERNAME"/${DYMOLA_VERSION}
-  - docker pull "$DOCKER_USERNAME"/${OPTIMICA_VERSION}
+  - docker pull "$DOCKER_REPONAME"/${OMC_VERSION}
+  - docker pull "$DOCKER_REPONAME"/${DYMOLA_VERSION}
+  - docker pull "$DOCKER_REPONAME"/${OPTIMICA_VERSION}
   - python -m pip install --upgrade pip
 
 install:
@@ -51,13 +49,13 @@ install:
       sphinxcontrib-bibtex==2.4.1 \
       sphinxcontrib-plantuml==0.22 \
       alabaster==0.7.12 \
-      MarkupSafe==1.1.1 \
+      MarkupSafe==2.1.5 \
       Pygments==2.4.2 \
       snowballstemmer==1.9.0 \
       docutils==0.17.1 \
       Babel==2.7.0 \
       requests==2.27.0 \
-      Jinja2==2.11.3 \
+      Jinja2==3.1.4 \
       latexcodec==1.0.7 \
       pybtex==0.24.0
       pybtex-docutils==1.0.1 \
