@@ -1408,21 +1408,20 @@ class Tester(object):
             return r
 
         def _getTimeGridFromSimulationResults(pairs):
-            nCt=0
-            timeGrid=[]
+            nCt = 0
+            timeGrid = []
             # Loop over all variables to find maximum length of time grid
-            for pai in pairs: # pairs of variables that are plotted together
+            for pai in pairs:  # pairs of variables that are plotted together
                 for var in pai:
                     time = []
                     (time, val) = r.values(var)
-                    if(len(time==2) and nCt < 1):
-                        timeGrid=time
-                        nCt=nCt+1
+                    if(len(time == 2) and nCt < 1):
+                        timeGrid = time
+                        nCt = nCt + 1
                     elif(len(time) > 2):
-                        timeGrid=time
-                        nCt=nCt+1
+                        timeGrid = time
+                        nCt = nCt + 1
             return timeGrid
-
 
         # Get the working directory that contains the ".mat" file
         fulFilNam = os.path.join(data['ResultDirectory'], self.getLibraryName(), data['ResultFile'])
@@ -1449,7 +1448,6 @@ class Tester(object):
             return ret
 
         timeGrid = _getTimeGridFromSimulationResults(data['ResultVariables'])
-
 
         for pai in data['ResultVariables']:  # pairs of variables that are plotted together
             dat = dict()
@@ -1493,10 +1491,10 @@ class Tester(object):
                 else:
                     # Store time grid.
                     if self._OCT_VERIFICATION:
-                        dat['time']=timeGrid
+                        dat['time'] = timeGrid
                         if (self._isParameter(val)):
                             import numpy as np
-                            dat[var]=np.ones(len(timeGrid))*val[0]
+                            dat[var] = np.ones(len(timeGrid)) * val[0]
                         else:
                             dat[var] = val
                     else:
@@ -2844,7 +2842,8 @@ class Tester(object):
                     self._reporter.writeError(em)
                 else:
                     # if there was no error for this test case, check user feedback for result
-                    if (get_user_prompt or self._OCT_VERIFICATION) and data[self._modelica_tool]['simulate']:
+                    if (
+                            get_user_prompt or self._OCT_VERIFICATION) and data[self._modelica_tool]['simulate']:
                         # Reset answer, unless it is set to Y or N, or
                         # unless the tests run in batch mode
                         if not (self._batch or ans == "Y" or ans == "N"):
@@ -2870,14 +2869,15 @@ class Tester(object):
                                     noOldResults = noOldResults + list(pai.keys())
 
                                 if self._batch:
-                                    if self._createNewReferenceResultsInBatchMode:
+                                    if self._createNewReferenceResultsInBatchMode or self._OCT_VERIFICATION:
                                         updateReferenceData = True
                                     else:
                                         self._reporter.writeError(
                                             f"Reference file {refFilNam} does not yet exist. "
                                             f"You need to generate it by running tests in non-batch mode.")
 
-                                if not (self._batch or ans == "Y" or ans == "N" or self._OCT_VERIFICATION):
+                                if not (self._batch or ans == "Y" or ans ==
+                                        "N" or self._OCT_VERIFICATION):
                                     if t_ref is None:
                                         self._reporter.writeError(
                                             f"Test case {refFilNam} has no simulation output to compare. You need to add at least one variable to compare.")
