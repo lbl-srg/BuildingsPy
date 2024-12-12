@@ -676,15 +676,19 @@ class Tester(object):
             and the second line starts with ``key``
             the counter is increased by one.
         """
-
-        with open(fileName, mode="rt", encoding="utf-8-sig") as filObj:
-            # filObj is an iterable object, so we can use next(filObj)
-            line0 = next(filObj).strip()
-            if line0.startswith("within"):
-                line1 = next(filObj).strip()
-                if line1.startswith(key):
-                    counter += 1
-        return counter
+        try:
+            with open(fileName, mode="rt", encoding="utf-8-sig") as filObj:
+                # filObj is an iterable object, so we can use next(filObj)
+                line0 = next(filObj).strip()
+                if line0.startswith("within"):
+                    line1 = next(filObj).strip()
+                    if line1.startswith(key):
+                        counter += 1
+            return counter
+        except UnicodeDecodeError as err:
+            raise ValueError(
+                "Failed to read file %s with utf-8-sig encoding" % fileName
+            ) from err
 
     @staticmethod
     def expand_packages(packages):
@@ -3054,9 +3058,8 @@ to access a summary of the comparison results.\n""".format(
             # skip .svn folders
             if pos == -1:
                 for filNam in files:
-                    # find .mo files
-                    pos = filNam.find('.mo')
-                    if pos > -1 and (root.find('Examples') == -1 or root.find('Validation') == -1):
+                    # find .mo files which are not in Examples or Validation packages
+                    if filNam.endswith('.mo') and (root.find('Examples') == -1 or root.find('Validation') == -1):
                         # find classes that are not partial
                         filFulNam = os.path.join(root, filNam)
                         iMod = self._checkKey("model", filFulNam, iMod)
