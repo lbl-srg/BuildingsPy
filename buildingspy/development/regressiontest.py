@@ -3059,7 +3059,8 @@ to access a summary of the comparison results.\n""".format(
             if pos == -1:
                 for filNam in files:
                     # find .mo files which are not in Examples or Validation packages
-                    if filNam.endswith('.mo') and (root.find('Examples') == -1 or root.find('Validation') == -1):
+                    if filNam.endswith('.mo') and (
+                            root.find('Examples') == -1 or root.find('Validation') == -1):
                         # find classes that are not partial
                         filFulNam = os.path.join(root, filNam)
                         iMod = self._checkKey("model", filFulNam, iMod)
