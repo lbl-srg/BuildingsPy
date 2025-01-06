@@ -241,12 +241,14 @@ class Test_simulate_Simulator(unittest.TestCase):
         s._deleteTemporaryDirectory = False
         outDir = os.path.abspath(s.getOutputDirectory())
         s.setTimeOut(timeout)
+        print("*** Running simulation that times out. ***")
         with self.assertRaises(TimeoutError):
             s.simulate()
         with open(os.path.join(outDir, s._reporter._logFil)) as fh:
             log = fh.read()
         self.assertTrue('Terminating simulation' in log and 'Process timeout' in log)
         # A value of -1 will never time out
+        print("*** Running simulation that does not time out. ***")
         s.setTimeOut(-1)
         s.simulate()
         with open(os.path.join(outDir, 'dslog.txt')) as fh:
