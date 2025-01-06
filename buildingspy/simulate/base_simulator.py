@@ -376,8 +376,8 @@ class _BaseSimulator(object):
 
         # Check if executable is on the path
         if not self._isExecutable(cmd[0]):
-            em = f"Error: Did not find executable '", cmd[0], "'."
-            em += "       Make sure it is on the PATH variable of your operating system."
+            em = f"Error: Did not find executable '{ cmd[0]}'. "
+            em += "Make sure it is on the PATH variable of your operating system."
             raise RuntimeError(em)
 
         # _packagePath is the path that contains the package.mo file.
