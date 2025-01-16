@@ -221,11 +221,11 @@ class Simulator(bs._BaseSimulator):
             pacPat = self.getPackagePath()
 
             def getTopLevelDir(packagePath, sep):
-                if packagePath == None:
+                if packagePath is None:
                     return "."
                 pacPatWor = packagePath.rsplit(sep)
-                if len(pacPatWor) > 1: # Found separator
-                    topPacPat = sep.join(pacPatWor[0: len(pacPatWor)-1])
+                if len(pacPatWor) > 1:  # Found separator
+                    topPacPat = sep.join(pacPatWor[0: len(pacPatWor) - 1])
                 else:
                     topPacPat = "."
                 return topPacPat
