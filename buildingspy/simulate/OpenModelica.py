@@ -160,6 +160,13 @@ class Simulator(bs._BaseSimulator):
         is on the system ``PATH`` variable.
         If it is not found, the function raises an exception.
 
+        Modelica libraries are searched based on the environment variable ``MODELICAPATH``,
+        which is appended to the path where OpenModelica installs its Modelica libraries,
+        as received from the OpenModelica function
+        `getModelicaPath() <https://build.openmodelica.org/Documentation/OpenModelica.Scripting.getModelicaPath.html>`_.
+        This path can be overridden by setting the environment variable ``OPENMODELICALIBRARY``,
+        see the OpenModelica scripting documentation.
+
         """
         return self._translate_and_simulate(simulate=False)
 
@@ -210,12 +217,12 @@ class Simulator(bs._BaseSimulator):
             modelicapath = os.path.abspath('.')
 
         # Get delimiter for MODELICAPATH
-        if self.getPackagePath() is not None:
-            if os.name == 'nt':
-                col = ";"
-            else:
-                col = ":"
+        if os.name == 'nt':
+            col = ";"
+        else:
+            col = ":"
 
+        if self.getPackagePath() is not None:
             # Cut the last separator from the packagePath as the MODELICAPATH is the directory above the
             # directory that contains package.mo
             pacPat = self.getPackagePath()
@@ -249,6 +256,7 @@ class Simulator(bs._BaseSimulator):
                 MODELICAPATH=modelicapath,
                 library_name=self.modelName.split(".")[0],
                 model=self.modelName,
+                modelicaPathSeparator=col,
                 modifiedModelName=f"{self.modelName.replace('.', '_')}_Modified",
                 commentStringNonModifiedModel="//" if len(model_modifier) > 0 else "",
                 commentStringModifiedModel="//" if len(model_modifier) == 0 else "",

@@ -65,7 +65,9 @@ installPackage(Modelica, "");
 setMatchingAlgorithm("PFPlusExt");
 setIndexReductionMethod("dynamicStateSelection");
 
-setModelicaPath("{{  MODELICAPATH }}");
+// Get the MODELICAPATH, which by default is set to where OpenModelica installs its libraries
+modPat:=getModelicaPath();
+setModelicaPath(modPat + "{{ modelicaPathSeparator }}" + "{{  MODELICAPATH }}");
 
 print("Loading model");
 {{ commentStringNonModifiedModel }}print("Translating model");
