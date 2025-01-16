@@ -65,8 +65,8 @@ installPackage(Modelica, "");
 setMatchingAlgorithm("PFPlusExt");
 setIndexReductionMethod("dynamicStateSelection");
 
-print("Loading library");
-loadFile("{{ package_path }}/package.mo");
+setModelicaPath("{{  MODELICAPATH }}");
+
 print("Loading model");
 {{ commentStringNonModifiedModel }}print("Translating model");
 {{ commentStringNonModifiedModel }}translateModel({{ model }}, method="{{ solver }}", tolerance={{ rtol }}, numberOfIntervals={{ ncp }}, variableFilter=\"({filter})\");

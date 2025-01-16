@@ -202,6 +202,40 @@ class Simulator(bs._BaseSimulator):
             model_modifier = '{dec}'.format(mn=self.modelName, dec=','.join(dec))
 
         file_name = "{}.py".format(self.modelName.replace(".", "_"))
+
+        # Get the MODELICAPATH
+        if 'MODELICAPATH' in os.environ:
+            modelicapath = os.environ['MODELICAPATH']
+        else:
+            modelicapath = os.path.abspath('.')
+
+        # Get delimiter for MODELICAPATH
+        if self.getPackagePath() is not None:
+            if os.name == 'nt':
+                col = ";"
+            else:
+                col = ":"
+
+            # Cut the last separator from the packagePath as the MODELICAPATH is the directory above the
+            # directory that contains package.mo
+            pacPat = self.getPackagePath()
+
+            def getTopLevelDir(packagePath, sep):
+                if packagePath == None:
+                    return "."
+                pacPatWor = packagePath.rsplit(sep)
+                if len(pacPatWor) > 1: # Found separator
+                    topPacPat = sep.join(pacPatWor[0: len(pacPatWor)-1])
+                else:
+                    topPacPat = "."
+                return topPacPat
+
+            topPacPat = getTopLevelDir(pacPat, "\\")
+            if topPacPat == ".":
+                topPacPat = getTopLevelDir(pacPat, "/")
+
+            modelicapath = topPacPat + col + modelicapath
+
 ##        self._time_stamp_old_files = datetime.datetime.now()
         with open(os.path.join(worDir, file_name), mode="w", encoding="utf-8") as fil:
             path_to_template = os.path.join(
@@ -212,8 +246,8 @@ class Simulator(bs._BaseSimulator):
 
             txt = template.render(
                 working_directory='.',
+                MODELICAPATH=modelicapath,
                 library_name=self.modelName.split(".")[0],
-                package_path=self.getPackagePath(),
                 model=self.modelName,
                 modifiedModelName=f"{self.modelName.replace('.', '_')}_Modified",
                 commentStringNonModifiedModel="//" if len(model_modifier) > 0 else "",
