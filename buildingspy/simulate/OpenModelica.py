@@ -210,17 +210,17 @@ class Simulator(bs._BaseSimulator):
 
         file_name = "{}.py".format(self.modelName.replace(".", "_"))
 
-        # Get the MODELICAPATH
-        if 'MODELICAPATH' in os.environ:
-            modelicapath = os.environ['MODELICAPATH']
-        else:
-            modelicapath = os.path.abspath('.')
-
         # Get delimiter for MODELICAPATH
         if os.name == 'nt':
             col = ";"
         else:
             col = ":"
+
+        # Get the MODELICAPATH
+        if 'MODELICAPATH' in os.environ:
+            modelicapath = os.environ['MODELICAPATH']
+        else:
+            modelicapath = os.path.abspath('.')
 
         if self.getPackagePath() is not None:
             # Cut the last separator from the packagePath as the MODELICAPATH is the directory above the
