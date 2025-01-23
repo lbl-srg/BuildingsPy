@@ -4,6 +4,8 @@ BuildingsPy Changelog
 Version 5.2.0, xxxx
 ^^^^^^^^^^^^^^^^^^^
 
+- In buildingspy/simulate/OpenModelica.py, added support for setNumberOfIntervals.
+  (https://github.com/lbl-srg/BuildingsPy/issues/585)
 - In buildingspy/simulate/OpenModelica.py, changed loading of Modelica libraries.
   (https://github.com/lbl-srg/BuildingsPy/issues/586)
 - In buildingspy/simulate/base_simulator.py, corrected statement for error reporting.

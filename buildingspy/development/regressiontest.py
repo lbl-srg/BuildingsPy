@@ -3714,6 +3714,7 @@ exit();
                     solver=dat[self._modelica_tool]['solver'],
                     start_time=startTime,
                     final_time=stopTime,
+                    step_size="",
                     simulate=dat[self._modelica_tool]['simulate'],
                     time_out=dat[self._modelica_tool]['time_out'],
                     filter_translate='|'.join([re.sub(r'\[|\]',
