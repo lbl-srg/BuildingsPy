@@ -3686,15 +3686,29 @@ exit();
                 stopTime = _getStartStopTime('stopTime', dat)
                 model_modifier = ""
 
+                # Get delimiter for MODELICAPATH
+                if os.name == 'nt':
+                    col = ";"
+                else:
+                    col = ":"
+
+                # Get the MODELICAPATH
+                if 'MODELICAPATH' in os.environ:
+                    modelicapath = f"{os.environ['MODELICAPATH']}{col}."
+                else:
+                    modelicapath = "."
+
                 txt = tem_mod.render(
                     package_path=self.getLibraryName(),
                     library_name=self.getLibraryName(),
                     model=model,
+                    modelicaPathSeparator=col,
                     modifiedModelName=f"{model}_modified".replace('.', '_'),
                     commentStringNonModifiedModel="//" if len(model_modifier) > 0 else "",
                     commentStringModifiedModel="//" if len(model_modifier) == 0 else "",
                     model_modifier=model_modifier,
                     working_directory=directory,
+                    MODELICAPATH=modelicapath,
                     ncp=dat[self._modelica_tool]['ncp'],
                     rtol=dat[self._modelica_tool]['rtol'],
                     solver=dat[self._modelica_tool]['solver'],
