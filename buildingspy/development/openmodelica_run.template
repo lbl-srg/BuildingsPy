@@ -118,7 +118,7 @@ def _simulate(model, timeout):
             else:
                 esc = "./"
             f.write(
-                f"""retVal := system("{esc}{model} -override=startTime={{ start_time }},stopTime={{ final_time }},tolerance={{ rtol }},solver={{ solver }},outputFormat=mat,variableFilter=\\\"({filter})\\\" -steps -cpu -lv LOG_STATS");
+                f"""retVal := system("{esc}{model} -override=startTime={{ start_time }},stopTime={{ final_time }},stepSize={{ step_size }},tolerance={{ rtol }},solver={{ solver }},outputFormat=mat,variableFilter=\\\"({filter})\\\" -steps -cpu -lv LOG_STATS");
 exit(retVal);
 """)
         output = _run_process(return_dict, cmd, worDir, timeout)

@@ -251,6 +251,24 @@ class Simulator(bs._BaseSimulator):
 
             template = env.get_template("openmodelica_run.template")
 
+            # Set the start time, final time and step size
+            staTim = self._simulator_.get('t0') if self._simulator_.get(
+                't0') is not None else 0
+            finTim = self._simulator_.get('t1') if self._simulator_.get(
+                't1') is not None else 1
+            numInt = self._simulator_.get('numberOfIntervals')
+            if numInt == 500:
+                # This is the default, do nothing
+                steSiz = ""
+            else:
+                if numInt < 1:
+                    raise ValueError(
+                        "Number of intervals must be larger than 0, obtained {numInt}.")
+                steSizNum = (finTim - staTim) / self._simulator_.get('numberOfIntervals')
+                # Round to a reasonable number of digits
+                steSiz = f"{steSizNum:.6g}"
+
+            # Render the template
             txt = template.render(
                 working_directory='.',
                 MODELICAPATH=modelicapath,
@@ -264,10 +282,9 @@ class Simulator(bs._BaseSimulator):
                 ncp=self._simulator_.get('numberOfIntervals'),
                 rtol=self._simulator_.get('eps'),
                 solver=self._simulator_.get('solver'),
-                start_time=self._simulator_.get('t0') if self._simulator_.get(
-                    't0') is not None else 0,
-                final_time=self._simulator_.get('t1') if self._simulator_.get(
-                    't1') is not None else 1,
+                start_time=staTim,
+                final_time=finTim,
+                step_size=steSiz,
                 result_file_name=f"{self._simulator_.get('resultFile')}.mat",
                 simulate=simulate,
                 time_out=self._simulator_.get('timeout'),

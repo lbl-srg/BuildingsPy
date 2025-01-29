@@ -97,8 +97,17 @@ class Test_simulate_Simulator(unittest.TestCase):
 
         This test is for https://github.com/lbl-srg/BuildingsPy/issues/472
         """
-        s = Simulator("Modelica.Blocks.Examples.PID_Controller")
+        from buildingspy.io.outputfile import Reader
+
+        model = "Modelica.Blocks.Examples.PID_Controller"
+        s = Simulator(model)
         s.simulate()
+        # Read the result and test their validity
+        outDir = s.getOutputDirectory()
+        resultFile = os.path.abspath(os.path.join(outDir, f"{model}_res.mat"))
+        r = Reader(resultFile, "dymola")
+        (time, y) = r.values('PI.y')
+        self.assertEqual(len(y), 504, "Expected 504 data points, received {len(y)}.")
         s.deleteOutputFiles()
 
     def test_addMethods(self):
@@ -109,7 +118,8 @@ class Test_simulate_Simulator(unittest.TestCase):
 
         from buildingspy.io.outputfile import Reader
 
-        s = Simulator("MyModelicaLibrary.MyModel", packagePath=self._packagePath)
+        s = Simulator("MyModelicaLibrary.MyModel", packagePath=os.path.abspath(os.path.join(
+            "buildingspy", "tests", "MyModelicaLibrary")))
         s.addModelModifier(
             "redeclare Modelica.Blocks.Sources.Step source(offset=-0.1, height=1.1, startTime=0.5)")
         s.setStartTime(-1)
@@ -124,6 +134,8 @@ class Test_simulate_Simulator(unittest.TestCase):
         outDir = s.getOutputDirectory()
         resultFile = os.path.abspath(os.path.join(outDir, "myResults.mat"))
         r = Reader(resultFile, "dymola")
+        (time, y) = r.values('source.y')
+        self.assertEqual(len(y), 54, "Expected 54 data points, received {len(y)}.")
         np.testing.assert_allclose(1.0, r.max('source.y'))
         np.testing.assert_allclose(0.725, r.mean('source.y'))
         np.testing.assert_allclose(0.725 * 6, r.integral('source.y'))
