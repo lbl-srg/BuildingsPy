@@ -292,7 +292,8 @@ class _BaseSimulator(object):
                                           worDir + ": " + e.strerror)
                 raise
 
-    def _isExecutable(self, program):
+    @staticmethod
+    def isExecutable(program):
         import os
         import platform
 
@@ -375,7 +376,7 @@ class _BaseSimulator(object):
         import datetime
 
         # Check if executable is on the path
-        if not self._isExecutable(cmd[0]):
+        if not self.isExecutable(cmd[0]):
             em = f"Error: Did not find executable '{ cmd[0]}'. "
             em += "Make sure it is on the PATH variable of your operating system."
             raise RuntimeError(em)
@@ -419,7 +420,7 @@ class _BaseSimulator(object):
                 # For Dymola only: manage process termination.
                 # (For Optimica this is managed at the lower level
                 # in `*_run.template`.)
-                if self._MODELICA_EXE == 'dymola':
+                if self._MODELICA_EXE == 'dmc' or self._MODELICA_EXE == 'dymola':
                     # On unixlike systems, give the process a chance to close gracefully
                     # using `terminate` (on Windows `terminate` and `kill` are aliases).
                     # Then, if it is still running after `terminate_timeout`, kill the process.
