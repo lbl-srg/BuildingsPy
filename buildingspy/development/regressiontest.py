@@ -528,8 +528,8 @@ class Tester(object):
         # introduced in Dymola 2025x)
         if not b._BaseSimulator.isExecutable(self._DASSAULT_EXE):
             if self._DASSAULT_EXE == 'dmc':
-#                em = f"Did not find executable 'dmc', which was introduced in Dymola 2025x. Will use dymola instead."
-#                self._reporter.writeOutput(em)
+                #                em = f"Did not find executable 'dmc', which was introduced in Dymola 2025x. Will use dymola instead."
+                #                self._reporter.writeOutput(em)
                 self._DASSAULT_EXE = 'dymola'
                 self._showGUI = False  # If dmc was selected, we don't want to show the GUI
 
