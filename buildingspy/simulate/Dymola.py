@@ -4,6 +4,12 @@
 
   Class that translates and simulates a Modelica model with Dymola.
 
+  This class uses the executable ``dmc``, which is the Dymola version that does not
+  require a graphical user interface to translate or simulate a model.
+  `dmc` was introduced in Dymola 2025x. If ``dmc`` is not found on the system path,
+  or if a simulation with a user interface is requested, then the ``dymola`` rather than
+  the ``dmc`` executable is used.
+
   For a similar class that uses OPTIMICA, see :func:`buildingspy.simulate.Optimica`.
 
 """
@@ -244,7 +250,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
           4. Translates and simulates the model.
           5. Closes the Modelica simulation environment.
 
-        This method requires that the directory that contains the executable ``dymola``
+        This method requires that the directory that contains the executable ``dmc`` or ``dymola``
         is on the system ``PATH`` variable.
         If it is not found, the function raises an exception.
 
@@ -302,7 +308,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
           4. Translates the model.
           5. Closes the Modelica simulation environment.
 
-        This method requires that the directory that contains the executable ``dymola``
+        This method requires that the directory that contains the executable ``dmc`` or ``dymola``
         is on the system ``PATH`` variable.
         If it is not found, the function raises an exception.
 

@@ -127,6 +127,12 @@ class Tester(object):
     :param tool: string {``'dymola'``, ``'openmodelica'``, ``'optimica'``}.
             Default is ``'dymola'``, specifies the
             tool to use for running the regression test with :func:`~buildingspy.development.Tester.run`.
+
+            For ``'dymola'``, this class uses the executable ``dmc``, which is the Dymola version that does not
+            require a graphical user interface to translate or simulate a model.
+            `dmc` was introduced in Dymola 2025x. If ``dmc`` is not found on the system path,
+            or if a simulation with a user interface is requested, then the ``dymola`` rather than
+            the ``dmc`` executable is used.
     :param cleanup: Boolean (default ``True``). Specify whether to delete temporary directories.
     :param tol: float or dict (default=1E-3). Comparison tolerance
             If a float is provided, it is assigned to the absolute tolerance along x axis and to the
