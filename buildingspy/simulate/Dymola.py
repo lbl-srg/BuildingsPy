@@ -4,6 +4,12 @@
 
   Class that translates and simulates a Modelica model with Dymola.
 
+  This class uses the executable ``dmc``, which is the Dymola version that does not
+  require a graphical user interface to translate or simulate a model.
+  `dmc` was introduced in Dymola 2025x. If ``dmc`` is not found on the system path,
+  or if a simulation with a user interface is requested, then the ``dymola`` rather than
+  the ``dmc`` executable is used.
+
   For a similar class that uses OPTIMICA, see :func:`buildingspy.simulate.Optimica`.
 
 """
@@ -54,8 +60,8 @@ class Simulator(bs._BaseSimulator):
         self.setResultFile(modelName.split(".")[-1])
 
         self.setSolver("radau")
-        self._MODELICA_EXE = 'dymola'
-        self._showGUI = False
+        # Set self._MODELICA_EXE = 'dmc' and self._showGUI = False, and make sure it is on the path.
+        self.showGUI(False)
 
     def addPreProcessingStatement(self, command):
         """Adds a pre-processing statement to the simulation script.
@@ -244,7 +250,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
           4. Translates and simulates the model.
           5. Closes the Modelica simulation environment.
 
-        This method requires that the directory that contains the executable ``dymola``
+        This method requires that the directory that contains the executable ``dmc`` or ``dymola``
         is on the system ``PATH`` variable.
         If it is not found, the function raises an exception.
 
@@ -302,7 +308,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
           4. Translates the model.
           5. Closes the Modelica simulation environment.
 
-        This method requires that the directory that contains the executable ``dymola``
+        This method requires that the directory that contains the executable ``dmc`` or ``dymola``
         is on the system ``PATH`` variable.
         If it is not found, the function raises an exception.
 
@@ -362,7 +368,23 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
 
         By default, the simulator runs without GUI
         """
+        self._MODELICA_EXE = 'dmc' if not show else 'dymola'
         self._showGUI = show
+        # Check if executable is on the path and if dmc is available (dmc was
+        # introduced in Dymola 2025x)
+        if not self.isExecutable(self._MODELICA_EXE):
+            if self._MODELICA_EXE == 'dmc':
+                #                em = f"Did not find executable 'dmc', which was introduced in Dymola 2025x. Will use dymola instead."
+                #                self._reporter.writeOutput(em)
+                self._MODELICA_EXE = 'dymola'
+                self._showGUI = False  # If dmc was selected, we don't want to show the GUI
+
+        # Check again for executable, as it may be overridden above
+        if not self.isExecutable(self._MODELICA_EXE):
+            em = f"Error: Did not find executable '{self._MODELICA_EXE}'. "
+            em += f"Make sure it is on the PATH variable of your operating system."
+            raise RuntimeError(em)
+
         return
 
     def _runSimulation(self, mosFile, timeout, directory):
@@ -378,11 +400,23 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         # This is needed for example if the simulation is run in a docker,
         # which may have a different file structure than the host.
         mo_fil = mosFile.replace(directory, ".")
-        # List of command and arguments
+        # List of command and arguments.
+        # self._MODELICA_EXE is either dmc or dymola.
         if self._showGUI:
-            cmd = [self._MODELICA_EXE, mo_fil]
+            cmd = [
+                self._MODELICA_EXE,
+                '-r',
+                mo_fil] if self._MODELICA_EXE == 'dmc' else [
+                self._MODELICA_EXE,
+                mo_fil]
         else:
-            cmd = [self._MODELICA_EXE, mo_fil, "/nowindow"]
+            cmd = [
+                self._MODELICA_EXE,
+                '-r',
+                mo_fil] if self._MODELICA_EXE == 'dmc' else [
+                self._MODELICA_EXE,
+                mo_fil,
+                "/nowindow"]
 
         env = super().prependToModelicaPath(os.environ.copy(), self._packagePath)
 

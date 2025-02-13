@@ -127,6 +127,12 @@ class Tester(object):
     :param tool: string {``'dymola'``, ``'openmodelica'``, ``'optimica'``}.
             Default is ``'dymola'``, specifies the
             tool to use for running the regression test with :func:`~buildingspy.development.Tester.run`.
+
+            For ``'dymola'``, this class uses the executable ``dmc``, which is the Dymola version that does not
+            require a graphical user interface to translate or simulate a model.
+            `dmc` was introduced in Dymola 2025x. If ``dmc`` is not found on the system path,
+            or if a simulation with a user interface is requested, then the ``dymola`` rather than
+            the ``dmc`` executable is used.
     :param cleanup: Boolean (default ``True``). Specify whether to delete temporary directories.
     :param tol: float or dict (default=1E-3). Comparison tolerance
             If a float is provided, it is assigned to the absolute tolerance along x axis and to the
@@ -370,6 +376,13 @@ class Tester(object):
         # By default, do not show the GUI of the simulator
         self._showGUI = False
 
+        self._DASSAULT_EXE = 'dymola'
+
+        # For dymola, set either dymola or dmc to self._DASSAULT_EXE,
+        # which is done through the call below.
+        if self._modelica_tool == 'dymola':
+            self.showGUI(False)
+
         # Enable or disable colored output on non-windows
         if color and (platform.system() != "Windows"):
             self._color_BOLD = '\033[1m'
@@ -511,7 +524,27 @@ class Tester(object):
 
         By default, the simulator runs without GUI
         """
+        #from buildingspy.simulate.base_simulator import _BaseSimulator
+        import buildingspy.simulate.base_simulator as b
+
+        self._DASSAULT_EXE = 'dmc' if not show else 'dymola'
         self._showGUI = show
+
+        # Check if executable is on the path and if dmc is available (dmc was
+        # introduced in Dymola 2025x)
+        if not b._BaseSimulator.isExecutable(self._DASSAULT_EXE):
+            if self._DASSAULT_EXE == 'dmc':
+                #                em = f"Did not find executable 'dmc', which was introduced in Dymola 2025x. Will use dymola instead."
+                #                self._reporter.writeOutput(em)
+                self._DASSAULT_EXE = 'dymola'
+                self._showGUI = False  # If dmc was selected, we don't want to show the GUI
+
+# Check again for executable, as it may be overridden above
+# if not b.isExecutable(self._DASSAULT_EXE):
+####            em = f"Error: Did not find executable '{self._DASSAULT_EXE}'. "
+####            em += f"Make sure it is on the PATH variable of your operating system."
+####            raise RuntimeError(em)
+
         return
 
     def batchMode(self, batchMode, createNewReferenceResultsInBatchMode: bool = False):
@@ -3744,9 +3777,13 @@ exit();
             else:  # dymola
                 # assemble command
                 cmd = list()
-                cmd.append(f"{self.getModelicaCommand()}")
+                cmd.append(f"{self._DASSAULT_EXE}")
+                if self._DASSAULT_EXE == 'dmc':
+                    cmd.append("-r")
                 cmd.append(f"run_{model}.mos")
-                if not self._showGUI:
+                if self._DASSAULT_EXE == 'dymola' and not self._showGUI:
+                    # This is the case where no gui should be shown, but dmc was not found on the path,
+                    # such as for Dymola prior to 2025x
                     cmd.append("/nowindow")
 
                 txt = tem_mod.render(
