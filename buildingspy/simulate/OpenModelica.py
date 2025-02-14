@@ -276,6 +276,7 @@ class Simulator(bs._BaseSimulator):
                 model=self.modelName,
                 modelicaPathSeparator=col,
                 modifiedModelName=f"{self.modelName.replace('.', '_')}_Modified",
+                openLibraryCommand="",  # Not needed to simulate, only needed for regression tests.
                 commentStringNonModifiedModel="//" if len(model_modifier) > 0 else "",
                 commentStringModifiedModel="//" if len(model_modifier) == 0 else "",
                 model_modifier=model_modifier,

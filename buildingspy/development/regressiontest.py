@@ -3737,6 +3737,7 @@ exit();
                     model=model,
                     modelicaPathSeparator=col,
                     modifiedModelName=f"{model}_modified".replace('.', '_'),
+                    openLibraryCommand=f"loadFile(\"{self.getLibraryName()}/package.mo\");",
                     commentStringNonModifiedModel="//" if len(model_modifier) > 0 else "",
                     commentStringModifiedModel="//" if len(model_modifier) == 0 else "",
                     model_modifier=model_modifier,
