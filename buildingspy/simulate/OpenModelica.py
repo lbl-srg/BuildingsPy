@@ -160,6 +160,13 @@ class Simulator(bs._BaseSimulator):
         is on the system ``PATH`` variable.
         If it is not found, the function raises an exception.
 
+        Modelica libraries are searched based on the environment variable ``MODELICAPATH``,
+        which is appended to the path where OpenModelica installs its Modelica libraries,
+        as received from the OpenModelica function
+        `getModelicaPath() <https://build.openmodelica.org/Documentation/OpenModelica.Scripting.getModelicaPath.html>`_.
+        This path can be overridden by setting the environment variable ``OPENMODELICALIBRARY``,
+        see the OpenModelica scripting documentation.
+
         """
         return self._translate_and_simulate(simulate=False)
 
@@ -202,6 +209,40 @@ class Simulator(bs._BaseSimulator):
             model_modifier = '{dec}'.format(mn=self.modelName, dec=','.join(dec))
 
         file_name = "{}.py".format(self.modelName.replace(".", "_"))
+
+        # Get delimiter for MODELICAPATH
+        if os.name == 'nt':
+            col = ";"
+        else:
+            col = ":"
+
+        # Get the MODELICAPATH
+        if 'MODELICAPATH' in os.environ:
+            modelicapath = os.environ['MODELICAPATH']
+        else:
+            modelicapath = os.path.abspath('.')
+
+        if self.getPackagePath() is not None:
+            # Cut the last separator from the packagePath as the MODELICAPATH is the directory above the
+            # directory that contains package.mo
+            pacPat = self.getPackagePath()
+
+            def getTopLevelDir(packagePath, sep):
+                if packagePath is None:
+                    return "."
+                pacPatWor = packagePath.rsplit(sep)
+                if len(pacPatWor) > 1:  # Found separator
+                    topPacPat = sep.join(pacPatWor[0: len(pacPatWor) - 1])
+                else:
+                    topPacPat = "."
+                return topPacPat
+
+            topPacPat = getTopLevelDir(pacPat, "\\")
+            if topPacPat == ".":
+                topPacPat = getTopLevelDir(pacPat, "/")
+
+            modelicapath = topPacPat + col + modelicapath
+
 ##        self._time_stamp_old_files = datetime.datetime.now()
         with open(os.path.join(worDir, file_name), mode="w", encoding="utf-8") as fil:
             path_to_template = os.path.join(
@@ -210,22 +251,41 @@ class Simulator(bs._BaseSimulator):
 
             template = env.get_template("openmodelica_run.template")
 
+            # Set the start time, final time and step size
+            staTim = self._simulator_.get('t0') if self._simulator_.get(
+                't0') is not None else 0
+            finTim = self._simulator_.get('t1') if self._simulator_.get(
+                't1') is not None else 1
+            numInt = self._simulator_.get('numberOfIntervals')
+            if numInt == 500:
+                # This is the default, do nothing
+                steSiz = ""
+            else:
+                if numInt < 1:
+                    raise ValueError(
+                        "Number of intervals must be larger than 0, obtained {numInt}.")
+                steSizNum = (finTim - staTim) / self._simulator_.get('numberOfIntervals')
+                # Round to a reasonable number of digits
+                steSiz = f"{steSizNum:.6g}"
+
+            # Render the template
             txt = template.render(
                 working_directory='.',
+                MODELICAPATH=modelicapath,
                 library_name=self.modelName.split(".")[0],
-                package_path=self.getPackagePath(),
                 model=self.modelName,
+                modelicaPathSeparator=col,
                 modifiedModelName=f"{self.modelName.replace('.', '_')}_Modified",
+                openLibraryCommand="",  # Not needed to simulate, only needed for regression tests.
                 commentStringNonModifiedModel="//" if len(model_modifier) > 0 else "",
                 commentStringModifiedModel="//" if len(model_modifier) == 0 else "",
                 model_modifier=model_modifier,
                 ncp=self._simulator_.get('numberOfIntervals'),
                 rtol=self._simulator_.get('eps'),
                 solver=self._simulator_.get('solver'),
-                start_time=self._simulator_.get('t0') if self._simulator_.get(
-                    't0') is not None else 0,
-                final_time=self._simulator_.get('t1') if self._simulator_.get(
-                    't1') is not None else 1,
+                start_time=staTim,
+                final_time=finTim,
+                step_size=steSiz,
                 result_file_name=f"{self._simulator_.get('resultFile')}.mat",
                 simulate=simulate,
                 time_out=self._simulator_.get('timeout'),

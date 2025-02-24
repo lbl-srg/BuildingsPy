@@ -65,9 +65,10 @@ installPackage(Modelica, "");
 setMatchingAlgorithm("PFPlusExt");
 setIndexReductionMethod("dynamicStateSelection");
 
-print("Loading library");
-loadFile("{{ package_path }}/package.mo");
-print("Loading model");
+// Get the MODELICAPATH, which by default is set to where OpenModelica installs its libraries
+modPat:=getModelicaPath();
+setModelicaPath(modPat + "{{ modelicaPathSeparator }}" + "{{  MODELICAPATH }}");
+{{ openLibraryCommand }}
 {{ commentStringNonModifiedModel }}print("Translating model");
 {{ commentStringNonModifiedModel }}translateModel({{ model }}, method="{{ solver }}", tolerance={{ rtol }}, numberOfIntervals={{ ncp }}, variableFilter=\"({filter})\");
 {{ commentStringNonModifiedModel }}getErrorString();
@@ -116,7 +117,7 @@ def _simulate(model, timeout):
             else:
                 esc = "./"
             f.write(
-                f"""retVal := system("{esc}{model} -override=startTime={{ start_time }},stopTime={{ final_time }},tolerance={{ rtol }},solver={{ solver }},outputFormat=mat,variableFilter=\\\"({filter})\\\" -steps -cpu -lv LOG_STATS");
+                f"""retVal := system("{esc}{model} -override=startTime={{ start_time }},stopTime={{ final_time }},stepSize={{ step_size }},tolerance={{ rtol }},solver={{ solver }},outputFormat=mat,variableFilter=\\\"({filter})\\\" -steps -cpu -lv LOG_STATS");
 exit(retVal);
 """)
         output = _run_process(return_dict, cmd, worDir, timeout)

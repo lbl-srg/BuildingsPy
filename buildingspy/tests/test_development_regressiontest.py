@@ -60,7 +60,7 @@ class Test_regressiontest_Tester(unittest.TestCase):
         rt.setLibraryRoot(myMoLib)
         rt.batchMode(True)
         ret_val = rt.run()
-        # Check return value to see if test suceeded
+        # Check return value to see if test succeeded
         self.assertEqual(0, ret_val, "Test failed with return value {}".format(ret_val))
         # Delete temporary files
         for f in rt.get_unit_test_log_files():
@@ -325,6 +325,41 @@ class Test_regressiontest_Tester(unittest.TestCase):
                           r.Tester.expand_packages, "AB{}")
         self.assertRaises(ValueError,
                           r.Tester.expand_packages, "AB}a{")
+
+    def test_get_coverage_single_package(self):
+        coverage_result = self._test_get_and_print_coverage(package="Examples")
+        self.assertEqual(coverage_result[0], 88)
+        self.assertEqual(coverage_result[1], 7)
+        self.assertEqual(coverage_result[2], 8)
+        self.assertTrue(coverage_result[3][0].endswith("ParameterEvaluation.mo"))
+        self.assertEqual(coverage_result[4], ["Examples"])
+
+    def test_get_coverage_all_packages(self):
+        coverage_result = self._test_get_and_print_coverage(package=None)
+        self.assertEqual(coverage_result[0], 89)
+        self.assertEqual(coverage_result[1], 8)
+        self.assertEqual(coverage_result[2], 9)
+        self.assertEqual(len(coverage_result[3]), 1)
+        self.assertEqual(len(coverage_result[4]), 2)
+
+    def _test_get_and_print_coverage(self, package: str = None):
+        import buildingspy.development.regressiontest as r
+        ut = r.Tester(tool='dymola')
+        myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
+        ut.setLibraryRoot(myMoLib)
+        if package is not None:
+            ut.setSinglePackage(package)
+        coverage_result = ut.getCoverage()
+        self.assertIsInstance(coverage_result, tuple)
+        self.assertIsInstance(coverage_result[0], float)
+        self.assertIsInstance(coverage_result[1], int)
+        self.assertIsInstance(coverage_result[2], int)
+        self.assertIsInstance(coverage_result[3], list)
+        self.assertIsInstance(coverage_result[4], list)
+        # Check print with both custom and standard printer
+        ut.printCoverage(*coverage_result, printer=print)
+        ut.printCoverage(*coverage_result)
+        return coverage_result
 
 
 if __name__ == '__main__':

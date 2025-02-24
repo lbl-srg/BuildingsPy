@@ -127,6 +127,12 @@ class Tester(object):
     :param tool: string {``'dymola'``, ``'openmodelica'``, ``'optimica'``}.
             Default is ``'dymola'``, specifies the
             tool to use for running the regression test with :func:`~buildingspy.development.Tester.run`.
+
+            For ``'dymola'``, this class uses the executable ``dmc``, which is the Dymola version that does not
+            require a graphical user interface to translate or simulate a model.
+            `dmc` was introduced in Dymola 2025x. If ``dmc`` is not found on the system path,
+            or if a simulation with a user interface is requested, then the ``dymola`` rather than
+            the ``dmc`` executable is used.
     :param cleanup: Boolean (default ``True``). Specify whether to delete temporary directories.
     :param tol: float or dict (default=1E-3). Comparison tolerance
             If a float is provided, it is assigned to the absolute tolerance along x axis and to the
@@ -371,6 +377,13 @@ class Tester(object):
         # By default, do not show the GUI of the simulator
         self._showGUI = False
 
+        self._DASSAULT_EXE = 'dymola'
+
+        # For dymola, set either dymola or dmc to self._DASSAULT_EXE,
+        # which is done through the call below.
+        if self._modelica_tool == 'dymola':
+            self.showGUI(False)
+
         # Enable or disable colored output on non-windows
         if color and (platform.system() != "Windows"):
             self._color_BOLD = '\033[1m'
@@ -512,7 +525,27 @@ class Tester(object):
 
         By default, the simulator runs without GUI
         """
+        #from buildingspy.simulate.base_simulator import _BaseSimulator
+        import buildingspy.simulate.base_simulator as b
+
+        self._DASSAULT_EXE = 'dmc' if not show else 'dymola'
         self._showGUI = show
+
+        # Check if executable is on the path and if dmc is available (dmc was
+        # introduced in Dymola 2025x)
+        if not b._BaseSimulator.isExecutable(self._DASSAULT_EXE):
+            if self._DASSAULT_EXE == 'dmc':
+                #                em = f"Did not find executable 'dmc', which was introduced in Dymola 2025x. Will use dymola instead."
+                #                self._reporter.writeOutput(em)
+                self._DASSAULT_EXE = 'dymola'
+                self._showGUI = False  # If dmc was selected, we don't want to show the GUI
+
+# Check again for executable, as it may be overridden above
+# if not b.isExecutable(self._DASSAULT_EXE):
+####            em = f"Error: Did not find executable '{self._DASSAULT_EXE}'. "
+####            em += f"Make sure it is on the PATH variable of your operating system."
+####            raise RuntimeError(em)
+
         return
 
     def batchMode(self, batchMode, createNewReferenceResultsInBatchMode: bool = False):
@@ -677,15 +710,19 @@ class Tester(object):
             and the second line starts with ``key``
             the counter is increased by one.
         """
-
-        with open(fileName, mode="rt", encoding="utf-8-sig") as filObj:
-            # filObj is an iterable object, so we can use next(filObj)
-            line0 = next(filObj).strip()
-            if line0.startswith("within"):
-                line1 = next(filObj).strip()
-                if line1.startswith(key):
-                    counter += 1
-        return counter
+        try:
+            with open(fileName, mode="rt", encoding="utf-8-sig") as filObj:
+                # filObj is an iterable object, so we can use next(filObj)
+                line0 = next(filObj).strip()
+                if line0.startswith("within"):
+                    line1 = next(filObj).strip()
+                    if line1.startswith(key):
+                        counter += 1
+            return counter
+        except UnicodeDecodeError as err:
+            raise ValueError(
+                "Failed to read file %s with utf-8-sig encoding" % fileName
+            ) from err
 
     @staticmethod
     def expand_packages(packages):
@@ -3107,9 +3144,9 @@ to access a summary of the comparison results.\n""".format(
             # skip .svn folders
             if pos == -1:
                 for filNam in files:
-                    # find .mo files
-                    pos = filNam.find('.mo')
-                    if pos > -1 and (root.find('Examples') == -1 or root.find('Validation') == -1):
+                    # find .mo files which are not in Examples or Validation packages
+                    if filNam.endswith('.mo') and (
+                            root.find('Examples') == -1 or root.find('Validation') == -1):
                         # find classes that are not partial
                         filFulNam = os.path.join(root, filNam)
                         iMod = self._checkKey("model", filFulNam, iMod)
@@ -3735,20 +3772,36 @@ exit();
                 stopTime = _getStartStopTime('stopTime', dat)
                 model_modifier = ""
 
+                # Get delimiter for MODELICAPATH
+                if os.name == 'nt':
+                    col = ";"
+                else:
+                    col = ":"
+
+                # Get the MODELICAPATH
+                if 'MODELICAPATH' in os.environ:
+                    modelicapath = f"{os.environ['MODELICAPATH']}{col}."
+                else:
+                    modelicapath = "."
+
                 txt = tem_mod.render(
                     package_path=self.getLibraryName(),
                     library_name=self.getLibraryName(),
                     model=model,
+                    modelicaPathSeparator=col,
                     modifiedModelName=f"{model}_modified".replace('.', '_'),
+                    openLibraryCommand=f"loadFile(\"{self.getLibraryName()}/package.mo\");",
                     commentStringNonModifiedModel="//" if len(model_modifier) > 0 else "",
                     commentStringModifiedModel="//" if len(model_modifier) == 0 else "",
                     model_modifier=model_modifier,
                     working_directory=directory,
+                    MODELICAPATH=modelicapath,
                     ncp=dat[self._modelica_tool]['ncp'],
                     rtol=dat[self._modelica_tool]['rtol'],
                     solver=dat[self._modelica_tool]['solver'],
                     start_time=startTime,
                     final_time=stopTime,
+                    step_size="",
                     simulate=dat[self._modelica_tool]['simulate'],
                     time_out=dat[self._modelica_tool]['time_out'],
                     filter_translate='|'.join([re.sub(r'\[|\]',
@@ -3778,9 +3831,13 @@ exit();
             else:  # dymola
                 # assemble command
                 cmd = list()
-                cmd.append(f"{self.getModelicaCommand()}")
+                cmd.append(f"{self._DASSAULT_EXE}")
+                if self._DASSAULT_EXE == 'dmc':
+                    cmd.append("-r")
                 cmd.append(f"run_{model}.mos")
-                if not self._showGUI:
+                if self._DASSAULT_EXE == 'dymola' and not self._showGUI:
+                    # This is the case where no gui should be shown, but dmc was not found on the path,
+                    # such as for Dymola prior to 2025x
                     cmd.append("/nowindow")
 
                 txt = tem_mod.render(
