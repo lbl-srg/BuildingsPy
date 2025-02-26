@@ -2935,7 +2935,7 @@ class Tester(object):
                                             self._reporter.writeError(
                                                 "Did not write new reference file %s." % oldRefFulFilNam)
 
-                        if updateReferenceData or self._OCT_VERIFICATION and (y_tra is not None):
+                        if (updateReferenceData or self._OCT_VERIFICATION) and (y_tra is not None):
                             # If the reference data of any variable was updated.
                             # If run with self._OCT_VERIFICATION, if a simulation fails, y_tra is None
                             # but updateReferenceData is always true. Hence the check on y_tra.
