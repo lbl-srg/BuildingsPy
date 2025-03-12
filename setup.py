@@ -41,7 +41,7 @@ setup(
         'pytidylib>=0.3.2',
         'simplejson>=3.16',
         'six>=1.14',
-        'pyfunnel>=0.3.0',
+        'pyfunnel>=1.0.2',
         'PyYAML>=6.0.1',
         'cerberus>=1.3.4',
     ],
