@@ -1,8 +1,8 @@
 BuildingsPy Changelog
 ---------------------
 
-Version 5.2.0, xxxx
-^^^^^^^^^^^^^^^^^^^
+Version 5.2.0, March 14, 2025
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 - Updated pyfunnel requirement to version 1.0.2 to avoid a problem with regular expressions.
   (https://github.com/lbl-srg/BuildingsPy/issues/594)
