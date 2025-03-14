@@ -15,10 +15,6 @@ Version 5.2.0, March 14, 2025
   (https://github.com/lbl-srg/BuildingsPy/issues/586)
 - In buildingspy/simulate/base_simulator.py, corrected statement for error reporting.
   (https://github.com/lbl-srg/BuildingsPy/issues/583)
-- In buildingspy/development/simulationCompare.py, added option to skip verification of results.
-  The default is set to False and hence this change does not affect the behavior of scripts developed
-  for previous versions.
-  (https://github.com/lbl-srg/BuildingsPy/issues/568)
 - In buildingspy/development/merger.py, added new comment form to allow excluding
   Modelica code for certain libraries.
   (https://github.com/lbl-srg/BuildingsPy/issues/566)

@@ -33,8 +33,6 @@ class Comparator(object):
     :param branches: A list of branches to compare, such as ``['master', 'issueXXX']``.
     :param package: Name of top-level package to compare, such as ``Buildings`` or ``Buildings.Examples``.
     :param repo: Name of repository, such as ``https://github.com/lbl-srg/modelica-buildings``.
-    :param skipVerification: Boolean (default ``False``).
-            If ``True``, unit test results are not verified against reference points.
     :param nPro: Number of threads that are used to run the translations and simulations.
                  Set to ``0`` to use all processors.
     :param tolAbsTim: float (default ``0.1``). Absolute tolerance in time, if exceeded, results will be flagged in summary table.
@@ -55,7 +53,6 @@ class Comparator(object):
        ...   branches=['master'],
        ...   package='Buildings',
        ...   repo='https://github.com/lbl-srg/modelica-buildings',
-       ...   skipVerification = True,
        ...   postCloneCommand=[
        ...      "python",
        ...      "Buildings/Resources/src/ThermalZones/install.py",
@@ -87,7 +84,6 @@ class Comparator(object):
             branches,
             package,
             repo,
-            skipVerification=False,
             nPro=0,
             simulate=True,
             tolAbsTime=0.1,
@@ -99,7 +95,6 @@ class Comparator(object):
         self._branches = branches
         self._package = package
         self._lib_src = repo
-        self._skip_verification = skipVerification
         self._nPro = nPro
         self._tolAbsTime = tolAbsTime
         self._tolRelTime = tolRelTime
@@ -180,9 +175,7 @@ class Comparator(object):
         else:
             num_pro = f"-n {self._nPro}"
 
-        ski_ver = f"--skip-verification" if self._skip_verification else ""
-
-        command = f"../bin/runUnitTests.py {single_package} {ski_ver} {num_pro} -t {tool} --batch"
+        command = f"../bin/runUnitTests.py {single_package} {num_pro} -t {tool} --batch"
         try:
             os.system(command)
         except OSError:
