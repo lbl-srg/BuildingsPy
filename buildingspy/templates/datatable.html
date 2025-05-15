@@ -122,26 +122,62 @@
 					},
 					{
 						data: 'simulation.elapsed_time',
-						render: $.fn.dataTable.render.number(' ', '.', 2)
+						render: function(data, type, row) {
+							if (data === undefined || data === null) {
+								return '';
+							}
+							return $.fn.dataTable.render.number(' ', '.', 2).display(data);
+						}
 					},
 					{
 						data: 'simulation.start_time',
-						render: $.fn.dataTable.render.number(' ', '.', 0)
+						render: function(data, type, row) {
+							if (data === undefined || data === null) {
+								return '';
+							}
+							return $.fn.dataTable.render.number(' ', '.', 0).display(data);
+						}
 					},
 					{
 						data: 'simulation.final_time',
-						render: $.fn.dataTable.render.number(' ', '.', 0)
+						render: function(data, type, row) {
+							if (data === undefined || data === null) {
+								return '';
+							}
+							return $.fn.dataTable.render.number(' ', '.', 0).display(data);
+						}
 					},
 					{
 						data: 'simulation.state_events',
-						render: $.fn.dataTable.render.number(' ', '.', 0)
+						render: function(data, type, row) {
+							if (data === undefined || data === null) {
+								return '';
+							}
+							return $.fn.dataTable.render.number(' ', '.', 0).display(data);
+						}
 					},
 					{
 						data: 'simulation.jacobians',
-						render: $.fn.dataTable.render.number(' ', '.', 0)
+						render: function(data, type, row) {
+							if (data === undefined || data === null) {
+								return '';
+							}
+							return $.fn.dataTable.render.number(' ', '.', 0).display(data);
+						}
 					},
-					{ data: 'simulation.success' },
-					{ data: 'simulation.message', width: "40%" },
+					{ 
+						data: 'simulation.success',
+						render: function(data, type, row) {
+							return data !== undefined ? data : '';
+						}
+					},
+					{ 
+						data: 'simulation.message', 
+						width: "40%",
+						render: function(data, type, row) {
+							return data || '';
+						}
+					},
 				],
 		});
 		if (!/jmodelica/i.test('$SIMULATOR_LOG')) {
@@ -180,10 +216,26 @@
 					},
 					{
 						data: 'translation.cpu_time',
-						render: $.fn.dataTable.render.number(' ', '.', 2)
+						render: function(data, type, row) {
+							if (data === undefined || data === null) {
+								return '';
+							}
+							return $.fn.dataTable.render.number(' ', '.', 2).display(data);
+						}
 					},
-					{ data: 'translation.success' },
-					{ data: 'translation.warnings', width: "40%" },
+					{ 
+						data: 'translation.success',
+						render: function(data, type, row) {
+							return data !== undefined ? data : '';
+						}
+					},
+					{ 
+						data: 'translation.warnings', 
+						width: "40%",
+						render: function(data, type, row) {
+							return data || '';
+						}
+					},
 				],
 			});
 		}
@@ -248,10 +300,30 @@
 						return '<a class="myClass">' + out + '</a>';;
 					}
 				},
-				{ data: 'comparison.file_name' },
-				{ data: 'comparison.funnel_dirs' },
-				{ data: 'comparison.var_groups' },
-				{ data: 'comparison.warnings' },
+				{ 
+					data: 'comparison.file_name',
+					render: function(data, type, row) {
+						return data || '';
+					}
+				},
+				{ 
+					data: 'comparison.funnel_dirs',
+					render: function(data, type, row) {
+						return data || [];
+					}
+				},
+				{ 
+					data: 'comparison.var_groups',
+					render: function(data, type, row) {
+						return data || [];
+					}
+				},
+				{ 
+					data: 'comparison.warnings',
+					render: function(data, type, row) {
+						return data || [];
+					}
+				},
 			],
 			columnDefs: [
 				{ visible: false, searchable: false, targets: [3, 4, 5, 6] },
@@ -283,20 +355,37 @@
 			var max_plot_per100 = 4;
 			var height = 100 * (1 + Math.max(0, uniq_groups.length - max_plot_per100) / max_plot_per100);
 			var err_plot_height = 0.18 * 100 / height;
-			$.get('$COMP_DIR/plot.html', function (data) {
-				if (uniq_groups.length > 0) {
-					var title = file;
-					if (navail_vars.length > 0) { title = title.concat('<br />No available results for: ').concat(navail_vars.join(', ')); }
-					var new_data = data.replace('$DICT_VAR_INFO', JSON.stringify(dict_var_info));
-					new_data = new_data.replace('$PAGE_TITLE', title);
-					new_data = new_data.replace('$TITLE', model);
-					new_data = new_data.replace('$HEIGHT', height + '%');
-					new_data = new_data.replace('$ERR_PLOT_HEIGHT', err_plot_height);
-					var strWindowFeatures = "menubar=yes, location=yes, resizable=yes, scrollbars=yes, status=yes";
-					var win = window.open('', '_blank', strWindowFeatures);
-					win.document.write(new_data);
-					win.document.close();  // necessary for the scripts on the page to be executed
-				} else { alert(warnings.join('\n')); }
+			// Use jQuery's AJAX with timeout and error handling
+			$.ajax({
+				url: '$COMP_DIR/plot.html',
+				timeout: 5000,
+				success: function (data) {
+					if (uniq_groups.length > 0) {
+						var title = file;
+						if (navail_vars.length > 0) { title = title.concat('<br />No available results for: ').concat(navail_vars.join(', ')); }
+						var new_data = data.replace('$DICT_VAR_INFO', JSON.stringify(dict_var_info));
+						new_data = new_data.replace('$PAGE_TITLE', title);
+						new_data = new_data.replace('$TITLE', model);
+						new_data = new_data.replace('$HEIGHT', height + '%');
+						new_data = new_data.replace('$ERR_PLOT_HEIGHT', err_plot_height);
+						var strWindowFeatures = "menubar=yes, location=yes, resizable=yes, scrollbars=yes, status=yes";
+						// Create a Blob containing the HTML content
+						var blob = new Blob([new_data], {type: 'text/html'});
+						// Create a URL for the Blob
+						var blobUrl = URL.createObjectURL(blob);
+						// Open a new window with the Blob URL
+						var win = window.open(blobUrl, '_blank', strWindowFeatures);
+						// Clean up the Blob URL once the window has loaded
+						if (win) {
+							win.addEventListener('load', function() {
+								URL.revokeObjectURL(blobUrl);
+							});
+						}
+					} else { alert(warnings.join('\n')); }
+				},
+				error: function(jqXHR, textStatus, errorThrown) {
+					console.error("Error loading plot.html:", textStatus, errorThrown);
+				}
 			});
 		});
 	});
