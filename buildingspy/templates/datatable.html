@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8" />
 	<link rel="stylesheet" type="text/css"
-		href="https://cdn.datatables.net/v/bs-3.3.7/jq-3.3.1/jszip-2.5.0/dt-1.10.18/b-1.5.4/b-colvis-1.5.4/b-flash-1.5.4/b-html5-1.5.4/datatables.min.css" />
+		href="https://cdn.datatables.net/v/bs-3.3.7/jq-3.3.1/jszip-2.5.0/dt-1.13.8/b-1.5.4/b-colvis-1.5.4/b-flash-1.5.4/b-html5-1.5.4/datatables.min.css" />
 	<style>
 		/* TODO
 	white-space: break-word;
@@ -32,7 +32,7 @@
 	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/pdfmake.min.js"></script>
 	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.36/vfs_fonts.js"></script>
 	<script type="text/javascript"
-		src="https://cdn.datatables.net/v/bs-3.3.7/jq-3.3.1/jszip-2.5.0/dt-1.10.18/b-1.5.4/b-colvis-1.5.4/b-flash-1.5.4/b-html5-1.5.4/datatables.min.js"></script>
+		src="https://cdn.datatables.net/v/bs-3.3.7/jq-3.3.1/jszip-2.5.0/dt-1.13.8/b-1.5.4/b-colvis-1.5.4/b-flash-1.5.4/b-html5-1.5.4/datatables.min.js"></script>
 </head>
 
 <body>
@@ -165,14 +165,14 @@
 							return $.fn.dataTable.render.number(' ', '.', 0).display(data);
 						}
 					},
-					{ 
+					{
 						data: 'simulation.success',
 						render: function(data, type, row) {
 							return data !== undefined ? data : '';
 						}
 					},
-					{ 
-						data: 'simulation.message', 
+					{
+						data: 'simulation.message',
 						width: "40%",
 						render: function(data, type, row) {
 							return data || '';
@@ -223,14 +223,14 @@
 							return $.fn.dataTable.render.number(' ', '.', 2).display(data);
 						}
 					},
-					{ 
+					{
 						data: 'translation.success',
 						render: function(data, type, row) {
 							return data !== undefined ? data : '';
 						}
 					},
-					{ 
-						data: 'translation.warnings', 
+					{
+						data: 'translation.warnings',
 						width: "40%",
 						render: function(data, type, row) {
 							return data || '';
@@ -300,25 +300,25 @@
 						return '<a class="myClass">' + out + '</a>';;
 					}
 				},
-				{ 
+				{
 					data: 'comparison.file_name',
 					render: function(data, type, row) {
 						return data || '';
 					}
 				},
-				{ 
+				{
 					data: 'comparison.funnel_dirs',
 					render: function(data, type, row) {
 						return data || [];
 					}
 				},
-				{ 
+				{
 					data: 'comparison.var_groups',
 					render: function(data, type, row) {
 						return data || [];
 					}
 				},
-				{ 
+				{
 					data: 'comparison.warnings',
 					render: function(data, type, row) {
 						return data || [];

@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <title>$PAGE_TITLE</title>
-    <script src="https://cdn.plot.ly/plotly-1.52.0.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-3.0.1.min.js" charset="utf-8"></script>
 </head>
 
 <body>
@@ -16,7 +16,7 @@
                     controller.abort();
                     reject(new Error(`Timeout loading CSV from ${url}`));
                 }, timeout);
-                
+
                 fetch(url, { signal: controller.signal })
                     .then(response => {
                         if (!response.ok) {
@@ -30,16 +30,16 @@
                         const lines = text.split('\n');
                         const headers = lines[0].split(',');
                         const result = [];
-                        
+
                         for (let i = 1; i < lines.length; i++) {
                             if (!lines[i].trim()) continue;
                             const values = lines[i].split(',');
                             const row = {};
-                            
+
                             headers.forEach((header, j) => {
                                 row[header.trim()] = values[j] ? values[j].trim() : '';
                             });
-                            
+
                             result.push(row);
                         }
                         resolve(result);
@@ -50,7 +50,7 @@
                     });
             });
         }
-        
+
 
 
         async function make_plot() {
@@ -61,13 +61,13 @@
                 const avail_groups = [];
                 const filePromises = [];
                 const fileInfo = []; // To track which variable each promise belongs to
-                
+
                 // Collect all groups and prepare file loading
                 Object.keys(dict_var_info).forEach(v => {
                     dict_var_info[v].forEach(el => {
                         avail_groups.push(el['group']);
                     });
-                    
+
                     // Prepare file loading for each variable
                     const fileTypes = ['reference.csv', 'test.csv', 'errors.csv'];
                     fileTypes.forEach(f => {
@@ -76,34 +76,31 @@
                         fileInfo.push({variable: v, type: f});
                     });
                 });
-                
-                // Show loading indicator
-                document.getElementById('myDiv').innerHTML = '<div style="text-align:center;padding:20px;">Loading data...<div>';
-                
+
                 // Wait for all files to load
                 const csvDataSets = await Promise.all(filePromises);
-                
+
                 // Group and process the data
                 const uniq_groups = [...new Set(avail_groups)];
                 const flag_groups = [];
                 let group_reset;
                 const list_group_var = new Array(uniq_groups.length);
-                
+
                 // Group the variables
                 Object.keys(dict_var_info).forEach(v => {
                     dict_var_info[v].forEach(el => {
                         group_reset = flag_groups.indexOf(el['group']);
-                        if (group_reset == -1) { 
-                            group_reset = flag_groups.push(el['group']) - 1; 
+                        if (group_reset == -1) {
+                            group_reset = flag_groups.push(el['group']) - 1;
                         }
                         (list_group_var[group_reset] = list_group_var[group_reset] || []).push(v);
                     });
-                    
+
                     // Find the corresponding data for this variable
                     const refIndex = fileInfo.findIndex(info => info.variable === v && info.type === 'reference.csv');
                     const testIndex = fileInfo.findIndex(info => info.variable === v && info.type === 'test.csv');
                     const errIndex = fileInfo.findIndex(info => info.variable === v && info.type === 'errors.csv');
-                    
+
                     // Process the data if all files were loaded
                     if (refIndex !== -1 && testIndex !== -1 && errIndex !== -1) {
                         dict_data[v] = {
@@ -115,15 +112,13 @@
                         console.warn(`Missing data files for variable ${v}`);
                     }
                 });
-                
+
                 console.log('DATA LOADING COMPLETED');
-                // Clear any loading indicator
-                document.getElementById('myDiv').innerHTML = '';
                 // Plot the data
                 plot(dict_data, dict_var_info, list_group_var);
             } catch (error) {
                 console.error('Error loading or processing data:', error);
-                document.getElementById('myDiv').innerHTML = 
+                document.getElementById('myDiv').innerHTML =
                     `<div style="text-align:center;padding:20px;color:red;">
                         Error loading data: ${error.message}<br>
                         <button onclick="make_plot()">Retry</button>
@@ -141,7 +136,11 @@
         }
         function plot(dict_data, dict_var_info, list_group_var) {
             var nb_groups = list_group_var.length;
-            var d3colors = Plotly.d3.scale.category10();
+            // Define a custom color palette similar to category10
+            var colorPalette = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'];
+            var getColor = function(i) {
+                return colorPalette[i % colorPalette.length];
+            };
             var traces = [];
             var axis_error_idx = 1;
             var error_y_axis_title = 'error [unit of variable]';
@@ -251,7 +250,7 @@
                             name: [v, 'ref'].join('_'),
                             line: {
                                 dash: 'dot',
-                                color: d3colors(i),
+                                color: getColor(i),
                             },
                             xaxis: 'x' + axis_data_idx,
                             yaxis: 'y' + axis_data_idx,
@@ -265,7 +264,7 @@
                             name: v,
                             hoverlabel: { namelength: -1 },
                             line: {
-                                color: d3colors(i),
+                                color: getColor(i),
                             },
                             xaxis: 'x' + axis_data_idx,
                             yaxis: 'y' + axis_data_idx,
@@ -280,7 +279,7 @@
                             hoverlabel: { namelength: -1 },
                             name: [v, 'error'].join('_'),
                             line: {
-                                color: d3colors(i),
+                                color: getColor(i),
                             },
                             xaxis: 'x' + axis_error_idx,
                             yaxis: 'y' + axis_error_idx,
@@ -328,10 +327,13 @@
                 b_offset + (1 - b_offset - t_offset) / n_domain * (i + 1) - (i === (n_domain - 1) ? 0 : spacing / 2)
             ];
         }
-        // Start plotting with a small delay to ensure the DOM is ready
-        setTimeout(() => {
+        // Call make_plot() when the DOM is fully loaded
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', make_plot);
+        } else {
+            // DOM is already loaded, call make_plot immediately
             make_plot();
-        }, 100);
+        }
 
         // Reposition legend when scrolling.
         let last_known_scroll_position = 0;
