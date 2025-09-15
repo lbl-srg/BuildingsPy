@@ -1,6 +1,12 @@
 BuildingsPy Changelog
 ---------------------
 
+Version 5.2.1, xxxx
+^^^^^^^^^^^^^^^^^^^
+
+- Updated regression tests to avoid blocking web server.
+  (https://github.com/lbl-srg/BuildingsPy/issues/605)
+
 Version 5.2.0, March 14, 2025
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
