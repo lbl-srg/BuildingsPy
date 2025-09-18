@@ -1,6 +1,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
     <title>$PAGE_TITLE</title>
     <script src="https://cdn.plot.ly/plotly-3.0.1.min.js" charset="utf-8"></script>
   </head>
@@ -59,16 +60,29 @@
           const fileInfo = []; // To track which variable each promise belongs to
 
           // Collect all groups and prepare file loading
+          // Check if server is accessible first
+          // Check if server is accessible first
+          try {
+            const response = await fetch(srv_url);
+            if (!response.ok) {
+              throw new Error(`Server not accessible (status: ${response.status})`);
+            }
+          } catch (error) {
+            throw new Error(`Server connection failed: ${error.message}. Make sure the local server is running on port ${srv_url.split(':').pop()}.`);
+          }
+
           Object.keys(dict_var_info).forEach((v) => {
             dict_var_info[v].forEach((el) => {
               avail_groups.push(el["group"]);
             });
-
             // Prepare file loading for each variable
             const fileTypes = ["reference.csv", "test.csv", "errors.csv"];
             fileTypes.forEach((f) => {
               const file = [srv_url, dict_var_info[v][0]["dir"], f].join("/");
-              filePromises.push(loadCSV(file));
+              filePromises.push(loadCSV(file).catch(err => {
+                console.warn(`Failed to load ${file}: ${err.message}`);
+                return null; // Return null for failed loads
+              }));
               fileInfo.push({ variable: v, type: f });
             });
           });
@@ -97,8 +111,9 @@
             const testIndex = fileInfo.findIndex((info) => info.variable === v && info.type === "test.csv");
             const errIndex = fileInfo.findIndex((info) => info.variable === v && info.type === "errors.csv");
 
-            // Process the data if all files were loaded
-            if (refIndex !== -1 && testIndex !== -1 && errIndex !== -1) {
+            // Process the data if all files were loaded successfully
+            if (refIndex !== -1 && testIndex !== -1 && errIndex !== -1 && 
+                csvDataSets[refIndex] && csvDataSets[testIndex] && csvDataSets[errIndex]) {
               dict_data[v] = {
                 ref: processData(csvDataSets[refIndex]),
                 test: processData(csvDataSets[testIndex]),
@@ -106,6 +121,7 @@
               };
             } else {
               console.warn(`Missing data files for variable ${v}`);
+              // Don't add this variable to dict_data
             }
           });
 
@@ -114,9 +130,20 @@
           plot(dict_data, dict_var_info, list_group_var);
         } catch (error) {
           console.error("Error loading or processing data:", error);
+          let errorMessage = error.message;
+          let suggestions = "";
+          
+          if (error.message.includes("Server connection failed") || error.message.includes("Failed to fetch")) {
+            suggestions = `<br><br><strong>Possible solutions:</strong><ul style="text-align:left;display:inline-block;">
+              <li>Check if the funnel server is running</li>
+              <li>Try running: <code>python -c "import buildingspy.development.regressiontest as t; t.Tester().report()"</code></li>
+              <li>Ensure all required CSV data files exist in the funnel_comp directory</li>
+              </ul>`;
+          }
+          
           document.getElementById("myDiv").innerHTML = `<div style="text-align:center;padding:20px;color:red;">
-                        Error loading data: ${error.message}<br>
-                        <button onclick="make_plot()">Retry</button>
+                        <strong>Error loading data:</strong> ${errorMessage}${suggestions}<br><br>
+                        <button onclick="makePlot()" style="padding:10px 20px;">Retry</button>
                     </div>`;
         }
       }
@@ -247,6 +274,13 @@
             i++;
             var data = dict_data[v];
             var axis_data_idx = group + 2; // 1 is for error
+            
+            // Check if data exists and has required properties
+            if (!data || !data.ref || !data.test || !data.err) {
+              console.warn(`Skipping variable ${v} due to missing data`);
+              return; // Skip this variable
+            }
+            
             traces.push({
               x: data["ref"].x,
               y: data["ref"].y,
