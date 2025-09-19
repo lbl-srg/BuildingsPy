@@ -57,7 +57,7 @@
 
           // Collect all groups and load data sequentially to avoid overwhelming the server
           const variables = Object.keys(dict_var_info);
-          
+
           for (const v of variables) {
             dict_var_info[v].forEach((el) => {
               avail_groups.push(el["group"]);
@@ -67,9 +67,9 @@
               // Load files for this variable sequentially
               const fileDir = dict_var_info[v][0]["dir"];
               const baseUrl = [srv_url, fileDir].join("/");
-              
+
               console.log(`Loading data for variable: ${v} from ${baseUrl}`);
-              
+
               const [refData, testData, errData] = await Promise.all([
                 loadCSV(`${baseUrl}/reference.csv`),
                 loadCSV(`${baseUrl}/test.csv`),
@@ -89,7 +89,7 @@
           }
 
           console.log("DATA LOADING COMPLETED");
-          
+
           // Check if we have any data to plot
           if (Object.keys(dict_data).length === 0) {
             throw new Error("No data could be loaded for any variables");
@@ -97,26 +97,9 @@
 
           // Plot the data
           plot(dict_data, dict_var_info, avail_groups);
-          
+
         } catch (error) {
           console.error("Error loading or processing data:", error);
-          let errorMessage = error.message;
-          let suggestions = "";
-          
-          if (error.message.includes("Server not accessible") || 
-              error.message.includes("Failed to fetch") || 
-              error.message.includes("ERR_CONNECTION_REFUSED")) {
-            suggestions = `<br><br><strong>Possible solutions:</strong><ul style="text-align:left;display:inline-block;">
-              <li>Check if the funnel server is running</li>
-              <li>Try running: <code>python -c "import buildingspy.development.regressiontest as t; t.Tester().report()"</code></li>
-              <li>Ensure all required CSV data files exist in the funnel_comp directory</li>
-              </ul>`;
-          }
-          
-          document.getElementById("myDiv").innerHTML = `<div style="text-align:center;padding:20px;color:red;">
-                        <strong>Error loading data:</strong> ${errorMessage}${suggestions}<br><br>
-                        <button onclick="makePlot()" style="padding:10px 20px;">Retry</button>
-                    </div>`;
         }
       }
 
@@ -139,7 +122,7 @@
         Object.keys(dict_var_info).forEach((v) => {
           // Only process variables that have data
           if (!dict_data[v]) return;
-          
+
           dict_var_info[v].forEach((el) => {
             let group_reset = flag_groups.indexOf(el["group"]);
             if (group_reset == -1) {
@@ -150,7 +133,7 @@
         });
 
         var nb_groups = list_group_var.filter(group => group && group.length > 0).length;
-        
+
         // Define color palette
         var colorPalette = [
           "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
@@ -221,14 +204,14 @@
         var i = -1;
         list_group_var.forEach(function (el, group) {
           if (!el || el.length === 0) return;
-          
+
           el.forEach(function (v, idv) {
             var data = dict_data[v];
             if (!data || !data.ref || !data.test || !data.err) {
               console.warn(`Skipping variable ${v} due to missing data`);
               return;
             }
-            
+
             i++;
             var axis_data_idx = group + 2; // 1 is for error
 
@@ -239,7 +222,7 @@
               line: { dash: "dot", color: getColor(i) },
               xaxis: "x" + axis_data_idx, yaxis: "y" + axis_data_idx,
             });
-            
+
             traces.push({
               x: data["test"].x, y: data["test"].y,
               legendgroup: v + group, name: v,
@@ -247,7 +230,7 @@
               line: { color: getColor(i) },
               xaxis: "x" + axis_data_idx, yaxis: "y" + axis_data_idx,
             });
-            
+
             traces.push({
               x: data["err"].x, y: data["err"].y,
               legendgroup: v + group, showlegend: false,
@@ -261,7 +244,7 @@
               ticks: "inside", mirror: "ticks", showline: true, zeroline: false,
               title: gen_y_axis_title, tickformatstops: tickformatstops,
             };
-            
+
             layout["xaxis" + axis_data_idx] = {
               ticks: "inside", showline: true, showticklabels: false,
               mirror: "ticks", zeroline: false, anchor: "y" + axis_data_idx,
@@ -289,13 +272,11 @@
         Plotly.newPlot("myDiv", traces, layout, { responsive: true })
           .then(function() {
             console.log("Plot rendered successfully");
+            // Force a resize to ensure plot is visible
+            window.dispatchEvent(new Event("resize"));
           })
           .catch(function(error) {
             console.error("Error rendering plot:", error);
-            document.getElementById("myDiv").innerHTML = `<div style="color:red;text-align:center;padding-top:100px;">
-              Error rendering plot: ${error.message}<br>
-              <button onclick="makePlot()">Retry</button>
-            </div>`;
           });
       }
 
@@ -327,21 +308,21 @@
       // Reposition legend when scrolling
       let last_known_scroll_position = 0;
       let ticking = false;
-      
+
       function repositionLegend(scroll_pos) {
         var scrollMaxY = Math.max(
           document.body.scrollHeight, document.body.offsetHeight,
           document.documentElement.clientHeight, document.documentElement.scrollHeight,
           document.documentElement.offsetHeight,
         ) - window.innerHeight;
-        
+
         var update = {
           legend: { x: 1.02, y: (scrollMaxY - scroll_pos) / scrollMaxY },
         };
-        
+
         Plotly.relayout("myDiv", update);
       }
-      
+
       window.addEventListener("scroll", function (e) {
         last_known_scroll_position = window.scrollY;
         if (!ticking) {
