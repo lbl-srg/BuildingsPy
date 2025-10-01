@@ -1,6 +1,6 @@
 import io
-import platform
 import os
+
 from setuptools import setup
 
 # Python setup file.
@@ -39,9 +39,8 @@ setup(
         'numpy>=1.21',
         'scipy>=1.7',
         'pytidylib>=0.3.2',
-        'simplejson>=3.16',
-        'six>=1.14',
-        'pyfunnel>=1.0.3',
+
+        'pyfunnel>=2.0.1',
         'PyYAML>=6.0.1',
         'cerberus>=1.3.4',
     ],

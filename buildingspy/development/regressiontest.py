@@ -7,10 +7,6 @@
 # MWetter@lbl.gov                            2011-02-23
 #######################################################
 #
-from collections import defaultdict
-from contextlib import contextmanager
-import difflib
-import fnmatch
 import functools
 import glob
 import io
@@ -24,19 +20,24 @@ import subprocess
 import sys
 import tempfile
 import time
-import webbrowser
+from collections import defaultdict
+from contextlib import contextmanager
+
 # Third-party module or package imports.
 import numpy as np
-import simplejson
+
 # Code repository sub-package imports.
 import pyfunnel
-from buildingspy.development import error_dictionary_openmodelica
-from buildingspy.development import error_dictionary_optimica
-from buildingspy.development import error_dictionary_dymola
-from buildingspy.io.outputfile import Reader
-from buildingspy.io.postprocess import Plotter
+
 import buildingspy.io.outputfile as of
 import buildingspy.io.reporter as rep
+from buildingspy.development import (
+    error_dictionary_dymola,
+    error_dictionary_openmodelica,
+    error_dictionary_optimica,
+)
+from buildingspy.io.outputfile import Reader
+from buildingspy.io.postprocess import Plotter
 
 
 def runSimulation(worDir, cmd):
@@ -3880,7 +3881,7 @@ exit();
             return 0
 
         with open(self._statistics_log, 'r') as f:
-            staVal = simplejson.loads(f.read())
+            staVal = json.loads(f.read())
         data = []
         for case in staVal['testCase']:
             if 'translate' in case:
@@ -3902,7 +3903,7 @@ exit();
                 temp['simulation']['state_events'] = case['simulate']['state_events'] if 'state_events' in case['simulate'] else 0
                 temp['simulation']['success'] = case['simulate']['result']
                 data.append(temp)
-        dataJson = simplejson.dumps(data)
+        dataJson = json.dumps(data)
         return dataJson
 
     def run(self):
@@ -4135,7 +4136,7 @@ exit();
                 # For Dymola: store available simulation info into
                 # self._comp_info used for reporting.
                 val = self._run_simulation_info()
-                self._comp_info = simplejson.loads(val)
+                self._comp_info = json.loads(val)
 
                 r = self._checkReferencePoints(ans)
                 if r != 0:  # In case of comparison error. Comparison warnings are handled
@@ -4154,7 +4155,7 @@ exit();
                 # For OpenModelica and OPTIMICA: store available translation and simulation info
                 # into self._comp_info used for reporting or for rewriting the configuration file.
                 with open(self._simulator_log_file, 'r') as f:
-                    self._comp_info = simplejson.loads(f.read())
+                    self._comp_info = json.loads(f.read())
 
             if not self._skip_verification:
                 r = self._checkReferencePoints(ans='N')

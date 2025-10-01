@@ -4,8 +4,9 @@ BuildingsPy Changelog
 Version 5.2.1, ...
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- Updated pyfunnel to version 1.0.3 to fix plotting issues.
-  ([#599](https://github.com/lbl-srg/BuildingsPy/issues/599))
+- Updated pyfunnel to version 2.0.1 to fix plotting issues.
+  With this change, Python 2 is no longer supported.
+  (https://github.com/lbl-srg/BuildingsPy/issues/599)
 
 Version 5.2.0, March 14, 2025
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
