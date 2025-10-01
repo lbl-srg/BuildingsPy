@@ -4,12 +4,45 @@
     <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
     <title>$PAGE_TITLE</title>
     <script src="https://cdn.plot.ly/plotly-3.0.1.min.js" charset="utf-8"></script>
+    <style>
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #myDiv {
+        height: $HEIGHT;
+        width: 100%;
+        min-height: 500px;
+      }
+    </style>
   </head>
 
   <body>
-    <div id="myDiv" style="height: $HEIGHT; width: 100%" class="plotly-graph-div"></div>
+    <div id="myDiv" class="plotly-graph-div"></div>
     <script>
-      // Simple CSV loading function similar to plot_bck.html
+      // Helper function to parse CSV text into JSON
+      function csvToJson(csvText) {
+        const lines = csvText.split("\n");
+        const headers = lines[0].split(",");
+
+        return lines
+          .slice(1)
+          .filter((line) => line.trim() !== "")
+          .map((line) => {
+            const values = line.split(",");
+            const row = {};
+
+            headers.forEach((header, index) => {
+              row[header.trim()] = values[index] ? values[index].trim() : "";
+            });
+
+            return row;
+          });
+      }
+
+      // Simple CSV loading function
       function loadCSV(url) {
         return fetch(url)
           .then((response) => {
@@ -18,28 +51,17 @@
             }
             return response.text();
           })
-          .then((text) => {
-            // Simple CSV parsing
-            const lines = text.split("\n");
-            const headers = lines[0].split(",");
-            const result = [];
-
-            for (let i = 1; i < lines.length; i++) {
-              if (!lines[i].trim()) continue;
-              const values = lines[i].split(",");
-              const row = {};
-
-              headers.forEach((header, j) => {
-                row[header.trim()] = values[j] ? values[j].trim() : "";
-              });
-
-              result.push(row);
-            }
-            return result;
-          });
+          .then((text) => csvToJson(text));
       }
 
       async function makePlot() {
+        console.log("Starting plot generation");
+        const myDiv = document.getElementById("myDiv");
+        if (!myDiv) {
+          console.error("Plot container not found");
+          return;
+        }
+
         try {
           const srv_url = "http://localhost:$SERVER_PORT";
           const dict_var_info = $DICT_VAR_INFO;
@@ -47,9 +69,9 @@
           const avail_groups = [];
 
           // Show loading indicator
-          document.getElementById("myDiv").innerHTML = '<div style="text-align:center;padding-top:100px;">Loading data...</div>';
+          myDiv.innerHTML = '<div style="text-align:center;padding-top:100px;">Loading data...</div>';
 
-          // Simple server accessibility check
+          // Check if server is accessible first
           const serverResponse = await fetch(srv_url);
           if (!serverResponse.ok) {
             throw new Error(`Server not accessible (status: ${serverResponse.status})`);
@@ -88,7 +110,7 @@
             }
           }
 
-          console.log("DATA LOADING COMPLETED");
+          console.log("Data loaded successfully");
 
           // Check if we have any data to plot
           if (Object.keys(dict_data).length === 0) {
@@ -100,6 +122,11 @@
 
         } catch (error) {
           console.error("Error loading or processing data:", error);
+          let errorMessage = error.message;
+          if (error.message.includes('Failed to fetch') || error.message.includes('ERR_CONNECTION_REFUSED')) {
+            errorMessage = 'Server connection failed. Make sure the Python server is running.';
+          }
+          myDiv.innerHTML = `<div style="text-align:center;padding-top:100px;color:red;">Error: ${errorMessage}</div>`;
         }
       }
 
@@ -114,6 +141,8 @@
       }
 
       function plot(dict_data, dict_var_info, avail_groups) {
+        console.log("Creating plot");
+        
         // Group variables by their groups
         const uniq_groups = [...new Set(avail_groups)];
         const flag_groups = [];
@@ -196,7 +225,7 @@
         };
 
         // Calculate domains for data plots
-        var divHeight = parseFloat(document.getElementById("myDiv").style.height) || 600;
+        var divHeight = parseFloat(myDiv.style.height) || 600;
         var spacing = (0.02 * 100) / divHeight;
         var t_offset = err_plot_height + 2 * spacing;
 
@@ -268,7 +297,7 @@
           layout["xaxis" + (nb_groups + 1)]["title"] = gen_x_axis_title;
         }
 
-        // Create the plot
+        // Create the plot with a callback to handle completion
         Plotly.newPlot("myDiv", traces, layout, { responsive: true })
           .then(function() {
             console.log("Plot rendered successfully");
@@ -292,8 +321,10 @@
       // Function to check if Plotly is loaded and then make the plot
       function waitForPlotlyAndMakePlot() {
         if (typeof Plotly !== "undefined") {
+          // Plotly is available, make the plot
           makePlot();
         } else {
+          // Plotly not yet available, check again in 100ms
           setTimeout(waitForPlotlyAndMakePlot, 100);
         }
       }
@@ -302,6 +333,7 @@
       if (document.readyState === "loading") {
         document.addEventListener("DOMContentLoaded", waitForPlotlyAndMakePlot);
       } else {
+        // DOM is already loaded, call immediately
         waitForPlotlyAndMakePlot();
       }
 
