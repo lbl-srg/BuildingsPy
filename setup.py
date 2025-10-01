@@ -32,6 +32,10 @@ setup(
     keywords="modelica dymola openmodelica mat",
     url="http://simulationresearch.lbl.gov/modelica/",
     python_requires='>=3.8',
+    setup_requires=[
+        'setuptools>=70.0.0',
+        'wheel>=0.37.0',
+    ],
     install_requires=[
         'gitpython>=3.1.33',
         'jinja2>=3.1.4',
@@ -39,7 +43,6 @@ setup(
         'numpy>=1.21',
         'scipy>=1.7',
         'pytidylib>=0.3.2',
-
         'pyfunnel>=2.0.1',
         'PyYAML>=6.0.1',
         'cerberus>=1.3.4',
