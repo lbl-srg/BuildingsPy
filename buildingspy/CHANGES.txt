@@ -5,8 +5,8 @@ BuildingsPy Changelog
 Version 5.2.1, ...
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- In buildingspy/development/regressiontest.py, added test for OpenModelica CI testing
-  that issues an error if a pure function calls an impure function.
+- In buildingspy/development/regressiontest.py, added test for OpenModelica and
+  OPTIMICA CI testing that issues an error if a pure function calls an impure function.
   (https://github.com/lbl-srg/BuildingsPy/issues/607)
 
 Version 5.2.0, March 14, 2025
