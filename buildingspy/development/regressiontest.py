@@ -4154,7 +4154,7 @@ exit();
             if not self._skip_verification or self._rewrite_configuration_file:
                 # For OpenModelica and OPTIMICA: store available translation and simulation info
                 # into self._comp_info used for reporting or for rewriting the configuration file.
-                with open(self._simulator_log_file, 'r') as f:
+                with open(self._simulator_log_file, 'r', encoding='utf-8-sig') as f:
                     self._comp_info = json.loads(f.read())
 
             if not self._skip_verification:
