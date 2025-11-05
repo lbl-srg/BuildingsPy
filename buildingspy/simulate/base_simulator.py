@@ -548,17 +548,14 @@ class _BaseSimulator(object):
             >>> env = os.environ.copy()
             >>> env = s.prependToModelicaPath(env, os.getcwd())
 
-         '''
+        '''
+        from buildingspy import BuildingsPy
+
         if path is None:
             return env
         else:
             if 'MODELICAPATH' in env:
-                import platform
-
-                if platform.system() == 'Windows':
-                    env['MODELICAPATH'] = ";".join([path, env['MODELICAPATH']])
-                else:
-                    env['MODELICAPATH'] = ":".join([path, env['MODELICAPATH']])
+                env['MODELICAPATH'] = BuildingsPy.getModelicaPathSeparator().join([path, env['MODELICAPATH']])
             else:
                 env['MODELICAPATH'] = path
             return env

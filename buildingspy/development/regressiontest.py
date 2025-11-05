@@ -3673,6 +3673,7 @@ exit();
         import inspect
         import buildingspy.development.regressiontest as r
         import jinja2
+        from buildingspy import BuildingsPy
 
         directory = self._temDir[iPro]
 
@@ -3721,10 +3722,7 @@ exit();
                 model_modifier = ""
 
                 # Get delimiter for MODELICAPATH
-                if os.name == 'nt':
-                    col = ";"
-                else:
-                    col = ":"
+                col = BuildingsPy.getModelicaPathSeparator()
 
                 # Get the MODELICAPATH
                 if 'MODELICAPATH' in os.environ:
