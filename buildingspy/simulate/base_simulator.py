@@ -555,7 +555,8 @@ class _BaseSimulator(object):
             return env
         else:
             if 'MODELICAPATH' in env:
-                env['MODELICAPATH'] = BuildingsPy.getModelicaPathSeparator().join([path, env['MODELICAPATH']])
+                env['MODELICAPATH'] = BuildingsPy.getModelicaPathSeparator().join(
+                    [path, env['MODELICAPATH']])
             else:
                 env['MODELICAPATH'] = path
             return env
