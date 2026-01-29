@@ -192,6 +192,7 @@ class Simulator(bs._BaseSimulator):
 #        import datetime
 
         from sys import platform
+        from buildingspy import BuildingsPy
 
         # Delete output files
         self.deleteOutputFiles()
@@ -211,10 +212,7 @@ class Simulator(bs._BaseSimulator):
         file_name = "{}.py".format(self.modelName.replace(".", "_"))
 
         # Get delimiter for MODELICAPATH
-        if os.name == 'nt':
-            col = ";"
-        else:
-            col = ":"
+        col = BuildingsPy.getModelicaPathSeparator()
 
         # Get the MODELICAPATH
         if 'MODELICAPATH' in os.environ:
