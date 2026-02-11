@@ -235,8 +235,8 @@ class Reader(object):
            >>> (time, heatFlow) = r.values('preHea.port.Q_flow')
         """
         try:
-            d = self._data_.data(varName)
-            a = self._data_.abscissa(blockOrName=varName, valuesOnly=True)
+            d = self._data_.data(varName).astype(float)
+            a = self._data_.abscissa(blockOrName=varName, valuesOnly=True).astype(float)
             return a, d
         except KeyError:
             raise KeyError(f"Did not find variable '{varName}' in '{self.fileName}'")
