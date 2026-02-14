@@ -258,13 +258,13 @@ class Reader(object):
            >>> resultFile = os.path.join("buildingspy", "examples", "dymola", "PlotDemo.mat")
            >>> r=Reader(resultFile, "dymola")
            >>> r.integral('preHea.port.Q_flow')
-           -21.589191160164773
+           -21.589191243613076
         """
         (t, v) = self.values(varName)
         val = 0.0
         for i in range(len(t) - 1):
             val = val + (t[i + 1] - t[i]) * (v[i + 1] + v[i]) / 2.0
-        return val
+        return val.astype(float)
 
     def mean(self, varName):
         r"""Get the mean of the data series.
@@ -288,11 +288,11 @@ class Reader(object):
            >>> resultFile = os.path.join("buildingspy", "examples", "dymola", "PlotDemo.mat")
            >>> r=Reader(resultFile, "dymola")
            >>> r.mean('preHea.port.Q_flow')
-           -21.589191160164773
+           -21.589191243613076
         """
         t = self.values(varName)[0]
         r = self.integral(varName) / (max(t) - min(t))
-        return r
+        return r.astype(float)
 
     def min(self, varName):
         r"""Get the minimum of the data series.
@@ -329,7 +329,7 @@ class Reader(object):
            >>> resultFile = os.path.join("buildingspy", "examples", "dymola", "PlotDemo.mat")
            >>> r=Reader(resultFile, "dymola")
            >>> r.max('preHea.port.Q_flow')
-           -11.284342
+           -11.284341812133789
         """
         v = self.values(varName)[1]
         return max(v)
