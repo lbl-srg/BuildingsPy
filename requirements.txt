@@ -1,9 +1,9 @@
 # Core.
 Jinja2==3.1.6
-gitpython>=3.1.33; python_version>='3.8'
---only-binary matplotlib==3.5.1; python_version>='3.8'
---only-binary numpy==1.21.4; python_version>='3.8'
---only-binary scipy==1.7.3; python_version>='3.8'
+gitpython>=3.1.45
+matplotlib==3.10.7
+numpy==2.3.4
+scipy==1.16.3
 pytidylib==0.3.2
 
 pyfunnel==2.0.1
