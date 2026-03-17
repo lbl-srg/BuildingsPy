@@ -273,7 +273,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
 
         mi = '"{mn}({dec})"'.format(mn=self.modelName, dec=','.join(dec))
 
-##        self._time_stamp_old_files = datetime.datetime.now()
+# self._time_stamp_old_files = datetime.datetime.now()
 
         try:
             # Write the Modelica script
@@ -294,7 +294,8 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
 # self._copyNewFiles(worDir)
 # self._deleteTemporaryDirectory(worDir)
         except Exception as e:  # Catch all possible exceptions
-            em = f"Simulation failed in '{worDir}'\n   Exception: {e}.\n   You need to delete the directory manually.\n"
+            em = f"Simulation failed in '{worDir}'\n   Exception: {
+                e}.\n   You need to delete the directory manually.\n"
             self._reporter.writeError(em)
             raise
 
@@ -324,7 +325,7 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
         worDir = os.getcwd()
         self._translateDir_ = worDir
         # Copy directory
-##        shutil.copytree(os.path.abspath(self._packagePath), worDir)
+# shutil.copytree(os.path.abspath(self._packagePath), worDir)
 
         # Construct the model instance with all parameter values
         # and the package redeclarations

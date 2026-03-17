@@ -14,6 +14,7 @@ import sys
 import shutil
 import tempfile
 
+
 class Comparator(object):
     """ Class that compares various simulation statistics across tools or branches.
 
@@ -130,8 +131,8 @@ class Comparator(object):
             print(f"*** Running {' '.join(self._postCloneCommand)} in '{working_directory}")
             retArg = subprocess.run(self._postCloneCommand, cwd=working_directory)
             if retArg.returncode != 0:
-                print(
-                    f"*** Error: Command {' '.join(self._postCloneCommand)} in '{working_directory} returned {retArg.returncode}.")
+                print(f"*** Error: Command {' '.join(self._postCloneCommand)
+                                            } in '{working_directory} returned {retArg.returncode}.")
 
     def _clone_repository(self, working_directory):
         '''Clone or copy repository to working directory'''
