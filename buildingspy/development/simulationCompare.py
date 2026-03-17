@@ -14,9 +14,6 @@ import sys
 import shutil
 import tempfile
 
-from distutils.dir_util import mkpath
-
-
 class Comparator(object):
     """ Class that compares various simulation statistics across tools or branches.
 
@@ -195,7 +192,7 @@ class Comparator(object):
                 f.write(case['commit'])
             logFiles = glob.iglob(os.path.join(bdg_dir, "*.log"))
             desDir = os.path.join(self._cwd, case['tool'], case['branch'])
-            mkpath(desDir)
+            os.makedirs(desDir, exist_ok=False)
             for file in logFiles:
                 shutil.copy2(file, desDir)
         else:
@@ -319,9 +316,7 @@ class Comparator(object):
         '''
 
         htmlTableDir = os.path.join(self._cwd, 'results', 'html')
-        mkpath(htmlTableDir)
-        # latexTableDir = os.path.join(self._cwd, 'results', 'latex')
-        # mkpath(latexTableDir)
+        os.makedirs(htmlTableDir, exist_ok=False)
         for data in dataSet:
             # generate branches comparison tables
             if len(self._branches) > 1:

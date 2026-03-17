@@ -45,7 +45,7 @@ setup(
         'pytidylib>=0.3.2',
         'pyfunnel==2.0.1',
         'PyYAML>=6.0.1',
-        'cerberus>=1.3.4',
+        'cerberus>=1.3.8',
     ],
     packages=[
         MAIN_PACKAGE,
