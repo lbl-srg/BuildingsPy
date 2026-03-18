@@ -197,7 +197,7 @@ Modelica package. Expected file '%s'."
 
          """
 
-        if("*" in str(val)):
+        if ("*" in str(val)):
             s = (
                 "Found mo file=" +
                 str(model_path) +
@@ -374,7 +374,7 @@ Modelica package. Expected file '%s'."
                     "A minimum tolerance of 1e-6 is required for OPTIMICA for unit tests.\n").format(mos_file)
                 raise ValueError(s)
             else:
-                if(float(value) > 1e-6):
+                if (float(value) > 1e-6):
                     s = ("Found mos file={!s} with tolerance={!s}.\n"
                          "The tolerance found is bigger than 1e-6, the maximum required by "
                          "OPTIMICA for unit tests.\n").format(mos_file, value)
@@ -503,7 +503,7 @@ Modelica package. Expected file '%s'."
                             value = "0.0"
                         elif (name == "stopTime"):
                             value = "1.0"
-                        elif(name == "tolerance"):
+                        elif (name == "tolerance"):
                             value = None
                             self._wrong_parameter(mos_file, name, value)
 
@@ -595,7 +595,7 @@ Modelica package. Expected file '%s'."
         for i in ["stopTime", "tolerance", "startTime"]:
             self._validate_experiment_setup(i, mos_non_fmus)
 
-        if(n_tols != n_mo_files):
+        if (n_tols != n_mo_files):
             s = ("The number of tolerances in the mos files={!s} does no match " +
                  "the number of mo files={!s}.\n").format(n_tols, n_mo_files)
             raise ValueError(s)

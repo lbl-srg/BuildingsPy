@@ -102,7 +102,7 @@ def get_dependencies(fmu_file_name):
     for typ in ['InitialUnknowns', 'Outputs', 'Derivatives']:
         dependencies[typ] = {}
         for children in root.iter(typ):
-            #this_root = outputs
+            # this_root = outputs
             for child in children:
                 variable = variable_names[int(child.attrib['index'])]
                 # Exclude CPUtime and EventCounter, which are written
