@@ -241,7 +241,7 @@ class Simulator(bs._BaseSimulator):
 
             modelicapath = topPacPat + col + modelicapath
 
-##        self._time_stamp_old_files = datetime.datetime.now()
+# self._time_stamp_old_files = datetime.datetime.now()
         with open(os.path.join(worDir, file_name), mode="w", encoding="utf-8") as fil:
             path_to_template = os.path.join(
                 os.path.dirname(__file__), os.path.pardir, "development")
@@ -309,7 +309,8 @@ class Simulator(bs._BaseSimulator):
 # self._deleteTemporaryDirectory(worDir)
 
         except Exception as e:  # Catch all possible exceptions
-            em = f"Simulation failed in '{worDir}'\n   Exception: {e}.\n   You need to delete the directory manually.\n"
+            em = f"Simulation failed in '{worDir}'\n   Exception: {
+                e}.\n   You need to delete the directory manually.\n"
             self._reporter.writeError(em)
             raise e
 
@@ -359,14 +360,16 @@ class Simulator(bs._BaseSimulator):
             steps = ['translation', 'simulation'] if simulate else ['translation']
             for step in steps:
                 if step not in js:
-                    msg = f"Failed to invoke {step} for model {self.modelName}. Check {path_to_logfile}."
+                    msg = f"Failed to invoke {step} for model {
+                        self.modelName}. Check {path_to_logfile}."
                     self._reporter.writeError(msg)
                     raise RuntimeError(msg)
                 if js[step]['success'] is not True:
                     # Check if there was a timeout exception
                     if "exception" in js[step]:
                         if "TimeoutExpired" in js[step]['exception']:
-                            msg = f"The {step} of {self.modelName} failed due to timeout. Check {path_to_logfile}."
+                            msg = f"The {step} of {
+                                self.modelName} failed due to timeout. Check {path_to_logfile}."
                             self._reporter.writeError(msg)
                             raise TimeoutError(msg)
                     # Raise a runtime error
