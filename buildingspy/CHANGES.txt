@@ -3,7 +3,8 @@ BuildingsPy Changelog
 
 Version 5.2.1, ...
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
+- In buildingspy/development/regressiontest.py, changed MODELICAPATH on Windows to use ';' instead of ':'
+  (https://github.com/lbl-srg/BuildingsPy/issues/609)
 - Updated pyfunnel to version 2.0.1 to fix plotting issues.
   With this change, Python 2 is no longer supported.
   (https://github.com/lbl-srg/BuildingsPy/issues/599)
