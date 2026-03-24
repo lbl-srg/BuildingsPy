@@ -145,7 +145,7 @@ class Tester(object):
     :param color: Boolean (default ``False``).
             If ``True``, command line output will be in color (ignored on Windows).
     :param rewriteConfigurationFile: Boolean (default ``False``).
-            If ``True``, rewrite `conf.yml` file. (Currently only supported for OpenModelica.)
+            If ``True``, rewrite `conf.yml` file.
 
     This class can be used to run all regression tests.
 
