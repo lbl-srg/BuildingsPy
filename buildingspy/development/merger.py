@@ -123,7 +123,7 @@ class IBPSA(object):
                         "Buildings.HeatTransfer.Sources.FixedTemperature"})
             # The merge script updates a few names that have IBPSA in it but
             # that should not be updated. Here, we revert this renaming.
-        #rep[self._src_library_name] = self._new_library_name
+        # rep[self._src_library_name] = self._new_library_name
         rep.update({"{} Conference".format(self._new_library_name):
                     "IBPSA Conference",
                     "2013-{}-Wetter.pdf".format(self._new_library_name):

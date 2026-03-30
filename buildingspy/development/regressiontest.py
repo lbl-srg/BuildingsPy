@@ -7,10 +7,6 @@
 # MWetter@lbl.gov                            2011-02-23
 #######################################################
 #
-from collections import defaultdict
-from contextlib import contextmanager
-import difflib
-import fnmatch
 import functools
 import glob
 import io
@@ -24,19 +20,24 @@ import subprocess
 import sys
 import tempfile
 import time
-import webbrowser
+from collections import defaultdict
+from contextlib import contextmanager
+
 # Third-party module or package imports.
 import numpy as np
-import simplejson
+
 # Code repository sub-package imports.
 import pyfunnel
-from buildingspy.development import error_dictionary_openmodelica
-from buildingspy.development import error_dictionary_optimica
-from buildingspy.development import error_dictionary_dymola
-from buildingspy.io.outputfile import Reader
-from buildingspy.io.postprocess import Plotter
+
 import buildingspy.io.outputfile as of
 import buildingspy.io.reporter as rep
+from buildingspy.development import (
+    error_dictionary_dymola,
+    error_dictionary_openmodelica,
+    error_dictionary_optimica,
+)
+from buildingspy.io.outputfile import Reader
+from buildingspy.io.postprocess import Plotter
 
 
 def runSimulation(worDir, cmd):
@@ -89,7 +90,7 @@ def runSimulation(worDir, cmd):
         except OSError as e:
             sys.stderr.write("Execution of '" + " ".join(map(str, cmd)) + " failed.\n"
                              + "Working directory is '" + worDir + "'.")
-            raise(e)
+            raise (e)
         except KeyboardInterrupt as e:
             pro.kill()
             sys.stderr.write("Users stopped simulation in %s.\n" % worDir)
@@ -144,7 +145,7 @@ class Tester(object):
     :param color: Boolean (default ``False``).
             If ``True``, command line output will be in color (ignored on Windows).
     :param rewriteConfigurationFile: Boolean (default ``False``).
-            If ``True``, rewrite `conf.yml` file. (Currently only supported for OpenModelica.)
+            If ``True``, rewrite `conf.yml` file.
 
     This class can be used to run all regression tests.
 
@@ -524,7 +525,7 @@ class Tester(object):
 
         By default, the simulator runs without GUI
         """
-        #from buildingspy.simulate.base_simulator import _BaseSimulator
+        # from buildingspy.simulate.base_simulator import _BaseSimulator
         import buildingspy.simulate.base_simulator as b
 
         self._DASSAULT_EXE = 'dmc' if not show else 'dymola'
@@ -541,9 +542,9 @@ class Tester(object):
 
 # Check again for executable, as it may be overridden above
 # if not b.isExecutable(self._DASSAULT_EXE):
-####            em = f"Error: Did not find executable '{self._DASSAULT_EXE}'. "
-####            em += f"Make sure it is on the PATH variable of your operating system."
-####            raise RuntimeError(em)
+# em = f"Error: Did not find executable '{self._DASSAULT_EXE}'. "
+# em += f"Make sure it is on the PATH variable of your operating system."
+# raise RuntimeError(em)
 
         return
 
@@ -995,7 +996,8 @@ class Tester(object):
 
             # Set the startTime, if present
             for key in ["startTime", "stopTime"]:
-                regex = fr"simulateModel\(.*({key})\s*=\s*(?P<value>[-+]?\ *[0-9]+\.?[0-9]*(?:[Ee]\ *-?\ *[-+]?[0-9]+)?)"
+                regex = fr"simulateModel\(.*({
+                    key})\s*=\s*(?P<value>[-+]?\ *[0-9]+\.?[0-9]*(?:[Ee]\ *-?\ *[-+]?[0-9]+)?)"
                 val = re.search(regex, mos_content, re.DOTALL)
                 if val:
                     try:
@@ -1274,7 +1276,8 @@ class Tester(object):
                 f"{os.path.join(self._libHome, '..', model_name.replace('.', os.path.sep))}.mo")
             if not os.path.isfile(mo_name):
                 self._reporter.writeError(
-                    f"{conf_file_name} specifies {con_dat['model_name']}, but there is no model file {mo_name}.")
+                    f"{conf_file_name} specifies {
+                        con_dat['model_name']}, but there is no model file {mo_name}.")
 
         if self._modelica_tool == 'dymola':
             for ent in self._data:
@@ -1303,8 +1306,8 @@ class Tester(object):
         conf_json = f"{conf_yml[:-4]}.json"
 
         if os.path.exists(conf_json) and os.path.exists(conf_yml):
-            raise ValueError(
-                f"Found {conf_yml} and {conf_json}. Only one must exist. Future versions will only support the .yml file.")
+            raise ValueError(f"Found {conf_yml} and {
+                conf_json}. Only one must exist. Future versions will only support the .yml file.")
 
         if os.path.exists(conf_json) or os.path.exists(conf_yml):
             if os.path.exists(conf_yml):
@@ -1365,7 +1368,8 @@ class Tester(object):
                             msg = f"{all_dat['model_name']}: Excluded from simulation."
                         if msg is not None:
                             if 'comment' in all_dat[self._modelica_tool]:
-                                msg = f"{msg} {self._color_GREY}{all_dat[self._modelica_tool]['comment']}{self._color_ENDC}"
+                                msg = f"{msg} {self._color_GREY}{
+                                    all_dat[self._modelica_tool]['comment']}{self._color_ENDC}"
                             self._reporter.writeOutput(msg)
             for all_dat in self._data:
                 # Set simulate to false as well as it can't be simulated
@@ -2082,8 +2086,8 @@ class Tester(object):
             # that are listed in this environment variable
             if 'BUILDINGSPY_SKIP_STATISTICS_VERIFICATION' in os.environ:
                 if model_name in os.environ['BUILDINGSPY_SKIP_STATISTICS_VERIFICATION']:
-                    print(
-                        f"Excluding {model_name} from comparison of initialization statistics and result comparison on Travis CI.")
+                    print(f"Excluding {
+                        model_name} from comparison of initialization statistics and result comparison on Travis CI.")
                     return False
             return True
 
@@ -2237,6 +2241,13 @@ class Tester(object):
                 newStatistics = self._check_statistics(
                     old_results, y_tra, stage, newTrajectories, newStatistics, model_name)
 
+        if newTrajectories:
+            if self._comp_tool == 'legacy':
+                print("(Close plot window to continue.)")
+                self._legacy_plot(y_sim, t_ref, y_ref, noOldResults, timOfMaxErr, matFilNam)
+            else:
+                self._funnel_plot(model_name)
+
         # If the users selected "Y" or "N" (to not accept or reject any new results) in previous tests,
         # or if the script is run in batch mode, then don't plot the results.
         # If we found an error, plot the results, and ask the user to accept or
@@ -2246,22 +2257,24 @@ class Tester(object):
             if newTrajectories and newStatistics:
                 print(f"{self._color_ERROR}             For {refFilNam},")
                 print(
-                    f"             update reference files with new {self._color_BOLD}statistics and trajectories{self._color_ERROR}?{self._color_ENDC}")
+                    f"             update reference files with new {
+                        self._color_BOLD}statistics and trajectories{
+                        self._color_ERROR}?{
+                        self._color_ENDC}")
             elif newStatistics:
                 print(f"{self._color_WARNING}             For {refFilNam},")
                 print(
-                    f"             update reference files with new {self._color_BOLD}statistics{self._color_WARNING}?{self._color_ENDC}")
+                    f"             update reference files with new {
+                        self._color_BOLD}statistics{
+                        self._color_WARNING}?{
+                        self._color_ENDC}")
             else:
                 print(f"{self._color_ERROR}             For {refFilNam},")
                 print(
-                    f"             update reference files with new {self._color_BOLD}trajectories{self._color_ERROR}?{self._color_ENDC}")
-
-            if newTrajectories:
-                if self._comp_tool == 'legacy':
-                    print("(Close plot window to continue.)")
-                    self._legacy_plot(y_sim, t_ref, y_ref, noOldResults, timOfMaxErr, matFilNam)
-                else:
-                    self._funnel_plot(model_name)
+                    f"             update reference files with new {
+                        self._color_BOLD}trajectories{
+                        self._color_ERROR}?{
+                        self._color_ENDC}")
 
             while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
                 ans = input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
@@ -2311,7 +2324,7 @@ class Tester(object):
         server = pyfunnel.MyHTTPServer(('', 0), pyfunnel.CORSRequestHandler,
                                        str_html=content, url_html='funnel')
         # Start the browser instance.
-        server.browse(list_files, browser=browser)
+        server.browse(list_files, browser=browser, timeout=60)
 
     def _legacy_plot(self, y_sim, t_ref, y_ref, noOldResults, timOfMaxErr, model_name):
         """Plot comparison results generated by legacy comparison algorithm."""
@@ -2680,7 +2693,10 @@ class Tester(object):
 
                         all_res.append(res)
                         if not res['translation']['success']:
-                            em = f"Translation of {res['model']} failed: '{res['translation']['exception']}'. Directory is '{res['working_directory']}'."
+                            em = f"Translation of {
+                                res['model']} failed: '{
+                                res['translation']['exception']}'. Directory is '{
+                                res['working_directory']}'."
                             self._reporter.writeError(em)
                             iTra = iTra + 1
                         elif not res['simulation']['success']:
@@ -2704,7 +2720,10 @@ class Tester(object):
 #                                    print("*** Did not simulate {}".format(res['model']))
 #                                    iOmiSim = iOmiSim + 1
                             else:
-                                em = f"Simulation of {res['model']} failed: '{res['simulation']['exception']}'. Directory is '{res['working_directory']}'."
+                                em = f"Simulation of {
+                                    res['model']} failed: '{
+                                    res['simulation']['exception']}'. Directory is '{
+                                    res['working_directory']}'."
                                 self._reporter.writeError(em)
                                 iSim = iSim + 1
 
@@ -3287,7 +3306,7 @@ Modelica.Utilities.Streams.print("{\"testCase\" : [", "%s");
         #        tra_data['dymola']) or self._isPresentAndTrue(
         #        'exportFMU',
         #        tra_data['dymola']):
-        #nItem = nItem + 1
+        # nItem = nItem + 1
 
 #        iItem = 0
 # Write unit tests for this process
@@ -3588,7 +3607,10 @@ exit();
 
         # Print number of processors
         print(
-            f"Using {self._nPro} of {multiprocessing.cpu_count()} processors to run unit tests for {self._modelica_tool}.")
+            f"Using {
+                self._nPro} of {
+                multiprocessing.cpu_count()} processors to run unit tests for {
+                self._modelica_tool}.")
 
         # Create temporary directories. This must be called after setNumberOfThreads.
         if not self._useExistingResults:
@@ -3624,8 +3646,8 @@ exit();
             self._write_run_all_script(iPro, tra_data_pro)
 
         if nUniTes == 0:
-            raise RuntimeError(
-                f"Wrong invocation, generated {nUniTes} unit tests. There seem to be no model to translate.")
+            raise RuntimeError(f"Wrong invocation, generated {
+                nUniTes} unit tests. There seem to be no model to translate.")
 
         print("Generated {} regression tests.\n".format(nUniTes))
 
@@ -3672,6 +3694,7 @@ exit();
         import inspect
         import buildingspy.development.regressiontest as r
         import jinja2
+        from buildingspy import BuildingsPy
 
         directory = self._temDir[iPro]
 
@@ -3720,10 +3743,7 @@ exit();
                 model_modifier = ""
 
                 # Get delimiter for MODELICAPATH
-                if os.name == 'nt':
-                    col = ";"
-                else:
-                    col = ":"
+                col = BuildingsPy.getModelicaPathSeparator()
 
                 # Get the MODELICAPATH
                 if 'MODELICAPATH' in os.environ:
@@ -3880,7 +3900,7 @@ exit();
             return 0
 
         with open(self._statistics_log, 'r') as f:
-            staVal = simplejson.loads(f.read())
+            staVal = json.loads(f.read())
         data = []
         for case in staVal['testCase']:
             if 'translate' in case:
@@ -3902,7 +3922,7 @@ exit();
                 temp['simulation']['state_events'] = case['simulate']['state_events'] if 'state_events' in case['simulate'] else 0
                 temp['simulation']['success'] = case['simulate']['result']
                 data.append(temp)
-        dataJson = simplejson.dumps(data)
+        dataJson = json.dumps(data)
         return dataJson
 
     def run(self):
@@ -4073,7 +4093,8 @@ exit();
                                                 exception = ''.join(
                                                     jsonBui['simulation']['exception'])
                                             else:
-                                                exception = f"JSONDecodeError in {temLogFilNam}: {str(e)}"
+                                                exception = f"JSONDecodeError in {
+                                                    temLogFilNam}: {str(e)}"
                                             ele = {
                                                 "model": modelName,
                                                 "simulate": {
@@ -4135,7 +4156,7 @@ exit();
                 # For Dymola: store available simulation info into
                 # self._comp_info used for reporting.
                 val = self._run_simulation_info()
-                self._comp_info = simplejson.loads(val)
+                self._comp_info = json.loads(val)
 
                 r = self._checkReferencePoints(ans)
                 if r != 0:  # In case of comparison error. Comparison warnings are handled
@@ -4153,8 +4174,8 @@ exit();
             if not self._skip_verification or self._rewrite_configuration_file:
                 # For OpenModelica and OPTIMICA: store available translation and simulation info
                 # into self._comp_info used for reporting or for rewriting the configuration file.
-                with open(self._simulator_log_file, 'r') as f:
-                    self._comp_info = simplejson.loads(f.read())
+                with open(self._simulator_log_file, 'r', encoding='utf-8-sig') as f:
+                    self._comp_info = json.loads(f.read())
 
             if not self._skip_verification:
                 r = self._checkReferencePoints(ans='N')

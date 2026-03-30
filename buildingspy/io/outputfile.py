@@ -145,7 +145,7 @@ def get_errors_and_warnings(log_file, simulator):
         elif simulator == "dymola" and lin == " = false\n":
             em = "Log file contained the line ' = false'"
             if index > 0:
-                em = f"{em}. Preceeding line: '{lines[index-1]}'"
+                em = f"{em}. Preceeding line: '{lines[index - 1]}'"
             listErr.append(em)
 
     ret["warnings"] = listWarn
@@ -235,8 +235,8 @@ class Reader(object):
            >>> (time, heatFlow) = r.values('preHea.port.Q_flow')
         """
         try:
-            d = self._data_.data(varName)
-            a = self._data_.abscissa(blockOrName=varName, valuesOnly=True)
+            d = self._data_.data(varName).astype(float)
+            a = self._data_.abscissa(blockOrName=varName, valuesOnly=True).astype(float)
             return a, d
         except KeyError:
             raise KeyError(f"Did not find variable '{varName}' in '{self.fileName}'")
@@ -258,7 +258,7 @@ class Reader(object):
            >>> resultFile = os.path.join("buildingspy", "examples", "dymola", "PlotDemo.mat")
            >>> r=Reader(resultFile, "dymola")
            >>> r.integral('preHea.port.Q_flow')
-           -21.589191160164773
+           np.float64(-21.589191243613076)
         """
         (t, v) = self.values(varName)
         val = 0.0
@@ -288,11 +288,10 @@ class Reader(object):
            >>> resultFile = os.path.join("buildingspy", "examples", "dymola", "PlotDemo.mat")
            >>> r=Reader(resultFile, "dymola")
            >>> r.mean('preHea.port.Q_flow')
-           -21.589191160164773
+           np.float64(-21.589191243613076)
         """
         t = self.values(varName)[0]
-        r = self.integral(varName) / (max(t) - min(t))
-        return r
+        return self.integral(varName) / (max(t) - min(t))
 
     def min(self, varName):
         r"""Get the minimum of the data series.
@@ -309,7 +308,7 @@ class Reader(object):
            >>> resultFile = os.path.join("buildingspy", "examples", "dymola", "PlotDemo.mat")
            >>> r=Reader(resultFile, "dymola")
            >>> r.min('preHea.port.Q_flow')
-           -50.0
+           np.float64(-50.0)
         """
         v = self.values(varName)[1]
         return min(v)
@@ -329,7 +328,7 @@ class Reader(object):
            >>> resultFile = os.path.join("buildingspy", "examples", "dymola", "PlotDemo.mat")
            >>> r=Reader(resultFile, "dymola")
            >>> r.max('preHea.port.Q_flow')
-           -11.284342
+           np.float64(-11.284341812133789)
         """
         v = self.values(varName)[1]
         return max(v)
