@@ -39,3 +39,8 @@ class ErrorDictionary(ed.ErrorDictionary):
             'tool_message': "Non-array modification",
             'counter': 0,
             'summary_message': "Number of models with missing 'each'                         : {}\n"}
+
+        self._error_dict["pure calling impure function"] = {
+            'tool_message': "call to impure function",
+            'counter': 0,
+            'summary_message': "Number of models in which pure function calls impure function: {}\n"}
