@@ -50,10 +50,14 @@ class IBPSA(object):
         self._new_library_name = os.path.basename(dest_dir)
 
         # Exclude packages and files
+        # documentation is lower case, this could be from an FMU extraction
         self.set_excluded_directories(["Experimental",
                                        "Obsolete",
                                        ".FMUOutput",
-                                       ".vscode"])
+                                       ".vscode",
+                                       "binaries",
+                                       "documentation"])
+
         self._excluded_files = [os.path.join(ibpsa_dir, "package.mo"),
                                 os.path.join(ibpsa_dir, "dymosim"),
                                 os.path.join(ibpsa_dir, "dymosim.exe"),
@@ -75,6 +79,7 @@ class IBPSA(object):
                                 os.path.join(ibpsa_dir, "*.svg"),
                                 os.path.join(ibpsa_dir, "*.pyc"),
                                 os.path.join(ibpsa_dir, "*~"),
+                                os.path.join(ibpsa_dir, "modelDescription.xml"),
                                 os.path.join(ibpsa_dir, "nohup.out"),
                                 os.path.join(ibpsa_dir, "funnel_comp", "plot.html"),
                                 os.path.join(ibpsa_dir, "funnel_comp", "**", "*.csv"),
