@@ -319,7 +319,16 @@ createPlot(id=1, y={"Test.x"});
              'mo_content': """Real x(start=0);
                                     equation
                                       Modelica.Math.exp(x)=-1;""",
-             'description': "Model that has no solution."}
+             'description': "Model that has no solution."},
+            {'ret_val': 1,
+             'mo_content': """
+  function aPureFunction
+  algorithm
+    Modelica.Utilities.Streams.print("Hello");
+  end aPureFunction;
+equation
+  aPureFunction();""",
+             'description': "Model in which a pure function calls an impure function."}
         ]
         # Run all test cases
         for test in tests:

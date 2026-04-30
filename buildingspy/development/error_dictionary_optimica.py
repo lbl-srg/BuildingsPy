@@ -78,3 +78,9 @@ class ErrorDictionary(ed.ErrorDictionary):
             'tool_message': "Integer, using Real instead",
             'counter': 0,
             'summary_message': "Number of models with too large Integers                        : {}\n"}
+
+        # Check for pure function calling impure function
+        self._error_dict["pure calling impure function"] = {
+            'tool_message': "Call to impure function",
+            'counter': 0,
+            'summary_message': "Number of models in which pure function calls impure function: {}\n"}
