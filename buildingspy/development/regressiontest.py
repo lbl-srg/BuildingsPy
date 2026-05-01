@@ -3267,6 +3267,7 @@ Advanced.ParallelizeCode = false;
 Evaluate=false;
 Advanced.CompileWith64=2;
 Advanced.EfficientMinorEvents=false;
+Advanced.Translation.Log.UnitPropagationFailure=20;
 // Set the pedantic Modelica mode
 Advanced.PedanticModelica = {str(self._pedanticModelica).lower()};
 orig_Advanced_GenerateVariableDependencies = Advanced.GenerateVariableDependencies;
