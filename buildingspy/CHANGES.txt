@@ -3,6 +3,9 @@ BuildingsPy Changelog
 
 Version 5.2.1, ...
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- In buildingspy/development/regressiontest.py, fixed warning message for FMU statistics
+  to use reporter system for consistent output handling.
+  (https://github.com/lbl-srg/BuildingsPy/issues/626)
 - In buildingspy/development/regressiontest.py, added detection of unit propagation error in Dymola.
   (https://github.com/lbl-srg/BuildingsPy/issues/620)
 - In buildingspy/development/regressiontest.py, changed MODELICAPATH on Windows to use ';' instead of ':'

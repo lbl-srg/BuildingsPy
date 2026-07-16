@@ -2462,8 +2462,8 @@ class Tester(object):
             found_differences = False
             for typ in ['InitialUnknowns', 'Outputs', 'Derivatives']:
                 if old_dep['statistics-fmu-dependencies'][typ] != new_dependencies[typ]:
-                    print(
-                        "*** Warning: Reference file {} has different FMU statistics for '{}'.".format(reference_file_name, typ))
+                    self._reporter.writeWarning(
+                        "Reference file {} has different FMU statistics for '{}'.".format(reference_file_name, typ))
                     found_differences = True
             if found_differences:
                 while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
