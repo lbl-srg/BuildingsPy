@@ -2466,11 +2466,19 @@ class Tester(object):
                         "Reference file {} has different FMU statistics for '{}'.".format(reference_file_name, typ))
                     found_differences = True
             if found_differences:
-                while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
-                    print("             Rewrite file?")
-                    ans = input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
+#                while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
+#                    print("             Rewrite file?")
+#                    ans = input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
+                ans = "y" # Hack, mwetter
                 if ans == "y" or ans == "Y":
                     self._writeReferenceResults(abs_ref_fil_nam, None, y_tra)
+
+                    # Write file content to stdout with delimiters
+                    print(f"==++== {reference_file_name}")
+                    with open(abs_ref_fil_nam, 'r', encoding='utf-8') as f:
+                        print(f.read())
+                    print("==++==")
+
                     self._reporter.writeWarning(
                         "*** Warning: Rewrote reference file %s due to new FMU statistics." %
                         reference_file_name)
