@@ -3,6 +3,8 @@ BuildingsPy Changelog
 
 Version 5.2.1, ...
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- In buildingspy/development/regressiontest.py, corrected escape variable for omc script.
+  (https://github.com/lbl-srg/BuildingsPy/issues/628)
 - In buildingspy/development/regressiontest.py, fixed warning message for FMU statistics
   to use reporter system for consistent output handling.
   (https://github.com/lbl-srg/BuildingsPy/issues/626)

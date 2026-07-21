@@ -3773,10 +3773,10 @@ exit();
                     step_size="",
                     simulate=dat[self._modelica_tool]['simulate'],
                     time_out=dat[self._modelica_tool]['time_out'],
-                    filter_translate='|'.join([re.sub(r'\[|\]',
+                    filter_translate='|'.join([re.sub(r'\\[|\\]',
                                                       lambda m: '[{}]'.format(m.group()),
                                                       re.sub(' ', '', x)) for x in result_variables]),
-                    filter_simulate='|'.join([re.sub(r'\[|\]',
+                    filter_simulate='|'.join([re.sub(r'\\[|\\]',
                                                      lambda m: '\\{}'.format(m.group()),
                                                      re.sub(' ', '', x)) for x in result_variables])
                 )
