@@ -740,7 +740,7 @@ class Tester(object):
 
         # Make some simple test for checking the string format
         if ide - 1 <= ids:
-            raise ValueError("String '{}' is wrong formatted".format(packages))
+            raise ValueError("String '{}' is wrongly formatted".format(packages))
 
         # Get text before the curly brackets
         pre = packages[0:ids]
