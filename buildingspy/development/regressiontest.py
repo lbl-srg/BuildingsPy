@@ -3777,7 +3777,7 @@ exit();
                                                       lambda m: '[{}]'.format(m.group()),
                                                       re.sub(' ', '', x)) for x in result_variables]),
                     filter_simulate='|'.join([re.sub(r'\[|\]',
-                                                     lambda m: '\\{}'.format(m.group()),
+                                                     lambda m: r'\\\\{}'.format(m.group()),
                                                      re.sub(' ', '', x)) for x in result_variables])
                 )
             elif self._modelica_tool == 'optimica':
