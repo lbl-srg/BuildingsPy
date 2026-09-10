@@ -1,6 +1,6 @@
 # Core.
 Jinja2==3.1.6
-gitpython>=3.1.45
+gitpython==3.1.62
 matplotlib==3.10.7
 numpy==2.3.4
 scipy==1.16.3

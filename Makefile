@@ -118,6 +118,7 @@ clean-dist:
 	rm -rf buildingspy.egg-info
 	rm -rf buildingspy-*
 	rm -rf dist
+	rm -rf funnel_comp dymola openmodelica __pycache__ comparison-*.log simulator-*.log
 
 clean-doc:
 	(cd $(BPDOC); make clean)
