@@ -43,7 +43,7 @@ setup(
         'numpy>=2.3',
         'scipy>=1.16',
         'pytidylib>=0.3.2',
-        'pyfunnel==2.0.1',
+        'pyfunnel==2.0.2',
         'PyYAML>=6.0.1',
         'cerberus>=1.3.8',
     ],
