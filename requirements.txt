@@ -4,6 +4,9 @@ gitpython==3.1.62
 matplotlib==3.10.7
 numpy==2.3.4
 scipy==1.16.3
+# pytidylib requires the native libtidy library:
+#   Ubuntu/Debian: sudo apt-get install libtidy-dev
+#   macOS:         brew install tidy-html5
 pytidylib==0.3.2
 requests==2.33.0
 
