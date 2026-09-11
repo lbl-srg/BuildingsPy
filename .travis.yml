@@ -61,6 +61,7 @@ script:
  - make unittest_io_outputfile
  - make unittest_io_postprocess
  - make unittest_simulate_Dymola
+ - make unittest_simulate_OpenModelica
  - make unittest_simulate_Optimica
  - make unittest_simulate_Simulator
  - |
