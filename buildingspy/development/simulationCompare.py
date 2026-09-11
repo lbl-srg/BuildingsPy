@@ -173,7 +173,8 @@ class Comparator(object):
         else:
             num_pro = f"-n {self._nPro}"
 
-        command = f"{sys.executable} ../bin/runUnitTests.py {single_package} {num_pro} -t {tool} --batch"
+        command = f"{
+            sys.executable} ../bin/runUnitTests.py {single_package} {num_pro} -t {tool} --batch"
         try:
             os.system(command)
         except OSError:
@@ -198,7 +199,10 @@ class Comparator(object):
                 for file in logFiles:
                     shutil.copy2(file, desDir)
             else:
-                sys.stderr.write(f"Error: For {case['tool']} {case['branch']}, did not find {bdg_dir}.")
+                sys.stderr.write(
+                    f"Error: For {
+                        case['tool']} {
+                        case['branch']}, did not find {bdg_dir}.")
         finally:
             os.chdir(self._cwd)
 
