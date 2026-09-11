@@ -41,10 +41,6 @@ before_install:
   - docker pull "$DOCKER_REPONAME"/${OPTIMICA_VERSION}
   - python -m pip install --upgrade pip
 
-install:
-  - pip install -r requirements.txt
-  - pip install .
-
 # Execute tests
 script:
  - omc --version
@@ -64,9 +60,7 @@ script:
  - make unittest_simulate_OpenModelica
  - make unittest_simulate_Optimica
  - make unittest_simulate_Simulator
- - |
-   pip install -r doc/requirements.txt && \
-   make doc;
+ - make doc
 
 after_failure:
   - |

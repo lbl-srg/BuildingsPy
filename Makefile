@@ -7,8 +7,20 @@ PEP8_ARGS=--recursive --max-line-length=100 \
   --aggressive --aggressive --aggressive \
   buildingspy
 
+VENV := .venv
+PYTHON := $(VENV)/bin/python3
+PIP := $(VENV)/bin/pip
 
-.PHONY: doc clean
+$(VENV)/bin/activate: requirements.txt
+	python3 -m venv $(VENV)
+	$(PIP) install --upgrade pip
+	$(PIP) install -r requirements.txt
+	$(PIP) install -e .
+	touch $(VENV)/bin/activate
+
+venv: $(VENV)/bin/activate
+
+.PHONY: doc clean venv
 
 doc:
 	@echo "*** Verifying that readme file used by git and pip are consistent"
@@ -16,72 +28,72 @@ doc:
 	@echo "*** Generating documentation"
 	(cd $(BPDOC); make html linkcheck)
 
-pep8:
+pep8: venv
 ifeq ($(PEP8_CORRECT_CODE), true)
 	@echo "*** Running autopep8 to correct code"
-	autopep8 --in-place $(PEP8_ARGS)
+	$(VENV)/bin/autopep8 --in-place $(PEP8_ARGS)
 	@echo "*** Checking for required code changes (apply with 'make pep8 PEP8_CORRECT_CODE=true')"
 	git diff --exit-code .
 else
 	@echo "*** Checking for required code changes (apply with 'make pep8 PEP8_CORRECT_CODE=true')"
-	autopep8 --diff $(PEP8_ARGS)
+	$(VENV)/bin/autopep8 --diff $(PEP8_ARGS)
 endif
 
-unittest:
+unittest: venv
 	# To run a single test, use
 	# python buildingspy/tests/test_development_regressiontest_optimica.py Test_regressiontest_optimica_Tester.test_regressiontest_diagnostics
-	python3 -m unittest discover buildingspy/tests
+	$(PYTHON) -m unittest discover buildingspy/tests
 
-unittest_development_error_dictionary:
-	python3 buildingspy/tests/test_development_error_dictionary.py
+unittest_development_error_dictionary: venv
+	$(PYTHON) buildingspy/tests/test_development_error_dictionary.py
 
-unittest_development_merger:
-	python3 buildingspy/tests/test_development_merger.py
+unittest_development_merger: venv
+	$(PYTHON) buildingspy/tests/test_development_merger.py
 
-unittest_development_refactor:
-	python3 buildingspy/tests/test_development_refactor.py
+unittest_development_refactor: venv
+	$(PYTHON) buildingspy/tests/test_development_refactor.py
 
-unittest_development_regressiontest_openmodelica:
-	python3 buildingspy/tests/test_development_regressiontest_openmodelica.py
+unittest_development_regressiontest_openmodelica: venv
+	$(PYTHON) buildingspy/tests/test_development_regressiontest_openmodelica.py
 
-unittest_development_regressiontest_optimica:
-	python3 buildingspy/tests/test_development_regressiontest_optimica.py
+unittest_development_regressiontest_optimica: venv
+	$(PYTHON) buildingspy/tests/test_development_regressiontest_optimica.py
 
-unittest_development_regressiontest:
-	python3 buildingspy/tests/test_development_regressiontest.py
+unittest_development_regressiontest: venv
+	$(PYTHON) buildingspy/tests/test_development_regressiontest.py
 
-unittest_development_Validator:
-	python3 buildingspy/tests/test_development_Validator.py
+unittest_development_Validator: venv
+	$(PYTHON) buildingspy/tests/test_development_Validator.py
 
-unittest_development_Comparator:
-	python3 buildingspy/tests/test_development_Comparator.py
+unittest_development_Comparator: venv
+	$(PYTHON) buildingspy/tests/test_development_Comparator.py
 
-unittest_examples_dymola:
-	python3 buildingspy/tests/test_examples_dymola.py
+unittest_examples_dymola: venv
+	$(PYTHON) buildingspy/tests/test_examples_dymola.py
 
-unittest_io_outputfile:
-	python3 buildingspy/tests/test_io_outputfile.py
+unittest_io_outputfile: venv
+	$(PYTHON) buildingspy/tests/test_io_outputfile.py
 
-unittest_io_postprocess:
-	python3 buildingspy/tests/test_io_postprocess.py
+unittest_io_postprocess: venv
+	$(PYTHON) buildingspy/tests/test_io_postprocess.py
 
-unittest_simulate_Dymola:
-	python3 buildingspy/tests/test_simulate_Dymola.py
+unittest_simulate_Dymola: venv
+	$(PYTHON) buildingspy/tests/test_simulate_Dymola.py
 
-unittest_simulate_OpenModelica:
-	python3 buildingspy/tests/test_simulate_OpenModelica.py
+unittest_simulate_OpenModelica: venv
+	$(PYTHON) buildingspy/tests/test_simulate_OpenModelica.py
 
-singleTest:
-	python3 buildingspy/tests/test_simulate_OpenModelica.py Test_simulate_Simulator.test_addMethods
+singleTest: venv
+	$(PYTHON) buildingspy/tests/test_simulate_OpenModelica.py Test_simulate_Simulator.test_addMethods
 
-unittest_simulate_Optimica:
-	python3 buildingspy/tests/test_simulate_Optimica.py
+unittest_simulate_Optimica: venv
+	$(PYTHON) buildingspy/tests/test_simulate_Optimica.py
 
-unittest_simulate_Simulator:
-	python3 buildingspy/tests/test_simulate_Simulator.py
+unittest_simulate_Simulator: venv
+	$(PYTHON) buildingspy/tests/test_simulate_Simulator.py
 
-doctest:
-	python3 -m doctest \
+doctest: venv
+	$(PYTHON) -m doctest \
 	buildingspy/fmi/*.py \
 	buildingspy/io/*.py \
 	buildingspy/examples/*.py \
@@ -91,10 +103,10 @@ doctest:
 	@rm -f plot.pdf plot.png roomTemperatures.png dymola.log MyModel.mat dslog.txt package.order \
 	   run_simulate.mos run_translate.mos simulator.log translator.log
 
-dist:	clean doc
+dist:	venv clean doc
 	@# Make sure README.rst are consistent
 	cmp -s README.rst buildingspy/README.rst
-	python3 setup.py sdist bdist_wheel
+	$(PYTHON) setup.py sdist bdist_wheel
 	rm -rf build
 	rm -rf buildingspy.egg-info
 	twine check dist/*
@@ -122,5 +134,8 @@ clean-dist:
 
 clean-doc:
 	(cd $(BPDOC); make clean)
+
+clean-venv:
+	rm -rf $(VENV)
 
 clean: clean-doc clean-dist
