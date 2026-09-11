@@ -78,6 +78,7 @@ class IBPSA(object):
                                 os.path.join(ibpsa_dir, "*.pdf"),
                                 os.path.join(ibpsa_dir, "*.svg"),
                                 os.path.join(ibpsa_dir, "*.pyc"),
+                                os.path.join(ibpsa_dir, ".logger"),
                                 os.path.join(ibpsa_dir, "*~"),
                                 os.path.join(ibpsa_dir, "modelDescription.xml"),
                                 os.path.join(ibpsa_dir, "nohup.out"),
