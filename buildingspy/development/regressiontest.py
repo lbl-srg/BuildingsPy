@@ -3270,7 +3270,7 @@ Advanced.Translation.CompileWith64=2;
 Advanced.Simulation.EfficientMinorEvents=false;
 Advanced.Translation.Log.UnitPropagationFailure=20;
 // Set the pedantic Modelica mode
-Advanced.Modelica.PedanticModelica = {str(self._pedanticModelica).lower()};
+Advanced.Modelica.Pedantic = {str(self._pedanticModelica).lower()};
 orig_Advanced_Generate_VariableDependencies = Advanced.Translation.Generate.VariableDependencies;
 Advanced.Translation.Generate.VariableDependencies = false;
 """)
@@ -3369,8 +3369,8 @@ clearlog();
         model_name = values["model_name"]
         if model_name.startswith("Obsolete.", model_name.find(".") + 1):
             # This model is in IBPSA.Obsolete, or Buildings.Obsolete etc.
-            values["set_non_pedantic"] = "Advanced.Modelica.PedanticModelica = false;\n"
-            values["set_pedantic"] = "Advanced.Modelica.PedanticModelica = true;\n"
+            values["set_non_pedantic"] = "Advanced.Modelica.Pedantic = false;\n"
+            values["set_pedantic"] = "Advanced.Modelica.Pedantic = true;\n"
         else:  # Set to empty string as for non-obsolete models, we don't switch to non-pedantic mode
             values["set_non_pedantic"] = ""
             values["set_pedantic"] = ""
