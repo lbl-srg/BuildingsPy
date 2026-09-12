@@ -3881,6 +3881,7 @@ exit();
                     'status.',
                     'dsmodel.c',
                     'dymosim',
+                    '.logger',
                     'tmp-*',
                     'funnel-comp',
                     'fmi-library',  # Not all of src is excluded as some .mo models link to files from src
