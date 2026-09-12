@@ -3271,8 +3271,8 @@ Advanced.EfficientMinorEvents=false;
 Advanced.Translation.Log.UnitPropagationFailure=20;
 // Set the pedantic Modelica mode
 Advanced.PedanticModelica = {str(self._pedanticModelica).lower()};
-orig_Advanced_GenerateVariableDependencies = Advanced.GenerateVariableDependencies;
-Advanced.GenerateVariableDependencies = false;
+orig_Advanced_Translation_Generate_VariableDependencies = Advanced.Translation.Generate.VariableDependencies;
+Advanced.Translation.Generate.VariableDependencies = false;
 """)
         # Deactivate DDE
         if platform.system() == "Windows":
@@ -3574,7 +3574,7 @@ Modelica.Utilities.Streams.print("        \"result\"  : " + String(iSuc > 0), "{
 """)
         # Reset Advanced flag
         runFil.write("""
-Advanced.GenerateVariableDependencies = orig_Advanced_GenerateVariableDependencies;
+Advanced.Translation.Generate.VariableDependencies = orig_Advanced_Translation_Generate_VariableDependencies;
 exit();
 """)
         runFil.close()
