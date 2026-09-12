@@ -44,7 +44,8 @@ class Test_io_Plotter(unittest.TestCase):
         t = np.arange(0, 1000, 1.0)
         y = copy.copy(t)
         # Shuffle the y vector
-        random.shuffle(y, random.seed(1))
+        random.seed(1)
+        random.shuffle(y)
         (tP, yP) = Plotter.convertToPeriodic(10, t, y)
         # Test whether the time vector is periodic
         for i in range(10):

@@ -18,5 +18,5 @@ See <code>buildingspy/tests/Test_development_refactor_Annex60</code>.
 </p>
 </html>"));
 
-  annotation (uses(Modelica(version="4.0.0")));
+  annotation (uses(Modelica(version="4.1.0")));
 end MyModelicaLibrary;

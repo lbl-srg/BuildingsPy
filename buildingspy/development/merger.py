@@ -50,10 +50,14 @@ class IBPSA(object):
         self._new_library_name = os.path.basename(dest_dir)
 
         # Exclude packages and files
+        # documentation is lower case, this could be from an FMU extraction
         self.set_excluded_directories(["Experimental",
                                        "Obsolete",
                                        ".FMUOutput",
-                                       ".vscode"])
+                                       ".vscode",
+                                       "binaries",
+                                       "documentation"])
+
         self._excluded_files = [os.path.join(ibpsa_dir, "package.mo"),
                                 os.path.join(ibpsa_dir, "dymosim"),
                                 os.path.join(ibpsa_dir, "dymosim.exe"),
@@ -74,7 +78,9 @@ class IBPSA(object):
                                 os.path.join(ibpsa_dir, "*.pdf"),
                                 os.path.join(ibpsa_dir, "*.svg"),
                                 os.path.join(ibpsa_dir, "*.pyc"),
+                                os.path.join(ibpsa_dir, ".logger"),
                                 os.path.join(ibpsa_dir, "*~"),
+                                os.path.join(ibpsa_dir, "modelDescription.xml"),
                                 os.path.join(ibpsa_dir, "nohup.out"),
                                 os.path.join(ibpsa_dir, "funnel_comp", "plot.html"),
                                 os.path.join(ibpsa_dir, "funnel_comp", "**", "*.csv"),
@@ -123,7 +129,7 @@ class IBPSA(object):
                         "Buildings.HeatTransfer.Sources.FixedTemperature"})
             # The merge script updates a few names that have IBPSA in it but
             # that should not be updated. Here, we revert this renaming.
-        #rep[self._src_library_name] = self._new_library_name
+        # rep[self._src_library_name] = self._new_library_name
         rep.update({"{} Conference".format(self._new_library_name):
                     "IBPSA Conference",
                     "2013-{}-Wetter.pdf".format(self._new_library_name):

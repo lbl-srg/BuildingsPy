@@ -1,9 +1,33 @@
 BuildingsPy Changelog
 ---------------------
 
-Version 5.2.0, xxxx
-^^^^^^^^^^^^^^^^^^^
+Version 5.2.1, September 11, 2026
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- In buildingspy/development/regressiontest.py, changed Dymola flags to their new names,
+  such as Advanced.GenerateVariableDependencies to
+  Advanced.Translation.Generate.VariableDependencies.
+- In buildingspy/development/openmodelica_run.template, corrected setting startTime and stopTime.
+  (https://github.com/lbl-srg/BuildingsPy/issues/633)
+- Updated pyfunnel to version 2.0.2 to improve memory use, runtime and comparison for equality.
+  (https://github.com/lbl-srg/BuildingsPy/issues/631)
+- In buildingspy/development/regressiontest.py, corrected escape variable for omc script.
+  (https://github.com/lbl-srg/BuildingsPy/issues/628)
+- In buildingspy/development/regressiontest.py, fixed warning message for FMU statistics
+  to use reporter system for consistent output handling.
+  (https://github.com/lbl-srg/BuildingsPy/issues/626)
+- In buildingspy/development/regressiontest.py, added detection of unit propagation error in Dymola.
+  (https://github.com/lbl-srg/BuildingsPy/issues/620)
+- In buildingspy/development/regressiontest.py, changed MODELICAPATH on Windows to use ';' instead of ':'
+  (https://github.com/lbl-srg/BuildingsPy/issues/609)
+- Updated pyfunnel to version 2.0.1 to fix plotting issues.
+  With this change, Python 2 is no longer supported.
+  (https://github.com/lbl-srg/BuildingsPy/issues/599)
 
+Version 5.2.0, March 14, 2025
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+- Updated pyfunnel requirement to version 1.0.2 to avoid a problem with regular expressions.
+  (https://github.com/lbl-srg/BuildingsPy/issues/594)
 - In buildingspy/simulate/Dymola.py and in buildingspy/development/regressiontest.py,
   switched simulator from dymola to dmc unless a gui window is requested.
   (https://github.com/lbl-srg/BuildingsPy/issues/590)
@@ -13,10 +37,6 @@ Version 5.2.0, xxxx
   (https://github.com/lbl-srg/BuildingsPy/issues/586)
 - In buildingspy/simulate/base_simulator.py, corrected statement for error reporting.
   (https://github.com/lbl-srg/BuildingsPy/issues/583)
-- In buildingspy/development/simulationCompare.py, added option to skip verification of results.
-  The default is set to False and hence this change does not affect the behavior of scripts developed
-  for previous versions.
-  (https://github.com/lbl-srg/BuildingsPy/issues/568)
 - In buildingspy/development/merger.py, added new comment form to allow excluding
   Modelica code for certain libraries.
   (https://github.com/lbl-srg/BuildingsPy/issues/566)

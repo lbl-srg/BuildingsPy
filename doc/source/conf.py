@@ -26,6 +26,7 @@ sys.path.append(os.path.abspath(os.path.join(os.pardir, os.pardir)))
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 #extensions = ['sphinx.ext.autodoc', 'sphinx.ext.pngmath']
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.mathjax']
+toc_object_entries = False
 # mathjax_path is based on http://www.mathjax.org/docs/2.0/start.html
 mathjax_path = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
 
@@ -43,7 +44,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'buildingspy'
-copyright = u'2011-2024, The Regents of the University of California (through Lawrence Berkeley National Laboratory), subject to receipt of any required approvals from U.S. Department of Energy'
+copyright = u'2011-2026, The Regents of the University of California (through Lawrence Berkeley National Laboratory), subject to receipt of any required approvals from U.S. Department of Energy'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

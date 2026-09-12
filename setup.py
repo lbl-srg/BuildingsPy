@@ -1,6 +1,6 @@
 import io
-import platform
 import os
+
 from setuptools import setup
 
 # Python setup file.
@@ -32,30 +32,32 @@ setup(
     keywords="modelica dymola openmodelica mat",
     url="http://simulationresearch.lbl.gov/modelica/",
     python_requires='>=3.8',
+    setup_requires=[
+        'setuptools>=70.0.0',
+        'wheel>=0.37.0',
+    ],
     install_requires=[
-        'gitpython>=3.1.33',
-        'jinja2>=3.1.4',
-        'matplotlib>=3.5',
-        'numpy>=1.21',
-        'scipy>=1.7',
+        'gitpython>=3.1',
+        'jinja2>=3.1.6',
+        'matplotlib>=3.10',
+        'numpy>=2.3',
+        'scipy>=1.16',
         'pytidylib>=0.3.2',
-        'simplejson>=3.16',
-        'six>=1.14',
-        'pyfunnel>=0.3.0',
+        'pyfunnel==2.0.2',
         'PyYAML>=6.0.1',
-        'cerberus>=1.3.4',
+        'cerberus>=1.3.8',
     ],
     packages=[
         MAIN_PACKAGE,
-        'buildingspy/development',
-        'buildingspy/examples',
-        'buildingspy/fmi',
-        'buildingspy/io',
-        'buildingspy/simulate',
-        'buildingspy/thirdParty',
-        'buildingspy/thirdParty.dymat',
-        'buildingspy/thirdParty.dymat.DyMat',
-        'buildingspy/thirdParty.dymat.DyMat.Export',
+        'buildingspy.development',
+        'buildingspy.examples',
+        'buildingspy.fmi',
+        'buildingspy.io',
+        'buildingspy.simulate',
+        'buildingspy.thirdParty',
+        'buildingspy.thirdParty.dymat',
+        'buildingspy.thirdParty.dymat.DyMat',
+        'buildingspy.thirdParty.dymat.DyMat.Export',
     ],
     include_package_data=True,
     classifiers=[

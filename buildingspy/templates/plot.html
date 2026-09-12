@@ -1,282 +1,370 @@
 <html>
-
-<head>
+  <head>
     <meta charset="utf-8" />
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
     <title>$PAGE_TITLE</title>
-    <script src="https://cdn.plot.ly/plotly-1.52.0.min.js"></script>
-    <script src="https://d3js.org/d3-queue.v3.min.js"></script>
-</head>
+    <script src="https://cdn.plot.ly/plotly-3.0.1.min.js" charset="utf-8"></script>
+    <style>
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #myDiv {
+        height: $HEIGHT;
+        width: 100%;
+        min-height: 500px;
+      }
+    </style>
+  </head>
 
-<body>
-    <div id="myDiv" style="height: $HEIGHT; width: 100%;" class="plotly-graph-div"></div>
+  <body>
+    <div id="myDiv" class="plotly-graph-div"></div>
     <script>
-        function make_plot() {
-            var srv_url = 'http://localhost:$SERVER_PORT';
-            var dict_var_info = $DICT_VAR_INFO;
-            var dict_data = {};
-            var avail_groups = [];
-            var queue = d3.queue();
-            Object.keys(dict_var_info).forEach(function (v) {
-                dict_var_info[v].forEach(function (el) {
-                    avail_groups.push(el['group']);
-                });
-                ['reference.csv', 'test.csv', 'errors.csv'].forEach(function (f) {
-                    // All elements of dict_var_info[v] have the same data files.
-                    // We load only once.
-                    var file = [srv_url, dict_var_info[v][0]['dir'], f].join('/');
-                    queue.defer(Plotly.d3.csv, file);
-                });
-            });
-            queue.awaitAll(function (error, csvDataSets) {
-                if (error) throw error;
-                var uniq_groups = [...new Set(avail_groups)];
-                var flag_groups = [];
-                var group_reset;  // used to transform the group array e.g. [1, 3] into continuous array starting from zero i.e. [0, 1]
-                var list_group_var = new Array(uniq_groups.length);  // index = group id, element = array of variable names
-                // csvDataSets is an array of CSV data.
-                Object.keys(dict_var_info).forEach(function (v, idx) {
-                    dict_var_info[v].forEach(function (el) {
-                        group_reset = flag_groups.indexOf(el['group'])
-                        if (group_reset == -1) { group_reset = flag_groups.push(el['group']) - 1; }
-                        (list_group_var[group_reset] = list_group_var[group_reset] || []).push(v);
-                    });
-                    // Process the CSV data.
-                    dict_data[v] = {
-                        ref: processData(csvDataSets[idx * 3]),
-                        test: processData(csvDataSets[idx * 3 + 1]),
-                        err: processData(csvDataSets[idx * 3 + 2]),
-                    };
-                });
-                console.log('GET ALL DATA COMPLETED');
-                plot(dict_data, dict_var_info, list_group_var);
-            });
-        }
-        function processData(allRows) {
-            var x = [], y = [];
-            for (var i = 0; i < allRows.length; i++) {
-                row = allRows[i];
-                x.push(row['x']);
-                y.push(row['y']);
-            }
-            return { x: x, y: y };
-        }
-        function plot(dict_data, dict_var_info, list_group_var) {
-            var nb_groups = list_group_var.length;
-            var plotDiv = document.getElementById("plot");
-            var d3colors = Plotly.d3.scale.category10();
-            var traces = [];
-            var axis_error_idx = 1;
-            var error_y_axis_title = 'error [unit of variable]';
-            var gen_y_axis_title = 'variable';
-            var gen_x_axis_title = 'time [s]';
-            var tickformatstops = [
-                {
-                    'dtickrange': [0, 0.1],
-                    'value': '.2e',
-                },
-                {
-                    'dtickrange': [0.1, 1000],
-                    'value':  '.1f',
-                },
-                {
-                    'dtickrange': [1000, null],
-                    'value':  '.2e',
-                },
-            ];
-            // Dummy traces for legend only.
-            traces.push(
-                {
-                    x: [null],
-                    y: [null],
-                    legendgroup: 99,
-                    showlegend: true,
-                    name: 'Errors (in upper plot)',
-                    mode: 'lines',
-                    line: {
-                        color: 'rgb(211,211,211)',
-                    },
-                    xaxis: 'x' + axis_error_idx,
-                    yaxis: 'y' + axis_error_idx,
-                },
-                {
-                    x: [null],
-                    y: [null],
-                    legendgroup: 99,
-                    showlegend: true,
-                    name: 'Reference data',
-                    mode: 'lines',
-                    line: {
-                        dash: 'dot',
-                        color: 'rgb(211,211,211)',
-                    },
-                    xaxis: 'x' + axis_error_idx,
-                    yaxis: 'y' + axis_error_idx,
-                },
-                {
-                    x: [null],
-                    y: [null],
-                    legendgroup: 99,
-                    showlegend: true,
-                    name: 'Test data',
-                    mode: 'lines',
-                    line: {
-                        color: 'rgb(211,211,211)',
-                    },
-                    xaxis: 'x' + axis_error_idx,
-                    yaxis: 'y' + axis_error_idx,
-                },
-            );
-            // Layout
-            var layout = {
-                title: { text: '$TITLE' },
-                grid: { rows: nb_groups + 1, columns: 1 },
-                legend: {
-                    x: 1.02,
-                    y: 1,
-                }
-            }
-            // error domain
-            var err_plot_height = $ERR_PLOT_HEIGHT;
-            layout['yaxis' + axis_error_idx] = {
-                domain: [1 - err_plot_height, 1],
-                ticks: 'inside',
-                tickformatstops: tickformatstops,
-                showline: true,
-                zeroline: true,
-                title: error_y_axis_title,
-            };
-            layout['xaxis' + axis_error_idx] = {
-                showline: false,
-                zeroline: false,
-                tickformatstops: tickformatstops,
-                showticklabels: false,
-                anchor: 'y' + axis_error_idx,
-            };
-            // ref & test domains
-            var divHeight = parseFloat(document.getElementById('myDiv').style.height).toFixed(2);
-            var spacing = 0.02 * 100 / divHeight;
-            var t_offset = err_plot_height + 2 * spacing;
-            // Data traces and axis.
-            var i = -1;
-            list_group_var.forEach(function (el, group) {
-                el.forEach(function (v, idv) {
-                    i++;
-                    var data = dict_data[v];
-                    var axis_data_idx = group + 2;  // 1 is for error
-                    traces.push(
-                        {
-                            x: data['ref'].x,
-                            y: data['ref'].y,
-                            legendgroup: v + group,
-                            showlegend: false,
-                            hoverlabel: { namelength: -1 },
-                            name: [v, 'ref'].join('_'),
-                            line: {
-                                dash: 'dot',
-                                color: d3colors(i),
-                            },
-                            xaxis: 'x' + axis_data_idx,
-                            yaxis: 'y' + axis_data_idx,
-                        }
-                    );
-                    traces.push(
-                        {
-                            x: data['test'].x,
-                            y: data['test'].y,
-                            legendgroup: v + group,
-                            name: v,
-                            hoverlabel: { namelength: -1 },
-                            line: {
-                                color: d3colors(i),
-                            },
-                            xaxis: 'x' + axis_data_idx,
-                            yaxis: 'y' + axis_data_idx,
-                        }
-                    );
-                    traces.push(
-                        {
-                            x: data['err'].x,
-                            y: data['err'].y,
-                            legendgroup: v + group,
-                            showlegend: false,
-                            hoverlabel: { namelength: -1 },
-                            name: [v, 'error'].join('_'),
-                            line: {
-                                color: d3colors(i),
-                            },
-                            xaxis: 'x' + axis_error_idx,
-                            yaxis: 'y' + axis_error_idx,
-                        }
-                    );
-                    layout['yaxis' + axis_data_idx] = {
-                        domain: getDomain(group, nb_groups, t_offset, 0.0, spacing),
-                        ticks: 'inside',
-                        mirror: 'ticks',
-                        showline: true,
-                        zeroline: false,
-                        title: gen_y_axis_title,
-                        tickformatstops: tickformatstops,
-                    };
-                    layout['xaxis' + axis_data_idx] = {
-                        ticks: 'inside',
-                        showline: true,
-                        showticklabels: false,
-                        mirror: 'ticks',
-                        zeroline: false,
-                        anchor: 'y' + axis_data_idx,
-                        matches: 'x',
-                        tickformatstops: tickformatstops,
-                    };
-                });
-            });
-            layout['xaxis2']['showticklabels'] = true;
-            if (nb_groups > 1) {
-                layout['xaxis2']['side'] = 'top';
-            } else {  // Only onr group: no axis mirroring but add x axis to error plot.
-                layout['xaxis2']['mirror'] = false;
-                layout['yaxis2']['mirror'] = false;
-                layout['xaxis1']['showline'] = true;
-                layout['xaxis1']['showticklabels'] = true;
-            }
-            layout['xaxis' + (nb_groups + 1)]['showticklabels'] = true;
-            layout['xaxis' + (nb_groups + 1)]['title'] = gen_x_axis_title;
-            Plotly.newPlot('myDiv', traces, layout, { responsive: true });
-        }
-        function getDomain(i, n_domain, t_offset = 0.0, b_offset = 0.0, spacing = 0.02) {
-            // From top (i = 0) to bottom (i = n_domain-1).
-            i = n_domain - i - 1;
-            return [
-                b_offset + (1 - b_offset - t_offset) / n_domain * i + (i === 0 ? 0 : spacing / 2),
-                b_offset + (1 - b_offset - t_offset) / n_domain * (i + 1) - (i === (n_domain - 1) ? 0 : spacing / 2)
-            ];
-        }
-        make_plot();
+      // Helper function to parse CSV text into JSON
+      function csvToJson(csvText) {
+        const lines = csvText.split("\n");
+        const headers = lines[0].split(",");
 
-        // Reposition legend when scrolling.
-        let last_known_scroll_position = 0;
-        let ticking = false;
-        function repositionLegend(scroll_pos) {
-            var scrollMaxY = Math.max(document.body.scrollHeight, document.body.offsetHeight, document.documentElement.clientHeight,
-                document.documentElement.scrollHeight, document.documentElement.offsetHeight) - window.innerHeight;
-            var update = {
-                legend: {
-                    x: 1.02,
-                    y: (scrollMaxY - scroll_pos) / scrollMaxY
-                }
-            };
-            Plotly.relayout('myDiv', update);
-        }
-        window.addEventListener('scroll', function (e) {
-            last_known_scroll_position = window.scrollY;
-            if (!ticking) {
-                window.requestAnimationFrame(function () {
-                    repositionLegend(last_known_scroll_position);
-                    ticking = false;
-                });
-                ticking = true;
+        return lines
+          .slice(1)
+          .filter((line) => line.trim() !== "")
+          .map((line) => {
+            const values = line.split(",");
+            const row = {};
+
+            headers.forEach((header, index) => {
+              row[header.trim()] = values[index] ? values[index].trim() : "";
+            });
+
+            return row;
+          });
+      }
+
+      // Simple CSV loading function
+      function loadCSV(url) {
+        return fetch(url)
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`Failed to load ${url}: ${response.status} ${response.statusText}`);
             }
+            return response.text();
+          })
+          .then((text) => csvToJson(text));
+      }
+
+      async function makePlot() {
+        console.log("Starting plot generation");
+        const myDiv = document.getElementById("myDiv");
+        if (!myDiv) {
+          console.error("Plot container not found");
+          return;
+        }
+
+        try {
+          const srv_url = "http://localhost:$SERVER_PORT";
+          const dict_var_info = $DICT_VAR_INFO;
+          const dict_data = {};
+          const avail_groups = [];
+
+          // Show loading indicator
+          myDiv.innerHTML = '<div style="text-align:center;padding-top:100px;">Loading data...</div>';
+
+          // Check if server is accessible first
+          const serverResponse = await fetch(srv_url);
+          if (!serverResponse.ok) {
+            throw new Error(`Server not accessible (status: ${serverResponse.status})`);
+          }
+
+          // Collect all groups and load data sequentially to avoid overwhelming the server
+          const variables = Object.keys(dict_var_info);
+
+          for (const v of variables) {
+            dict_var_info[v].forEach((el) => {
+              avail_groups.push(el["group"]);
+            });
+
+            try {
+              // Load files for this variable sequentially
+              const fileDir = dict_var_info[v][0]["dir"];
+              const baseUrl = [srv_url, fileDir].join("/");
+
+              console.log(`Loading data for variable: ${v} from ${baseUrl}`);
+
+              const [refData, testData, errData] = await Promise.all([
+                loadCSV(`${baseUrl}/reference.csv`),
+                loadCSV(`${baseUrl}/test.csv`),
+                loadCSV(`${baseUrl}/errors.csv`)
+              ]);
+
+              dict_data[v] = {
+                ref: processData(refData),
+                test: processData(testData),
+                err: processData(errData),
+              };
+
+            } catch (error) {
+              console.warn(`Failed to load data for variable ${v}: ${error.message}`);
+              // Continue with other variables instead of failing completely
+            }
+          }
+
+          console.log("Data loaded successfully");
+
+          // Check if we have any data to plot
+          if (Object.keys(dict_data).length === 0) {
+            throw new Error("No data could be loaded for any variables");
+          }
+
+          // Plot the data
+          plot(dict_data, dict_var_info, avail_groups);
+
+        } catch (error) {
+          console.error("Error loading or processing data:", error);
+          let errorMessage = error.message;
+          if (error.message.includes('Failed to fetch') || error.message.includes('ERR_CONNECTION_REFUSED')) {
+            errorMessage = 'Server connection failed. Make sure the Python server is running.';
+          }
+          myDiv.innerHTML = `<div style="text-align:center;padding-top:100px;color:red;">Error: ${errorMessage}</div>`;
+        }
+      }
+
+      function processData(allRows) {
+        const x = [], y = [];
+        for (let i = 0; i < allRows.length; i++) {
+          const row = allRows[i];
+          x.push(row["x"]);
+          y.push(row["y"]);
+        }
+        return { x: x, y: y };
+      }
+
+      function plot(dict_data, dict_var_info, avail_groups) {
+        console.log("Creating plot");
+        
+        // Group variables by their groups
+        const uniq_groups = [...new Set(avail_groups)];
+        const flag_groups = [];
+        const list_group_var = new Array(uniq_groups.length);
+
+        Object.keys(dict_var_info).forEach((v) => {
+          // Only process variables that have data
+          if (!dict_data[v]) return;
+
+          dict_var_info[v].forEach((el) => {
+            let group_reset = flag_groups.indexOf(el["group"]);
+            if (group_reset == -1) {
+              group_reset = flag_groups.push(el["group"]) - 1;
+            }
+            (list_group_var[group_reset] = list_group_var[group_reset] || []).push(v);
+          });
         });
-    </script>
-</body>
 
+        var nb_groups = list_group_var.filter(group => group && group.length > 0).length;
+
+        // Define color palette
+        var colorPalette = [
+          "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
+          "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf",
+        ];
+        var getColor = function (i) {
+          return colorPalette[i % colorPalette.length];
+        };
+
+        var traces = [];
+        var axis_error_idx = 1;
+        var error_y_axis_title = "error [unit of variable]";
+        var gen_y_axis_title = "variable";
+        var gen_x_axis_title = "time [s]";
+        var tickformatstops = [
+          { dtickrange: [0, 0.1], value: ".2e" },
+          { dtickrange: [0.1, 1000], value: ".1f" },
+          { dtickrange: [1000, null], value: ".2e" },
+        ];
+
+        // Dummy traces for legend
+        traces.push(
+          {
+            x: [null], y: [null], legendgroup: 99, showlegend: true,
+            name: "Errors (in upper plot)", mode: "lines",
+            line: { color: "rgb(211,211,211)" },
+            xaxis: "x" + axis_error_idx, yaxis: "y" + axis_error_idx,
+          },
+          {
+            x: [null], y: [null], legendgroup: 99, showlegend: true,
+            name: "Reference data", mode: "lines",
+            line: { dash: "dot", color: "rgb(211,211,211)" },
+            xaxis: "x" + axis_error_idx, yaxis: "y" + axis_error_idx,
+          },
+          {
+            x: [null], y: [null], legendgroup: 99, showlegend: true,
+            name: "Test data", mode: "lines",
+            line: { color: "rgb(211,211,211)" },
+            xaxis: "x" + axis_error_idx, yaxis: "y" + axis_error_idx,
+          },
+        );
+
+        // Layout
+        var layout = {
+          title: { text: "$TITLE" },
+          grid: { rows: nb_groups + 1, columns: 1 },
+          legend: { x: 1.02, y: 1 },
+        };
+
+        // Error domain
+        var err_plot_height = $ERR_PLOT_HEIGHT;
+        layout["yaxis" + axis_error_idx] = {
+          domain: [1 - err_plot_height, 1],
+          ticks: "inside", tickformatstops: tickformatstops,
+          showline: true, zeroline: true, title: error_y_axis_title,
+        };
+        layout["xaxis" + axis_error_idx] = {
+          showline: false, zeroline: false, tickformatstops: tickformatstops,
+          showticklabels: false, anchor: "y" + axis_error_idx,
+        };
+
+        // Calculate domains for data plots
+        var divHeight = parseFloat(myDiv.style.height) || 600;
+        var spacing = (0.02 * 100) / divHeight;
+        var t_offset = err_plot_height + 2 * spacing;
+
+        // Data traces and axes
+        var i = -1;
+        list_group_var.forEach(function (el, group) {
+          if (!el || el.length === 0) return;
+
+          el.forEach(function (v, idv) {
+            var data = dict_data[v];
+            if (!data || !data.ref || !data.test || !data.err) {
+              console.warn(`Skipping variable ${v} due to missing data`);
+              return;
+            }
+
+            i++;
+            var axis_data_idx = group + 2; // 1 is for error
+
+            traces.push({
+              x: data["ref"].x, y: data["ref"].y,
+              legendgroup: v + group, showlegend: false,
+              hoverlabel: { namelength: -1 }, name: [v, "ref"].join("_"),
+              line: { dash: "dot", color: getColor(i) },
+              xaxis: "x" + axis_data_idx, yaxis: "y" + axis_data_idx,
+            });
+
+            traces.push({
+              x: data["test"].x, y: data["test"].y,
+              legendgroup: v + group, name: v,
+              hoverlabel: { namelength: -1 },
+              line: { color: getColor(i) },
+              xaxis: "x" + axis_data_idx, yaxis: "y" + axis_data_idx,
+            });
+
+            traces.push({
+              x: data["err"].x, y: data["err"].y,
+              legendgroup: v + group, showlegend: false,
+              hoverlabel: { namelength: -1 }, name: [v, "error"].join("_"),
+              line: { color: getColor(i) },
+              xaxis: "x" + axis_error_idx, yaxis: "y" + axis_error_idx,
+            });
+
+            layout["yaxis" + axis_data_idx] = {
+              domain: getDomain(group, nb_groups, t_offset, 0.0, spacing),
+              ticks: "inside", mirror: "ticks", showline: true, zeroline: false,
+              title: gen_y_axis_title, tickformatstops: tickformatstops,
+            };
+
+            layout["xaxis" + axis_data_idx] = {
+              ticks: "inside", showline: true, showticklabels: false,
+              mirror: "ticks", zeroline: false, anchor: "y" + axis_data_idx,
+              matches: "x", tickformatstops: tickformatstops,
+            };
+          });
+        });
+
+        // Configure x-axis labels
+        if (nb_groups > 0) {
+          layout["xaxis2"]["showticklabels"] = true;
+          if (nb_groups > 1) {
+            layout["xaxis2"]["side"] = "top";
+          } else {
+            layout["xaxis2"]["mirror"] = false;
+            layout["yaxis2"]["mirror"] = false;
+            layout["xaxis1"]["showline"] = true;
+            layout["xaxis1"]["showticklabels"] = true;
+          }
+          layout["xaxis" + (nb_groups + 1)]["showticklabels"] = true;
+          layout["xaxis" + (nb_groups + 1)]["title"] = gen_x_axis_title;
+        }
+
+        // Create the plot with a callback to handle completion
+        Plotly.newPlot("myDiv", traces, layout, { responsive: true })
+          .then(function() {
+            console.log("Plot rendered successfully");
+            // Force a resize to ensure plot is visible
+            window.dispatchEvent(new Event("resize"));
+          })
+          .catch(function(error) {
+            console.error("Error rendering plot:", error);
+          });
+      }
+
+      function getDomain(i, n_domain, t_offset = 0.0, b_offset = 0.0, spacing = 0.02) {
+        // From top (i = 0) to bottom (i = n_domain-1)
+        i = n_domain - i - 1;
+        return [
+          b_offset + ((1 - b_offset - t_offset) / n_domain) * i + (i === 0 ? 0 : spacing / 2),
+          b_offset + ((1 - b_offset - t_offset) / n_domain) * (i + 1) - (i === n_domain - 1 ? 0 : spacing / 2),
+        ];
+      }
+
+      // Function to check if Plotly is loaded and then make the plot
+      function waitForPlotlyAndMakePlot() {
+        if (typeof Plotly !== "undefined") {
+          // Plotly is available, make the plot
+          makePlot();
+        } else {
+          // Plotly not yet available, check again in 100ms
+          setTimeout(waitForPlotlyAndMakePlot, 100);
+        }
+      }
+
+      // Start the plot process once everything is loaded
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", waitForPlotlyAndMakePlot);
+      } else {
+        // DOM is already loaded, call immediately
+        waitForPlotlyAndMakePlot();
+      }
+
+      // Reposition legend when scrolling
+      let last_known_scroll_position = 0;
+      let ticking = false;
+
+      function repositionLegend(scroll_pos) {
+        var scrollMaxY = Math.max(
+          document.body.scrollHeight, document.body.offsetHeight,
+          document.documentElement.clientHeight, document.documentElement.scrollHeight,
+          document.documentElement.offsetHeight,
+        ) - window.innerHeight;
+
+        var update = {
+          legend: { x: 1.02, y: (scrollMaxY - scroll_pos) / scrollMaxY },
+        };
+
+        Plotly.relayout("myDiv", update);
+      }
+
+      window.addEventListener("scroll", function (e) {
+        last_known_scroll_position = window.scrollY;
+        if (!ticking) {
+          window.requestAnimationFrame(function () {
+            repositionLegend(last_known_scroll_position);
+            ticking = false;
+          });
+          ticking = true;
+        }
+      });
+    </script>
+  </body>
 </html>

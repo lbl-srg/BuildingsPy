@@ -14,8 +14,6 @@ import sys
 import shutil
 import tempfile
 
-from distutils.dir_util import mkpath
-
 
 class Comparator(object):
     """ Class that compares various simulation statistics across tools or branches.
@@ -33,8 +31,6 @@ class Comparator(object):
     :param branches: A list of branches to compare, such as ``['master', 'issueXXX']``.
     :param package: Name of top-level package to compare, such as ``Buildings`` or ``Buildings.Examples``.
     :param repo: Name of repository, such as ``https://github.com/lbl-srg/modelica-buildings``.
-    :param skipVerification: Boolean (default ``False``).
-            If ``True``, unit test results are not verified against reference points.
     :param nPro: Number of threads that are used to run the translations and simulations.
                  Set to ``0`` to use all processors.
     :param tolAbsTim: float (default ``0.1``). Absolute tolerance in time, if exceeded, results will be flagged in summary table.
@@ -55,7 +51,6 @@ class Comparator(object):
        ...   branches=['master'],
        ...   package='Buildings',
        ...   repo='https://github.com/lbl-srg/modelica-buildings',
-       ...   skipVerification = True,
        ...   postCloneCommand=[
        ...      "python",
        ...      "Buildings/Resources/src/ThermalZones/install.py",
@@ -87,7 +82,6 @@ class Comparator(object):
             branches,
             package,
             repo,
-            skipVerification=False,
             nPro=0,
             simulate=True,
             tolAbsTime=0.1,
@@ -99,7 +93,6 @@ class Comparator(object):
         self._branches = branches
         self._package = package
         self._lib_src = repo
-        self._skip_verification = skipVerification
         self._nPro = nPro
         self._tolAbsTime = tolAbsTime
         self._tolRelTime = tolRelTime
@@ -138,8 +131,8 @@ class Comparator(object):
             print(f"*** Running {' '.join(self._postCloneCommand)} in '{working_directory}")
             retArg = subprocess.run(self._postCloneCommand, cwd=working_directory)
             if retArg.returncode != 0:
-                print(
-                    f"*** Error: Command {' '.join(self._postCloneCommand)} in '{working_directory} returned {retArg.returncode}.")
+                print(f"*** Error: Command {' '.join(self._postCloneCommand)
+                                            } in '{working_directory} returned {retArg.returncode}.")
 
     def _clone_repository(self, working_directory):
         '''Clone or copy repository to working directory'''
@@ -180,9 +173,8 @@ class Comparator(object):
         else:
             num_pro = f"-n {self._nPro}"
 
-        ski_ver = f"--skip-verification" if {self._skip_verification} else ""
-
-        command = f"../bin/runUnitTests.py {single_package} {ski_ver} {num_pro} -t {tool} --batch"
+        command = f"{
+            sys.executable} ../bin/runUnitTests.py {single_package} {num_pro} -t {tool} --batch"
         try:
             os.system(command)
         except OSError:
@@ -193,21 +185,26 @@ class Comparator(object):
         '''
         bdg_dir = os.path.join(wor_dir, self._package.split(".")[0])
         os.chdir(bdg_dir)
-        # run unit test
-        self._runUnitTest(case['package'], case['tool'])
-        # copy the log files to current working directory
-        if os.path.exists(bdg_dir):
-            # write commit number to the commit.log file
-            with io.open(os.path.join(bdg_dir, "commit.log"), mode="w") as f:
-                f.write(case['commit'])
-            logFiles = glob.iglob(os.path.join(bdg_dir, "*.log"))
-            desDir = os.path.join(self._cwd, case['tool'], case['branch'])
-            mkpath(desDir)
-            for file in logFiles:
-                shutil.copy2(file, desDir)
-        else:
-            sys.stderr.write(f"Error: For {case['tool']} {case['branch']}, did not find {bdg_dir}.")
-        os.chdir(self._cwd)
+        try:
+            # run unit test
+            self._runUnitTest(case['package'], case['tool'])
+            # copy the log files to current working directory
+            if os.path.exists(bdg_dir):
+                # write commit number to the commit.log file
+                with io.open(os.path.join(bdg_dir, "commit.log"), mode="w") as f:
+                    f.write(case['commit'])
+                logFiles = glob.iglob(os.path.join(bdg_dir, "*.log"))
+                desDir = os.path.join(self._cwd, case['tool'], case['branch'])
+                os.makedirs(desDir, exist_ok=False)
+                for file in logFiles:
+                    shutil.copy2(file, desDir)
+            else:
+                sys.stderr.write(
+                    f"Error: For {
+                        case['tool']} {
+                        case['branch']}, did not find {bdg_dir}.")
+        finally:
+            os.chdir(self._cwd)
 
     @staticmethod
     def _sortSimulationData(case):
@@ -326,9 +323,6 @@ class Comparator(object):
         '''
 
         htmlTableDir = os.path.join(self._cwd, 'results', 'html')
-        mkpath(htmlTableDir)
-        # latexTableDir = os.path.join(self._cwd, 'results', 'latex')
-        # mkpath(latexTableDir)
         for data in dataSet:
             # generate branches comparison tables
             if len(self._branches) > 1:
@@ -857,6 +851,10 @@ class Comparator(object):
             logs.append(temp)
         toolsCompare = list()
         branchesCompare = list()
+
+        # create output directory once; exist_ok=True so re-runs overwrite prior output
+        htmlTableDir = os.path.join(self._cwd, 'results', 'html')
+        os.makedirs(htmlTableDir, exist_ok=True)
 
         # comparison between different branches with same tool
         if len(self._branches) > 1:

@@ -370,5 +370,4 @@ above.
 .. _`BSD License`: http://www.opensource.org/licenses/bsd-license.php
 .. _MATLAB: http://www.mathworks.com/
 .. _SciPy: http://www.scipy.org/
-.. _distutils: http://docs.python.org/library/distutils.html
 .. _ncDataReader2: http://www.j-raedler.de/projects/ncDataReader2

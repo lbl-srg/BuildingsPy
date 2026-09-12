@@ -101,7 +101,7 @@ docker run \
   --rm \
   --workdir="/mnt/shared/${bas_nam}" \
   ${DOCKER_REPONAME}/${IMG_NAME} /bin/bash -c \
-  "export MODELICAPATH=${DOCKER_MODELICAPATH} && \
+  "export OPENMODELICALIBRARY=${DOCKER_MODELICAPATH}:~/.openmodelica/libraries && \
   omc ${arg_lis} && \
   rm -rf spawn-*"
 exit $?
