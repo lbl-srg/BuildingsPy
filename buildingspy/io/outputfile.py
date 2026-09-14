@@ -15,7 +15,7 @@ def get_model_statistics(log_file, simulator):
         With Dymola, a log file with the simulation statistics can
         be written using syntax such as
 
-        >>> Advanced.TranslationInCommandLog := true;  #doctest: +SKIP
+        >>> Advanced.UI.TranslationInCommandLog := true;  #doctest: +SKIP
         >>> simulateModel(...);                        #doctest: +SKIP
         >>> savelog("simulator.log");                  #doctest: +SKIP
 

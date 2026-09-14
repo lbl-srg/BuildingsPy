@@ -173,7 +173,8 @@ class Comparator(object):
         else:
             num_pro = f"-n {self._nPro}"
 
-        command = f"../bin/runUnitTests.py {single_package} {num_pro} -t {tool} --batch"
+        command = f"{
+            sys.executable} ../bin/runUnitTests.py {single_package} {num_pro} -t {tool} --batch"
         try:
             os.system(command)
         except OSError:
@@ -184,21 +185,26 @@ class Comparator(object):
         '''
         bdg_dir = os.path.join(wor_dir, self._package.split(".")[0])
         os.chdir(bdg_dir)
-        # run unit test
-        self._runUnitTest(case['package'], case['tool'])
-        # copy the log files to current working directory
-        if os.path.exists(bdg_dir):
-            # write commit number to the commit.log file
-            with io.open(os.path.join(bdg_dir, "commit.log"), mode="w") as f:
-                f.write(case['commit'])
-            logFiles = glob.iglob(os.path.join(bdg_dir, "*.log"))
-            desDir = os.path.join(self._cwd, case['tool'], case['branch'])
-            os.makedirs(desDir, exist_ok=False)
-            for file in logFiles:
-                shutil.copy2(file, desDir)
-        else:
-            sys.stderr.write(f"Error: For {case['tool']} {case['branch']}, did not find {bdg_dir}.")
-        os.chdir(self._cwd)
+        try:
+            # run unit test
+            self._runUnitTest(case['package'], case['tool'])
+            # copy the log files to current working directory
+            if os.path.exists(bdg_dir):
+                # write commit number to the commit.log file
+                with io.open(os.path.join(bdg_dir, "commit.log"), mode="w") as f:
+                    f.write(case['commit'])
+                logFiles = glob.iglob(os.path.join(bdg_dir, "*.log"))
+                desDir = os.path.join(self._cwd, case['tool'], case['branch'])
+                os.makedirs(desDir, exist_ok=False)
+                for file in logFiles:
+                    shutil.copy2(file, desDir)
+            else:
+                sys.stderr.write(
+                    f"Error: For {
+                        case['tool']} {
+                        case['branch']}, did not find {bdg_dir}.")
+        finally:
+            os.chdir(self._cwd)
 
     @staticmethod
     def _sortSimulationData(case):
@@ -317,7 +323,6 @@ class Comparator(object):
         '''
 
         htmlTableDir = os.path.join(self._cwd, 'results', 'html')
-        os.makedirs(htmlTableDir, exist_ok=False)
         for data in dataSet:
             # generate branches comparison tables
             if len(self._branches) > 1:
@@ -846,6 +851,10 @@ class Comparator(object):
             logs.append(temp)
         toolsCompare = list()
         branchesCompare = list()
+
+        # create output directory once; exist_ok=True so re-runs overwrite prior output
+        htmlTableDir = os.path.join(self._cwd, 'results', 'html')
+        os.makedirs(htmlTableDir, exist_ok=True)
 
         # comparison between different branches with same tool
         if len(self._branches) > 1:

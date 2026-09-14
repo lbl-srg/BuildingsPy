@@ -1,8 +1,13 @@
 BuildingsPy Changelog
 ---------------------
 
-Version 5.2.1, September 10, 2026
+Version 5.2.1, September 11, 2026
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- In buildingspy/development/regressiontest.py, changed Dymola flags to their new names,
+  such as Advanced.GenerateVariableDependencies to
+  Advanced.Translation.Generate.VariableDependencies.
+- In buildingspy/development/openmodelica_run.template, corrected setting startTime and stopTime.
+  (https://github.com/lbl-srg/BuildingsPy/issues/633)
 - Updated pyfunnel to version 2.0.2 to improve memory use, runtime and comparison for equality.
   (https://github.com/lbl-srg/BuildingsPy/issues/631)
 - In buildingspy/development/regressiontest.py, corrected escape variable for omc script.
