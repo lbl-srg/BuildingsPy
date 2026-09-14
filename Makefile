@@ -21,7 +21,7 @@ $(VENV)/bin/activate: requirements.txt
 
 venv: $(VENV)/bin/activate
 
-.PHONY: doc clean venv
+.PHONY: doc clean venv clean-pycache
 
 doc:
 	@echo "*** Verifying that readme file used by git and pip are consistent"
@@ -110,6 +110,7 @@ dist:	venv clean doc
 	$(PYTHON) -m build
 	rm -rf build
 	rm -rf buildingspy.egg-info
+	find buildingspy -type d -name '__pycache__' -exec rm -rf {} + 2>/dev/null
 	$(VENV)/bin/twine check dist/*
 	@echo "Source distribution is in directory dist"
 	@echo "To post to server, run postBuildingsPyToWeb.sh"
@@ -125,13 +126,15 @@ upload: venv
 	cmp -s README.rst buildingspy/README.rst
 	$(VENV)/bin/twine upload --repository buildingspy_production_upload dist/*
 
+clean-pycache:
+	find buildingspy -type d -name '__pycache__' -exec rm -rf {} + 2>/dev/null || true
 
-clean-dist:
+clean-dist: clean-pycache
 	rm -rf build
 	rm -rf buildingspy.egg-info
 	rm -rf buildingspy-*
 	rm -rf dist
-	rm -rf funnel_comp dymola openmodelica __pycache__ comparison-*.log simulator-*.log
+	rm -rf funnel_comp dymola openmodelica comparison-*.log simulator-*.log
 
 clean-doc:
 	(cd $(BPDOC); make clean)

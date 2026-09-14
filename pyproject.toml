@@ -40,18 +40,20 @@ Homepage = "http://simulationresearch.lbl.gov/modelica/"
 
 [tool.setuptools]
 include-package-data = true
-packages = [
-    "buildingspy",
-    "buildingspy.development",
-    "buildingspy.examples",
-    "buildingspy.fmi",
-    "buildingspy.io",
-    "buildingspy.simulate",
-    "buildingspy.thirdParty",
-    "buildingspy.thirdParty.dymat",
-    "buildingspy.thirdParty.dymat.DyMat",
-    "buildingspy.thirdParty.dymat.DyMat.Export",
-]
+
+[tool.setuptools.packages.find]
+namespaces = true
+exclude = ["*.__pycache__"]
+
+[tool.setuptools.package-data]
+"buildingspy" = ["templates/**/*"]
+"buildingspy.tests" = ["MyModelicaLibrary/**/*"]
+"buildingspy.thirdParty.dymat" = ["doc/**/*", "scripts/**/*"]
+
+[tool.setuptools.exclude-package-data]
+"buildingspy.thirdParty" = ["__pycache__/*"]
+"buildingspy.thirdParty.dymat" = ["__pycache__/*"]
+"buildingspy.thirdParty.dymat.DyMat" = ["__pycache__/*"]
 
 [tool.setuptools.dynamic]
 version = {file = "buildingspy/VERSION"}
