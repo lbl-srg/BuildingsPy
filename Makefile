@@ -107,10 +107,10 @@ doctest: venv
 dist:	venv clean doc
 	@# Make sure README.rst are consistent
 	cmp -s README.rst buildingspy/README.rst
-	$(PYTHON) setup.py sdist bdist_wheel
+	$(PYTHON) -m build
 	rm -rf build
 	rm -rf buildingspy.egg-info
-	twine check dist/*
+	$(VENV)/bin/twine check dist/*
 	@echo "Source distribution is in directory dist"
 	@echo "To post to server, run postBuildingsPyToWeb.sh"
 	@echo "To upload to PyPi, run 'twine upload dist/*'"
@@ -118,12 +118,12 @@ dist:	venv clean doc
 upload-test: venv
 	@# Make sure README.rst are consistent
 	cmp -s README.rst buildingspy/README.rst
-	twine upload --verbose --repository buildingspy_test dist/*
+	$(VENV)/bin/twine upload --verbose --repository buildingspy_test dist/*
 
 upload: venv
 	@# Make sure README.rst are consistent
 	cmp -s README.rst buildingspy/README.rst
-	twine upload --repository buildingspy_production_upload dist/*
+	$(VENV)/bin/twine upload --repository buildingspy_production_upload dist/*
 
 
 clean-dist:
