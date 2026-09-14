@@ -115,12 +115,12 @@ dist:	venv clean doc
 	@echo "To post to server, run postBuildingsPyToWeb.sh"
 	@echo "To upload to PyPi, run 'twine upload dist/*'"
 
-upload-test:
+upload-test: venv
 	@# Make sure README.rst are consistent
 	cmp -s README.rst buildingspy/README.rst
 	twine upload --verbose --repository buildingspy_test dist/*
 
-upload:
+upload: venv
 	@# Make sure README.rst are consistent
 	cmp -s README.rst buildingspy/README.rst
 	twine upload --repository buildingspy_production_upload dist/*
