@@ -140,4 +140,4 @@ clean-venv:
 	rm -rf $(VENV)
 	(cd $(BPDOC); make clean-venv)
 
-clean: clean-doc clean-dist clean-venv
+clean: clean-doc clean-dist
