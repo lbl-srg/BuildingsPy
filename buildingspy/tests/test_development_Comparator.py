@@ -17,9 +17,20 @@ class Test_development_Comparator(unittest.TestCase):
         if not pl.Path(path).resolve().is_file():
             raise AssertionError("File does not exist: %s" % str(path))
 
+    def setUp(self):
+        import shutil
+        shutil.rmtree("results", ignore_errors=True)
+        for tool in ['dymola', 'openmodelica']:
+            shutil.rmtree(tool, ignore_errors=True)
+
+    def tearDown(self):
+        import shutil
+        shutil.rmtree("results", ignore_errors=True)
+        for tool in ['dymola', 'openmodelica']:
+            shutil.rmtree(tool, ignore_errors=True)
+
     def test_tools(self):
         import buildingspy.development.simulationCompare as sc
-        import shutil
 
         repo = "https://github.com/ibpsa/modelica-ibpsa"
         tools = ['dymola', 'openmodelica']
@@ -38,9 +49,6 @@ class Test_development_Comparator(unittest.TestCase):
                 "results",
                 "html",
                 "compare_master--dymola-openmodelica.html"))
-        shutil.rmtree("results")
-        for tool in tools:
-            shutil.rmtree(tool)
 
 
 if __name__ == '__main__':

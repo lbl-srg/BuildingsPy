@@ -157,11 +157,18 @@ Modelica package. Expected file '%s'."
 </html>"
 
         # Validate the string
-        document, errors = tidy_document(r"%s%s%s" % (header, body, footer),
-                                         options={'numeric-entities': 1,
-                                                  'output-html': 1,
-                                                  'alt-text': '',
-                                                  'wrap': 72})
+        try:
+            document, errors = tidy_document(r"%s%s%s" % (header, body, footer),
+                                             options={'numeric-entities': 1,
+                                                      'output-html': 1,
+                                                      'alt-text': '',
+                                                      'wrap': 72})
+        except OSError as e:
+            raise OSError(
+                f"{e}\nInstall the native library: "
+                "'sudo apt-get install libtidy-dev' (Ubuntu/Debian) "
+                "or 'brew install tidy-html5' (macOS)."
+            ) from e
         # Write html file.
         if self._writeHTML:
             htmlName = "%s%s" % (moFile[0:-2], "html")

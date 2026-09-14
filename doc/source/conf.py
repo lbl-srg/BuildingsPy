@@ -26,6 +26,7 @@ sys.path.append(os.path.abspath(os.path.join(os.pardir, os.pardir)))
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 #extensions = ['sphinx.ext.autodoc', 'sphinx.ext.pngmath']
 extensions = ['sphinx.ext.autodoc', 'sphinx.ext.mathjax']
+toc_object_entries = False
 # mathjax_path is based on http://www.mathjax.org/docs/2.0/start.html
 mathjax_path = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"
 
