@@ -1,6 +1,10 @@
 BuildingsPy Changelog
 ---------------------
 
+Version 5.2.2, xxx
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- xxx
+
 Version 5.2.1, September 14, 2026
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 - Switched from setup.py to pyproject.toml.
