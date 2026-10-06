@@ -3,7 +3,11 @@ BuildingsPy Changelog
 
 Version 5.2.2, xxx
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-- xxx
+- In buildingspy/development/regressiontest.py, changed the server that displays the funnel
+  comparison results to listen on localhost only, and to use the port 8642 by default
+  instead of a random port. The port can be set with the argument ``port`` of ``report()``
+  or with the environment variable ``BUILDINGSPY_REPORT_PORT``.
+  The plots now also load when the server is accessed through a forwarded port.
 
 Version 5.2.1, September 14, 2026
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -63,7 +63,9 @@
         }
 
         try {
-          const srv_url = "http://localhost:$SERVER_PORT";
+          // Use the origin the page was served from (also valid for blob: URLs created by the report),
+          // so that the plot works when the server is accessed through a forwarded port or a remote host.
+          const srv_url = window.location.origin;
           const dict_var_info = $DICT_VAR_INFO;
           const dict_data = {};
           const avail_groups = [];
