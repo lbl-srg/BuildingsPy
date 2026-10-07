@@ -410,10 +410,45 @@ class Tester(object):
         """
         return os.path.join(self._libHome, 'Resources', 'Scripts', 'BuildingsPy', 'conf.yml')
 
-    def report(self, timeout=600, browser=None, autoraise=True, comp_file=None):
+    def _create_server(self, port=None, **kwargs):
+        """ Return the HTTP server used to display the comparison results.
+
+        :param port: Port to try first, see :func:`report`.
+        :param kwargs: Keyword arguments passed to :class:`pyfunnel.MyHTTPServer`.
+
+        The server only listens on the loopback interface, so that the files
+        of the current directory are not exposed on the network,
+        and it only serves the files listed in ``allowed_paths``.
+        If the port is not available, the next ports are tried,
+        and if none of them is available, a random free port is used.
+        """
+        if port is None:
+            port = int(os.environ.get('BUILDINGSPY_REPORT_PORT', 8642))
+        for p in [*range(port, min(port + 20, 65536)), 0]:
+            try:
+                return pyfunnel.MyHTTPServer(
+                    ('127.0.0.1', p), pyfunnel.CORSRequestHandler, **kwargs)
+            except OSError:
+                # Port in use, or reserved (as with Hyper-V on Windows).
+                if p == 0:
+                    raise
+
+    def report(self, timeout=600, browser=None, autoraise=True, comp_file=None, port=None):
         """Builds and displays HTML report.
 
+        :param timeout: Time in seconds after which the server is shut down.
+        :param browser: Name of the web browser, see :mod:`webbrowser`.
+        :param port: Port of the local server. If ``None``, the value of the
+                     environment variable ``BUILDINGSPY_REPORT_PORT`` is used if set,
+                     otherwise ``8642``.
+                     If this port is not available, the next free port is used.
+
         Serves until timeout (s) or KeyboardInterrupt.
+
+        The server only listens on ``localhost``. To display the report from a
+        remote host, forward the port with SSH, for instance with
+        ``ssh -N -L 8642:localhost:8642 user@remote-host``,
+        and open ``http://localhost:8642/funnel``.
         """
         if self._comp_tool != 'funnel':
             raise ValueError('Report is only available with comp_tool="funnel".')
@@ -425,18 +460,16 @@ class Tester(object):
             template = f.read()
         content = re.sub(r'\$SIMULATOR_LOG', self._comp_log_file, template)
         content = re.sub(r'\$COMP_DIR', self._comp_dir, content)
-        server = pyfunnel.MyHTTPServer(
-            ('',
-             0),
-            pyfunnel.CORSRequestHandler,
+        server = self._create_server(
+            port=port,
             str_html=content,
             url_html='funnel',
-            browse_dir=os.getcwd())
+            browse_dir=os.getcwd(),
+            allowed_paths=[self._comp_log_file, self._comp_dir])
 
         # Pre-build HTML plot file.
         with open(self._PLOT_TEMPLATE, 'r') as f:
-            template = f.read()
-        content = re.sub(r'\$SERVER_PORT', str(server.server_port), template)
+            content = f.read()
         with open(plot_file, 'w') as f:
             f.write(content)
 
@@ -2321,8 +2354,8 @@ class Tester(object):
         content = re.sub(r'\$HEIGHT', '{}%'.format(height), content)
         content = re.sub(r'\$ERR_PLOT_HEIGHT', str(err_plot_height), content)
         # Launch the local server.
-        server = pyfunnel.MyHTTPServer(('', 0), pyfunnel.CORSRequestHandler,
-                                       str_html=content, url_html='funnel')
+        server = self._create_server(str_html=content, url_html='funnel',
+                                     allowed_paths=[self._comp_dir])
         # Start the browser instance.
         server.browse(list_files, browser=browser, timeout=60)
 
