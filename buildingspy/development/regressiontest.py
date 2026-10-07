@@ -40,20 +40,6 @@ from buildingspy.io.outputfile import Reader
 from buildingspy.io.postprocess import Plotter
 
 
-class _HTTPServer(pyfunnel.MyHTTPServer):
-    # On Windows, SO_REUSEADDR allows binding to a port that is already in use,
-    # which would defeat the search for a free port in Tester._create_server.
-    allow_reuse_address = os.name != 'nt'
-
-    def server_close(self):
-        if hasattr(self, 'logger'):
-            super().server_close()
-        else:
-            # Binding failed in the constructor: the server was never started,
-            # so only the socket needs to be closed.
-            self.socket.close()
-
-
 def runSimulation(worDir, cmd):
     """ Run the simulation.
 
@@ -431,7 +417,8 @@ class Tester(object):
         :param kwargs: Keyword arguments passed to :class:`pyfunnel.MyHTTPServer`.
 
         The server only listens on the loopback interface, so that the files
-        of the current directory are not exposed on the network.
+        of the current directory are not exposed on the network,
+        and it only serves the files listed in ``allowed_paths``.
         If the port is not available, the next ports are tried,
         and if none of them is available, a random free port is used.
         """
@@ -439,7 +426,8 @@ class Tester(object):
             port = int(os.environ.get('BUILDINGSPY_REPORT_PORT', 8642))
         for p in [*range(port, min(port + 20, 65536)), 0]:
             try:
-                return _HTTPServer(('127.0.0.1', p), pyfunnel.CORSRequestHandler, **kwargs)
+                return pyfunnel.MyHTTPServer(
+                    ('127.0.0.1', p), pyfunnel.CORSRequestHandler, **kwargs)
             except OSError:
                 # Port in use, or reserved (as with Hyper-V on Windows).
                 if p == 0:
@@ -476,7 +464,8 @@ class Tester(object):
             port=port,
             str_html=content,
             url_html='funnel',
-            browse_dir=os.getcwd())
+            browse_dir=os.getcwd(),
+            allowed_paths=[self._comp_log_file, self._comp_dir])
 
         # Pre-build HTML plot file.
         with open(self._PLOT_TEMPLATE, 'r') as f:
@@ -2365,7 +2354,8 @@ class Tester(object):
         content = re.sub(r'\$HEIGHT', '{}%'.format(height), content)
         content = re.sub(r'\$ERR_PLOT_HEIGHT', str(err_plot_height), content)
         # Launch the local server.
-        server = self._create_server(str_html=content, url_html='funnel')
+        server = self._create_server(str_html=content, url_html='funnel',
+                                     allowed_paths=[self._comp_dir])
         # Start the browser instance.
         server.browse(list_files, browser=browser, timeout=60)
 

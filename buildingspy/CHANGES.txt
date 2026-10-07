@@ -8,6 +8,10 @@ Version 5.2.2, xxx
   instead of a random port. The port can be set with the argument ``port`` of ``report()``
   or with the environment variable ``BUILDINGSPY_REPORT_PORT``.
   The plots now also load when the server is accessed through a forwarded port.
+  The server only serves the files needed by the report, and no longer sends CORS headers,
+  so that other web pages opened in the browser cannot read the files of the current directory.
+- Updated pyfunnel to version 2.1.1, which supports restricting the files served by the
+  local server and correctly closes a server whose port could not be bound.
 
 Version 5.2.1, September 14, 2026
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
