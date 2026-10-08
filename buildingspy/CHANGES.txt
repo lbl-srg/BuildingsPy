@@ -1,6 +1,10 @@
 BuildingsPy Changelog
 ---------------------
 
+Version xxx
+^^^^^^^^^^^
+- xxx
+
 Version 5.2.2, October 8, 2026
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 - Increased urrlib3 from 2.7.0 to 2.8.0 to implement a security patch.
