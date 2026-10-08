@@ -1,8 +1,9 @@
 BuildingsPy Changelog
 ---------------------
 
-Version 5.2.2, xxx
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Version 5.2.2, October 8, 2026
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+- Increased urrlib3 from 2.7.0 to 2.8.0 to implement a security patch.
 - In buildingspy/development/regressiontest.py, changed the server that displays the funnel
   comparison results to listen on localhost only, and to use the port 8642 by default
   instead of a random port. The port can be set with the argument ``port`` of ``report()``
