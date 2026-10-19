@@ -1,9 +1,15 @@
 BuildingsPy Changelog
 ---------------------
 
-Version xxx
-^^^^^^^^^^^
-- xxx
+Version 5.3.0
+^^^^^^^^^^^^^
+- In buildingspy/development/simulationCompare.py, added ``nSim`` parameter to
+  ``Comparator`` to run each model multiple times and report the average,
+  minimum and maximum simulation time.
+  (https://github.com/lbl-srg/BuildingsPy/issues/643)
+- In buildingspy/development/regressiontest.py, changed to always write the
+  comparison log file, even when ``skip_verification=True``.
+  (https://github.com/lbl-srg/BuildingsPy/issues/643)
 
 Version 5.2.2, October 8, 2026
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
