@@ -181,7 +181,8 @@ class Comparator(object):
             num_pro = f"-n {self._nPro}"
 
         skip_ver = "--skip-verification" if self._skip_verification else ""
-        command = f"{sys.executable} ../bin/runUnitTests.py {single_package} {num_pro} -t {tool} --batch {skip_ver}"
+        command = f"{
+            sys.executable} ../bin/runUnitTests.py {single_package} {num_pro} -t {tool} --batch {skip_ver}"
         try:
             os.system(command)
         except OSError:
@@ -433,7 +434,8 @@ class Comparator(object):
         head = '''Model'''
         for i in range(len(log)):
             head = head + r'''&$\bar{t}_{%s}$ in [s]''' % log[i]['label'].replace('_', r'\_')
-            head = head + r'''&$[t_{\min},t_{\max}]_{%s}$ in [s]''' % log[i]['label'].replace('_', r'\_')
+            head = head + \
+                r'''&$[t_{\min},t_{\max}]_{%s}$ in [s]''' % log[i]['label'].replace('_', r'\_')
         head = head + '''&$t_{2}/t_{1}$\\\\'''
         head = head + '''[2.5ex] \\hline''' + os.linesep
         row = ''
@@ -447,9 +449,12 @@ class Comparator(object):
             for j in range(len(log)):
                 temp = temp + '&' + '{\\small ' + \
                     '{:.3f}'.format(ithModel['log'][j]['elapsed_time']) + '}'
-                t_min = ithModel['log'][j].get('elapsed_time_min', ithModel['log'][j]['elapsed_time'])
-                t_max = ithModel['log'][j].get('elapsed_time_max', ithModel['log'][j]['elapsed_time'])
-                temp = temp + '&' + '{\\small [' + '{:.3f}'.format(t_min) + ', ' + '{:.3f}'.format(t_max) + ']}'
+                t_min = ithModel['log'][j].get(
+                    'elapsed_time_min', ithModel['log'][j]['elapsed_time'])
+                t_max = ithModel['log'][j].get(
+                    'elapsed_time_max', ithModel['log'][j]['elapsed_time'])
+                temp = temp + '&' + \
+                    '{\\small [' + '{:.3f}'.format(t_min) + ', ' + '{:.3f}'.format(t_max) + ']}'
             temp = temp + '&' + '{\\small ' + '{:.2f}'.format(ithModel['relTim']) + '}'
             temp = temp + '''\\\\[2.5ex] \\hline''' + os.linesep
             row = row + temp
