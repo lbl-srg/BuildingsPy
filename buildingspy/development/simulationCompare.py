@@ -33,15 +33,18 @@ class Comparator(object):
     :param repo: Name of repository, such as ``https://github.com/lbl-srg/modelica-buildings``.
     :param nPro: Number of threads that are used to run the translations and simulations.
                  Set to ``0`` to use all processors.
+    :param nSim: int (default ``1``). Number of times each model is simulated.
+                 The reported elapsed time is the average over all runs;
+                 the minimum and maximum times are also reported.
+    :param skip_verification: Boolean (default ``False``). If ``True``, unit test results
+                 are not verified against reference points (passes ``--skip-verification``
+                 to ``runUnitTests.py``). Useful when only timing statistics are of interest.
     :param tolAbsTim: float (default ``0.1``). Absolute tolerance in time, if exceeded, results will be flagged in summary table.
     :param tolRelTim: float (default ``0.1``). Relative tolerance in time, if exceeded, results will be flagged in summary table.
     :param postCloneCommand: list. A list of a command and its arguments that is run after cloning the repository. The command is run from
            the root folder inside the repository, e.g., the folder that contains the ``.git`` folder.
 
     This class can be used to compare translation and simulation statistics across tools and branches.
-    Note that only one simulation is done, hence the simulation time can vary from one run to another,
-    and therefore indicates trends rather than exact comparison of computing time.
-
     To run the comparison, type
 
        >>> import os
@@ -84,6 +87,8 @@ class Comparator(object):
             repo,
             nPro=0,
             simulate=True,
+            nSim=1,
+            skip_verification=False,
             tolAbsTime=0.1,
             tolRelTime=0.1,
             postCloneCommand=None):
@@ -94,6 +99,8 @@ class Comparator(object):
         self._package = package
         self._lib_src = repo
         self._nPro = nPro
+        self._nSim = nSim
+        self._skip_verification = skip_verification
         self._tolAbsTime = tolAbsTime
         self._tolRelTime = tolRelTime
         self._generate_tables = True
@@ -173,8 +180,9 @@ class Comparator(object):
         else:
             num_pro = f"-n {self._nPro}"
 
+        skip_ver = "--skip-verification" if self._skip_verification else ""
         command = f"{
-            sys.executable} ../bin/runUnitTests.py {single_package} {num_pro} -t {tool} --batch"
+            sys.executable} ../bin/runUnitTests.py {single_package} {num_pro} -t {tool} --batch {skip_ver}"
         try:
             os.system(command)
         except OSError:
@@ -186,8 +194,19 @@ class Comparator(object):
         bdg_dir = os.path.join(wor_dir, self._package.split(".")[0])
         os.chdir(bdg_dir)
         try:
-            # run unit test
-            self._runUnitTest(case['package'], case['tool'])
+            # run unit test nSim times and collect per-run elapsed times
+            log_file = os.path.join(bdg_dir, f"comparison-{case['tool']}.log")
+            iter_data = []
+            for _ in range(self._nSim):
+                self._runUnitTest(case['package'], case['tool'])
+                if os.path.exists(log_file):
+                    with io.open(log_file, mode="rt", encoding="utf-8-sig") as f:
+                        iter_data.append(json.loads(f.read()))
+            # merge: avg/min/max elapsed_time across runs; all other metrics from first run
+            if iter_data:
+                merged = Comparator._merge_iteration_logs(iter_data)
+                with io.open(log_file, mode="w", encoding="utf-8") as f:
+                    f.write(json.dumps(merged))
             # copy the log files to current working directory
             if os.path.exists(bdg_dir):
                 # write commit number to the commit.log file
@@ -222,6 +241,36 @@ class Comparator(object):
                         "simulation": ele["simulation"]}
                 logs.append(temp)
         return logs
+
+    @staticmethod
+    def _merge_iteration_logs(iter_data):
+        ''' Merge per-iteration simulation logs into one log with avg/min/max elapsed_time.
+
+        :param iter_data: list of parsed JSON logs, one per simulation run.
+        :return: merged log list where each simulation entry has ``elapsed_time`` (average),
+                 ``elapsed_time_min``, and ``elapsed_time_max``; all other fields are taken
+                 from the first run.
+        '''
+        merged = []
+        for entry in iter_data[0]:
+            if "simulation" not in entry:
+                merged.append(entry)
+                continue
+            model = entry["model"]
+            times = []
+            for run in iter_data:
+                for e in run:
+                    if e.get("model") == model and "simulation" in e:
+                        times.append(e["simulation"].get("elapsed_time", 0))
+                        break
+            avg = sum(times) / len(times) if times else 0
+            new_entry = dict(entry)
+            new_entry["simulation"] = dict(entry["simulation"])
+            new_entry["simulation"]["elapsed_time"] = avg
+            new_entry["simulation"]["elapsed_time_min"] = min(times) if times else 0
+            new_entry["simulation"]["elapsed_time_max"] = max(times) if times else 0
+            merged.append(new_entry)
+        return merged
 
     @staticmethod
     def _refactorLogsStructure(logs, tolAbsTime, tolRelTime):
@@ -360,7 +409,7 @@ class Comparator(object):
         except IndexError:  # No flagged model to process.
             return
 
-        totalColumns = 2 + len(log)
+        totalColumns = 2 + len(log) * 2
         begin = \
             r'''\documentclass{article}
 \usepackage[table]{xcolor}
@@ -384,7 +433,9 @@ class Comparator(object):
         # column head
         head = '''Model'''
         for i in range(len(log)):
-            head = head + '''&$t_{%s}$ in [s]''' % log[i]['label'].replace('_', '\\_')
+            head = head + r'''&$\bar{t}_{%s}$ in [s]''' % log[i]['label'].replace('_', r'\_')
+            head = head + \
+                r'''&$[t_{\min},t_{\max}]_{%s}$ in [s]''' % log[i]['label'].replace('_', r'\_')
         head = head + '''&$t_{2}/t_{1}$\\\\'''
         head = head + '''[2.5ex] \\hline''' + os.linesep
         row = ''
@@ -398,6 +449,12 @@ class Comparator(object):
             for j in range(len(log)):
                 temp = temp + '&' + '{\\small ' + \
                     '{:.3f}'.format(ithModel['log'][j]['elapsed_time']) + '}'
+                t_min = ithModel['log'][j].get(
+                    'elapsed_time_min', ithModel['log'][j]['elapsed_time'])
+                t_max = ithModel['log'][j].get(
+                    'elapsed_time_max', ithModel['log'][j]['elapsed_time'])
+                temp = temp + '&' + \
+                    '{\\small [' + '{:.3f}'.format(t_min) + ', ' + '{:.3f}'.format(t_max) + ']}'
             temp = temp + '&' + '{\\small ' + '{:.2f}'.format(ithModel['relTim']) + '}'
             temp = temp + '''\\\\[2.5ex] \\hline''' + os.linesep
             row = row + temp
@@ -588,7 +645,7 @@ class Comparator(object):
         tools_or_branches = "tools" if len(tools) > 1 else "branches"
         fullLabels = tools if tools_or_branches == 'tools' else branches
         numberOfDataSet = len(fullLabels)
-        colWidth = 100 / (3 + numberOfDataSet * 3 + 1)
+        colWidth = 100 / (3 + numberOfDataSet * 4 + 1)
 
         # find the data logs
         tempLogs = data['logs']
@@ -600,7 +657,7 @@ class Comparator(object):
                 <colgroup>
             <col style="width: %.2f%%">
             ''' % (3 * colWidth)
-        for i in range(3 * numberOfDataSet + 1):
+        for i in range(4 * numberOfDataSet + 1):
             temp = '''<col style="width: %.2f%%">''' % colWidth + os.linesep
             colGro = colGro + temp
         colGro = colGro + '''</colgroup>''' + os.linesep
@@ -613,10 +670,11 @@ class Comparator(object):
         for i in range(numberOfDataSet):
             label = fullLabels[i]
             temp = '''
-                <th class="tg-head">%s<br/>-<br/>Elapsed time (s)</td>
+                <th class="tg-head">%s<br/>-<br/>Average simulation time (s)</td>
+                <th class="tg-head">%s<br/>-<br/>[min, max] time (s)</td>
                 <th class="tg-head">%s<br/>-<br/>State events</td>
                 <th class="tg-head">%s<br/>-<br/>Jacobians</td>
-            ''' % (label, label, label)
+            ''' % (label, label, label, label)
             heaGro = heaGro + temp
         heaGro = heaGro + '''<th class="tg-head">t<sub>2</sub>&frasl;t<sub>1</sub></th>''' + os.linesep
         heaGro = heaGro + '''</tr>''' + os.linesep
@@ -710,18 +768,24 @@ class Comparator(object):
             for j in range(numberOfDataSet):
                 variableSet = entry['simulation'][j]['log']
                 elapsed_time = variableSet['elapsed_time']
+                elapsed_time_min = variableSet.get('elapsed_time_min', elapsed_time)
+                elapsed_time_max = variableSet.get('elapsed_time_max', elapsed_time)
                 state_events = variableSet['state_events']
                 jacobians = variableSet['jacobians']
                 flagTemp = {'elapsed_time': elapsed_time,
+                            'elapsed_time_min': elapsed_time_min,
+                            'elapsed_time_max': elapsed_time_max,
                             'state_events': state_events,
                             'jacobians': jacobians,
                             'label': entry['simulation'][j]['label']}
                 temp3.append(flagTemp)
                 temp2 = temp2 + '''
                     <td class="%s">%.4f</td>
+                    <td class="%s">[%.4f, %.4f]</td>
                     <td class="%s">%d</td>
                     <td class="%s">%d</td>
                 ''' % (tgStyle, elapsed_time,
+                       tgStyle, elapsed_time_min, elapsed_time_max,
                        tgStyle, int(state_events),
                        tgStyle, int(jacobians))
             if flag:
@@ -746,11 +810,15 @@ class Comparator(object):
             temp2 = ''
             for j in range(len(model['log'])):
                 oneSet = model['log'][j]
+                t_min = oneSet.get('elapsed_time_min', oneSet['elapsed_time'])
+                t_max = oneSet.get('elapsed_time_max', oneSet['elapsed_time'])
                 temp2 = temp2 + '''
                     <td class="%s">%.4f</td>
+                    <td class="%s">[%.4f, %.4f]</td>
                     <td class="%s">%d</td>
                     <td class="%s">%d</td>
                 ''' % (tgStyle, oneSet['elapsed_time'],
+                       tgStyle, t_min, t_max,
                        tgStyle, int(oneSet['state_events']),
                        tgStyle, int(oneSet['jacobians']))
             modelData = modelData + temp2 + os.linesep
