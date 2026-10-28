@@ -2960,10 +2960,6 @@ class Tester(object):
                                 data['ScriptFile'] +
                                 " is excluded from result test.")
 
-        # Write all results to comparison log file and inform user.
-        with open(self._comp_log_file, 'w', encoding="utf-8-sig") as comp_log:
-            comp_log.write("{}\n".format(json.dumps(self._comp_info, indent=2, sort_keys=True)))
-
         if self._comp_tool == 'funnel':
             s = """Comparison files output by funnel are stored in the directory '{}' of size {:.1f} MB.
 Run 'python -c "import buildingspy.development.regressiontest as t; t.Tester(tool=\\\"{}\\\").report()"'
@@ -4188,12 +4184,12 @@ exit();
             else:
                 self._checkSimulationError(self._simulator_log_file)
 
-            if not self._skip_verification:
-                # For Dymola: store available simulation info into
-                # self._comp_info used for reporting.
-                val = self._run_simulation_info()
-                self._comp_info = json.loads(val)
+            # For Dymola: always store simulation info into
+            # self._comp_info used for reporting and the comparison log.
+            val = self._run_simulation_info()
+            self._comp_info = json.loads(val)
 
+            if not self._skip_verification:
                 r = self._checkReferencePoints(ans)
                 if r != 0:  # In case of comparison error. Comparison warnings are handled
                     if retVal != 0:  # We keep the translation or simulation error code.
@@ -4207,11 +4203,10 @@ exit();
             if retVal == 0:
                 retVal = temp
 
-            if not self._skip_verification or self._rewrite_configuration_file:
-                # For OpenModelica and OPTIMICA: store available translation and simulation info
-                # into self._comp_info used for reporting or for rewriting the configuration file.
-                with open(self._simulator_log_file, 'r', encoding='utf-8-sig') as f:
-                    self._comp_info = json.loads(f.read())
+            # For OpenModelica and OPTIMICA: always store translation and simulation info
+            # into self._comp_info used for reporting and the comparison log.
+            with open(self._simulator_log_file, 'r', encoding='utf-8-sig') as f:
+                self._comp_info = json.loads(f.read())
 
             if not self._skip_verification:
                 r = self._checkReferencePoints(ans='N')
@@ -4220,6 +4215,10 @@ exit();
                         pass
                     else:
                         retVal = 4
+
+        # Write all results to comparison log file.
+        with open(self._comp_log_file, 'w', encoding="utf-8-sig") as comp_log:
+            comp_log.write("{}\n".format(json.dumps(self._comp_info, indent=2, sort_keys=True)))
 
         # Rewrite configuration file.
         if self._rewrite_configuration_file:
