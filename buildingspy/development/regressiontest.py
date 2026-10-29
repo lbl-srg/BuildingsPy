@@ -20,6 +20,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import warnings
 from collections import defaultdict
 from contextlib import contextmanager
 
@@ -208,7 +209,7 @@ class Tester(object):
        <BLANKLINE>
        Execution time = ...
 
-    To run regression tests only for a single package, call :func:`setSinglePackage`
+    To run regression tests only for a single package or model, call :func:`setSingleClass`
     prior to :func:`run`.
 
     *Regression testing using OpenModelica or OPTIMICA*
@@ -788,7 +789,7 @@ class Tester(object):
         return ret.replace(' ', '')
 
     def _remove_duplicate_packages(self, packages):
-        """ Remove duplicate packages in the list of packages.
+        """ Remove duplicate packages or models in the list of packages or models.
 
             For example, if packages = [A.B.C, A.B, A.F], or packages = [A.B, A.B.C, A.F],
             then this function returns [A.B, A.F] because A.B.C is already contained in A.B
@@ -798,7 +799,7 @@ class Tester(object):
         for i in range(len(sor)):
             add = True
             for j in range(len(ret)):
-                if sor[i].startswith(ret[j]):
+                if sor[i] == ret[j] or sor[i].startswith(ret[j] + '.'):
                     # The parent package is already in the list
                     add = False
                     self._reporter.writeWarning(
@@ -808,9 +809,77 @@ class Tester(object):
                 ret.append(sor[i])
         return ret
 
+    def setSingleClass(self, className):
+        """
+        Set the name of one or multiple Modelica class(es) (package or model) to be tested.
+
+        :param className: The name of the class(es) to be tested.
+
+        Calling this method will cause the regression tests to run
+        only for the model or for the examples in the package ``className``, and in
+        all its sub-packages if ``className`` is a package.
+
+        For example:
+
+        * If ``className = IBPSA.Controls.Continuous.Examples.LimPID``,
+          then a test of the ``IBPSA`` library will run only
+          ``IBPSA.Controls.Continuous.Examples.LimPID``.
+        * If ``className = IBPSA.Controls.Continuous.Examples``,
+          then a test of the ``IBPSA`` library will run all examples in
+          ``IBPSA.Controls.Continuous.Examples``.
+        * If ``className = IBPSA.Controls.Continuous.Examples,IBPSA.Controls.Continuous.Validation``,
+          then a test of the ``IBPSA`` library will run all examples in
+          ``IBPSA.Controls.Continuous.Examples`` and in ``IBPSA.Controls.Continuous.Validation``.
+
+        """
+
+        # Create a list of classes, unless className is already a list
+        classes = list()
+        if ',' in className:
+            # First, split classes in case they are of the form Building.{Examples, Fluid}
+            expanded_classes = self.expand_packages(className)
+            classes = [cla.strip() for cla in expanded_classes.split(',')]
+        else:
+            classes.append(className.strip())
+        classes = self._remove_duplicate_packages(classes)
+        # Inform the user that not all tests are run, but don't add to warnings
+        # as this would flag the test to have failed
+        self._reporter.writeOutput(
+            """Regression tests are only run for the following {}:""".format(
+                'class' if len(classes) == 1 else 'classes'))
+        for cla in classes:
+            self._reporter.writeOutput("""  {}""".format(cla))
+        # Remove the top-level package name as the unit test directory does not
+        # contain the name of the library.
+
+        # Set data dictionary as it may have been generated earlier for the whole library.
+        self._data = []
+        self._packages = []
+        for cla in classes:
+            claSep = cla.find('.')
+            claPat = cla[claSep + 1:]
+            claPat = claPat.replace('.', os.sep)
+            self._packages.append(claPat)
+            moDir = os.path.join(self._libHome, claPat)
+            moFil = moDir + '.mo'
+            rooPat = os.path.join(self._libHome, 'Resources', 'Scripts', 'Dymola', claPat)
+            rooPatMos = rooPat + '.mos'
+            # Verify that the directory or .mo file indeed exists
+            if os.path.isdir(moDir):
+                self.setDataDictionary(rooPat)
+            elif os.path.isfile(moFil):
+                self.setDataDictionary(rooPatMos)
+            else:
+                msg = """Requested to test only class '%s', but neither directory
+'%s' nor file '%s' exists.""" % (cla, moDir, moFil)
+                raise ValueError(msg)
+
     def setSinglePackage(self, packageName):
         """
         Set the name of one or multiple Modelica package(s) to be tested.
+
+        .. deprecated:: 5.3.0
+           Use :func:`setSingleClass` instead.
 
         :param packageName: The name of the package(s) to be tested.
 
@@ -828,41 +897,11 @@ class Tester(object):
           ``IBPSA.Controls.Continuous.Examples`` and in ``IBPSA.Controls.Continuous.Validation``.
 
         """
-
-        # Create a list of packages, unless packageName is already a list
-        packages = list()
-        if ',' in packageName:
-            # First, split packages in case they are of the form Building.{Examples, Fluid}
-            expanded_packages = self.expand_packages(packageName)
-            packages = expanded_packages.split(',')
-        else:
-            packages.append(packageName)
-        packages = self._remove_duplicate_packages(packages)
-        # Inform the user that not all tests are run, but don't add to warnings
-        # as this would flag the test to have failed
-        self._reporter.writeOutput(
-            """Regression tests are only run for the following package{}:""".format(
-                '' if len(packages) == 1 else 's'))
-        for pac in packages:
-            self._reporter.writeOutput("""  {}""".format(pac))
-        # Remove the top-level package name as the unit test directory does not
-        # contain the name of the library.
-
-        # Set data dictionary as it may have been generated earlier for the whole library.
-        self._data = []
-        self._packages = []
-        for pac in packages:
-            pacSep = pac.find('.')
-            pacPat = pac[pacSep + 1:]
-            pacPat = pacPat.replace('.', os.sep)
-            self._packages.append(pacPat)
-            rooPat = os.path.join(self._libHome, 'Resources', 'Scripts', 'Dymola', pacPat)
-            # Verify that the directory indeed exists
-            if not os.path.isdir(rooPat):
-                msg = """Requested to test only package '%s', but directory
-'%s' does not exist.""" % (pac, rooPat)
-                raise ValueError(msg)
-            self.setDataDictionary(rooPat)
+        warnings.warn(
+            "setSinglePackage is deprecated and will be removed in a future release. Use setSingleClass instead.",
+            DeprecationWarning,
+            stacklevel=2)
+        self.setSingleClass(packageName)
 
     def writeOpenModelicaResultDictionary(self):
         """ Write in ``Resources/Scripts/OpenModelica/compareVars`` files whose
@@ -1072,7 +1111,11 @@ class Tester(object):
         # can lead to double entries.
         roo_pac = root_package if root_package is not None else os.path.join(
             self._libHome, 'Resources', 'Scripts', 'Dymola')
-        for root, _, files in os.walk(roo_pac):
+        if os.path.isfile(roo_pac):
+            walk_list = [(os.path.dirname(roo_pac), [], [os.path.basename(roo_pac)])]
+        else:
+            walk_list = os.walk(roo_pac)
+        for root, _, files in walk_list:
             for mosFil in files:
                 # Exclude the conversion scripts and also backup copies
                 # which have the extensions .mos~ if they are generated from emacs
@@ -4418,8 +4461,8 @@ exit();
     def getCoverage(self):
         """
         Analyse how many examples are tested.
-        If ``setSinglePackage`` is called before this function,
-        only packages set will be included. Else, the whole library
+        If ``setSingleClass`` is called before this function,
+        only classes set will be included. Else, the whole library
         will be checked.
 
         Returns:
@@ -4435,8 +4478,8 @@ exit();
             >>> ut = Tester(tool='dymola')
             >>> myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
             >>> ut.setLibraryRoot(myMoLib)
-            >>> ut.setSinglePackage('Examples')
-            Regression tests are only run for the following package:
+            >>> ut.setSingleClass('Examples')
+            Regression tests are only run for the following class:
               Examples
             MyModelicaLibrary.Examples.NoSolution: Excluded from simulation. Model excluded from simulation as it has no solution.
             >>> coverage_result = ut.getCoverage()
@@ -4462,13 +4505,20 @@ exit();
         all_examples = []
         for package in packages:
             package_path = os.path.join(self._libHome, package)
-            for dirpath, dirnames, filenames in os.walk(package_path):
-                for filename in filenames:
-                    filepath = os.path.abspath(os.path.join(dirpath, filename))
-                    if any(
-                            xs in filepath for xs in ['Examples', 'Validation']
-                    ) and not filepath.endswith(('package.mo', '.order')):
-                        all_examples.append(filepath)
+            if os.path.isfile(package_path + '.mo'):
+                filepath = os.path.abspath(package_path + '.mo')
+                if any(
+                        xs in filepath for xs in ['Examples', 'Validation']
+                ) and not filepath.endswith(('package.mo', '.order')):
+                    all_examples.append(filepath)
+            else:
+                for dirpath, dirnames, filenames in os.walk(package_path):
+                    for filename in filenames:
+                        filepath = os.path.abspath(os.path.join(dirpath, filename))
+                        if any(
+                                xs in filepath for xs in ['Examples', 'Validation']
+                        ) and not filepath.endswith(('package.mo', '.order')):
+                            all_examples.append(filepath)
 
         n_tested_examples = len(self._data)
         n_examples = len(all_examples)
@@ -4510,8 +4560,8 @@ exit();
             >>> ut = Tester(tool='dymola')
             >>> myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
             >>> ut.setLibraryRoot(myMoLib)
-            >>> ut.setSinglePackage('Examples')
-            Regression tests are only run for the following package:
+            >>> ut.setSingleClass('Examples')
+            Regression tests are only run for the following class:
               Examples
             MyModelicaLibrary.Examples.NoSolution: Excluded from simulation. Model excluded from simulation as it has no solution.
             >>> coverage_result = ut.getCoverage()

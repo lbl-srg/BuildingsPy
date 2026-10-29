@@ -349,12 +349,14 @@ createPlot(id=1, y={"Test.x"});
                     os.remove(f)
             shutil.rmtree(par)
 
-    def _run_regression_test(self, skip_verification):
+    def _run_regression_test(self, skip_verification, single_class=None):
         import buildingspy.development.regressiontest as r
         rt = r.Tester(skip_verification=skip_verification, check_html=False, tool="openmodelica")
         myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
         rt.deleteTemporaryDirectories(True)
         rt.setLibraryRoot(myMoLib)
+        if single_class is not None:
+            rt.setSingleClass(single_class)
         rt.batchMode(True)
         ret_val = rt.run()
         # Check return value to see if test was successful
@@ -369,6 +371,46 @@ createPlot(id=1, y={"Test.x"});
 
     def test_regressiontest_with_verification(self):
         self._run_regression_test(skip_verification=False)
+
+    def test_regressiontest_single_class(self):
+        for single_class in [
+            "MyModelicaLibrary.Examples.BooleanParameters",
+            "MyModelicaLibrary.Examples.BooleanParameters,MyModelicaLibrary.Examples.Constants",
+            "MyModelicaLibrary.Examples.{BooleanParameters,Constants}",
+            "MyModelicaLibrary.Examples.BooleanParameters,MyModelicaLibrary.Examples.FMUs",
+            "MyModelicaLibrary.Examples.FMUs",
+            "MyModelicaLibrary.Examples.FMUs,MyModelicaLibrary.Obsolete.Examples",
+        ]:
+            self._run_regression_test(skip_verification=False, single_class=single_class)
+
+    def test_setSingleClass(self):
+        import buildingspy.development.regressiontest as r
+        myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
+        for class_name, n_tests in [
+            # Single model
+            ("MyModelicaLibrary.Examples.BooleanParameters", 1),
+            # Two models
+            ("MyModelicaLibrary.Examples.BooleanParameters,MyModelicaLibrary.Examples.Constants", 2),
+            ("MyModelicaLibrary.Examples.{BooleanParameters,Constants}", 2),
+            ("MyModelicaLibrary.Examples.FMUs.Gain,MyModelicaLibrary.Examples.FMUs.IntegratorGain", 2),
+            # A model and a class (package)
+            ("MyModelicaLibrary.Examples.BooleanParameters,MyModelicaLibrary.Examples.FMUs", 4),
+            ("MyModelicaLibrary.Examples.FMUs,MyModelicaLibrary.Examples.BooleanParameters", 4),
+            ("MyModelicaLibrary.Examples.BooleanParameters,MyModelicaLibrary.Examples", 7),
+            ("MyModelicaLibrary.Examples,MyModelicaLibrary.Examples.BooleanParameters", 7),
+            # A class (package)
+            ("MyModelicaLibrary.Examples.FMUs", 3),
+            ("MyModelicaLibrary.Examples", 7),
+            # Two classes (packages)
+            ("MyModelicaLibrary.Examples.FMUs,MyModelicaLibrary.Obsolete.Examples", 4),
+            ("MyModelicaLibrary.Examples.FMUs,MyModelicaLibrary.Examples", 7),
+            ("MyModelicaLibrary.Examples,MyModelicaLibrary.Examples.FMUs", 7),
+        ]:
+            rt = r.Tester(check_html=False, tool="openmodelica")
+            rt.setLibraryRoot(myMoLib)
+            rt.include_fmu_tests(True)
+            rt.setSingleClass(class_name)
+            self.assertEqual(n_tests, rt.get_number_of_tests(), f"Failed for {class_name}")
 
 
 if __name__ == '__main__':
