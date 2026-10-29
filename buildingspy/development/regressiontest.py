@@ -860,16 +860,18 @@ class Tester(object):
             claPat = cla[claSep + 1:]
             claPat = claPat.replace('.', os.sep)
             self._packages.append(claPat)
+            moDir = os.path.join(self._libHome, claPat)
+            moFil = moDir + '.mo'
             rooPat = os.path.join(self._libHome, 'Resources', 'Scripts', 'Dymola', claPat)
             rooPatMos = rooPat + '.mos'
-            # Verify that the directory or .mos file indeed exists
-            if os.path.isdir(rooPat):
+            # Verify that the directory or .mo file indeed exists
+            if os.path.isdir(moDir):
                 self.setDataDictionary(rooPat)
-            elif os.path.isfile(rooPatMos):
+            elif os.path.isfile(moFil):
                 self.setDataDictionary(rooPatMos)
             else:
                 msg = """Requested to test only class '%s', but neither directory
-'%s' nor file '%s' exists.""" % (cla, rooPat, rooPatMos)
+'%s' nor file '%s' exists.""" % (cla, moDir, moFil)
                 raise ValueError(msg)
 
     def setSinglePackage(self, packageName):

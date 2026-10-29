@@ -100,7 +100,15 @@ class Test_regressiontest_Tester(unittest.TestCase):
         # Verify that invalid packages raise a ValueError.
         with self.assertWarns(DeprecationWarning):
             self.assertRaises(ValueError, rt.setSinglePackage, "this.package.does.not.exist")
-        self.assertRaises(ValueError, rt.setSingleClass, "this.class.does.not.exist")
+        with self.assertRaises(ValueError) as context:
+            rt.setSingleClass("this.class.does.not.exist")
+        moDir = os.path.abspath(os.path.join(myMoLib, "class", "does", "not", "exist"))
+        moFil = moDir + ".mo"
+        self.assertEqual(
+            str(context.exception),
+            "Requested to test only class 'this.class.does.not.exist', but neither directory\n"
+            f"'{moDir}' nor file '{moFil}' exists."
+        )
 
     def test_setSinglePackage(self):
         import buildingspy.development.regressiontest as r
