@@ -3,6 +3,10 @@ BuildingsPy Changelog
 
 Version 5.3.0
 ^^^^^^^^^^^^^
+- In buildingspy/development/regressiontest.py, fixed a bug that caused a
+  plot window with the result comparison to be opened when regression tests
+  are run in batch mode and reference results differ.
+  (https://github.com/lbl-srg/BuildingsPy/issues/649)
 - In buildingspy/development/regressiontest.py, added ``setSingleClass`` to
   allow running regression tests for single models in addition to packages,
   and deprecated ``setSinglePackage``.
