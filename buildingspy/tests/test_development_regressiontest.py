@@ -417,6 +417,50 @@ class Test_regressiontest_Tester(unittest.TestCase):
         ut.printCoverage(*coverage_result)
         return coverage_result
 
+    def test_checkReferencePoints_batch_mode(self):
+        import shutil
+        from unittest.mock import patch
+        import buildingspy.development.regressiontest as r
+
+        myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
+        y_sim = [{"time": [0.0, 1.0], "p1": [0.0, 0.0], "p2": [2.0, 2.0]}]
+        y_tra = {"simulation": {"numerical Jacobians": "0", "nonlinear": " ", "linear": " "}}
+
+        for comp_tool in ["funnel", "legacy"]:
+            for batch, ans, expect_plot in [
+                (True, "N", False),
+                (True, "-", False),
+                (False, "N", False),
+                (False, "Y", False),
+                (False, "-", True),
+            ]:
+                rt = r.Tester(check_html=False, comp_tool=comp_tool)
+                rt.setLibraryRoot(myMoLib)
+                rt.setSingleClass("MyModelicaLibrary.Examples.BooleanParameters")
+                rt.batchMode(batch)
+                rt._comp_info = [{"model": rt._data[0]["model_name"]}]
+                try:
+                    with patch.object(rt, "_getSimulationResults", return_value=y_sim), \
+                            patch.object(rt, "_getDymolaTranslationStatistics", return_value=y_tra), \
+                            patch.object(rt, "_writeReferenceResults"), \
+                            patch.object(rt, "_funnel_plot") as mock_funnel_plot, \
+                            patch.object(rt, "_legacy_plot") as mock_legacy_plot, \
+                            patch("builtins.input", return_value="n") as mock_input:
+                        rt._checkReferencePoints(ans=ans)
+                        self.assertEqual(
+                            mock_funnel_plot.call_count,
+                            1 if (expect_plot and comp_tool == "funnel") else 0)
+                        self.assertEqual(
+                            mock_legacy_plot.call_count,
+                            1 if (expect_plot and comp_tool == "legacy") else 0)
+                        self.assertEqual(mock_input.call_count, 1 if expect_plot else 0)
+                finally:
+                    if rt._comp_dir and os.path.exists(rt._comp_dir):
+                        shutil.rmtree(rt._comp_dir)
+                    for f in rt.get_unit_test_log_files():
+                        if os.path.exists(f):
+                            os.remove(f)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -2317,40 +2317,33 @@ class Tester(object):
                 newStatistics = self._check_statistics(
                     old_results, y_tra, stage, newTrajectories, newStatistics, model_name)
 
-        if newTrajectories:
-            if self._comp_tool == 'legacy':
-                print("(Close plot window to continue.)")
-                self._legacy_plot(y_sim, t_ref, y_ref, noOldResults, timOfMaxErr, matFilNam)
-            else:
-                self._funnel_plot(model_name)
-
         # If the users selected "Y" or "N" (to not accept or reject any new results) in previous tests,
         # or if the script is run in batch mode, then don't plot the results.
         # If we found an error, plot the results, and ask the user to accept or
         # reject the new values.
         if (newTrajectories or newStatistics) and (not self._batch) and (
                 not ans == "N") and (not ans == "Y"):
+            if newTrajectories:
+                if self._comp_tool == 'legacy':
+                    print("(Close plot window to continue.)")
+                    self._legacy_plot(y_sim, t_ref, y_ref, noOldResults, timOfMaxErr, matFilNam)
+                else:
+                    self._funnel_plot(model_name)
+
             if newTrajectories and newStatistics:
-                print(f"{self._color_ERROR}             For {refFilNam},")
-                print(
-                    f"             update reference files with new {
-                        self._color_BOLD}statistics and trajectories{
-                        self._color_ERROR}?{
-                        self._color_ENDC}")
+                col = self._color_ERROR
+                what = "statistics and trajectories"
             elif newStatistics:
-                print(f"{self._color_WARNING}             For {refFilNam},")
-                print(
-                    f"             update reference files with new {
-                        self._color_BOLD}statistics{
-                        self._color_WARNING}?{
-                        self._color_ENDC}")
+                col = self._color_WARNING
+                what = "statistics"
             else:
-                print(f"{self._color_ERROR}             For {refFilNam},")
-                print(
-                    f"             update reference files with new {
-                        self._color_BOLD}trajectories{
-                        self._color_ERROR}?{
-                        self._color_ENDC}")
+                col = self._color_ERROR
+                what = "trajectories"
+            print(f"{col}             For {refFilNam},")
+            print(
+                f"             update reference files with new {
+                    self._color_BOLD}{what}{col}?{
+                    self._color_ENDC}")
 
             while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
                 ans = input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
