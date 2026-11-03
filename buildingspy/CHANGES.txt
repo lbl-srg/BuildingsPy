@@ -3,6 +3,10 @@ BuildingsPy Changelog
 
 Version 5.3.0
 ^^^^^^^^^^^^^
+- In buildingspy/development/regressiontest.py, added ``setSingleClass`` to
+  allow running regression tests for single models in addition to packages,
+  and deprecated ``setSinglePackage``.
+  (https://github.com/lbl-srg/BuildingsPy/issues/647)
 - In buildingspy/development/simulationCompare.py, added ``nSim`` parameter to
   ``Comparator`` to run each model multiple times and report the average,
   minimum and maximum simulation time.
