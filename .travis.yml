@@ -44,6 +44,7 @@ before_install:
 # Execute tests
 script:
  - omc --version
+ - make check-deps
  - make pep8 PEP8_CORRECT_CODE=true
  - make doctest
  - make unittest_development_error_dictionary
