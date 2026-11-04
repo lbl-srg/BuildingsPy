@@ -293,8 +293,10 @@ class Test_simulate_Simulator(unittest.TestCase):
         s.generateHtmlDiagnostics()
         s.translate()
 
-        self.assertTrue(os.path.exists(resultFile), f"Expected file {
-            resultFile} to exist after translation in test_generateHtmlDiagnostics.")
+        self.assertTrue(
+            os.path.exists(resultFile),
+            f"Expected file {resultFile} to exist after translation "
+            "in test_generateHtmlDiagnostics.")
 
         # Delete output files
         s.deleteOutputFiles()

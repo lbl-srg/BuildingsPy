@@ -138,8 +138,10 @@ class Comparator(object):
             print(f"*** Running {' '.join(self._postCloneCommand)} in '{working_directory}")
             retArg = subprocess.run(self._postCloneCommand, cwd=working_directory)
             if retArg.returncode != 0:
-                print(f"*** Error: Command {' '.join(self._postCloneCommand)
-                                            } in '{working_directory} returned {retArg.returncode}.")
+                print(
+                    f"*** Error: Command {' '.join(self._postCloneCommand)} "
+                    f"in '{working_directory} returned {retArg.returncode}."
+                )
 
     def _clone_repository(self, working_directory):
         '''Clone or copy repository to working directory'''
@@ -181,8 +183,10 @@ class Comparator(object):
             num_pro = f"-n {self._nPro}"
 
         skip_ver = "--skip-verification" if self._skip_verification else ""
-        command = f"{
-            sys.executable} ../bin/runUnitTests.py {single_package} {num_pro} -t {tool} --batch {skip_ver}"
+        command = (
+            f"{sys.executable} ../bin/runUnitTests.py "
+            f"{single_package} {num_pro} -t {tool} --batch {skip_ver}"
+        )
         try:
             os.system(command)
         except OSError:
@@ -219,9 +223,9 @@ class Comparator(object):
                     shutil.copy2(file, desDir)
             else:
                 sys.stderr.write(
-                    f"Error: For {
-                        case['tool']} {
-                        case['branch']}, did not find {bdg_dir}.")
+                    f"Error: For {case['tool']} {case['branch']}, "
+                    f"did not find {bdg_dir}."
+                )
         finally:
             os.chdir(self._cwd)
 

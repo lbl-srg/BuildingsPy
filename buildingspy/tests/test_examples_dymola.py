@@ -26,7 +26,7 @@ class Test_example_dymola_runSimulation(unittest.TestCase):
         import tempfile
         import os
         import shutil
-        import requests
+        import urllib.request
         import zipfile
         from io import BytesIO
 
@@ -35,13 +35,14 @@ class Test_example_dymola_runSimulation(unittest.TestCase):
 
         zip_file_url = "https://github.com/lbl-srg/modelica-buildings/archive/refs/tags/v11.0.0.zip"
 
-        r = requests.get(zip_file_url)
+        with urllib.request.urlopen(zip_file_url) as r:
+            content = r.read()
         # Split URL to get the file name
         zip_file = zip_file_url.split('/')[-1]
         # Writing the file to the local file system
         with open(zip_file, 'wb') as output_file:
-            output_file.write(r.content)
-        z = zipfile.ZipFile(BytesIO(r.content))
+            output_file.write(content)
+        z = zipfile.ZipFile(BytesIO(content))
         z.extractall()
         shutil.move(os.path.join("modelica-buildings-11.0.0", "Buildings"), "Buildings")
         shutil.rmtree("modelica-buildings-11.0.0")

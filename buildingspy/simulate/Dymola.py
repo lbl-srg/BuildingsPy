@@ -294,8 +294,11 @@ simulateModel(modelInstance, startTime={start_time}, stopTime={stop_time}, metho
 # self._copyNewFiles(worDir)
 # self._deleteTemporaryDirectory(worDir)
         except Exception as e:  # Catch all possible exceptions
-            em = f"Simulation failed in '{worDir}'\n   Exception: {
-                e}.\n   You need to delete the directory manually.\n"
+            em = (
+                f"Simulation failed in '{worDir}'\n"
+                f"   Exception: {e}.\n"
+                "   You need to delete the directory manually.\n"
+            )
             self._reporter.writeError(em)
             raise
 

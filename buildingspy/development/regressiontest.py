@@ -1068,8 +1068,10 @@ class Tester(object):
 
             # Set the startTime, if present
             for key in ["startTime", "stopTime"]:
-                regex = fr"simulateModel\(.*({
-                    key})\s*=\s*(?P<value>[-+]?\ *[0-9]+\.?[0-9]*(?:[Ee]\ *-?\ *[-+]?[0-9]+)?)"
+                regex = (
+                    fr"simulateModel\(.*({key})\s*=\s*"
+                    r"(?P<value>[-+]?\ *[0-9]+\.?[0-9]*(?:[Ee]\ *-?\ *[-+]?[0-9]+)?)"
+                )
                 val = re.search(regex, mos_content, re.DOTALL)
                 if val:
                     try:
@@ -1352,8 +1354,9 @@ class Tester(object):
                 f"{os.path.join(self._libHome, '..', model_name.replace('.', os.path.sep))}.mo")
             if not os.path.isfile(mo_name):
                 self._reporter.writeError(
-                    f"{conf_file_name} specifies {
-                        con_dat['model_name']}, but there is no model file {mo_name}.")
+                    f"{conf_file_name} specifies {con_dat['model_name']}, "
+                    f"but there is no model file {mo_name}."
+                )
 
         if self._modelica_tool == 'dymola':
             for ent in self._data:
@@ -1382,8 +1385,10 @@ class Tester(object):
         conf_json = f"{conf_yml[:-4]}.json"
 
         if os.path.exists(conf_json) and os.path.exists(conf_yml):
-            raise ValueError(f"Found {conf_yml} and {
-                conf_json}. Only one must exist. Future versions will only support the .yml file.")
+            raise ValueError(
+                f"Found {conf_yml} and {conf_json}. Only one must exist. "
+                "Future versions will only support the .yml file."
+            )
 
         if os.path.exists(conf_json) or os.path.exists(conf_yml):
             if os.path.exists(conf_yml):
@@ -1444,8 +1449,11 @@ class Tester(object):
                             msg = f"{all_dat['model_name']}: Excluded from simulation."
                         if msg is not None:
                             if 'comment' in all_dat[self._modelica_tool]:
-                                msg = f"{msg} {self._color_GREY}{
-                                    all_dat[self._modelica_tool]['comment']}{self._color_ENDC}"
+                                msg = (
+                                    f"{msg} {self._color_GREY}"
+                                    f"{all_dat[self._modelica_tool]['comment']}"
+                                    f"{self._color_ENDC}"
+                                )
                             self._reporter.writeOutput(msg)
             for all_dat in self._data:
                 # Set simulate to false as well as it can't be simulated
@@ -2162,8 +2170,10 @@ class Tester(object):
             # that are listed in this environment variable
             if 'BUILDINGSPY_SKIP_STATISTICS_VERIFICATION' in os.environ:
                 if model_name in os.environ['BUILDINGSPY_SKIP_STATISTICS_VERIFICATION']:
-                    print(f"Excluding {
-                        model_name} from comparison of initialization statistics and result comparison on Travis CI.")
+                    print(
+                        f"Excluding {model_name} from comparison of "
+                        "initialization statistics and result comparison on Travis CI."
+                    )
                     return False
             return True
 
@@ -2341,9 +2351,9 @@ class Tester(object):
                 what = "trajectories"
             print(f"{col}             For {refFilNam},")
             print(
-                f"             update reference files with new {
-                    self._color_BOLD}{what}{col}?{
-                    self._color_ENDC}")
+                f"             update reference files with new "
+                f"{self._color_BOLD}{what}{col}?{self._color_ENDC}"
+            )
 
             while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
                 ans = input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
@@ -2763,10 +2773,11 @@ class Tester(object):
 
                         all_res.append(res)
                         if not res['translation']['success']:
-                            em = f"Translation of {
-                                res['model']} failed: '{
-                                res['translation']['exception']}'. Directory is '{
-                                res['working_directory']}'."
+                            em = (
+                                f"Translation of {res['model']} failed: "
+                                f"'{res['translation']['exception']}'. "
+                                f"Directory is '{res['working_directory']}'."
+                            )
                             self._reporter.writeError(em)
                             iTra = iTra + 1
                         elif not res['simulation']['success']:
@@ -2790,10 +2801,11 @@ class Tester(object):
 #                                    print("*** Did not simulate {}".format(res['model']))
 #                                    iOmiSim = iOmiSim + 1
                             else:
-                                em = f"Simulation of {
-                                    res['model']} failed: '{
-                                    res['simulation']['exception']}'. Directory is '{
-                                    res['working_directory']}'."
+                                em = (
+                                    f"Simulation of {res['model']} failed: "
+                                    f"'{res['simulation']['exception']}'. "
+                                    f"Directory is '{res['working_directory']}'."
+                                )
                                 self._reporter.writeError(em)
                                 iSim = iSim + 1
 
@@ -3674,10 +3686,9 @@ exit();
 
         # Print number of processors
         print(
-            f"Using {
-                self._nPro} of {
-                multiprocessing.cpu_count()} processors to run unit tests for {
-                self._modelica_tool}.")
+            f"Using {self._nPro} of {multiprocessing.cpu_count()} "
+            f"processors to run unit tests for {self._modelica_tool}."
+        )
 
         # Create temporary directories. This must be called after setNumberOfThreads.
         if not self._useExistingResults:
@@ -3713,8 +3724,10 @@ exit();
             self._write_run_all_script(iPro, tra_data_pro)
 
         if nUniTes == 0:
-            raise RuntimeError(f"Wrong invocation, generated {
-                nUniTes} unit tests. There seem to be no model to translate.")
+            raise RuntimeError(
+                f"Wrong invocation, generated {nUniTes} unit tests. "
+                "There seem to be no model to translate."
+            )
 
         print("Generated {} regression tests.\n".format(nUniTes))
 
@@ -4161,8 +4174,10 @@ exit();
                                                 exception = ''.join(
                                                     jsonBui['simulation']['exception'])
                                             else:
-                                                exception = f"JSONDecodeError in {
-                                                    temLogFilNam}: {str(e)}"
+                                                exception = (
+                                                    f"JSONDecodeError in {temLogFilNam}: "
+                                                    f"{str(e)}"
+                                                )
                                             ele = {
                                                 "model": modelName,
                                                 "simulate": {

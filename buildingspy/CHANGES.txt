@@ -3,6 +3,8 @@ BuildingsPy Changelog
 
 Version 5.3.0
 ^^^^^^^^^^^^^
+- Pinned python versions in installation scripts.
+  (https://github.com/lbl-srg/BuildingsPy/issues/652)
 - In buildingspy/development/regressiontest.py, fixed a bug that caused a
   plot window with the result comparison to be opened when regression tests
   are run in batch mode and reference results differ.
