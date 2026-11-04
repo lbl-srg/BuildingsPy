@@ -94,8 +94,10 @@ class _BaseSimulator(object):
                 found = True
 
         if not found:
-            msg = f"Argument packagePath={
-                packagePath} must be a directory containing either package.mo or package.moe."
+            msg = (
+                f"Argument packagePath={packagePath} "
+                "must be a directory containing either package.mo or package.moe."
+            )
             raise ValueError(msg)
 
         # All the checks have been successfully passed
@@ -443,8 +445,10 @@ class _BaseSimulator(object):
                                                       directory + ".")
                             pro.kill()
                             killedProcess = True
-                    em = f"Process timeout: terminated process as it computed longer than {
-                        str(timeout)} seconds."
+                    em = (
+                        "Process timeout: terminated process as it computed longer than "
+                        f"{str(timeout)} seconds."
+                    )
                     self._reporter.writeError(em)
                     pro.stdout.close()
                     pro.stderr.close()

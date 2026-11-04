@@ -244,8 +244,11 @@ class Simulator(bs._BaseSimulator):
 # self._deleteTemporaryDirectory(worDir)
 
         except Exception as e:  # Catch all possible exceptions
-            em = f"Simulation failed in '{worDir}'\n   Exception: {
-                e}.\n   You need to delete the directory manually.\n"
+            em = (
+                f"Simulation failed in '{worDir}'\n"
+                f"   Exception: {e}.\n"
+                "   You need to delete the directory manually.\n"
+            )
             self._reporter.writeError(em)
             raise e
         os.remove(os.path.join(worDir, "OutputGrabber.py"))
@@ -337,8 +340,10 @@ class Simulator(bs._BaseSimulator):
                     # Check if there was a timeout exception
                     if "exception" in js[step]:
                         if "Process time" in js[step]['exception']:
-                            msg = f"The {step} of {
-                                self.modelName} failed due to timeout. Check {logFil}."
+                            msg = (
+                                f"The {step} of {self.modelName} failed due to timeout. "
+                                f"Check {logFil}."
+                            )
                             self._reporter.writeError(msg)
                             raise TimeoutError(msg)
                     # Raise a runtime error

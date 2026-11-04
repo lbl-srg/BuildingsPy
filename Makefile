@@ -21,7 +21,117 @@ $(VENV)/bin/activate: requirements.txt
 
 venv: $(VENV)/bin/activate
 
-.PHONY: doc clean venv clean-pycache
+.PHONY: doc clean venv clean-pycache check-deps
+
+define CHECK_DEPS_SCRIPT
+import ast
+import pathlib
+import re
+import sys
+
+PINNED_PKG_RE = re.compile(r"^[A-Za-z0-9_.-]+==[A-Za-z0-9_.*+-]+\Z")
+
+
+def load_pyproject(path):
+    try:
+        import tomllib
+        with open(path, "rb") as f:
+            return tomllib.load(f)
+    except ImportError:
+        try:
+            import tomli as tomllib
+            with open(path, "rb") as f:
+                return tomllib.load(f)
+        except ImportError:
+            pass
+    text = path.read_text(encoding="utf-8")
+    data = {"build-system": {}, "project": {"optional-dependencies": {}}}
+    section = None
+    lines = text.splitlines()
+    i = 0
+    while i < len(lines):
+        line = lines[i].strip()
+        if line.startswith("[") and line.endswith("]"):
+            section = line[1:-1].strip()
+            i += 1
+            continue
+        for key, target in [
+            ("requires", ("build-system", "requires")),
+            ("dependencies", ("project", "dependencies")),
+            ("dev", ("project.optional-dependencies", "dev")),
+        ]:
+            if section == target[0] and re.match(rf"^{key}\s*=\s*\[", line):
+                buf = [line.split("=", 1)[1]]
+                while "]" not in buf[-1] and i + 1 < len(lines):
+                    i += 1
+                    buf.append(lines[i])
+                val = ast.literal_eval("\n".join(buf))
+                if target[0] == "project.optional-dependencies":
+                    data["project"]["optional-dependencies"]["dev"] = val
+                else:
+                    data[target[0]][target[1]] = val
+        i += 1
+    return data
+
+
+def read_requirements(path):
+    return [
+        line.strip()
+        for line in path.read_text(encoding="utf-8").splitlines()
+        if line.strip() and not line.strip().startswith("#")
+    ]
+
+
+def check_pinned(req, source):
+    pkg_part = req.split(";", 1)[0].strip()
+    if not PINNED_PKG_RE.match(pkg_part):
+        return [f"{source}: unpinned dependency '{req}' (expected 'package==version')"]
+    return []
+
+
+errors = []
+req_lines = read_requirements(pathlib.Path("requirements.txt"))
+for req in req_lines:
+    errors.extend(check_pinned(req, "requirements.txt"))
+
+doc_req_path = pathlib.Path("doc/requirements.txt")
+if doc_req_path.exists():
+    for req in read_requirements(doc_req_path):
+        errors.extend(check_pinned(req, "doc/requirements.txt"))
+
+pyproject = load_pyproject(pathlib.Path("pyproject.toml"))
+build_reqs = pyproject.get("build-system", {}).get("requires", [])
+core_reqs = pyproject.get("project", {}).get("dependencies", [])
+dev_reqs = pyproject.get("project", {}).get("optional-dependencies", {}).get("dev", [])
+
+for req in build_reqs + core_reqs + dev_reqs:
+    errors.extend(check_pinned(req, "pyproject.toml"))
+
+pyproject_all = set(core_reqs + dev_reqs)
+requirements_all = set(req_lines)
+
+only_in_pyproject = sorted(pyproject_all - requirements_all)
+only_in_requirements = sorted(requirements_all - pyproject_all)
+
+if only_in_pyproject:
+    errors.append(
+        f"In pyproject.toml but missing from requirements.txt: {only_in_pyproject}"
+    )
+if only_in_requirements:
+    errors.append(
+        f"In requirements.txt but missing from pyproject.toml: {only_in_requirements}"
+    )
+
+if errors:
+    for err in errors:
+        print(f"ERROR: {err}", file=sys.stderr)
+    sys.exit(1)
+endef
+export CHECK_DEPS_SCRIPT
+
+check-deps:
+	@echo "*** Checking that dependencies are pinned and consistent"
+	@python3 -c "$$CHECK_DEPS_SCRIPT"
 
 doc:
 	@echo "*** Verifying that readme file used by git and pip are consistent"
@@ -104,7 +214,7 @@ doctest: venv
 	@rm -f plot.pdf plot.png roomTemperatures.png dymola.log MyModel.mat dslog.txt package.order \
 	   run_simulate.mos run_translate.mos simulator.log translator.log
 
-dist:	venv clean doc
+dist:	venv clean doc check-deps
 	@# Make sure README.rst are consistent
 	cmp -s README.rst buildingspy/README.rst
 	$(PYTHON) -m build
