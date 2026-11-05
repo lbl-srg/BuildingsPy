@@ -41,6 +41,8 @@ class Simulator(bs._BaseSimulator):
                             f"{modelNameUnderscore}_buildingspy.json",
                             f"{modelName}_translate.mos",
                             f"{modelName}_info.json",
+                            f"{modelName}_JacA.bin",
+                            f"{modelName}_external_functions.json",
                             f"{modelName}.makefile",
                             f"{modelName}.libs",
                             f"{modelName}_init.xml",
