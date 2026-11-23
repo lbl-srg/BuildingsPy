@@ -461,6 +461,116 @@ class Test_regressiontest_Tester(unittest.TestCase):
                         if os.path.exists(f):
                             os.remove(f)
 
+    def test_reference_mismatch_prints_model_name(self):
+        import io
+        import shutil
+        from contextlib import redirect_stderr, redirect_stdout
+        from unittest.mock import patch
+        import buildingspy.development.regressiontest as r
+
+        myMoLib = os.path.join("buildingspy", "tests", "MyModelicaLibrary")
+        model_name = "MyModelicaLibrary.Examples.BooleanParameters"
+        ref_txt = "MyModelicaLibrary_Examples_BooleanParameters.txt"
+        y_sim = [{"time": [0.0, 1.0], "p1": [0.0, 0.0], "p2": [2.0, 2.0]}]
+        y_tra = {"simulation": {"numerical Jacobians": "0", "nonlinear": " ", "linear": " "}}
+
+        # 1. Trajectory mismatch in batch and interactive modes
+        for comp_tool in ["funnel", "legacy"]:
+            for batch in [True, False]:
+                rt = r.Tester(check_html=False, comp_tool=comp_tool)
+                rt.setLibraryRoot(myMoLib)
+                rt.setSingleClass(model_name)
+                rt.batchMode(batch)
+                rt._comp_info = [{"model": model_name}]
+                out_buf, err_buf = io.StringIO(), io.StringIO()
+                try:
+                    with patch.object(rt, "_getSimulationResults", return_value=y_sim), \
+                            patch.object(rt, "_getDymolaTranslationStatistics", return_value=y_tra), \
+                            patch.object(rt, "_writeReferenceResults"), \
+                            patch.object(rt, "_funnel_plot"), \
+                            patch.object(rt, "_legacy_plot"), \
+                            patch("builtins.input", return_value="n"), \
+                            redirect_stdout(out_buf), \
+                            redirect_stderr(err_buf):
+                        rt._checkReferencePoints(ans="N" if batch else "-")
+                    stdout_val = out_buf.getvalue()
+                    stderr_val = err_buf.getvalue()
+                    with open("unitTests-dymola.log", "r", encoding="utf-8") as log_fil:
+                        log_val = log_fil.read()
+                    self.assertIn(f"{model_name}: Errors during result verification.", stderr_val)
+                    self.assertIn(f"{model_name}: Errors during result verification.", log_val)
+                    self.assertNotIn(ref_txt, stderr_val)
+                    self.assertNotIn(ref_txt, stdout_val)
+                    self.assertNotIn(ref_txt, log_val)
+                    if not batch:
+                        self.assertIn(f"For {model_name},", stdout_val)
+                finally:
+                    if rt._comp_dir and os.path.exists(rt._comp_dir):
+                        shutil.rmtree(rt._comp_dir)
+                    for f in rt.get_unit_test_log_files():
+                        if os.path.exists(f):
+                            os.remove(f)
+
+        # 2. Old reference file has no simulation results
+        rt = r.Tester(check_html=False)
+        rt.setLibraryRoot(myMoLib)
+        rt.setSingleClass(model_name)
+        rt._comp_info = [{"model": model_name}]
+        out_buf, err_buf = io.StringIO(), io.StringIO()
+        try:
+            with patch.object(rt, "_getSimulationResults", return_value=y_sim), \
+                    patch.object(rt, "_getDymolaTranslationStatistics", return_value=y_tra), \
+                    patch.object(rt, "_readReferenceResults", return_value={"results": {}}), \
+                    patch.object(rt, "_writeReferenceResults"), \
+                    patch("builtins.input", return_value="n"), \
+                    redirect_stdout(out_buf), \
+                    redirect_stderr(err_buf):
+                rt._checkReferencePoints(ans="-")
+            stdout_val = out_buf.getvalue()
+            self.assertIn(f"for {model_name}", stdout_val)
+            self.assertNotIn(ref_txt, stdout_val)
+            self.assertNotIn(ref_txt, err_buf.getvalue())
+        finally:
+            if rt._comp_dir and os.path.exists(rt._comp_dir):
+                shutil.rmtree(rt._comp_dir)
+            for f in rt.get_unit_test_log_files():
+                if os.path.exists(f):
+                    os.remove(f)
+
+        # 3. FMU statistics mismatch and missing FMU statistics in reference results
+        fmu_model = "MyModelicaLibrary.Examples.FMUs.Gain"
+        fmu_ref_txt = "MyModelicaLibrary_Examples_FMUs_Gain.txt"
+        dep_diff = {"InitialUnknowns": {}, "Outputs": {}, "Derivatives": {}}
+        for mock_old_dep in [None, {"results": {}}]:
+            rt = r.Tester(check_html=False)
+            rt.setLibraryRoot(myMoLib)
+            rt.setSingleClass(fmu_model)
+            rt._data[0]["ResultDirectory"] = "dummy"
+            out_buf, err_buf = io.StringIO(), io.StringIO()
+            try:
+                read_ctx = (
+                    patch.object(rt, "_readReferenceResults", return_value=mock_old_dep)
+                    if mock_old_dep is not None
+                    else redirect_stdout(out_buf)
+                )
+                with patch("buildingspy.fmi.get_dependencies", return_value=dep_diff), \
+                        read_ctx, \
+                        redirect_stdout(out_buf), \
+                        redirect_stderr(err_buf):
+                    rt._check_fmu_statistics(ans="N")
+                stderr_val = err_buf.getvalue()
+                with open("unitTests-dymola.log", "r", encoding="utf-8") as log_fil:
+                    log_val = log_fil.read()
+                self.assertIn(fmu_model, stderr_val)
+                self.assertIn(fmu_model, log_val)
+                self.assertNotIn(fmu_ref_txt, stderr_val)
+                self.assertNotIn(fmu_ref_txt, out_buf.getvalue())
+                self.assertNotIn(fmu_ref_txt, log_val)
+            finally:
+                for f in rt.get_unit_test_log_files():
+                    if os.path.exists(f):
+                        os.remove(f)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -2128,11 +2128,11 @@ class Tester(object):
 
         return d
 
-    def _askNoReferenceResultsFound(self, yS, refFilNam, ans):
+    def _askNoReferenceResultsFound(self, yS, model_name, ans):
         """ Ask user what to do if no reference data were found
            :param yS: A list where each element is a dictionary of variable names and simulation
                       results that are to be plotted together.
-           :param refFilNam: Name of reference file (used for reporting only).
+           :param model_name: Name of model (used for reporting only).
            :param ans: A previously entered answer, either ``y``, ``Y``, ``n`` or ``N``.
            :return: A triple ``(updateReferenceData, foundError, ans)`` where ``updateReferenceData``
                     and ``foundError`` are booleans, and ``ans`` is ``y``, ``Y``, ``n`` or ``N``.
@@ -2144,7 +2144,7 @@ class Tester(object):
         if len(yS) > 0:
             sys.stdout.write(
                 "*** Warning: The old reference data had no results, but the new simulation produced results\n")
-            sys.stdout.write("             for %s\n" % refFilNam)
+            sys.stdout.write("             for %s\n" % model_name)
             sys.stdout.write("             Accept new results?\n")
             while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
                 ans = input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
@@ -2221,17 +2221,15 @@ class Tester(object):
                 r = True
         return r
 
-    def _compareResults(self, data_idx, oldRefFulFilNam, y_sim, y_tra, refFilNam, ans):
+    def _compareResults(self, data_idx, oldRefFulFilNam, y_sim, y_tra, ans):
         """ Compares the new and the old results.
 
-            :param matFilNam: Matlab file name.
-            :param oldRefFilFilNam: File name including path of old reference files.
+            :param data_idx: Index of the model data in ``self._data``.
+            :param oldRefFulFilNam: File name including path of old reference files.
             :param y_sim: A list where each element is a dictionary of variable names and simulation
                            results that are to be plotted together.
             :param y_tra: A dictionary with the translation statistics.
-            :param refFilNam: Name of the file with reference results (used for reporting only).
             :param ans: A previously entered answer, either ``y``, ``Y``, ``n`` or ``N``.
-            :param model_name: Model name, used for reporting.
             :return: A triple ``(updateReferenceData, foundError, ans)`` where ``updateReferenceData``
                      and ``foundError`` are booleans, and ``ans`` is ``y``, ``Y``, ``n`` or ``N``.
 
@@ -2255,7 +2253,7 @@ class Tester(object):
         y_ref = old_results['results']
 
         if len(y_ref) == 0:
-            return self._askNoReferenceResultsFound(y_sim, refFilNam, ans)
+            return self._askNoReferenceResultsFound(y_sim, model_name, ans)
 
         # The old data contains results
         t_ref = y_ref.get('time')
@@ -2313,7 +2311,7 @@ class Tester(object):
             if len(errors) > 0:
                 self._reporter.writeError(
                     "{}: Errors during result verification.\n           {}".format(
-                        refFilNam, '\n           '.join(errors)))
+                        model_name, '\n           '.join(errors)))
         # Compare the simulation statistics
         # There are these cases:
         # 1. The old reference results have no statistics, in which case new results may be written.
@@ -2349,7 +2347,7 @@ class Tester(object):
             else:
                 col = self._color_ERROR
                 what = "trajectories"
-            print(f"{col}             For {refFilNam},")
+            print(f"{col}             For {model_name},")
             print(
                 f"             update reference files with new "
                 f"{self._color_BOLD}{what}{col}?{self._color_ENDC}"
@@ -2496,6 +2494,7 @@ class Tester(object):
 
     def _compare_and_rewrite_fmu_dependencies(
             self,
+            model_name,
             new_dependencies,
             reference_file_path,
             reference_file_name,
@@ -2505,6 +2504,7 @@ class Tester(object):
             If they do not exist in the reference results, it askes to generate them.
             If they differ from the reference results, it askes whether to accept the new ones.
 
+            :param model_name: Name of the model (used for reporting).
             :param new_dependencies: A dictionary with the new dependencies.
             :param reference_file_path: Path to the file with reference results.
             :param reference_file_name: Name of the file with reference results.
@@ -2542,8 +2542,8 @@ class Tester(object):
             for typ in ['InitialUnknowns', 'Outputs', 'Derivatives']:
                 if old_dep['statistics-fmu-dependencies'][typ] != new_dependencies[typ]:
                     self._reporter.writeWarning(
-                        "Reference file {} has different FMU statistics for '{}'.".format(
-                            reference_file_name, typ))
+                        "{} has different FMU statistics for '{}'.".format(
+                            model_name, typ))
                     found_differences = True
             if found_differences:
                 while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
@@ -2558,7 +2558,8 @@ class Tester(object):
 
         else:
             # The old file has no statistics. Ask to rewrite it.
-            print("*** Warning: Reference file {} has no FMU statistics.".format(reference_file_name))
+            self._reporter.writeWarning(
+                "Reference results for {} have no FMU statistics.".format(model_name))
             while not (ans == "n" or ans == "y" or ans == "Y" or ans == "N"):
                 print("             Rewrite file?")
                 ans = input("             Enter: y(yes), n(no), Y(yes for all), N(no for all): ")
@@ -2606,7 +2607,7 @@ class Tester(object):
                     # Compare it with the stored results, and update the stored results if
                     # needed and requested by the user.
                     [updated_reference_data, ans] = self._compare_and_rewrite_fmu_dependencies(
-                        dep_new, refDir, refFilNam, ans)
+                        data['model_name'], dep_new, refDir, refFilNam, ans)
                     # Reset answer, unless it is set to Y or N
                     if not (ans == "Y" or ans == "N"):
                         ans = "-"
@@ -2949,7 +2950,7 @@ class Tester(object):
                             # print('Found results for ' + oldRefFulFilNam)
                             # Note that y_sim is None if a model was requested to be not simulated.
                             [updateReferenceData, _, ans] = self._compareResults(
-                                data_idx, oldRefFulFilNam, y_sim, y_tra, refFilNam, ans,
+                                data_idx, oldRefFulFilNam, y_sim, y_tra, ans,
                             )
                         else:
                             # Reference file does not exist
@@ -2971,7 +2972,7 @@ class Tester(object):
                                 if not (self._batch or ans == "Y" or ans == "N"):
                                     if t_ref is None:
                                         self._reporter.writeError(
-                                            f"Test case {refFilNam} has no simulation output to compare. You need to add at least one variable to compare.")
+                                            f"Test case {data['model_name']} has no simulation output to compare. You need to add at least one variable to compare.")
                                     else:
                                         self._legacy_plot(y_sim, t_ref, {}, noOldResults, dict(),
                                                           "New results: " + data['ScriptFile'])
