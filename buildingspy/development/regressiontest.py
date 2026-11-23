@@ -2972,7 +2972,8 @@ class Tester(object):
                                 if not (self._batch or ans == "Y" or ans == "N"):
                                     if t_ref is None:
                                         self._reporter.writeError(
-                                            f"Test case {data['model_name']} has no simulation output to compare. You need to add at least one variable to compare.")
+                                            f"Test case {
+                                                data['model_name']} has no simulation output to compare. You need to add at least one variable to compare.")
                                     else:
                                         self._legacy_plot(y_sim, t_ref, {}, noOldResults, dict(),
                                                           "New results: " + data['ScriptFile'])
