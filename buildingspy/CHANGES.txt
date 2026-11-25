@@ -3,6 +3,9 @@ BuildingsPy Changelog
 
 Version 5.3.0
 ^^^^^^^^^^^^^
+- In buildingspy/development/regressiontest.py, changed messages when reference
+  results do not match to print the full model name instead of the ``.txt``
+  reference file name.
 - Pinned python versions in installation scripts.
   (https://github.com/lbl-srg/BuildingsPy/issues/652)
 - In buildingspy/development/regressiontest.py, fixed a bug that caused a
