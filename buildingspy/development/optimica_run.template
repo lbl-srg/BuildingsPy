@@ -234,16 +234,30 @@ def run():
     except OSError:
         pass
 
-    try:
-        ret_dic = process_with_timeout(target=_translate, timeout=time_out)
-        result["translation"] = ret_dic
+    n_translation_retries = 5
+    translation_retry_delay = 1
 
-    except Exception as e:
-        msg = "{}: {}".format(type(e).__name__, str(e))
-        if msg == "RuntimeError: Process timeout":
-            msg = msg + " after {} seconds".format(time_out)
-        result["translation"]["exception"] = msg
-        result["translation"]["traceback"] = traceback.format_exc()
+    for i_try in range(n_translation_retries):
+        try:
+            ret_dic = process_with_timeout(target=_translate, timeout=time_out)
+            result["translation"] = ret_dic
+
+        except Exception as e:
+            msg = "{}: {}".format(type(e).__name__, str(e))
+            if msg == "RuntimeError: Process timeout":
+                msg = msg + " after {} seconds".format(time_out)
+            result["translation"]["exception"] = msg
+            result["translation"]["traceback"] = traceback.format_exc()
+
+        if result["translation"]["success"]:
+            break
+        exception = result["translation"].get("exception", "")
+        if "License checkout timed out" in exception:
+            if i_try < n_translation_retries - 1:
+                import time
+                time.sleep(translation_retry_delay)
+                continue
+        break
 
     # Load model if translation was successful
     if result["translation"]["success"]:

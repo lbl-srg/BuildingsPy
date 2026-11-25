@@ -3,6 +3,10 @@ BuildingsPy Changelog
 
 Version 5.3.0
 ^^^^^^^^^^^^^
+- In buildingspy/development/optimica_run.template, added a retry mechanism
+  that retries the translation up to 5 times with a 1 second delay when the
+  error ``License checkout timed out`` occurs.
+  (https://github.com/lbl-srg/BuildingsPy/issues/658)
 - In buildingspy/development/regressiontest.py, changed messages when reference
   results do not match to print the full model name instead of the ``.txt``
   reference file name.
